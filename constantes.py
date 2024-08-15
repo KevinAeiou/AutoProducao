@@ -1,0 +1,16 @@
+LINK_DATABASE = 'https://bootwarspear-default-rtdb.firebaseio.com/'
+CHAVE_ID_USUARIO = 'eEDku1Rvy7f7vbwJiVW7YMsgkIF2'
+CHAVE_USUARIOS = 'Usuarios'
+CHAVE_LISTA_PERSONAGEM = 'Lista_personagem'
+
+CHAVE_EMAIL = 'email'
+CHAVE_NOME = 'nome'
+CHAVE_SENHA = 'senha'
+CHAVE_ESPACO_PRODUCAO = 'espacoProducao'
+CHAVE_ESTADO = 'estado'
+CHAVE_USO = 'uso'
+
+CHAVE_LISTA_DICIONARIO_PERSONAGEM_RETIRADO = 'listaDicionarioPersonagemRetirado'
+CHAVE_LISTA_DICIONARIO_PERSONAGEM = 'listaDicionarioPersonagem'
+CHAVE_LISTA_DICIONARIO_PERSONAGEM_ATIVO = 'listaDicionarioPersonagemAtivo'
+CHAVE_DICIONARIO_PERSONAGEM_EM_USO = 'dicionarioPersonagemEmUso'
