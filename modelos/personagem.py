@@ -11,8 +11,8 @@ class Personagem:
     def __str__(self) -> str:
         return f'{(self._nome).ljust(20)} | {self._email}'
     
-    def pegaId(selft):
-        return selft._id
+    def pegaId(self):
+        return self._id
 
     def pegaNome(self):
         return self._nome
@@ -31,3 +31,9 @@ class Personagem:
     
     def pegaUso(self):
         return self._uso
+    
+    def ehAtivo(self):
+        return True if self._estado else False
+
+    def alternaUso(self):
+        self._uso = not self._uso
