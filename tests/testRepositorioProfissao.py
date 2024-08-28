@@ -9,6 +9,7 @@ class TestRepositorioProfisssao:
         self.repositorioPersonagem = RepositorioPersonagem()
         self.personagemTeste = self.repositorioPersonagem.pegaTodosPersonagens()[0]
         self.repositorioProfissao = RepositorioProfissao(self.personagemTeste)
+        self.listaProfissoes = self.repositorioProfissao.pegaTodasProfissoes()
 
     def testDeveRetornarListaComNoveProfissoes(self):
         self.listaProfissoes = self.repositorioProfissao.pegaTodasProfissoes()
@@ -25,3 +26,6 @@ class TestRepositorioProfisssao:
         condicao = self.listaProfissoes[0].pegaExperiencia() == 1000
         resultado = 'Sucesso' if condicao else 'Falha'
         print(resultado)
+
+    def testDeveMostrarListadeProfissoesOrdenadaPorExperiencia(self):
+        self.repositorioProfissao.mostraListaProfissoes()

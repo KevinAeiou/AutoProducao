@@ -1023,213 +1023,6 @@ def vaiParaMenuProduzir():
         dicionarioPersonagemAtributos[CHAVE_UNICA_CONEXAO] = False
     return False
 
-def retornaProfissaoPrioridade():
-    if not tamanhoIgualZero(dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO]):
-        for profissao in dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO]:
-            if profissao.pegaPrioridade():
-                return profissao
-        else:
-            print(f'Nenhuma profissão priorizada!')
-    else:
-        print(f'Lista profissões vazia!')
-    return None
-
-def retornaNivelTrabalhoProducao(nivelProfissao):
-    if nivelProfissao == 1:
-        nivelTrabalhoProducao = 1
-    elif nivelProfissao == 8:
-        nivelTrabalhoProducao = 8
-    elif nivelProfissao >= 2 and nivelProfissao < 4:
-        nivelTrabalhoProducao = 10
-    elif nivelProfissao >= 4 and nivelProfissao < 6:
-        nivelTrabalhoProducao = 12
-    elif nivelProfissao >= 6 and nivelProfissao < 8:
-        nivelTrabalhoProducao = 14
-    elif nivelProfissao >= 9 and nivelProfissao < 11:
-        nivelTrabalhoProducao = 16
-    elif nivelProfissao >= 11 and nivelProfissao < 13:
-        nivelTrabalhoProducao = 18
-    elif nivelProfissao >= 13 and nivelProfissao < 15:
-        nivelTrabalhoProducao = 20
-    elif nivelProfissao >= 15 and nivelProfissao < 17:
-        nivelTrabalhoProducao = 22
-    elif nivelProfissao >= 17 and nivelProfissao < 19:
-        nivelTrabalhoProducao = 24
-    elif nivelProfissao >= 19 and nivelProfissao < 21:
-        nivelTrabalhoProducao = 26
-    elif nivelProfissao >= 21 and nivelProfissao < 23:
-        nivelTrabalhoProducao = 28
-    elif nivelProfissao >= 23 and nivelProfissao < 25:
-        nivelTrabalhoProducao = 30
-    elif nivelProfissao >= 25 and nivelProfissao < 27:
-        nivelTrabalhoProducao = 32
-    return nivelTrabalhoProducao
-
-def retornaListaTrabalhoComumNivelEspecifico(profissaoPrioridade, nivelProduzTrabalhoComum):
-    listaTrabalhoComum = []
-    for trabalho in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS]:
-        if textoEhIgual(trabalho.pegaProfissao(), profissaoPrioridade.pegaNome()) and trabalho.pegaNivel() == nivelProduzTrabalhoComum and textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_COMUM):
-            print(trabalho)
-            listaTrabalhoComum.append(trabalho)
-    return listaTrabalhoComum
-
-def defineQuantidadeTrabalhoEstoque(listaTrabalhoComum):
-    for trabalhoComum in listaTrabalhoComum:
-        for trabalhoEstoque in dicionarioPersonagemAtributos[CHAVE_LISTA_ESTOQUE]:
-            if textoEhIgual(trabalhoComum.pegaId(), trabalhoEstoque.pegaTrabalhoId()):
-                trabalhoComum.setQuantidade(trabalhoEstoque.pegaQuantidade())
-                trabalhoEstoque = TrabalhoEstoque(trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaProfissao(), trabalho.pegaNivel(), 0, trabalho.pegaRaridade(), trabalho.pegaId())
-                break
-        else:
-            trabalhoComum[CHAVE_QUANTIDADE] = 0
-    return listaTrabalhoComum
-
-def defineTrabalhoComumProfissaoPriorizada():
-    confirmacao = True
-    global dicionarioPersonagemAtributos
-    print(f'Verifica profissão priorizada!')
-    profissaoPrioridade = retornaProfissaoPrioridade()
-    if variavelExiste(profissaoPrioridade):
-        nivelProfissao, xpMinimo, xpMaximo = retornaNivelXpMinimoMaximo(profissaoPrioridade)
-        xpNecessario = xpMaximo - xpMinimo
-        xpRestante = xpNecessario - (profissaoPrioridade.pegaExperiencia() - xpMinimo)
-        nivelTrabalhoProducao = retornaNivelTrabalhoProducao(nivelProfissao)
-        if nivelTrabalhoProducao != 1 and nivelTrabalhoProducao != 8:
-            listaTrabalhoEstoqueComum = retornaListaTrabalhoComumNivelEspecifico(profissaoPrioridade, nivelTrabalhoProducao)
-            if not tamanhoIgualZero(listaTrabalhoEstoqueComum):
-                listaTrabalhoEstoqueComum = defineQuantidadeTrabalhoEstoque(listaTrabalhoEstoqueComum)
-                listaTrabalhoEstoqueComum, quantidadeTrabalhoProduzirProduzindo = defineSomaQuantidadeTrabalhoEstoqueProduzirProduzindo(listaTrabalhoEstoqueComum)
-                somatorioXpProduzindo = retornaSomatorioXpTrabalhoProduzindo(profissaoPrioridade)
-                xpSuficienteParaEvoluir = xpNecessario - somatorioXpProduzindo >= 0
-                if xpSuficienteParaEvoluir:
-                    quantidadeTrabalhoProduzir = CODIGO_TRABALHO_MAXIMO - quantidadeTrabalhoProduzirProduzindo
-                    if quantidadeTrabalhoProduzindoMenorQueOPermitido(quantidadeTrabalhoProduzir):
-                        listaDicionariosRecursos = defineListaDicionarioRecursos(listaTrabalhoEstoqueComum[0])
-                        listaDicionariosRecursos = multiplicaQuantidadeDeRecursosPorQuantidadeDisponiveis(quantidadeTrabalhoProduzir, listaDicionariosRecursos)
-                        exitemRecursosSuficientes, listaDicionariosRecursos = existemRecursosSuficientesEmEstoque(listaDicionariosRecursos)
-                        if exitemRecursosSuficientes:
-                            listaTrabalhoEstoqueComum = sorted(listaTrabalhoEstoqueComum,key=lambda dicionario:dicionario[CHAVE_QUANTIDADE])
-                            print(f'  Existem recursos suficientes para produzir: {listaTrabalhoEstoqueComum[0][CHAVE_NOME]} - nível: {nivelTrabalhoProducao}.')
-                            for dicionarioTrabalhoComum in listaTrabalhoEstoqueComum:
-                                for atributo in dicionarioTrabalhoComum:
-                                    print(f'  {atributo} - {dicionarioTrabalhoComum[atributo]}.')
-                                 
-                            trabalho = {
-                                CHAVE_NOME:listaTrabalhoEstoqueComum[0][CHAVE_NOME],
-                                CHAVE_NOME_PRODUCAO:listaTrabalhoEstoqueComum[0][CHAVE_NOME_PRODUCAO],
-                                CHAVE_NIVEL:listaTrabalhoEstoqueComum[0][CHAVE_NIVEL],
-                                CHAVE_PROFISSAO:listaTrabalhoEstoqueComum[0][CHAVE_PROFISSAO],
-                                CHAVE_EXPERIENCIA:listaTrabalhoEstoqueComum[0][CHAVE_EXPERIENCIA],
-                                CHAVE_RARIDADE:listaTrabalhoEstoqueComum[0][CHAVE_RARIDADE],
-                                LC.CHAVE_RECORRENCIA:False,
-                                CHAVE_ESTADO:CODIGO_PARA_PRODUZIR,
-                                CHAVE_LICENCA:CHAVE_LICENCA_INICIANTE}
-                            if trabalhoEhProducaoRecursos(trabalho):
-                                trabalho[LC.CHAVE_RECORRENCIA] = True
-                            trabalho = adicionaTrabalhoDesejo(dicionarioPersonagemAtributos, trabalho)
-                            dicionarioPersonagemAtributos[CHAVE_LISTA_DESEJO].append(trabalho)
-                        else:
-                            trabalhoGrandeProducaoRecursos = retornaDicionarioTrabalhoGrandeProducaoRecursos(listaTrabalhoEstoqueComum[0])
-                            if not tamanhoIgualZero(trabalhoGrandeProducaoRecursos):
-                                if not verificaTrabalhoProducaoRecursosListaParaProduzirProduzindo(trabalhoGrandeProducaoRecursos):
-                                    trabalho = adicionaTrabalhoDesejo(dicionarioPersonagemAtributos, trabalhoGrandeProducaoRecursos)
-                                    dicionarioPersonagemAtributos[CHAVE_LISTA_DESEJO].append(trabalho)
-                                if nivelProfissao < 9:
-                                    produzRecursoFaltante(listaDicionariosRecursos)
-                                    print(f'  Existem unidades suficientes sendo produzidas de todos recursos necessários.')
-                                     
-                                confirmacao = False
-                            else:
-                                confirmacao = False
-                                print(f'  Dicionário trabalho produção de recuros não encontrado.')
-                                 
-                    else:
-                        confirmacao = False
-                        print(f'  Quantidade de trabalhos na fila para produzir ou produzindo execede o máximo permitido.')
-                else:
-                    confirmacao = False
-                    print(f'  Experiência trabalhos para produzir e produzindo é suficiente para evoluir nível da profissão.')    
-            else:
-                confirmacao = False
-                print(f'  Lista dicionário trabalho comum profissão: {profissaoPrioridade.pegaNome()}, nível: {nivelTrabalhoProducao}, está vazia!')
-        else:
-            listaTrabalhosProducaoRecursos = []
-            xpRecurso = 3
-            if nivelTrabalhoProducao == 8:
-                xpRecurso = 130
-            for trabalho in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS]:
-                condicoes = trabalho.pegaNivel() == nivelTrabalhoProducao and textoEhIgual(trabalho.pegaProfissao(), profissaoPrioridade.pegaNome()) and trabalho.pegaExperiencia() == xpRecurso
-                if condicoes:
-                    trabalhoProducao = TrabalhoProducao('', trabalho.pegaNome(), trabalho.pegaNomeProducao(), CODIGO_PARA_PRODUZIR, trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), False, CHAVE_LICENCA_APRENDIZ, trabalho.pegaTrabalhoId())
-                    print(trabalhoProducao)
-                    listaTrabalhosProducaoRecursos.append(trabalhoProducao)
-            if not tamanhoIgualZero(listaTrabalhosProducaoRecursos):
-                print(f'Dicionário trabalho para produção de recursos:')
-                quantidadeTrabalhos = xpRestante / listaTrabalhosProducaoRecursos[0].pegaExperiencia()
-                for trabalhoPoducao in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
-                    if trabalhoEhParaProduzir(trabalhoPoducao) or trabalhoEhProduzindo(trabalhoPoducao):
-                        for trabalhoGrandeProducaoRecursos in listaTrabalhosProducaoRecursos:
-                            if textoEhIgual(trabalhoPoducao.pegaNome(), trabalhoGrandeProducaoRecursos.pegaNome()):
-                                quantidadeTrabalhos -= 1
-                if nivelProfissao == 1:
-                    x = 0
-                    while x < quantidadeTrabalhos:
-                        trabalhoProducaoComId = repositorioTrabalhoProducao.adicionaTrabalhoProducao(listaTrabalhosProducaoRecursos[0])
-                        dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO].append(trabalhoProducaoComId)
-                        x += 1
-                elif nivelProfissao == 8:
-                    maximoTralhosProduzirProduzindo = 3
-                    for trabalhoProducaoRecurso in listaTrabalhosProducaoRecursos:
-                        for dicionarioTrabalhoProduzirProduzindo in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
-                            if trabalhoEhParaProduzir(trabalhoPoducao) or trabalhoEhProduzindo(trabalhoPoducao):
-                                if textoEhIgual(trabalhoProducaoRecurso[CHAVE_NOME], dicionarioTrabalhoProduzirProduzindo[CHAVE_NOME]):
-                                    maximoTralhosProduzirProduzindo -= 1
-                    if maximoTralhosProduzirProduzindo > 0:
-                        for dicionarioTrabalhoRecurso in listaTrabalhosProducaoRecursos:
-                            dicionarioTrabalhoRecurso[CHAVE_TIPO] = retornaChaveTipoRecurso(dicionarioTrabalhoRecurso)
-                        listaTrabalhosProducaoRecursos = sorted(listaTrabalhosProducaoRecursos, key = lambda dicionario:dicionario[CHAVE_TIPO], reverse=True)
-                        for trabalhoProducaoRecurso in listaTrabalhosProducaoRecursos:
-                            for dicionarioTrabalhoEstoque in dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIO_ESTOQUE]:
-                                if textoEhIgual(dicionarioTrabalhoEstoque[CHAVE_ID_TRABALHO], trabalhoProducaoRecurso[CHAVE_ID]):
-                                    trabalhoProducaoRecurso[CHAVE_QUANTIDADE] = dicionarioTrabalhoEstoque[CHAVE_QUANTIDADE]
-                                    break
-                            else:
-                                trabalhoProducaoRecurso[CHAVE_QUANTIDADE] = 0
-                        for trabalhoProducaoRecurso in listaTrabalhosProducaoRecursos:
-                            for dicionarioTrabalhoProduzirProduzindo in listaTrabalhosParaProduzirProduzindo:
-                                if textoEhIgual(trabalhoProducaoRecurso[CHAVE_NOME], dicionarioTrabalhoProduzirProduzindo[CHAVE_NOME]):
-                                    quantidadeSendoProduzida = 2
-                                    if textoEhIgual(dicionarioTrabalhoProduzirProduzindo[CHAVE_LICENCA], CHAVE_LICENCA_APRENDIZ):
-                                        quantidadeSendoProduzida = 4
-                                    trabalhoProducaoRecurso[CHAVE_QUANTIDADE] += quantidadeSendoProduzida
-                        for trabalhoProducaoRecurso in listaTrabalhosProducaoRecursos:
-                            print(f'  {trabalhoProducaoRecurso[CHAVE_NOME]} - tipo ({trabalhoProducaoRecurso[CHAVE_TIPO]}) - quantidade ({trabalhoProducaoRecurso[CHAVE_QUANTIDADE]}).')
-                        if listaTrabalhosProducaoRecursos[1][CHAVE_QUANTIDADE] - listaTrabalhosProducaoRecursos[0][CHAVE_QUANTIDADE] >= 0:
-                            dicionarioNovoTrabalho = retornaDicionarioNovoTrabalhoProducao(listaTrabalhosProducaoRecursos[0])
-                            dicionarioNovoTrabalho = adicionaTrabalhoDesejo(dicionarioPersonagemAtributos, dicionarioNovoTrabalho)
-                            dicionarioPersonagemAtributos[CHAVE_LISTA_DESEJO].append(dicionarioNovoTrabalho)
-                        elif (listaTrabalhosProducaoRecursos[1][CHAVE_QUANTIDADE] - listaTrabalhosProducaoRecursos[0][CHAVE_QUANTIDADE] < 0
-                            and listaTrabalhosProducaoRecursos[2][CHAVE_QUANTIDADE] - listaTrabalhosProducaoRecursos[1][CHAVE_QUANTIDADE] >= 0):
-                            dicionarioNovoTrabalho = retornaDicionarioNovoTrabalhoProducao(listaTrabalhosProducaoRecursos[1])
-                            dicionarioNovoTrabalho = adicionaTrabalhoDesejo(dicionarioPersonagemAtributos, dicionarioNovoTrabalho)
-                            dicionarioPersonagemAtributos[CHAVE_LISTA_DESEJO].append(dicionarioNovoTrabalho)
-                        else:
-                            dicionarioNovoTrabalho = retornaDicionarioNovoTrabalhoProducao(listaTrabalhosProducaoRecursos[2])
-                            dicionarioNovoTrabalho = adicionaTrabalhoDesejo(dicionarioPersonagemAtributos, dicionarioNovoTrabalho)
-                            dicionarioPersonagemAtributos[CHAVE_LISTA_DESEJO].append(dicionarioNovoTrabalho)
-                    else:
-                        confirmacao = False
-                        print(f'  O máximo de trabalhos para produzir/produzindo foi atingido!')
-                         
-            else:
-                confirmacao = False
-                print(f'  Dicionário vazio!')
-                 
-    else:
-        confirmacao = False
-        print(f'  Dicionário profissão priorizada vazio!')
-    return confirmacao
-
 def retornaListaDicionariosTrabalhosRarosVendidos(dicionarioUsuario):
     print(f'Definindo lista dicionários produtos raros vendidos...')
     global dicionarioPersonagemAtributos
@@ -1281,10 +1074,8 @@ def defineChaveListaProfissoesNecessarias():
     dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_VERIFICADA] = []
     posicao = 1
     for profissao in dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO]:
-        for trabalhoDesejado in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
-            chaveProfissaoEhIgualEEstadoEhParaProduzir = (
-                textoEhIgual(profissao.pegaNome(), trabalhoDesejado.pegaProfissao()) 
-                and trabalhoEhParaProduzir(trabalhoDesejado))
+        for trabalhoProducaoDesejado in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
+            chaveProfissaoEhIgualEEstadoEhParaProduzir = textoEhIgual(profissao.pegaNome(), trabalhoProducaoDesejado.pegaProfissao()) and trabalhoProducaoDesejado.ehParaProduzir()
             if chaveProfissaoEhIgualEEstadoEhParaProduzir:
                 dicionarioProfissao = {
                     CHAVE_ID:profissao.pegaId(),
@@ -1444,15 +1235,15 @@ def iniciaProcessoBusca():
                 inicializaChavesPersonagem()
                 print('Inicia busca...')
                 if vaiParaMenuProduzir():
-                    while defineTrabalhoComumProfissaoPriorizada():
-                        continue
+                    # while defineTrabalhoComumProfissaoPriorizada():
+                    #     continue
                     listaDicionariosTrabalhosParaProduzirProduzindo = retornaListaTrabalhosParaProduzirProduzindo()
                     if not tamanhoIgualZero(listaDicionariosTrabalhosParaProduzirProduzindo):
                         dicionarioTrabalho = {
                             CHAVE_LISTA_TRABALHOS_PRODUCAO: listaDicionariosTrabalhosParaProduzirProduzindo,
                             CHAVE_DICIONARIO_TRABALHO_DESEJADO: None}
-                        if dicionarioPersonagemAtributos[CHAVE_VERIFICA_TRABALHO]:
-                            verificaProdutosRarosMaisVendidos(None)
+                        # if dicionarioPersonagemAtributos[CHAVE_VERIFICA_TRABALHO]:
+                        #     verificaProdutosRarosMaisVendidos(None)
                         iniciaBuscaTrabalho(dicionarioTrabalho)
     #                 else:
     #                     print(f'Lista de trabalhos desejados vazia.')
@@ -1485,7 +1276,7 @@ def preparaPersonagem():
 
 def testes():
     # testRepositorioPersonagem = TestRepositorioPersonagem()
-    # testRepositorioProfissao = TestRepositorioProfisssao()
+    testRepositorioProfissao = TestRepositorioProfisssao()
     # testRepositorioTrabalho = TestRepositorioTrabalho()
     # testRepositorioVendas = TestRespositorioVendas()
     # testRepositorioEstoque = TestRepositorioEstoque()
@@ -1496,6 +1287,7 @@ def testes():
     # testRepositorioPersonagem.testDeveAlternarChaveEstado()
     # testRepositorioProfissao.testDeveRetornarListaComNoveProfissoes()
     # testRepositorioProfissao.testDeveModificarPrimeiraProfissao()
+    testRepositorioProfissao.testDeveMostrarListadeProfissoesOrdenadaPorExperiencia()
     # testRepositorioTrabalho.testDeveRetornarListaComMaisDeZeroItens()
     # testRepositorioVendas.testDeveLimparListaVenda()
     # testRepositorioVendas.testDeveAdicionarNovaVendaALista()
@@ -1505,7 +1297,7 @@ def testes():
     # testRepositorioEstoque.testDeveAdicionarItemAoEstoque()
     # testRepositorioEstoque.testDeveModificarQuantidadeDoPrimeiroItemDoEstoque()
     # testRepositorioTrabalhoProducao.testDeveRetornarZeroItensQuandoLimparListaProducao()
-    testRepositorioTrabalhoProducao.testDeveAdicionarItemNaLista()
+    # testRepositorioTrabalhoProducao.testDeveAdicionarItemNaLista()
     # testRepositorioTrabalhoProducao.testDeveRetornarListaComMaisDeZeroItens()
     # testRepositorioTrabalhoProducao.testDeveRemoverPrimeiroItemDaLista()
     # testRepositorioTrabalhoProducao.testDeveModificarPrimeiroItemDaLista()

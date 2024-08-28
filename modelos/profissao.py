@@ -25,3 +25,6 @@ class Profissao:
 
     def setPrioridade(self, prioridade):
         self.prioridade = prioridade
+
+    def __str__(self) -> str:
+        return f'{(self.nome).ljust(21)} | {str(self.experiencia).ljust(6)} | {self.prioridade}'
