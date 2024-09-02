@@ -1,26 +1,27 @@
 from time import sleep
 import pyautogui as tecla
+from constantes import *
 
 def clickAtalhoEspecifico(tecla1, tecla2):
     sleep(1)
     tecla.hotkey(tecla1,tecla2)
     sleep(1)
     
-def clickEspecifico(cliques, tecla):
+def clickEspecifico(cliques, teclaEspecifica):
     sleep(0.5)
     for x in range(cliques):
-        if isinstance(tecla, int):
-            tecla += 1
-            teclaNumerica = f'num{tecla}'
+        if isinstance(teclaEspecifica, int):
+            teclaEspecifica += 1
+            teclaNumerica = f'num{teclaEspecifica}'
         else:
-            teclaNumerica = tecla
+            teclaNumerica = teclaEspecifica
         tecla.hotkey(teclaNumerica)
-        print(f'{tecla}.')
+        print(f'{teclaEspecifica}.')
         sleep(0.5)
 
-def clickContinuo(cliques, tecla):
+def clickContinuo(cliques, teclaEspecifica):
     for x in range(cliques):
-        tecla.press(tecla)
+        tecla.press(teclaEspecifica)
 
 def tiraScreenshot():
     return tecla.screenshot()
@@ -51,3 +52,55 @@ def encerraSecao():
     clickEspecifico(1,8)
     clickEspecifico(1,5)
     clickEspecifico(1,'f2')
+
+def entraProfissaoEspecifica(dicionarioProfissao):
+    print(f'Entrando na profissão {dicionarioProfissao[CHAVE_NOME]}...')
+    sleep(1)
+    for x in range(dicionarioProfissao[CHAVE_POSICAO]):
+        tecla.hotkey('down')
+        print('Baixo.')
+        sleep(0.5)
+    tecla.hotkey('enter')
+    print('Enter.')
+    sleep(2)
+    tecla.hotkey('up')
+    print('Cima.')
+    sleep(0.5)
+    
+def entraTrabalhoEncontrado(dicionarioTrabalho):
+    posicao = dicionarioTrabalho[CHAVE_POSICAO]
+    if posicao < 0:
+        posicao = 0
+    print(f'Entra trabalho na posição: {posicao + 1}.')
+    clickContinuo(3, 'up')
+    clickEspecifico(posicao + 1, 'down')
+    clickEspecifico(1, 'enter')
+
+def vaiParaMenuTrabalhoEmProducao():
+    clickEspecifico(1,'f1')
+    clickContinuo(9,'up')
+    clickEspecifico(1,'left')
+
+def vaiParaOTopoDaListaDeTrabalhosComunsEMelhorados(dicionarioTrabalho):
+    print(f'Voltando para o topo da lista!')
+    clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 5, 'up')
+
+def saiProfissaoVerificada(dicionario):
+    print(f'Nem um trabalho disponível está na lista de desejos.')
+    clickEspecifico(1, 'f1')
+    clickContinuo(dicionario[CHAVE_POSICAO] + 10, 'up')
+    clickEspecifico(1, 'left')
+    sleep(1)
+
+def preencheCamposLogin(email,senha):
+    clickEspecifico(1,'f2')
+    clickEspecifico(1,0)
+    clickEspecifico(1,'f2')
+    clickEspecifico(1,'down')
+    clickContinuo(30,'backspace')
+    tecla.write(email)
+    clickEspecifico(1,'down')
+    tecla.write(senha)
+    clickEspecifico(2,'down')
+    clickEspecifico(1,'enter')
+    sleep(5)

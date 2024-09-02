@@ -15,19 +15,24 @@ class RepositorioTrabalhoProducao:
         todosTrabalhosProducao = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).get()
         if todosTrabalhosProducao.pyres != None:
             for trabalhoProducaoEncontrado in todosTrabalhosProducao.each():
-                if CHAVE_TRABALHO_ID in trabalhoProducaoEncontrado.val():
+                if not CHAVE_TRABALHO_NECESSARIO in trabalhoProducaoEncontrado.val():
+                    trataNecessario = ''
+                else:
+                    trataNecessario = trabalhoProducaoEncontrado.val()[CHAVE_TRABALHO_NECESSARIO]
+                if CHAVE_TRABALHO_ID in trabalhoProducaoEncontrado.val() and CHAVE_NOME_PRODUCAO in trabalhoProducaoEncontrado.val():
                     trabalhoProducao = TrabalhoProducao(
                         trabalhoProducaoEncontrado.key(),
+                        trabalhoProducaoEncontrado.val()[CHAVE_TRABALHO_ID],
                         trabalhoProducaoEncontrado.val()[CHAVE_NOME],
                         trabalhoProducaoEncontrado.val()[CHAVE_NOME_PRODUCAO],
-                        trabalhoProducaoEncontrado.val()[CHAVE_ESTADO],
                         trabalhoProducaoEncontrado.val()[CHAVE_EXPERIENCIA],
                         trabalhoProducaoEncontrado.val()[CHAVE_NIVEL],
                         trabalhoProducaoEncontrado.val()[CHAVE_PROFISSAO],
                         trabalhoProducaoEncontrado.val()[CHAVE_RARIDADE],
+                        trataNecessario,
                         trabalhoProducaoEncontrado.val()[CHAVE_RECORRENCIA],
                         trabalhoProducaoEncontrado.val()[CHAVE_TIPO_LICENCA],
-                        trabalhoProducaoEncontrado.val()[CHAVE_TRABALHO_ID])
+                        trabalhoProducaoEncontrado.val()[CHAVE_ESTADO])
                     listaTrabalhosProducao.append(trabalhoProducao)
         return listaTrabalhosProducao
     

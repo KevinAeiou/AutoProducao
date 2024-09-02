@@ -3,30 +3,23 @@ from repositorio.repositorioPersonagem import RepositorioPersonagem
 from modelos.trabalhoEstoque import TrabalhoEstoque
 
 class TestRepositorioEstoque:
-    _repositorioEstoque = None
-    listaTrabalhosEstoque = []
-
-    def __init__(self) -> None:
-        self._repositorioPersonagem = RepositorioPersonagem()
-        self._trabalhoTeste = TrabalhoEstoque('', 'NomeTeste', 'ProfissaoTeste', 0, 1, 'RaridadeTeste', 'IdTeste')
-        self._personagemTeste = self._repositorioPersonagem.pegaTodosPersonagens()[0]
-        self._repositorioEstoque = RepositorioEstoque(self._personagemTeste)
-        self.listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
+    _repositorioPersonagem = RepositorioPersonagem()
+    _personagemTeste = _repositorioPersonagem.pegaTodosPersonagens()[0]
+    _repositorioEstoque = RepositorioEstoque(_personagemTeste)
+    listaTrabalhosEstoque = _repositorioEstoque.pegaTodosTrabalhosEstoque()
+    _trabalhoTeste = TrabalhoEstoque('', 'NomeTeste', 'ProfissaoTeste', 0, 1, 'RaridadeTeste', 'IdTeste')
 
     def testDeveRetornaListaComMaisDeZeroItens(self):
+        self._repositorioEstoque = RepositorioEstoque(self._personagemTeste)
         self.listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        condicao = len(self.listaTrabalhosEstoque) != 0
-        resultado = 'Sucesso' if condicao else 'Falha'
-        print(resultado)
+        assert len(self.listaTrabalhosEstoque) != 0
 
     def testDeveAdicionarItemAoEstoque(self):
         tamanhoLista1 = len(self.listaTrabalhosEstoque)
         self._repositorioEstoque.adicionaTrabalhoEstoque(self._trabalhoTeste)
         self.listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
         tamanhoLista2 = len(self.listaTrabalhosEstoque)
-        condicao = tamanhoLista1 == tamanhoLista2 - 1
-        resultado = 'Sucesso' if condicao else 'Falha'
-        print(resultado)
+        assert tamanhoLista1 == tamanhoLista2 - 1
 
     def testDeveModificarQuantidadeDoPrimeiroItemDoEstoque(self):
         primeiroTrabalho = self.listaTrabalhosEstoque[0]
@@ -36,6 +29,4 @@ class TestRepositorioEstoque:
         self.listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
         primeiroTrabalho = self.listaTrabalhosEstoque[0]
         quantidade2 = primeiroTrabalho.pegaQuantidade()
-        condicao = quantidade1 == quantidade2 - 1
-        resultado = 'Sucesso' if condicao else 'Falha'
-        print(resultado)
+        assert quantidade1 == quantidade2 - 1

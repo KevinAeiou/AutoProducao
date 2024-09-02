@@ -1,16 +1,19 @@
+from constantes import *
+
 class TrabalhoProducao:
-    def __init__(self, id, nome, nomeProducao, estado, experiencia, nivel, profissao, raridade, recorrencia, tipoLicenca, trabalhoId):
+    def __init__(self, id, trabalhoId, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario, recorrencia, tipoLicenca, estado):
         self.id = id
+        self.trabalhoId = trabalhoId
         self.nome = nome
         self.nomeProducao = nomeProducao
-        self.estado = estado
         self.experiencia = experiencia
         self.nivel = nivel
         self.profissao = profissao
         self.raridade = raridade
+        self.trabalhoNecessario = trabalhoNecessario
         self.recorrencia = recorrencia
         self.tipo_licenca = tipoLicenca
-        self.trabalhoId = trabalhoId
+        self.estado = estado
 
     def pegaId(self):
         return self.id
@@ -45,6 +48,9 @@ class TrabalhoProducao:
     def pegaTrabalhoId(self):
         return self.trabalhoId
     
+    def pegaTrabalhoNecessario(self):
+        return self.trabalhoNecessario
+    
     def setId(self, id):
         self.id = id
 
@@ -60,5 +66,32 @@ class TrabalhoProducao:
     def setRecorrencia(self, recorrencia):
         self.recorrencia = recorrencia
 
+    def setLicenca(self, licenca):
+        self.tipo_licenca = licenca
+
+    def ehParaProduzir(self):
+        return self.estado == CODIGO_PARA_PRODUZIR
+    
+    def ehProduzindo(self):
+        return self.estado == CODIGO_PRODUZINDO
+    
+    def ehConcluido(self):
+        return self.estado == CODIGO_CONCLUIDO
+
+    def ehEspecial(self):
+        return self.raridade == CHAVE_RARIDADE_ESPECIAL
+    
+    def ehRaro(self):
+        return self.raridade == CHAVE_RARIDADE_RARO
+    
+    def ehMelhorado(self):
+        return self.raridade == CHAVE_RARIDADE_MELHORADO
+    
+    def ehComum(self):
+        return self.raridade == CHAVE_RARIDADE_COMUM
+    
+    def ehRecorrente(self):
+        return self.pegaRecorrencia()
+    
     def __str__(self) -> str:
         return f'{(self.nome).ljust(20)} | {(self.profissao).ljust(6)} | {self.nivel}'

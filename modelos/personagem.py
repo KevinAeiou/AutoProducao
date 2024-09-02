@@ -1,39 +1,48 @@
 class Personagem:
     def __init__(self, id, nome, email, senha, espacoProducao, estado, uso):
-        self._id = id
-        self._nome = nome
-        self._email = email
-        self._senha = senha
-        self._espacoProducao = espacoProducao
-        self._estado = estado
-        self._uso = uso
+        self.id = id
+        self.nome = nome
+        self.email = email
+        self.senha = senha
+        self.espacoProducao = espacoProducao
+        self.estado = estado
+        self.uso = uso
 
     def __str__(self) -> str:
-        return f'{(self._nome).ljust(20)} | {self._email}'
+        return f'{(self.nome).ljust(20)} | {self.email}'
     
     def pegaId(self):
-        return self._id
+        return self.id
 
     def pegaNome(self):
-        return self._nome
+        return self.nome
     
     def pegaEmail(self):
-        return self._email
+        return self.email
     
     def pegaSenha(self):
-        return self._senha
+        return self.senha
     
     def pegaEspacoProducao(self):
-        return self._espacoProducao
+        return self.espacoProducao
     
     def pegaEstado(self):
-        return self._estado
+        return self.estado
     
     def pegaUso(self):
-        return self._uso
+        return self.uso
+    
+    def setEstado(self, estado):
+        self.estado = estado
+    
+    def setEspacoProducao(self, espacoProducao):
+        self.espacoProducao = espacoProducao
     
     def ehAtivo(self):
-        return True if self._estado else False
+        return True if self.estado else False
 
     def alternaUso(self):
-        self._uso = not self._uso
+        self.uso = not self.uso
+
+    def alternaEstado(self):
+        self.estado = not self.estado

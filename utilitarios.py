@@ -37,14 +37,77 @@ def ehMenuProduzir(menu):
 def ehErroOutraConexao(erro):
     return erro == CODIGO_ERRO_OUTRA_CONEXAO
 
+def ehErroRestauraConexao(erro):
+    print(f'Erro restaurando conexão...')
+    return erro == CODIGO_RESTAURA_CONEXAO
+
+def ehErroConectando(erro):
+    print(f'Erro conectando...')
+    return erro == CODIGO_CONECTANDO
+
+def ehErroRecursosInsuficiente(erro):
+    print(f'Erro recursos insuficientes...')
+    return erro == CODIGO_ERRO_RECURSOS_INSUFICIENTES
+
+def ehErroEspacoProducaoInsuficiente(erro):
+    print(f'Erro espaços de produção insuficientes...')
+    return erro == CODIGO_ERRO_ESPACO_PRODUCAO_INSUFICIENTE
+
+def ehErroEspacoBolsaInsuficiente(erro):
+    return erro == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE
+
+def ehErroLicencaNecessaria(erro):
+    print(f'Erro licença necessária...')
+    return erro == CODIGO_ERRO_PRECISA_LICENCA
+
+def ehErroFalhaConexao(erro):
+    print(f'Erro ao conectar...')
+    return erro == CODIGO_ERRO_FALHA_CONECTAR
+
+def ehErroConexaoInterrompida(erro):
+    print(f'Erro conexão interrompida...')
+    return erro == CODIGO_ERRO_CONEXAO_INTERROMPIDA
+
+def ehErroServidorEmManutencao(erro):
+    print(f'Erro servidor em manutenção...')
+    return erro == CODIGO_ERRO_MANUTENCAO_SERVIDOR
+
+def ehErroReinoIndisponivel(erro):
+    print(f'Erro reino de jogo indisponível...')
+    return erro == CODIGO_ERRO_REINO_INDISPONIVEL
+
+def ehErroOutraConexao(erro):
+    print(f'Erro outra conexão detectada...')
+    return erro == CODIGO_ERRO_OUTRA_CONEXAO
+
+def ehErroExperienciaInsuficiente(erro):
+    print(F'Erro experiência insuficiente...')
+    return erro == CODIGO_ERRO_EXPERIENCIA_INSUFICIENTE
+
+def ehErroTempoDeProducaoExpirada(erro):
+    if erro == CODIGO_ERRO_TEMPO_PRODUCAO_EXPIRADA:
+        print(f'Erro tempo de produção expirou...')
+    return erro == CODIGO_ERRO_TEMPO_PRODUCAO_EXPIRADA
+
+def ehErroEscolhaItemNecessaria(erro):
+    print(f'Erro escolha de item necessária...')
+    return erro == CODIGO_ERRO_ESCOLHA_ITEM_NECESSARIA
+
+def ehErroReceberRecompensaDiaria(erro):
+    print(f'Erro receber recompensa diária...')
+    return erro == CODIGO_RECEBER_RECOMPENSA
+
 def chaveConfirmacaoEhVerdadeira(dicionario):
     return dicionario[CHAVE_CONFIRMACAO]
 
-def trabalhoEhParaProduzir(trabalhoProducao):
-    return trabalhoProducao.pegaEstado() == CODIGO_PARA_PRODUZIR
+def chaveUnicaConexaoEhVerdadeira(dicionarioPersonagem):
+    return dicionarioPersonagem[CHAVE_UNICA_CONEXAO]
 
-def trabalhoEhProduzindo(trabalhoProducao):
-    return trabalhoProducao.pegaEstado() == CODIGO_PRODUZINDO
+def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
+    return dicionarioPersonagem[CHAVE_ESPACO_BOLSA]
+
+def haMaisQueUmPersonagemAtivo(dicionarioPersonagemAtributos):
+    return not len(dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO]) == 1
 
 def trabalhoEhProducaoRecursos(trabalhoProducao):
     listaProducaoRecurso = [
@@ -109,6 +172,33 @@ def trabalhoEhProducaoLicenca(trabalhoProducao):
 def trabalhoEhMelhoriaEssenciaComum(dicionarioTrabalho):
     return textoEhIgual(dicionarioTrabalho.pegaNome(), 'melhoriadaessênciacomum')
 
+def listaProfissoesFoiModificada(dicionarioPersonagemAtributos):
+    return dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_MODIFICADA]
+
+def naoFizerQuatroVerificacoes(dicionarioTrabalho):
+    return dicionarioTrabalho[CHAVE_POSICAO] < 4
+
+def chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+    return dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] != None
+
+def primeiraBusca(dicionarioTrabalho):
+    return dicionarioTrabalho[CHAVE_POSICAO] == -1
+
+def menuTrabalhosAtuaisReconhecido(menu):
+    return menu == MENU_TRABALHOS_ATUAIS
+
+def menuTrabalhoEspecificoReconhecido(menu):
+    return menu == MENU_TRABALHO_ESPECIFICO
+
+def menuLicencasReconhecido(menu):
+    return menu == MENU_LICENSAS
+
+def menuEscolhaEquipamentoReconhecido(menu):
+    return menu == MENU_ESCOLHA_EQUIPAMENTO
+
+def menuAtributosEquipamentoReconhecido(menu):
+    return menu == MENU_TRABALHOS_ATRIBUTOS
+
 def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
     listaDicionarioProfissaoRecursos = []
     if nivelProduzTrabalhoComum == 1:
@@ -158,9 +248,9 @@ def retornaChaveTipoRecurso(trabalhoEstoque):
     return None
 
 def existeEspacoProducao(dicionarioPersonagemAtributos):
-    espacoProducao = dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO][CHAVE_ESPACO_PRODUCAO]
+    espacoProducao = dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO].pegaEspacoProducao()
     for trabalhoProducao in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
-        if trabalhoProducao[CHAVE_ESTADO] == CODIGO_PRODUZINDO:
+        if trabalhoProducao.ehProduzindo():
             espacoProducao -= 1
             if espacoProducao <= 0:
                 print(f'{espacoProducao} espaços de produção - FALSO.')
@@ -171,6 +261,6 @@ def existeEspacoProducao(dicionarioPersonagemAtributos):
 def retornaListaTrabalhosParaProduzirProduzindo(dicionarioPersonagemAtributos):
     listaTrabalhosParaProduzirProduzindo = []
     for trabalhoProducao in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
-        if trabalhoEhParaProduzir(trabalhoProducao) or trabalhoEhProduzindo(trabalhoProducao):
+        if trabalhoProducao.ehParaProduzir() or trabalhoProducao.ehProduzindo():
             listaTrabalhosParaProduzirProduzindo.append(trabalhoProducao)
     return listaTrabalhosParaProduzirProduzindo

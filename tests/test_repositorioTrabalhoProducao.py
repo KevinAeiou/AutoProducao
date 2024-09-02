@@ -6,12 +6,12 @@ class TestRepositorioTrabalhoProducao:
     _repositorioTrabalhoProducao = None
     listaTrabalhosProducao = []
 
-    def __init__(self) -> None:
-        self._repositorioPersonagem = RepositorioPersonagem()
-        self._trabalhoProducaoTeste = TrabalhoProducao('', 'NomeTeste', 'NomeProducaoTeste', 0, 999, 0, 'ProfissaoTeste', 'RaridadeTeste', False, 'LicencaTeste', 'TrabalhoIdTeste')
-        self._personagemTeste = self._repositorioPersonagem.pegaTodosPersonagens()[0]
-        self._repositorioTrabalhoProducao = RepositorioTrabalhoProducao(self._personagemTeste)
-        self.listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
+    # def __init__(self) -> None:
+    #     self._repositorioPersonagem = RepositorioPersonagem()
+    #     self._trabalhoProducaoTeste = TrabalhoProducao('', 'NomeTeste', 'NomeProducaoTeste', 0, 999, 0, 'ProfissaoTeste', 'RaridadeTeste', False, 'LicencaTeste', 'TrabalhoIdTeste')
+    #     self._personagemTeste = self._repositorioPersonagem.pegaTodosPersonagens()[0]
+    #     self._repositorioTrabalhoProducao = RepositorioTrabalhoProducao(self._personagemTeste)
+    #     self.listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
 
     def testDeveRetornarListaComMaisDeZeroItens(self):
         self.listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()

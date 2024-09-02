@@ -3,9 +3,9 @@ from repositorio.repositorioPersonagem import RepositorioPersonagem
 class TestRepositorioPersonagem:
     repositorio = RepositorioPersonagem()
     listaPersonagens = []
-    def __init__(self) -> None:
-        self.listaPersonagens = self.repositorio.pegaTodosPersonagens()
-        self._personagemTeste = self.listaPersonagens[1]
+    # def __init__(self) -> None:
+    #     self.listaPersonagens = self.repositorio.pegaTodosPersonagens()
+    #     self._personagemTeste = self.listaPersonagens[1]
 
     def testDeveRetornarListaComOitoPersonagens(self):
         # assert len(self.listaPersonagens) != 0

@@ -1,11 +1,10 @@
 from teclado import *
 from constantes import *
 from utilitarios import *
-from imagem import *
+from imagem import ManipulaImagem
 from time import sleep
-import re
 import datetime
-import uuid
+import re
 
 from repositorio.repositorioPersonagem import *
 from repositorio.repositorioEstoque import *
@@ -14,17 +13,11 @@ from repositorio.repositorioTrabalho import *
 from repositorio.repositorioVendas import *
 from repositorio.repositorioTrabalhoProducao import *
 # from repositorio. import *
-from tests.testRepositorioEstoque import *
-from tests.testRepositorioPersonagem import *
-from tests.testRepositorioProfissao import *
-from tests.testRepositorioTrabalho import *
-from tests.testRepositorioTrabalhoProducao import *
-from tests.testRepositorioVendas import *
-# from tests. import *
 
+imagem = ManipulaImagem()
 dicionarioPersonagemAtributos = {}
-repositorioPersonagem = RepositorioPersonagem()
-repositorioTrabalho = RepositorioTrabalho()
+repositorioPersonagem = None
+repositorioTrabalho = None
 repositorioVendas = None
 repositorioProfissao = None
 repositorioEstoque = None
@@ -59,7 +52,6 @@ def modificaAtributoUso(valor):
 
 def confirmaNomePersonagem(personagemReconhecido):
     global dicionarioPersonagemAtributos
-    dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO] = None
     for personagemAtivo in dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO]:
         if textoEhIgual(personagemReconhecido, personagemAtivo.pegaNome()):
             print(f'Personagem {personagemReconhecido} confirmado!')
@@ -67,29 +59,10 @@ def confirmaNomePersonagem(personagemReconhecido):
             break
     else:
         print(f'Personagem {personagemReconhecido} não está ativo!')
-    
-
-def retornaNomePersonagem(posicao):
-    print(f'Verificando nome personagem...')
-    posicaoNome = [[2,33,169,27], [190,351,177,30]]
-    telaInteira = retornaAtualizacaoTela()
-    frameNomePersonagem = telaInteira[posicaoNome[posicao][1]:posicaoNome[posicao][1]+posicaoNome[posicao][3], posicaoNome[posicao][0]:posicaoNome[posicao][0]+posicaoNome[posicao][2]]
-    frameNomePersonagemTratado = retornaImagemCinza(frameNomePersonagem)
-    frameNomePersonagemTratado = retornaImagemEqualizada(frameNomePersonagemTratado)
-    frameNomePersonagemTratado = retornaImagemBinarizadaOtsu(frameNomePersonagemTratado)
-    contadorPixelPreto = np.sum(frameNomePersonagemTratado == 0)
-    if contadorPixelPreto > 50:
-        nomePersonagemReconhecido = reconheceTexto(frameNomePersonagemTratado)
-        if variavelExiste(nomePersonagemReconhecido):
-            nome = limpaRuidoTexto(nomePersonagemReconhecido)
-            print(f'Personagem reconhecido: {nome}.')
-            return nome
-        elif contadorPixelPreto > 50:
-            return 'provisorioatecair'
-    return None
 
 def defineChaveDicionarioPersonagemEmUso():
-    nomePersonagemReconhecidoTratado = retornaNomePersonagem(0)
+    dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO] = None
+    nomePersonagemReconhecidoTratado = imagem.retornaTextoNomePersonagemReconhecido(0)
     if variavelExiste(nomePersonagemReconhecidoTratado):
         confirmaNomePersonagem(nomePersonagemReconhecidoTratado)
     elif nomePersonagemReconhecidoTratado == 'provisorioatecair':
@@ -120,12 +93,8 @@ def inicializaChavesPersonagem():
     dicionarioPersonagemAtributos[CHAVE_LISTA_ESTOQUE] = repositorioEstoque.pegaTodosTrabalhosEstoque()
     dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO] = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
 
-def retornaTipoErro():
-    erro = 0
-    telaInteira = retornaAtualizacaoTela()
-    frameErro = telaInteira[335:335+100,150:526]
-    textoErroEncontrado = reconheceTexto(frameErro)
-    print(f'{textoErroEncontrado}')
+def retornaCodigoErroReconhecido():
+    textoErroEncontrado = imagem.retornaErroReconhecido()
     if variavelExiste(textoErroEncontrado):
         textoErroEncontrado = limpaRuidoTexto(textoErroEncontrado)
         textoErroEncontrado = retiraDigitos(textoErroEncontrado)
@@ -154,60 +123,43 @@ def retornaTipoErro():
         for posicaoTipoErro in range(len(tipoErro)):
             textoErro = limpaRuidoTexto(tipoErro[posicaoTipoErro])
             if textoErro in textoErroEncontrado:
-                print(f'"{textoErro}" encontrado em "{textoErroEncontrado}".')
-                erro = posicaoTipoErro+1
-    return erro
+                return posicaoTipoErro+1
+    return 0
 
-def retornaLicencaReconhecida():
-    licencaRetornada = None
-    listaLicencas = ['iniciante','principiante','aprendiz','mestre','nenhumitem','licençasdeproduçao']
-    telaInteira = retornaAtualizacaoTela()
-    frameTela = telaInteira[275:317,169:512]
-    frameTelaCinza = retornaImagemCinza(frameTela)
-    frameTelaEqualizado = retornaImagemEqualizada(frameTelaCinza)
-    textoReconhecido = reconheceTexto(frameTelaEqualizado)
-    if variavelExiste(textoReconhecido):
-        for licenca in listaLicencas:
-            if texto1PertenceTexto2(licenca, textoReconhecido):
-                return textoReconhecido
-    return licencaRetornada
-
-def verificaLicenca(dicionarioTrabalho, dicionarioPersonagem):
+def verificaLicenca(dicionarioTrabalho):
     confirmacao = False
     if variavelExiste(dicionarioTrabalho):
         print(f"Buscando: {dicionarioTrabalho[CHAVE_TIPO_LICENCA]}")
-        textoReconhecido = retornaLicencaReconhecida()
-        if variavelExiste(textoReconhecido) and variavelExiste(dicionarioTrabalho[CHAVE_TIPO_LICENCA]):
-            print(f'Licença reconhecida: {textoReconhecido}.')
-            if not texto1PertenceTexto2('licençasdeproduçao', textoReconhecido):
-                primeiraBusca = True
-                listaCiclo = []
-                while not texto1PertenceTexto2(textoReconhecido, dicionarioTrabalho[CHAVE_TIPO_LICENCA]):
-                    clickEspecifico(1, "right")
-                    listaCiclo.append(textoReconhecido)
-                    textoReconhecido = retornaLicencaReconhecida()
-                    if variavelExiste(textoReconhecido):
-                        print(f'Licença reconhecida: {textoReconhecido}.')
-                        if texto1PertenceTexto2('nenhumitem', textoReconhecido) or len(listaCiclo) > 10:
-                            if textoEhIgual(dicionarioTrabalho[CHAVE_TIPO_LICENCA], 'Licença de produção do iniciante')and primeiraBusca:
-                                break
-                            dicionarioTrabalho[CHAVE_TIPO_LICENCA] = 'Licença de produção do iniciante'
-                            print(f'Licença para trabalho agora é: {dicionarioTrabalho[CHAVE_TIPO_LICENCA]}.')
-                            listaCiclo = []
-                    else:
-                        print(f'Erro ao reconhecer licença!')
-                        break
-                    primeiraBusca = False
+        licencaReconhecida = imagem.retornaTextoLicencaReconhecida()
+        if variavelExiste(licencaReconhecida) and variavelExiste(dicionarioTrabalho[CHAVE_TIPO_LICENCA]):
+            print(f'Licença reconhecida: {licencaReconhecida}.')
+            primeiraBusca = True
+            listaCiclo = []
+            while not texto1PertenceTexto2(licencaReconhecida, dicionarioTrabalho[CHAVE_TIPO_LICENCA]):
+                clickEspecifico(1, "right")
+                listaCiclo.append(licencaReconhecida)
+                licencaReconhecida = imagem.retornaTextoLicencaReconhecida()
+                if variavelExiste(licencaReconhecida):
+                    print(f'Licença reconhecida: {licencaReconhecida}.')
+                    if texto1PertenceTexto2('nenhumitem', licencaReconhecida) or len(listaCiclo) > 10:
+                        if textoEhIgual(dicionarioTrabalho[CHAVE_TIPO_LICENCA], 'Licença de produção do iniciante')and primeiraBusca:
+                            break
+                        dicionarioTrabalho[CHAVE_TIPO_LICENCA] = 'Licença de produção do iniciante'
+                        print(f'Licença para trabalho agora é: {dicionarioTrabalho[CHAVE_TIPO_LICENCA]}.')
+                        listaCiclo = []
                 else:
-                    if primeiraBusca:
-                        clickEspecifico(1, "f1")
-                    else:
-                        clickEspecifico(1, "f2")
-                    confirmacao = True
+                    print(f'Erro ao reconhecer licença!')
+                    break
+                primeiraBusca = False
             else:
-                print(f'Sem licenças de produção...')
-                clickEspecifico(1, 'f1')
-                repositorioPersonagem.alternaEstado(dicionarioPersonagem[CHAVE_PERSONAGEM_EM_USO])
+                if primeiraBusca:
+                    clickEspecifico(1, "f1")
+                else:
+                    clickEspecifico(1, "f2")
+                    confirmacao = True
+                # print(f'Sem licenças de produção...')
+                # clickEspecifico(1, 'f1')
+                # repositorioPersonagem.alternaEstado(dicionarioPersonagem[CHAVE_PERSONAGEM_EM_USO])
         else:
             print(f'Erro ao reconhecer licença!')
     return confirmacao, dicionarioTrabalho
@@ -215,162 +167,95 @@ def verificaLicenca(dicionarioTrabalho, dicionarioPersonagem):
 def verificaErro():
     sleep(0.5)
     print(f'Verificando erro...')
-    CODIGO_ERRO = retornaTipoErro()
-    if CODIGO_ERRO == CODIGO_ERRO_PRECISA_LICENCA or CODIGO_ERRO == CODIGO_ERRO_FALHA_CONECTAR or CODIGO_ERRO == CODIGO_ERRO_CONEXAO_INTERROMPIDA or CODIGO_ERRO == CODIGO_ERRO_MANUTENCAO_SERVIDOR or CODIGO_ERRO == CODIGO_ERRO_REINO_INDISPONIVEL:
+    CODIGO_ERRO = retornaCodigoErroReconhecido()
+    if ehErroLicencaNecessaria(CODIGO_ERRO) or ehErroFalhaConexao(CODIGO_ERRO) or ehErroConexaoInterrompida(CODIGO_ERRO) or ehErroServidorEmManutencao(CODIGO_ERRO) or ehErroReinoIndisponivel(CODIGO_ERRO):
         clickEspecifico(2, "enter")
-        if CODIGO_ERRO == CODIGO_ERRO_PRECISA_LICENCA:
-            verificaLicenca(None, None)
-        elif CODIGO_ERRO == CODIGO_ERRO_FALHA_CONECTAR:
-            print(f'Erro na conexão...')
-        elif CODIGO_ERRO == CODIGO_ERRO_CONEXAO_INTERROMPIDA:
-            print(f'Erro ao conectar...')
-        elif CODIGO_ERRO == CODIGO_ERRO_MANUTENCAO_SERVIDOR:
-            print(f'Servidor em manutenção!')
-        elif CODIGO_ERRO == CODIGO_ERRO_REINO_INDISPONIVEL:
-            print(f'Reino de jogo indisponível!')
-    elif CODIGO_ERRO == CODIGO_ERRO_OUTRA_CONEXAO:
+        if ehErroLicencaNecessaria(CODIGO_ERRO):
+            verificaLicenca(None)
+        return CODIGO_ERRO
+    if ehErroOutraConexao(CODIGO_ERRO) or ehErroRecursosInsuficiente(CODIGO_ERRO) or ehErroTempoDeProducaoExpirada(CODIGO_ERRO) or ehErroExperienciaInsuficiente(CODIGO_ERRO) or ehErroEspacoProducaoInsuficiente(CODIGO_ERRO):
         clickEspecifico(1,'enter')
-        print(f'Voltando para a tela inicial.')
-    elif CODIGO_ERRO == CODIGO_ERRO_RECURSOS_INSUFICIENTES or CODIGO_ERRO == CODIGO_ERRO_TEMPO_PRODUCAO_EXPIRADA or CODIGO_ERRO == CODIGO_ERRO_EXPERIENCIA_INSUFICIENTE or CODIGO_ERRO == CODIGO_ERRO_ESPACO_PRODUCAO_INSUFICIENTE:
-        clickEspecifico(1,'enter')
+        if ehErroOutraConexao(CODIGO_ERRO):
+            return CODIGO_ERRO
         clickEspecifico(2,'f1')
         clickContinuo(9,'up')
         clickEspecifico(1,'left')
-        if CODIGO_ERRO == CODIGO_ERRO_RECURSOS_INSUFICIENTES:
-            print(f'Retirrando trabalho da lista.')
-        elif CODIGO_ERRO == CODIGO_ERRO_EXPERIENCIA_INSUFICIENTE:
-            print(f'Voltando para o menu profissões.')
-        elif CODIGO_ERRO == CODIGO_ERRO_ESPACO_PRODUCAO_INSUFICIENTE:
-            print(f'Sem espaços livres para produção....')
-        elif CODIGO_ERRO == CODIGO_ERRO_TEMPO_PRODUCAO_EXPIRADA:
-            print(f'O trabalho não está disponível.')
-    elif CODIGO_ERRO == CODIGO_ERRO_ESCOLHA_ITEM_NECESSARIA:
-        print(f'Escolhendo item')
+        return CODIGO_ERRO
+    if ehErroEscolhaItemNecessaria(CODIGO_ERRO):
         clickEspecifico(1, 'enter')
         clickEspecifico(1, 'f2')
         clickContinuo(9, 'up')
-    elif CODIGO_ERRO == CODIGO_CONECTANDO or CODIGO_ERRO == CODIGO_RESTAURA_CONEXAO:
-        if CODIGO_ERRO == CODIGO_CONECTANDO:
-            print(f'Conectando...')
-        elif CODIGO_ERRO == CODIGO_RESTAURA_CONEXAO:
-            print(f'Restaurando conexão...')
+    if ehErroConectando(CODIGO_ERRO) or ehErroRestauraConexao(CODIGO_ERRO):
         sleep(1)
-    elif CODIGO_ERRO == CODIGO_RECEBER_RECOMPENSA or CODIGO_ERRO == CODIGO_ERRO_ATUALIZACAO_JOGO or CODIGO_ERRO == CODIGO_ERRO_USA_OBJETO_PARA_PRODUZIR or CODIGO_ERRO == CODIGO_SAIR_JOGO:
+    if ehErroReceberRecompensaDiaria(CODIGO_ERRO) or CODIGO_ERRO == CODIGO_ERRO_ATUALIZACAO_JOGO or CODIGO_ERRO == CODIGO_ERRO_USA_OBJETO_PARA_PRODUZIR or CODIGO_ERRO == CODIGO_SAIR_JOGO:
         clickEspecifico(1,'f2')
-        if CODIGO_ERRO == CODIGO_RECEBER_RECOMPENSA:
-            print(f'Recuperar presente.')
-        elif CODIGO_ERRO == CODIGO_ERRO_USA_OBJETO_PARA_PRODUZIR:
-            print(f'Usa objeto para produzir outro.')
-        elif CODIGO_ERRO == CODIGO_SAIR_JOGO:
-            print(f'Sair do jogo.')
-        elif CODIGO_ERRO == CODIGO_ERRO_ATUALIZACAO_JOGO:
+        if CODIGO_ERRO == CODIGO_ERRO_ATUALIZACAO_JOGO:
             print(f'Atualizando jogo...')
             clickEspecifico(1,'f1')
             exit()
-    elif CODIGO_ERRO == CODIGO_ERRO_CONCLUIR_TRABALHO:
+    if CODIGO_ERRO == CODIGO_ERRO_CONCLUIR_TRABALHO:
         print(f'Trabalho não está concluido!')
         clickEspecifico(1,'f1')
         clickContinuo(8,'up')
-    elif CODIGO_ERRO == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE:
+    if CODIGO_ERRO == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE:
         clickEspecifico(1,'f1')
         clickContinuo(8,'up')
         print(f'Ignorando trabalho concluído!')
-    elif CODIGO_ERRO == CODIGO_ERRO_MOEDAS_INSUFICIENTES:
+    if CODIGO_ERRO == CODIGO_ERRO_MOEDAS_INSUFICIENTES:
         clickEspecifico(1,'f1')
-    elif CODIGO_ERRO == CODIGO_ERRO_EMAIL_SENHA_INCORRETA:
+    if CODIGO_ERRO == CODIGO_ERRO_EMAIL_SENHA_INCORRETA:
         clickEspecifico(1,'enter')
         clickEspecifico(1,'f1')
         print(f'Login ou senha incorreta...')
     else:
         print(f'Nem um erro encontrado!')
     return CODIGO_ERRO
-                    
-def retornaTextoMenuReconhecido(x, y, largura):
-    telaInteira = retornaAtualizacaoTela()
-    alturaFrame = 30
-    texto = None
-    frameTela = telaInteira[y:y+alturaFrame,x:x+largura]
-    if y > 30:
-        frameTela = retornaImagemCinza(frameTela)
-        frameTela = retornaImagemEqualizada(frameTela)
-        frameTela = retornaImagemBinarizada(frameTela)
-    contadorPixelPreto = np.sum(frameTela==0)
-    if existePixelPretoSuficiente(contadorPixelPreto):
-        texto = reconheceTexto(frameTela)
-        if variavelExiste(texto):
-            texto = limpaRuidoTexto(texto)
-    return texto
-
-def retornaTextoSair():
-    texto = None
-    telaInteira = retornaAtualizacaoTela()
-    frameTela = telaInteira[telaInteira.shape[0]-50:telaInteira.shape[0]-15,50:50+60]
-    frameTelaTratado = retornaImagemCinza(frameTela)
-    frameTelaTratado = retornaImagemBinarizada(frameTelaTratado)
-    contadorPixelPreto = np.sum(frameTelaTratado==0)
-    if contadorPixelPreto > 100 and contadorPixelPreto < 400:
-        texto = reconheceTexto(frameTelaTratado)
-        if variavelExiste(texto):
-            texto = limpaRuidoTexto(texto)
-    return texto
-
-def verificaMenuReferencia():
-    confirmacao = False
-    posicaoMenu = [[703,627],[712,1312]]
-    telaInteira = retornaAtualizacaoTela()
-    for posicao in posicaoMenu:
-        frameTela = telaInteira[posicao[0]:posicao[0] + 53, posicao[1]:posicao[1] + 53]
-        contadorPixelPreto = np.sum(frameTela == (85,204,255))
-        if contadorPixelPreto == 1720:
-            confirmacao = True
-            break
-    return confirmacao
 
 def retornaMenu():
     print(f'Reconhecendo menu.')
-    textoMenu = retornaTextoMenuReconhecido(26,1,150)
+    textoMenu = imagem.retornaTextoMenuReconhecido(26,1,150)
     if variavelExiste(textoMenu):
         if texto1PertenceTexto2('spearonline',textoMenu):
-            textoMenu=retornaTextoMenuReconhecido(216,197,270)
+            textoMenu=imagem.retornaTextoMenuReconhecido(216,197,270)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('Notícias',textoMenu):
                     print(f'Menu notícias...')
                     return MENU_NOTICIAS
-                elif texto1PertenceTexto2('Personagens',textoMenu):
+                if texto1PertenceTexto2('Personagens',textoMenu):
                     print(f'Menu escolha de personagem...')
                     return MENU_ESCOLHA_PERSONAGEM
-                elif texto1PertenceTexto2('Produção',textoMenu):
-                    textoMenu=retornaTextoMenuReconhecido(266,242,150)
+                if texto1PertenceTexto2('Produção',textoMenu):
+                    textoMenu=imagem.retornaTextoMenuReconhecido(266,242,150)
                     if variavelExiste(textoMenu):
                         if texto1PertenceTexto2('Artesanatos',textoMenu):
-                            textoMenu=retornaTextoMenuReconhecido(191,612,100)
+                            textoMenu=imagem.retornaTextoMenuReconhecido(191,612,100)
                             if variavelExiste(textoMenu):
                                 if texto1PertenceTexto2('fechar',textoMenu):
                                     print(f'Menu produzir...')
                                     return MENU_PRODUZIR
-                                elif texto1PertenceTexto2('voltar',textoMenu):
+                                if texto1PertenceTexto2('voltar',textoMenu):
                                     print(f'Menu trabalhos diponíveis...')
                                     return MENU_TRABALHOS_DISPONIVEIS
-                        elif texto1PertenceTexto2('Pedidos ativos',textoMenu):
+                        if texto1PertenceTexto2('Pedidos ativos',textoMenu):
                             print(f'Menu trabalhos atuais...')
                             return MENU_TRABALHOS_ATUAIS
-            textoMenu = retornaTextoSair()
+            textoMenu = imagem.retornaTextoSair()
             if variavelExiste(textoMenu):
                 if textoEhIgual(textoMenu,'sair'):
                     print(f'Menu jogar...')
                     return MENU_JOGAR
-            if verificaMenuReferencia():
+            if imagem.verificaMenuReferencia():
                 print(f'Menu tela inicial...')
                 return MENU_INICIAL
-            textoMenu=retornaTextoMenuReconhecido(291,412,100)
+            textoMenu=imagem.retornaTextoMenuReconhecido(291,412,100)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('conquistas',textoMenu):
                     print(f'Menu personagem...')
                     return MENU_PERSONAGEM
-                elif texto1PertenceTexto2('interagir',textoMenu):
+                if texto1PertenceTexto2('interagir',textoMenu):
                     print(f'Menu principal...')
                     return MENU_PRINCIPAL
-            textoMenu=retornaTextoMenuReconhecido(191,319,270)
+            textoMenu=imagem.retornaTextoMenuReconhecido(191,319,270)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('parâmetros',textoMenu):
                     if texto1PertenceTexto2('requisitos',textoMenu):
@@ -379,65 +264,48 @@ def retornaMenu():
                     else:
                         print(f'Menu licenças...')
                         return MENU_LICENSAS
-            textoMenu=retornaTextoMenuReconhecido(275,400,150)
+            textoMenu=imagem.retornaTextoMenuReconhecido(275,400,150)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('Recompensa',textoMenu):
                     print(f'Menu trabalho específico...')
                     return MENU_TRABALHO_ESPECIFICO
-            textoMenu=retornaTextoMenuReconhecido(266,269,150)
+            textoMenu=imagem.retornaTextoMenuReconhecido(266,269,150)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('ofertadiária',textoMenu):
                     print(f'Menu oferta diária...')
                     return MENU_OFERTA_DIARIA
-            textoMenu=retornaTextoMenuReconhecido(181,71,150)
+            textoMenu=imagem.retornaTextoMenuReconhecido(181,71,150)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('Loja Milagrosa',textoMenu):
                     print(f'Menu loja milagrosa...')
                     return MENU_LOJA_MILAGROSA
-            textoMenu=retornaTextoMenuReconhecido(180,40,300)
+            textoMenu=imagem.retornaTextoMenuReconhecido(180,40,300)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('Recompensas diárias',textoMenu):
                     print(f'Menu recompensas diárias...')
                     return MENU_RECOMPENSAS_DIARIAS
-            textoMenu=retornaTextoMenuReconhecido(180,60,300)
+            textoMenu=imagem.retornaTextoMenuReconhecido(180,60,300)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('Recompensas diárias',textoMenu):
                     print(f'Menu recompensas diárias...')
                     return MENU_RECOMPENSAS_DIARIAS
-            textoMenu=retornaTextoMenuReconhecido(310,338,57)
+            textoMenu=imagem.retornaTextoMenuReconhecido(310,338,57)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('meu',textoMenu):
                     print(f'Menu meu perfil...')
                     return MENU_MEU_PERFIL           
-            textoMenu=retornaTextoMenuReconhecido(169,97,75)
+            textoMenu=imagem.retornaTextoMenuReconhecido(169,97,75)
             if variavelExiste(textoMenu):
                 if texto1PertenceTexto2('Bolsa',textoMenu):
                     print(f'Menu bolsa...')
                     return MENU_BOLSA
             clickMouseEsquerdo(1,35,35)
-        else:
-            clickAtalhoEspecifico('win','left')
-            clickAtalhoEspecifico('win','left')
-    else:
-        print(f'Menu não reconhecido...')
-    verificaErro(None)
+            return MENU_DESCONHECIDO
+        clickAtalhoEspecifico('win','left')
+        clickAtalhoEspecifico('win','left')
+    print(f'Menu não reconhecido...')
+    verificaErro()
     return MENU_DESCONHECIDO
-
-def existePixelCorrespondencia():
-    confirmacao = False
-    tela = retornaAtualizacaoTela()
-    frameTela = tela[665:690, 644:675]
-    contadorPixelCorrespondencia = np.sum(frameTela==(173,239,247))
-    if contadorPixelCorrespondencia > 50:
-        print(f'Há correspondencia!')
-        confirmacao = True
-    else:
-        print(f'Não há correspondencia!')
-    return confirmacao
-
-def verificaCaixaCorreio():
-    print(f'Verificando se possui correspondencia...')
-    return np.sum(retornaAtualizacaoTela()[233:233+30, 235:235+200] == 255) > 0
 
 def verificaVendaProduto(texto):
     return texto1PertenceTexto2('Lote vendido', texto)
@@ -457,9 +325,8 @@ def retornaQuantidadeProdutoVendido(listaTextoCarta):
     return int(quantidadeProduto)
 
 def retornaConteudoCorrespondencia():
-    telaInteira = retornaAtualizacaoTela()
-    frameTela = telaInteira[231:231+50, 168:168+343]
-    textoCarta = reconheceTexto(frameTela)
+    telaInteira = imagem.retornaAtualizacaoTela()
+    textoCarta = imagem.retornaTextoCorrespondenciaReconhecido(telaInteira)
     novaVenda = None
     if variavelExiste(textoCarta):
         produto = verificaVendaProduto(textoCarta)
@@ -468,15 +335,7 @@ def retornaConteudoCorrespondencia():
                 print(f'Produto vendido:')
                 listaTextoCarta = textoCarta.split()
                 quantidadeProduto = retornaQuantidadeProdutoVendido(listaTextoCarta)
-                frameTela = telaInteira[490:490+30,410:410+100]
-                frameTelaTratado = retornaImagemCinza(frameTela)
-                frameTelaTratado = retornaImagemBinarizada(frameTelaTratado)
-                ouro = reconheceDigito(frameTelaTratado)
-                ouro = re.sub('[^0-9]','',ouro)
-                if ouro.isdigit():
-                    ouro = int(ouro)
-                else:
-                    ouro = 0
+                ouro = imagem.retornaValorDoTrabalhoVendido(telaInteira)
                 dataAtual = str(datetime.date.today())
                 listaTextoCarta = ' '.join(listaTextoCarta)
                 chaveIdTrabalho = ''
@@ -484,15 +343,7 @@ def retornaConteudoCorrespondencia():
                     if texto1PertenceTexto2(dicionarioTrabalho[CHAVE_NOME], listaTextoCarta):
                         chaveIdTrabalho = dicionarioTrabalho[CHAVE_ID]
                         break
-                id = uuid.uuid4()
-                novaVenda = TrabalhoVendido(
-                    id,
-                    listaTextoCarta,
-                    dataAtual,
-                    dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO][CHAVE_ID],
-                    quantidadeProduto,
-                    chaveIdTrabalho,
-                    int(ouro))
+                novaVenda = TrabalhoVendido('', listaTextoCarta, dataAtual, dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO][CHAVE_ID], quantidadeProduto, chaveIdTrabalho, ouro)
                 repositorioVendas.adicionaNovaVenda(novaVenda)
         else:
             print(f'Erro...')
@@ -509,7 +360,7 @@ def atualizaQuantidadeTrabalhoEstoque(venda):
                 novaQuantidade = 0
             trabalhoEstoque.setQuantidade(novaQuantidade)
             repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
-            print(f'Quantidade do trabalho ({trabalhoEstoque[CHAVE_NOME]}) atualizada para {novaQuantidade}.')
+            print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
             break
     else:
         nomeProduto = venda["nomeProduto"]
@@ -517,7 +368,7 @@ def atualizaQuantidadeTrabalhoEstoque(venda):
 
 def recuperaCorrespondencia():
     verificaTrabalhoRaroVendido = False
-    while verificaCaixaCorreio():
+    while imagem.existeCorrespondencia():
         clickEspecifico(1, 'enter')
         venda = retornaConteudoCorrespondencia()
         if not tamanhoIgualZero(venda):
@@ -529,44 +380,22 @@ def recuperaCorrespondencia():
         clickMouseEsquerdo(1, 2, 35)
     return verificaTrabalhoRaroVendido
 
-def retornaEstadoTrabalho():
-    estadoTrabalho = CODIGO_PARA_PRODUZIR
-    telaInteira = retornaAtualizacaoTela()
-    frameTelaInteira = telaInteira[311:311+43, 233:486]
-    texto = reconheceTexto(frameTelaInteira)
-    if variavelExiste(texto):
-        if textoEhIgual("pedidoconcluído", texto):
-            print(f'Pedido concluído!')
-            estadoTrabalho = CODIGO_CONCLUIDO
-        elif texto1PertenceTexto2('adicionarnovo', texto):
-            print(f'Nem um trabalho!')
-            estadoTrabalho = CODIGO_PARA_PRODUZIR
-        else:
-            print(f'Em produção...')
-            estadoTrabalho = CODIGO_PRODUZINDO
-    else:
-        print(f'Ocorreu algum erro ao verificar o espaço de produção!')
-    return estadoTrabalho
-
 def reconheceRecuperaTrabalhoConcluido():
     global dicionarioPersonagemAtributos
-    telaInteira = retornaAtualizacaoTela()
-    frameNomeTrabalho = telaInteira[285:285+37, 233:486]
-    frameNomeTrabalhoBinarizado = retornaImagemBinarizada(frameNomeTrabalho)
-    erro = verificaErro(None)
+    erro = verificaErro()
     if not erroEncontrado(erro):
-        nomeTrabalhoConcluido = reconheceTexto(frameNomeTrabalhoBinarizado)
+        nomeTrabalhoConcluido = imagem.retornaNomeTrabalhoConcluidoReconhecido()
         clickEspecifico(1, 'down')
         clickEspecifico(1, 'f2')
         print(f'  Trabalho concluido reconhecido: {nomeTrabalhoConcluido}.')
         if variavelExiste(nomeTrabalhoConcluido):
-            erro = verificaErro(None)
+            erro = verificaErro()
             if not erroEncontrado(erro):
                 if not dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_MODIFICADA]:
                     dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_MODIFICADA] = True
                 clickContinuo(3, 'up')
                 return nomeTrabalhoConcluido
-            else:
+            if ehErroEspacoBolsaInsuficiente(erro):
                 dicionarioPersonagemAtributos[CHAVE_ESPACO_BOLSA] = False
                 clickContinuo(1, 'up')
                 clickEspecifico(1, 'left')
@@ -585,7 +414,7 @@ def retornaListaPossiveisTrabalhoRecuperado(nomeTrabalhoConcluido):
 def retornaListaTrabalhosParaProduzirProduzindo():
     listaTrabalhosParaProduzirProduzindo = []
     for trabalhoDesejado in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
-        if trabalhoEhParaProduzir(trabalhoDesejado) or trabalhoEhProduzindo(trabalhoDesejado):
+        if trabalhoDesejado.ehParaProduzir() or trabalhoDesejado.ehProduzindo():
             listaTrabalhosParaProduzirProduzindo.append(trabalhoDesejado)
     return listaTrabalhosParaProduzirProduzindo
 
@@ -595,14 +424,14 @@ def retornaTrabalhoConcluido(nomeTrabalhoConcluido):
         listaDicionariosTrabalhosProduzirProduzindo = retornaListaTrabalhosParaProduzirProduzindo()
         for possivelTrabalho in listaPossiveisTrabalhos:
             for trabalhoProduzirProduzindo in listaDicionariosTrabalhosProduzirProduzindo:
-                condicoes = (trabalhoEhProduzindo(trabalhoProduzirProduzindo) and textoEhIgual(trabalhoProduzirProduzindo.pegaNome(), possivelTrabalho.pegaNome()))
+                condicoes = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.pegaNome(), possivelTrabalho.pegaNome())
                 if condicoes:
                     trabalhoProduzirProduzindo.setTrabalhoId(possivelTrabalho.pegaId())
                     trabalhoProduzirProduzindo.setNomeProducao(possivelTrabalho.pegaNomeProducao())
                     return trabalhoProduzirProduzindo
         else:
             print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].pegaNome()}) não encontrado na lista produzindo...')
-            return TrabalhoProducao('', listaPossiveisTrabalhos[0].pegaNome(), listaPossiveisTrabalhos[0].pegaNomeProducao(), CODIGO_CONCLUIDO, listaPossiveisTrabalhos[0].pegaExperiencia(), listaPossiveisTrabalhos[0].pegaNivel(), listaPossiveisTrabalhos[0].pegaProfissao(), listaPossiveisTrabalhos[0].pegaRaridade(), False, CHAVE_LICENCA_INICIANTE, listaPossiveisTrabalhos[0].pegaId())
+            return TrabalhoProducao('', listaPossiveisTrabalhos[0].pegaId(), listaPossiveisTrabalhos[0].pegaNome(), listaPossiveisTrabalhos[0].pegaNomeProducao(), listaPossiveisTrabalhos[0].pegaExperiencia(), listaPossiveisTrabalhos[0].pegaNivel(), listaPossiveisTrabalhos[0].pegaProfissao(), listaPossiveisTrabalhos[0].pegaRaridade(), listaPossiveisTrabalhos[0].pegaTrabalhoProducao(), False, CHAVE_LICENCA_INICIANTE, CODIGO_CONCLUIDO)
     return None
 
 def modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido):
@@ -791,7 +620,7 @@ def verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido):
                 if condicoes:    
                     if textoEhIgual(trabalho.pegaTrabalhoNecessario(), trabalhoProducaoConcluido.pegaNome()):
                         experiencia = trabalho.pegaExperiencia() * 1.5
-                        trabalhoProducaoRaro = TrabalhoProducao('', trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaEstado(), experiencia, trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), False, licencaProducaoIdeal, trabalho.pegaTrabalhoId())
+                        trabalhoProducaoRaro = TrabalhoProducao('', trabalho.pegaTrabalhoId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), experiencia, trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, licencaProducaoIdeal, trabalho.pegaEstado())
                         break
     if variavelExiste(trabalhoProducaoRaro):
         trabalhoProducaoRaroComId = repositorioTrabalhoProducao.adicionaTrabalhoProducao(trabalhoProducaoRaro)
@@ -801,7 +630,7 @@ def retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado):
     if tamanhoIgualZero(listaPersonagemPresenteRecuperado):
         print(f'Limpou a lista...')
         listaPersonagemPresenteRecuperado = []
-    nomePersonagemReconhecido = retornaNomePersonagem(0)
+    nomePersonagemReconhecido = imagem.retornaTextoNomePersonagemReconhecido(0)
     if variavelExiste(nomePersonagemReconhecido):
         print(f'{nomePersonagemReconhecido} foi adicionado a lista!')
         listaPersonagemPresenteRecuperado.append(nomePersonagemReconhecido)
@@ -814,33 +643,14 @@ def recuperaPresente():
     print(f'Buscando recompensa diária...')
     while evento < 2:
         sleep(2)
-        print(f'Buscando referência "PEGAR"...')
-        telaInteira = retornaAtualizacaoTela()
-        frameTela = telaInteira[0:telaInteira.shape[0],330:488]
-        imagem = retornaImagemCinza(frameTela)
-        imagem = cv2.GaussianBlur(imagem,(1,1),0)
-        imagem = cv2.Canny(imagem,150,180)
-        kernel = np.ones((2,2),np.uint8)
-        imagem = retornaImagemDitalata(imagem,kernel,1)
-        imagem = retornaImagemErodida(imagem,kernel,1)
-        contornos,h1 = cv2.findContours(imagem,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
-        for cnt in contornos:
-            area = cv2.contourArea(cnt)
-            if area > 4500 and area < 5700:
-                x, y, l, a = cv2.boundingRect(cnt)
-                print(f'Area:{area}, x:{x}, y:{y}.')
-                cv2.rectangle(frameTela,(x,y),(x+l,y+a),(0,255,0),2)
-                frameTratado = frameTela[y:y+a,x:x+l]
-                centroX = 330+x+(l/2)
-                centroY = y+(a/2)
-                print(f'Referência encontrada!')
-                clickMouseEsquerdo(1,centroX,centroY)
-                posicionaMouseEsquerdo(telaInteira.shape[1]//2,telaInteira.shape[0]//2)
-                if verificaErro(None) != 0:
-                    evento=2
-                    break
-                clickEspecifico(1,'f2')
-                break
+        referenciaEncontrada = imagem.retornaReferencia()
+        if variavelExiste(referenciaEncontrada):
+            print(f'Referência encontrada!')
+            clickMouseEsquerdo(1,referenciaEncontrada[0],referenciaEncontrada[1])
+            posicionaMouseEsquerdo(360,600)
+            if verificaErro() != 0:
+                evento=2
+            clickEspecifico(1,'f2')
         print(f'Próxima busca.')
         clickContinuo(8,'up')
         clickEspecifico(1,'left')
@@ -877,21 +687,21 @@ def entraPersonagem(listaPersonagemPresenteRecuperado):
     clickEspecifico(1, 'enter')
     sleep(1)
     tentativas = 1
-    erro = verificaErro(None)
+    erro = verificaErro()
     while erroEncontrado(erro):
         if erro == CODIGO_CONECTANDO:
             if tentativas > 10:
                 clickEspecifico(2, 'enter')
                 tentativas = 0
             tentativas += 1
-        erro = verificaErro(None)
+        erro = verificaErro()
     else:
         clickEspecifico(1, 'f2')
         if len(listaPersonagemPresenteRecuperado) == 1:
             clickContinuo(8, 'left')
         else:
             clickEspecifico(1, 'right')
-        nomePersonagem = retornaNomePersonagem(1)               
+        nomePersonagem = imagem.retornaTextoNomePersonagemReconhecido(1)               
         while True:
             nomePersonagemPresenteado = None
             for nomeLista in listaPersonagemPresenteRecuperado:
@@ -900,7 +710,7 @@ def entraPersonagem(listaPersonagemPresenteRecuperado):
                     break
             if nomePersonagemPresenteado != None:
                 clickEspecifico(1, 'right')
-                nomePersonagem = retornaNomePersonagem(1)
+                nomePersonagem = imagem.retornaTextoNomePersonagemReconhecido(1)
             if nomePersonagem == None:
                 print(f'Fim da lista de personagens!')
                 clickEspecifico(1, 'f1')
@@ -909,7 +719,7 @@ def entraPersonagem(listaPersonagemPresenteRecuperado):
                 clickEspecifico(1, 'f2')
                 sleep(1)
                 tentativas = 1
-                erro = verificaErro(None)
+                erro = verificaErro()
                 while erroEncontrado(erro):
                     if erro == CODIGO_RECEBER_RECOMPENSA:
                         break
@@ -919,7 +729,7 @@ def entraPersonagem(listaPersonagemPresenteRecuperado):
                             tentativas = 0
                         tentativas += 1
                     sleep(1.5)
-                    erro = verificaErro(None)
+                    erro = verificaErro()
                 confirmacao = True
                 print(f'Login efetuado com sucesso!')
                 break
@@ -929,7 +739,7 @@ def recebeTodasRecompensas(menu):
     listaPersonagemPresenteRecuperado = retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado = [])
     while True:
         reconheceMenuRecompensa(menu)
-        if existePixelCorrespondencia():
+        if imagem.existePixelCorrespondencia():
             vaiParaMenuCorrespondencia()
             recuperaCorrespondencia()
         print(f'Lista: {listaPersonagemPresenteRecuperado}.')
@@ -947,7 +757,7 @@ def trataMenu(menu):
     if menu == MENU_DESCONHECIDO:
         pass
     elif menu == MENU_TRABALHOS_ATUAIS:
-        estadoTrabalho = retornaEstadoTrabalho()
+        estadoTrabalho = imagem.retornaEstadoTrabalho()
         if estadoTrabalho == CODIGO_CONCLUIDO:
             nomeTrabalhoConcluido = reconheceRecuperaTrabalhoConcluido()
             if variavelExiste(nomeTrabalhoConcluido):
@@ -998,7 +808,7 @@ def trataMenu(menu):
         clickEspecifico(1,'num7')
     else:
         dicionarioPersonagemAtributos[CHAVE_CONFIRMACAO] = False
-    erro = verificaErro(None)
+    erro = verificaErro()
     if erro == CODIGO_ERRO_OUTRA_CONEXAO:
         dicionarioPersonagemAtributos[CHAVE_CONFIRMACAO] = False
         dicionarioPersonagemAtributos[CHAVE_UNICA_CONEXAO] = False
@@ -1009,7 +819,7 @@ def vaiParaMenuProduzir():
     if not erroEncontrado(erro):
         menu = retornaMenu()
         if ehMenuInicial(menu):
-            if existePixelCorrespondencia():
+            if imagem.existePixelCorrespondencia():
                 vaiParaMenuCorrespondencia()
                 recuperaCorrespondencia()
         while not ehMenuProduzir(menu):
@@ -1032,7 +842,7 @@ def retornaListaDicionariosTrabalhosRarosVendidos(dicionarioUsuario):
         dicionarioPersonagemAtributos[CHAVE_ID_USUARIO] = dicionarioUsuario[CHAVE_ID_USUARIO]
         dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO] = repositorioProfissao.pegaTodasProfissoes()
         dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS] = repositorioTrabalho.pegaTodosTrabalhos()
-        dicionarioPersonagemAtributos[CHAVE_LISTA_VENDAS] = repositorioVendas.pegaTodosTrabalhoVendidos()
+        dicionarioPersonagemAtributos[CHAVE_LISTA_VENDAS] = repositorioVendas.pegaTodasVendas()
         dicionarioPersonagemAtributos[CHAVE_LISTA_ESTOQUE] = repositorioEstoque.pegaTodosTrabalhosEstoque()
         dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO] = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
     if not tamanhoIgualZero(dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS]):
@@ -1068,10 +878,10 @@ def verificaProdutosRarosMaisVendidos(dicionarioUsuario):
     else:
         print(f'Lista de trabalhos raros vendidos está vazia!')
 
-def defineChaveListaProfissoesNecessarias():
+def defineChaveListaDicionariosProfissoesNecessarias():
     global dicionarioPersonagemAtributos
     print(f'Verificando profissões necessárias...')
-    dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_VERIFICADA] = []
+    dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIOS_PROFISSOES_NECESSARIAS] = []
     posicao = 1
     for profissao in dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO]:
         for trabalhoProducaoDesejado in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
@@ -1082,141 +892,722 @@ def defineChaveListaProfissoesNecessarias():
                     CHAVE_NOME:profissao.pegaNome(),
                     CHAVE_PRIORIDADE:profissao.pegaPrionaridade(),
                     CHAVE_POSICAO:posicao}
-                dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_VERIFICADA].append(dicionarioProfissao)
+                dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIOS_PROFISSOES_NECESSARIAS].append(dicionarioProfissao)
                 break
         posicao+=1
     else:
-        dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_VERIFICADA] = sorted(dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_VERIFICADA],key=lambda dicionario:dicionario[CHAVE_PRIORIDADE],reverse=True)
+        dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIOS_PROFISSOES_NECESSARIAS] = sorted(dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIOS_PROFISSOES_NECESSARIAS],key=lambda dicionario:dicionario[CHAVE_PRIORIDADE],reverse=True)
+
+def retornaContadorEspacosProducao(contadorEspacosProducao, nivel):
+    contadorNivel = 0
+    for dicionarioProfissao in dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO]:
+        if dicionarioProfissao.pegaNivel() >= nivel:
+            contadorNivel += 1
+    else:
+        print(f'Contador de profissões nível {nivel} ou superior: {contadorNivel}.')
+        if contadorNivel > 0 and contadorNivel < 3:
+            contadorEspacosProducao += 1
+        elif contadorNivel >= 3:
+            contadorEspacosProducao += 2
+    return contadorEspacosProducao
+
+def retornaQuantidadeEspacosDeProducao():
+    print(f'Define quantidade de espaços de produção...')
+    quantidadeEspacosProducao = 2
+    for dicionarioProfissao in dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO]:
+        nivel, _ , _= retornaNivelXpMinimoMaximo(dicionarioProfissao)
+        if nivel >= 5:
+            quantidadeEspacosProducao += 1
+            break
+    listaNiveis = [10, 15, 20, 25]
+    for nivel in listaNiveis:
+        quantidadeEspacosProducao = retornaContadorEspacosProducao(quantidadeEspacosProducao, nivel)
+    print(f'Espaços de produção disponíveis: {quantidadeEspacosProducao}.')
+    return quantidadeEspacosProducao
+
+def verificaEspacoProducao():
+    global dicionarioPersonagemAtributos
+    quantidadeEspacoProducao = retornaQuantidadeEspacosDeProducao()
+    if dicionarioPersonagemAtributos[CHAVE_ESPACO_PRODUCAO] != quantidadeEspacoProducao:
+        dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO].setEspacoProducao(quantidadeEspacoProducao)
+        repositorioPersonagem.modificaPersonagem(dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO])
+
+def retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade):
+    listaTrabalhosProducaoRaridadeEspecifica = []
+    listaTrabalhosProducaoParaProduzirProduzindo = retornaListaTrabalhosParaProduzirProduzindo()
+    print(f'Buscando trabalho {raridade} na lista...')
+    for trabalhoProducao in listaTrabalhosProducaoParaProduzirProduzindo:
+        raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.pegaRaridade(), raridade) and textoEhIgual(trabalhoProducao.pegaProfissao(), dicionarioTrabalho[CHAVE_PROFISSAO]) and trabalhoProducao.ehParaProduzir()
+        if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
+            for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
+                if textoEhIgual(trabalhoProducaoRaridadeEspecifica.pegaNome(), trabalhoProducao.pegaNome()):
+                    break
+            else:
+                print(f'Trabalho {raridade} encontado: {trabalhoProducao.pegaNome()}')
+                listaTrabalhosProducaoRaridadeEspecifica.append(trabalhoProducao)
+    if tamanhoIgualZero(listaTrabalhosProducaoRaridadeEspecifica):
+        print(f'Nem um trabaho {raridade} na lista!')
+    return listaTrabalhosProducaoRaridadeEspecifica
+
+def retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(dicionarioTrabalho):
+    return imagem.retornaNomeTrabalhoReconhecido((dicionarioTrabalho[CHAVE_POSICAO] * 72) + 289, 0)
+
+def retornaFrameTelaTrabalhoEspecifico():
+    clickEspecifico(1, 'down')
+    clickEspecifico(1, 'enter')
+    nomeTrabalhoReconhecido = imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(0)
+    clickEspecifico(1, 'f1')
+    clickEspecifico(1, 'up')
+    return nomeTrabalhoReconhecido
+
+def confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho):
+    print(f'Confirmando nome do trabalho...')
+    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = None
+    if tipoTrabalho == 0:
+        nomeTrabalhoReconhecido = retornaFrameTelaTrabalhoEspecifico()
+    else:
+        nomeTrabalhoReconhecido = imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho)
+    if variavelExiste(nomeTrabalhoReconhecido) and CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionarioTrabalho:
+        if len(nomeTrabalhoReconhecido) >= 30:
+            nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:29]
+        for trabalhoProducaoPriorizada in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
+            if trabalhoProducaoPriorizada.pegaNomeProducao():
+                nomeTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.pegaNome().replace('-','')
+                nomeProducaoTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.pegaNomeProducao().replace('-','')
+                if len(trabalhoProducaoPriorizada.pegaNome()) >= 30:
+                    nomeTrabalhoProducaoDesejado = nomeTrabalhoProducaoDesejado[:29]
+                if len(trabalhoProducaoPriorizada.pegaNomeProducao()) >= 30:
+                    nomeProducaoTrabalhoProducaoDesejado = nomeProducaoTrabalhoProducaoDesejado[:29]
+                if trabalhoEhProducaoRecursos(trabalhoProducaoPriorizada):
+                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalhoProducaoDesejado):
+                        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizada
+                        print(f'Trabalho confirmado: {nomeTrabalhoReconhecido}')
+                        return dicionarioTrabalho
+                else:
+                    if textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalhoProducaoDesejado) or textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalhoProducaoDesejado):
+                        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizada
+                        print(f'Trabalho confirmado: {nomeTrabalhoReconhecido}')
+                        return dicionarioTrabalho
+        else:
+            print(f'Trabalho negado: {nomeTrabalhoReconhecido}')
+    return dicionarioTrabalho
+
+def incrementaChavePosicaoTrabalho(dicionarioTrabalho):
+    dicionarioTrabalho[CHAVE_POSICAO] += 1
+    return dicionarioTrabalho
+
+def defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho):
+    nomeTrabalhoReconhecidoAux = ''
+    nomeTrabalhoReconhecido = ''
+    print(f'Buscando trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].pegaRaridade()}.')
+    contadorParaBaixo = 0
+    if not primeiraBusca(dicionarioTrabalho):
+        contadorParaBaixo = dicionarioTrabalho[CHAVE_POSICAO]
+        clickEspecifico(contadorParaBaixo, 'down')
+    while not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+        erro = verificaErro(dicionarioTrabalho)
+        if erroEncontrado(erro):
+            dicionarioTrabalho[CHAVE_CONFIRMACAO] = False
+            break
+        if primeiraBusca(dicionarioTrabalho):
+            clicks = 3
+            contadorParaBaixo = 3
+            clickEspecifico(clicks, 'down')
+            yinicialNome = (2 * 70) + 285
+            nomeTrabalhoReconhecido = imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
+        elif contadorParaBaixo == 3:
+            yinicialNome = (2 * 70) + 285
+            nomeTrabalhoReconhecido = imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
+        elif contadorParaBaixo == 4:
+            yinicialNome = (3 * 70) + 285
+            nomeTrabalhoReconhecido = imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
+        elif contadorParaBaixo > 4:
+            nomeTrabalhoReconhecido = imagem.retornaNomeTrabalhoReconhecido(530, 1)
+        nomeReconhecidoNaoEstaVazioEnomeReconhecidoNaoEhIgualAoAnterior = (
+            variavelExiste(nomeTrabalhoReconhecido) and not textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalhoReconhecidoAux))
+        if nomeReconhecidoNaoEstaVazioEnomeReconhecidoNaoEhIgualAoAnterior:
+            nomeTrabalhoReconhecidoAux = nomeTrabalhoReconhecido
+            print(f'Trabalho reconhecido: {nomeTrabalhoReconhecido}')
+            for trabalhoProducao in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
+                print(f'Trabalho na lista: {trabalhoProducao.pegaNome()}')
+                if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducao.pegaNomeProducao()):
+                    clickEspecifico(1, 'enter')
+                    dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
+                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
+                    contadorParaBaixo += 1
+                    tipoTrabalho = 0
+                    if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]):
+                        tipoTrabalho = 1
+                    dicionarioTrabalho = confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
+                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+                        break
+                    else:
+                        clickEspecifico(1, 'f1')
+            else:
+                clickEspecifico(1, 'down')
+                dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
+                contadorParaBaixo += 1
+        else:
+            if not primeiraBusca(dicionarioTrabalho) and dicionarioTrabalho[CHAVE_POSICAO] > 5:
+                print(f'Trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].pegaRaridade()} não reconhecido!')
+                break
+            else:
+                clickEspecifico(1, 'down')
+                dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
+                contadorParaBaixo += 1
+    return dicionarioTrabalho
+
+def defineCloneDicionarioTrabalhoDesejado(trabalhoProducaoEncontrado):
+    return TrabalhoProducao('', trabalhoProducaoEncontrado.pegaTrabalhoId(),trabalhoProducaoEncontrado.pegaNome(), trabalhoProducaoEncontrado.pegaNomeProducao(), trabalhoProducaoEncontrado.pegaExperiencia(), trabalhoProducaoEncontrado.pegaNivel(), trabalhoProducaoEncontrado.pegaProfissao(), trabalhoProducaoEncontrado.pegaRaridade(), trabalhoProducaoEncontrado.pegaTrabalhoNecessario(), trabalhoProducaoEncontrado.pegaRecorrencia(), trabalhoProducaoEncontrado.pegaLinceca(), trabalhoProducaoEncontrado.pegaEstado())
+
+def clonaTrabalhoProducaoEncontrado(dicionarioTrabalho, trabalhoProducaoEncontrado):
+    global dicionarioPersonagemAtributos
+    print(f'Recorrencia está ligada.')
+    cloneTrabalhoProducaoEncontrado = defineCloneDicionarioTrabalhoDesejado(trabalhoProducaoEncontrado)
+    trabalhoProducaoAdicionado = repositorioTrabalhoProducao.adicionaTrabalhoProducao(cloneTrabalhoProducaoEncontrado)
+    dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO].append(trabalhoProducaoAdicionado)
+    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoAdicionado
+
+def retornaChaveTipoRecurso(dicionarioRecurso):
+    listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(dicionarioRecurso[CHAVE_NIVEL])
+    chaveProfissao = limpaRuidoTexto(dicionarioRecurso[CHAVE_PROFISSAO])
+    for dicionarioProfissaoRecursos in listaDicionarioProfissaoRecursos:
+        if chaveProfissao in dicionarioProfissaoRecursos:
+            for x in range(len(dicionarioProfissaoRecursos[chaveProfissao])):
+                if textoEhIgual(dicionarioProfissaoRecursos[chaveProfissao][x],dicionarioRecurso[CHAVE_NOME]):
+                    if x == 0 and dicionarioRecurso[CHAVE_NIVEL] == 1:
+                        return CHAVE_RCP
+                    elif x == 0 and dicionarioRecurso[CHAVE_NIVEL] == 8:
+                        return CHAVE_RAP
+                    elif x == 1 and dicionarioRecurso[CHAVE_NIVEL] == 1:
+                        return CHAVE_RCS
+                    elif x == 1 and dicionarioRecurso[CHAVE_NIVEL] == 8:
+                        return CHAVE_RAS
+                    elif x == 2 and dicionarioRecurso[CHAVE_NIVEL] == 1:
+                        return CHAVE_RCT
+                    elif x == 2 and dicionarioRecurso[CHAVE_NIVEL] == 8:
+                        return CHAVE_RAT
+                    break
+    return None
+
+def retornaNomesRecursos(chaveProfissao, nivelRecurso):
+    nomeRecursoPrimario = None
+    nomeRecursoSecundario = None
+    nomeRecursoTerciario = None
+    listaDicionarioProfissao = retornaListaDicionarioProfissaoRecursos(nivelRecurso)
+    if not tamanhoIgualZero(listaDicionarioProfissao):
+        for dicionarioProfissao in listaDicionarioProfissao:
+            if chaveProfissao in dicionarioProfissao:
+                nomeRecursoPrimario = dicionarioProfissao[chaveProfissao][0]
+                nomeRecursoSecundario = dicionarioProfissao[chaveProfissao][1]
+                nomeRecursoTerciario = dicionarioProfissao[chaveProfissao][2]
+                break
+    return nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario
+
+def retornaTrabalhoRecurso(trabalhoProducao):
+    print(f'Define quantidade de recursos.')
+    nivelTrabalhoProducao = trabalhoProducao.pegaNivel()
+    nivelRecurso = 1
+    recursoTerciario = 0
+    if textoEhIgual(trabalhoProducao.pegaProfissao(), CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE):
+        recursoTerciario = 1
+    if nivelTrabalhoProducao <= 14:
+        if nivelTrabalhoProducao == 10:
+            recursoTerciario += 2
+        elif nivelTrabalhoProducao == 12:
+            recursoTerciario += 4
+        elif nivelTrabalhoProducao == 14:
+            recursoTerciario += 6
+    else:
+        nivelRecurso = 8
+        if nivelTrabalhoProducao == 16:
+            recursoTerciario += 2
+        elif nivelTrabalhoProducao == 18:
+            recursoTerciario += 4
+        elif nivelTrabalhoProducao == 20:
+            recursoTerciario += 6
+        elif nivelTrabalhoProducao == 22:
+            recursoTerciario += 8
+        elif nivelTrabalhoProducao == 24:
+            recursoTerciario += 10
+        elif nivelTrabalhoProducao == 26:
+            recursoTerciario += 12
+        elif nivelTrabalhoProducao == 28:
+            recursoTerciario += 14
+        elif nivelTrabalhoProducao == 30:
+            recursoTerciario += 16
+        elif nivelTrabalhoProducao == 32:
+            recursoTerciario += 18
+    chaveProfissao = limpaRuidoTexto(trabalhoProducao.pegaProfissao())
+    nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = retornaNomesRecursos(chaveProfissao, nivelRecurso)
+    return TrabalhoRecurso(trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaNivel(), nomeRecursoTerciario, nomeRecursoSecundario, nomeRecursoPrimario, recursoTerciario)
+
+def removeTrabalhoEstoque(trabalhoProducao):
+    if not tamanhoIgualZero(dicionarioPersonagemAtributos[CHAVE_LISTA_ESTOQUE]):
+        if trabalhoProducao.ehComum():
+            if trabalhoEhProducaoRecursos(trabalhoProducao):
+                print(f'Trabalho é recurso de produção!')
+                print(f'Nome recurso produzido: {trabalhoProducao.pegaNome()}')
+                dicionarioRecurso = {
+                    CHAVE_NOME:trabalhoProducao.pegaNome(),
+                    CHAVE_PROFISSAO:trabalhoProducao.pegaProfissao(),
+                    CHAVE_NIVEL:trabalhoProducao.pegaNivel()}
+                dicionarioRecurso[CHAVE_TIPO] = retornaChaveTipoRecurso(dicionarioRecurso)
+                print(f'Dicionário recurso reconhecido:')
+                for atributo in dicionarioRecurso:
+                    print(f'{atributo} - {dicionarioRecurso[atributo]}')
+                chaveProfissao = limpaRuidoTexto(dicionarioRecurso[CHAVE_PROFISSAO])
+                nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = retornaNomesRecursos(chaveProfissao, 1)
+                listaNomeRecursoBuscado = []
+                if dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCS:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 2])
+                elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCT:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 3])
+                elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAP:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 6])
+                elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAS:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 7])
+                    listaNomeRecursoBuscado.append([nomeRecursoSecundario, 2])
+                elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAT:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 8])
+                    listaNomeRecursoBuscado.append([nomeRecursoTerciario, 2])
+                for trabalhoEstoque in dicionarioPersonagemAtributos[CHAVE_LISTA_ESTOQUE]:
+                    for recursoBuscado in listaNomeRecursoBuscado:
+                        if textoEhIgual(trabalhoEstoque.pegaNome(), recursoBuscado[0]):
+                            novaQuantidade = trabalhoEstoque.pegaQuantidade() - recursoBuscado[1]
+                            if novaQuantidade < 0:
+                                novaQuantidade = 0
+                            print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada de {trabalhoEstoque.pegaQuantidade()} para {novaQuantidade}.')
+                            trabalhoEstoque.setQuantidade(novaQuantidade)
+                            repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
+                    if textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoProducao.pegaLicenca()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                        print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada de {trabalhoEstoque.pegaQuantidade()} para {novaQuantidade}.')
+                        trabalhoEstoque.setQuantidade(novaQuantidade)
+                        repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
+            else:
+                trabalhoRecurso = retornaTrabalhoRecurso(trabalhoProducao)
+                for trabalhoEstoque in dicionarioPersonagemAtributos[CHAVE_LISTA_ESTOQUE]:
+                    novaQuantidade = None
+                    if textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaPrimario()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadePrimario()
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                    elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaSecundario()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadeSecundario()
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                    elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaTerciario()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadeTerciario()
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                    elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaLicenca()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                    if variavelExiste(novaQuantidade):
+                        print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada para {novaQuantidade}.')
+                        trabalhoEstoque.setQuantidade(novaQuantidade)
+                        repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
+        elif trabalhoProducao.ehMelhorado() or trabalhoProducao.ehRaro():
+            if not trabalhoEhProducaoRecursos(trabalhoProducao):
+                listaTrabalhosNecessarios = trabalhoProducao.pegaTrabalhoNecessario().split(',')
+                for trabalhoNecessario in listaTrabalhosNecessarios:
+                    for trabalhoEstoque in dicionarioPersonagemAtributos[CHAVE_LISTA_ESTOQUE]:
+                        if textoEhIgual(trabalhoNecessario, trabalhoEstoque.pegaNome()):
+                            novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
+                            if novaQuantidade < 0:
+                                novaQuantidade = 0
+                            print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada para {novaQuantidade}.')
+                            trabalhoEstoque.setQuantidade(novaQuantidade)
+                            repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
+                            break
+    else:
+        print(f'Lista de estoque está vazia!')
+        
+def iniciaProcessoDeProducao(dicionarioTrabalho):
+    global dicionarioPersonagemAtributos
+    primeiraBusca = True
+    trabalhoProducaoEncontrado = dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]
+    while True:
+        menu = retornaMenu()
+        if menuTrabalhosAtuaisReconhecido(menu):
+            if not tamanhoIgualZero(trabalhoProducaoEncontrado):
+                if trabalhoProducaoEncontrado.ehRecorrente():
+                    clonaTrabalhoProducaoEncontrado(dicionarioTrabalho, trabalhoProducaoEncontrado)
+                else:
+                    repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducaoEncontrado)
+                removeTrabalhoEstoque(trabalhoProducaoEncontrado)
+                clickContinuo(12,'up')
+                dicionarioPersonagemAtributos[CHAVE_CONFIRMACAO] = True
+                break
+            else:
+                print(f'Dicionário trabalho desejado está vazio!')
+                break
+        elif menuTrabalhoEspecificoReconhecido(menu):
+            if primeiraBusca:
+                print(f'Entra menu licença.')
+                clickEspecifico(1, 'up')
+                clickEspecifico(1, 'enter')
+            else:
+                print(f'Clica f2.')
+                clickEspecifico(1, 'f2')
+        elif menuLicencasReconhecido(menu):
+            print(f"Buscando: {trabalhoProducaoEncontrado.pegaLicenca()}")
+            textoReconhecido = imagem.retornaTextoLicencaReconhecida()
+            if variavelExiste(textoReconhecido):
+                print(f'Licença reconhecida: {textoReconhecido}.')
+                if not texto1PertenceTexto2('licençasdeproduçao', textoReconhecido):
+                    primeiraBusca = True
+                    listaCiclo = []
+                    while not texto1PertenceTexto2(textoReconhecido, trabalhoProducaoEncontrado.pegaLicenca()):
+                        listaCiclo.append(textoReconhecido)
+                        clickEspecifico(1, "right")
+                        textoReconhecido = imagem.retornaTextoLicencaReconhecida()
+                        if variavelExiste(textoReconhecido):
+                            print(f'Licença reconhecida: {textoReconhecido}.')
+                            if textoEhIgual(textoReconhecido, 'nenhumitem'):
+                                if textoEhIgual(trabalhoProducaoEncontrado.pegaLicenca(), CHAVE_LICENCA_INICIANTE):
+                                    if not textoEhIgual(listaCiclo[-1], 'nenhumitem'):
+                                        print(f'Sem licenças de produção...')
+                                        dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO].setEstado(False)
+                                        repositorioPersonagem.modificaPersonagem(dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO])
+                                        clickEspecifico(3, 'f1')
+                                        clickContinuo(10, 'up')
+                                        clickEspecifico(1, 'left')
+                                        break
+                                else:
+                                    print(f'{trabalhoProducaoEncontrado.pegaLicenca()} não encontrado!')
+                                    print(f'Licença buscada agora é Licença de produção do iniciante!')
+                                    trabalhoProducaoEncontrado.setLicenca(CHAVE_LICENCA_INICIANTE)
+                                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado
+                            else:
+                                if len(listaCiclo) > 10:
+                                    print(f'{trabalhoProducaoEncontrado.pegaLicenca()} não encontrado!')
+                                    print(f'Licença buscada agora é Licença de produção do iniciante!')
+                                    trabalhoProducaoEncontrado.setLicenca(CHAVE_LICENCA_INICIANTE)
+                                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado          
+                        else:
+                            erro = verificaErro()
+                            if ehErroOutraConexao(erro):
+                                dicionarioPersonagemAtributos[CHAVE_UNICA_CONEXAO] = False
+                            print(f'Erro ao reconhecer licença!')
+                            break
+                        primeiraBusca = False
+                    else:
+                        if primeiraBusca:
+                            clickEspecifico(1, "f1")
+                        else:
+                            clickEspecifico(1, "f2")
+                else:
+                    print(f'Sem licenças de produção...')
+                    dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO].setEstado(False)
+                    repositorioPersonagem.modificaPersonagem(dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO])
+                    clickEspecifico(3, 'f1')
+                    clickContinuo(10, 'up')
+                    clickEspecifico(1, 'left')
+                    break
+            else:
+                print(f'Erro ao reconhecer licença!')
+                
+                break
+        elif menuEscolhaEquipamentoReconhecido(menu) or menuAtributosEquipamentoReconhecido(menu):
+            print(f'Clica f2.')
+            clickEspecifico(1, 'f2')
+        else:
+            break
+        print(f'Tratando possíveis erros...')
+        dicionarioPersonagemAtributos[CHAVE_CONFIRMACAO] = True
+        tentativas = 1
+        erro = verificaErro(trabalhoProducaoEncontrado)
+        while erroEncontrado(erro):
+            if ehErroRecursosInsuficiente(erro):
+                repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducaoEncontrado)
+                posicao = 0
+                for trabalhoProducao in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
+                    if textoEhIgual(trabalhoProducao.pegaId(), trabalhoProducaoEncontrado.pegaId()):
+                        del dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO][posicao]
+                        break
+                    posicao += 1
+                dicionarioTrabalho[CHAVE_CONFIRMACAO] = False
+            elif ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
+                dicionarioPersonagemAtributos[CHAVE_CONFIRMACAO] = False
+                dicionarioTrabalho[CHAVE_CONFIRMACAO] = False
+                if ehErroOutraConexao(erro):
+                    dicionarioPersonagemAtributos[CHAVE_UNICA_CONEXAO] = False
+                elif ehErroConectando(erro):
+                    if tentativas > 10:
+                        clickEspecifico(1, 'enter')
+                        tentativas = 0
+                    tentativas+=1
+            erro = verificaErro(trabalhoProducaoEncontrado)
+        if not chaveConfirmacaoEhVerdadeira(dicionarioTrabalho):
+            break
+        primeiraBusca = False
+    return dicionarioTrabalho
+
+def retornaListaPossiveisTrabalhos(nomeTrabalhoConcluido):
+    listaPossiveisTrabalhos = []
+    for trabalho in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS]:
+        if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
+            trabalhoEncontrado = TrabalhoProducao('', trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, CHAVE_LICENCA_INICIANTE, CODIGO_CONCLUIDO)
+            listaPossiveisTrabalhos.append(trabalhoEncontrado)
+    return listaPossiveisTrabalhos
+
+def retornaTrabalhoProducaoConcluido(nomeTrabalhoConcluido):
+    listaPossiveisTrabalhosProducao = retornaListaPossiveisTrabalhos(nomeTrabalhoConcluido)
+    if not tamanhoIgualZero(listaPossiveisTrabalhosProducao):
+        listaTrabalhosProducaoProduzirProduzindo = retornaListaTrabalhosParaProduzirProduzindo()
+        for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
+            for dicionarioTrabalhoProduzirProduzindo in listaTrabalhosProducaoProduzirProduzindo:
+                condicoes = dicionarioTrabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(dicionarioTrabalhoProduzirProduzindo.pegaNome(), possivelTrabalhoProducao.pegaNome())
+                if condicoes:
+                    return dicionarioTrabalhoProduzirProduzindo
+        else:
+            print(f'Trabalho concluído ({listaPossiveisTrabalhosProducao[0].pegaNome()}) não encontrado na lista produzindo...')
+            return listaPossiveisTrabalhosProducao[0]
+    return None
 
 def iniciaBuscaTrabalho(dicionarioTrabalho):
     global dicionarioPersonagemAtributos
-    defineChaveListaProfissoesNecessarias()
+    defineChaveListaDicionariosProfissoesNecessarias()
     indiceProfissao = 0
     dicionarioTrabalho[CHAVE_POSICAO] = -1
-    while indiceProfissao < len(dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_VERIFICADA]):#percorre lista de profissao
+    while indiceProfissao < len(dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIOS_PROFISSOES_NECESSARIAS]):
         if vaiParaMenuProduzir():
-            dicionarioProfissaoVerificada = dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_VERIFICADA][indiceProfissao]
-            if not chaveConfirmacaoForVerdadeira(dicionarioPersonagemAtributos) or not chaveUnicaConexaoForVerdadeira(dicionarioPersonagemAtributos):
+            dicionarioProfissaoNecessaria = dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIOS_PROFISSOES_NECESSARIAS][indiceProfissao]
+            if not chaveConfirmacaoEhVerdadeira(dicionarioPersonagemAtributos) or not chaveUnicaConexaoEhVerdadeira(dicionarioPersonagemAtributos):
                 break
             elif not existeEspacoProducao():
                 indiceProfissao += 1
                 continue
             if listaProfissoesFoiModificada():
-                atualizaListaProfissao()
                 verificaEspacoProducao()
-            entraProfissaoEspecifica(dicionarioProfissaoVerificada)
-            print(f'Verificando profissão: {dicionarioProfissaoVerificada[CHAVE_NOME]}')
-            
-            listaDeListaTrabalhos = []
-            dicionarioTrabalho[CHAVE_PROFISSAO] = dicionarioProfissaoVerificada[CHAVE_NOME]
+            entraProfissaoEspecifica(dicionarioProfissaoNecessaria)
+            print(f'Verificando profissão: {dicionarioProfissaoNecessaria[CHAVE_NOME]}')
+            dicionarioTrabalho[CHAVE_PROFISSAO] = dicionarioProfissaoNecessaria[CHAVE_NOME]
             dicionarioTrabalho[CHAVE_CONFIRMACAO] = True
-            listaDicionariosTrabalhosEspeciais = retornaListaDicionariosTrabalhosRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_ESPECIAL)
-            if not tamanhoIgualZero(listaDicionariosTrabalhosEspeciais):
-                listaDicionariosTrabalhosEspeciais = sorted(listaDicionariosTrabalhosEspeciais,key=lambda dicionario:dicionario[CHAVE_NOME])
-                listaDeListaTrabalhos.append(listaDicionariosTrabalhosEspeciais)
-            listaDicionariosTrabalhosRaros = retornaListaDicionariosTrabalhosRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_RARO)
-            if not tamanhoIgualZero(listaDicionariosTrabalhosRaros):
-                listaDicionariosTrabalhosRaros = sorted(listaDicionariosTrabalhosRaros,key=lambda dicionario:(dicionario[CHAVE_PRIORIDADE], dicionario[CHAVE_NOME]))
-                listaDeListaTrabalhos.append(listaDicionariosTrabalhosRaros)
-            listaDicionariosTrabalhosMelhorados = retornaListaDicionariosTrabalhosRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_MELHORADO)
-            if not tamanhoIgualZero(listaDicionariosTrabalhosMelhorados):
-                listaDicionariosTrabalhosMelhorados = sorted(listaDicionariosTrabalhosMelhorados,key=lambda dicionario:dicionario[CHAVE_NOME])
-                listaDeListaTrabalhos.append(listaDicionariosTrabalhosMelhorados)
-            listaDicionariosTrabalhosComuns = retornaListaDicionariosTrabalhosRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_COMUM)
-            if not tamanhoIgualZero(listaDicionariosTrabalhosComuns):
-                listaDicionariosTrabalhosComuns = sorted(listaDicionariosTrabalhosComuns,key=lambda dicionario:(dicionario[CHAVE_PRIORIDADE], dicionario[CHAVE_NOME]))
-                listaDeListaTrabalhos.append(listaDicionariosTrabalhosComuns)
+            listaDeListasTrabalhosProducao = retornaListaDeListasTrabalhosProducao(dicionarioTrabalho)
             indiceLista = 0
-            while indiceLista < len(listaDeListaTrabalhos):
-                listaVerificada = listaDeListaTrabalhos[indiceLista]
-                dicionarioTrabalho[CHAVE_LISTA_DESEJO_PRIORIZADA] = listaVerificada
-                for dicionarioTrabalhoVerificado in listaVerificada:
-                    if raridadeTrabalhoEhEspecial(dicionarioTrabalhoVerificado)or raridadeTrabalhoEhRaro(dicionarioTrabalhoVerificado):
-                        print(f'Trabalho desejado: {dicionarioTrabalhoVerificado[CHAVE_NOME]}.')
+            for listaTrabalhosProducao in listaDeListasTrabalhosProducao:
+                dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA] = listaTrabalhosProducao
+                for trabalhoProducaoPriorizado in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
+                    if trabalhoProducaoPriorizado.ehEspecial() or trabalhoProducaoPriorizado.ehRaro():
+                        print(f'Trabalho desejado: {trabalhoProducaoPriorizado.pegaNome()}.')
                         posicaoAux = -1
                         if dicionarioTrabalho[CHAVE_POSICAO] != -1:
                             posicaoAux = dicionarioTrabalho[CHAVE_POSICAO]
                         dicionarioTrabalho[CHAVE_POSICAO] = 0
-                        while naoFizerQuatroVerificacoes(dicionarioTrabalho)and not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+                        while naoFizerQuatroVerificacoes(dicionarioTrabalho) and not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
                             nomeTrabalhoReconhecido = retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(dicionarioTrabalho)
-                            print(f'Trabalho {dicionarioTrabalhoVerificado[CHAVE_RARIDADE]} reconhecido: {nomeTrabalhoReconhecido}.')
+                            print(f'Trabalho {trabalhoProducaoPriorizado.pegaRaridade()} reconhecido: {nomeTrabalhoReconhecido}.')
                             if variavelExiste(nomeTrabalhoReconhecido):
-                                if texto1PertenceTexto2(nomeTrabalhoReconhecido, dicionarioTrabalhoVerificado[CHAVE_NOME_PRODUCAO]):
-                                    dicionarioTrabalho = entraTrabalhoEncontrado(dicionarioTrabalho, dicionarioTrabalhoVerificado)
-                                    if chaveConfirmacaoForVerdadeira(dicionarioTrabalho):
-                                        dicionarioTrabalho[CHAVE_DICIONARIO_TRABALHO_DESEJADO] = dicionarioTrabalhoVerificado
+                                if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducaoPriorizado.pegaNomeProducao()):
+                                    dicionarioTrabalho[CHAVE_CONFIRMACAO] = True
+                                    erro = verificaErro()
+                                    if erroEncontrado(erro):
+                                        if ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
+                                            dicionarioTrabalho[CHAVE_CONFIRMACAO] = False
+                                            if ehErroOutraConexao(erro):
+                                                dicionarioTrabalho[CHAVE_UNICA_CONEXAO] = False
+                                    else:
+                                        entraTrabalhoEncontrado(dicionarioTrabalho)
+                                    if chaveConfirmacaoEhVerdadeira(dicionarioTrabalho):
+                                        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizado
                                         tipoTrabalho = 0
-                                        if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_DICIONARIO_TRABALHO_DESEJADO]):
+                                        if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]):
                                             tipoTrabalho = 1
-                                        dicionarioTrabalho = confirmaNomeTrabalho(dicionarioTrabalho, tipoTrabalho)
+                                        dicionarioTrabalho = confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
                                         if not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
                                             clickEspecifico(1,'f1')
-                                            clickContinuo(dicionarioTrabalho[CHAVE_POSICAO]+1,'up')
+                                            clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
                                     else:
                                         break
                             else:
                                 dicionarioTrabalho[CHAVE_POSICAO] = 4
                             dicionarioTrabalho = incrementaChavePosicaoTrabalho(dicionarioTrabalho)
                         dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
-                        
-                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not chaveConfirmacaoForVerdadeira(dicionarioTrabalho):
+                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not chaveConfirmacaoEhVerdadeira(dicionarioTrabalho):
                             break
-                    elif raridadeTrabalhoEhMelhorado(dicionarioTrabalhoVerificado)or raridadeTrabalhoEhComum(dicionarioTrabalhoVerificado):
+                    elif trabalhoProducaoPriorizado.ehMelhorado() or trabalhoProducaoPriorizado.ehComum():
                         dicionarioTrabalho = defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho)
                         dicionarioPersonagemAtributos[CHAVE_CONFIRMACAO] = dicionarioTrabalho[CHAVE_CONFIRMACAO]
-                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not chaveConfirmacaoForVerdadeira(dicionarioTrabalho):
+                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not chaveConfirmacaoEhVerdadeira(dicionarioTrabalho):
                             break
-                        elif indiceLista + 1 >= len(listaDeListaTrabalhos):
+                        elif indiceLista + 1 >= len(listaDeListasTrabalhosProducao):
                             vaiParaMenuTrabalhoEmProducao()
                         else:
                             vaiParaOTopoDaListaDeTrabalhosComunsEMelhorados(dicionarioTrabalho)
-                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not chaveConfirmacaoForVerdadeira(dicionarioTrabalho):
+                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not chaveConfirmacaoEhVerdadeira(dicionarioTrabalho):
                         break
-                if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not chaveConfirmacaoForVerdadeira(dicionarioTrabalho):
+                if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not chaveConfirmacaoEhVerdadeira(dicionarioTrabalho):
                     break
                 else:
                     indiceLista += 1
                     dicionarioTrabalho[CHAVE_POSICAO] = -1
-            if chaveConfirmacaoForVerdadeira(dicionarioPersonagemAtributos):# CHAVE que indica que nem um erro foi detectado
-                if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):# Começa processo de produção do trabalho
+            if chaveConfirmacaoEhVerdadeira(dicionarioPersonagemAtributos):
+                if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
                     dicionarioTrabalho = iniciaProcessoDeProducao(dicionarioTrabalho)
-                    
                 else:
                     saiProfissaoVerificada(dicionarioTrabalho)
                     indiceProfissao += 1
                     dicionarioTrabalho[CHAVE_POSICAO] = -1
-                if chaveUnicaConexaoForVerdadeira(dicionarioPersonagemAtributos):
+                if chaveUnicaConexaoEhVerdadeira(dicionarioPersonagemAtributos):
                     if chaveEspacoBolsaForVerdadeira(dicionarioPersonagemAtributos):
-                        if retornaEstadoTrabalho() == CODIGO_CONCLUIDO:
+                        if imagem.retornaEstadoTrabalho() == CODIGO_CONCLUIDO:
                             nomeTrabalhoConcluido = reconheceRecuperaTrabalhoConcluido()
                             if variavelExiste(nomeTrabalhoConcluido):
-                                dicionarioTrabalhoConcluido = retornaDicionarioTrabalhoConcluido(nomeTrabalhoConcluido)
-                                if not tamanhoIgualZero(dicionarioTrabalhoConcluido):
-                                    dicionarioTrabalhoConcluido = modificaTrabalhoConcluidoListaProduzirProduzindo(dicionarioTrabalhoConcluido)
-                                    modificaExperienciaProfissao(dicionarioTrabalhoConcluido)
-                                    atualizaEstoquePersonagem(dicionarioTrabalhoConcluido)
-                                    verificaProducaoTrabalhoRaro(dicionarioTrabalhoConcluido)
+                                trabalhoProducaoConcluido = retornaTrabalhoProducaoConcluido(nomeTrabalhoConcluido)
+                                if variavelExiste(trabalhoProducaoConcluido):
+                                    trabalhoProducaoConcluido = modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
+                                    modificaExperienciaProfissao(trabalhoProducaoConcluido)
+                                    atualizaEstoquePersonagem(trabalhoProducaoConcluido)
+                                    verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
                                 else:
-                                    print(f'{D}: Dicionário trabalho concluido não reconhecido.')
-                                    
+                                    print(f'Dicionário trabalho concluido não reconhecido.')
                             else:
-                                print(f'{D}: Dicionário trabalho concluido não reconhecido.')
-                                
+                                print(f'Dicionário trabalho concluido não reconhecido.')
                         elif not existeEspacoProducao():
                             break
-                    dicionarioTrabalho[CHAVE_DICIONARIO_TRABALHO_DESEJADO] = None
+                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = None
                     clickContinuo(3,'up')
                     clickEspecifico(1,'left')
-                    
                     sleep(1.5)
         else:
             break
     else:
-        if listaProfissoesFoiModificada():
-            atualizaListaProfissao()
+        if listaProfissoesFoiModificada(dicionarioPersonagemAtributos):
             verificaEspacoProducao()
         print(f'Fim da lista de profissões...')
-        
+
+def retornaListaDeListasTrabalhosProducao(dicionarioTrabalho):
+    listaDeListaTrabalhos = []
+    listaTrabalhoProducaoEspecial = retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_ESPECIAL)
+    if not tamanhoIgualZero(listaTrabalhoProducaoEspecial):
+        listaTrabalhoProducaoEspecial = sorted(listaTrabalhoProducaoEspecial,key=lambda dicionario:dicionario[CHAVE_NOME])
+        listaDeListaTrabalhos.append(listaTrabalhoProducaoEspecial)
+    listaTrabalhosProducaoRaros = retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_RARO)
+    if not tamanhoIgualZero(listaTrabalhosProducaoRaros):
+        listaTrabalhosProducaoRaros = sorted(listaTrabalhosProducaoRaros,key=lambda dicionario:(dicionario[CHAVE_PRIORIDADE], dicionario[CHAVE_NOME]))
+        listaDeListaTrabalhos.append(listaTrabalhosProducaoRaros)
+    listaTrabalhosProducaoMelhorados = retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_MELHORADO)
+    if not tamanhoIgualZero(listaTrabalhosProducaoMelhorados):
+        listaTrabalhosProducaoMelhorados = sorted(listaTrabalhosProducaoMelhorados,key=lambda dicionario:dicionario[CHAVE_NOME])
+        listaDeListaTrabalhos.append(listaTrabalhosProducaoMelhorados)
+    listaTrabalhosProducaoComuns = retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_COMUM)
+    if not tamanhoIgualZero(listaTrabalhosProducaoComuns):
+        listaTrabalhosProducaoComuns = sorted(listaTrabalhosProducaoComuns,key=lambda dicionario:(dicionario[CHAVE_PRIORIDADE], dicionario[CHAVE_NOME]))
+        listaDeListaTrabalhos.append(listaTrabalhosProducaoComuns)
+    return listaDeListaTrabalhos
+
+def retiraDicionarioPersonagemListaAtivo():
+    defineChaveListaPersonagensAtivos()
+    novaListaPersonagensAtivos = []
+    for personagemAtivo in dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO]:
+        for personagemRemovido in dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_RETIRADO]:
+            if textoEhIgual(personagemAtivo.pegaNome(),personagemRemovido.pegaNome()):
+                break
+        else:
+            novaListaPersonagensAtivos.append(personagemAtivo)
+    dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO] = novaListaPersonagensAtivos
+
+def logaContaPersonagem():
+    confirmacao=False
+    email=dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO][0].pegaEmail()
+    senha=dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO][0].pegaSenha()
+    print(f'Tentando logar conta personagem...')
+    preencheCamposLogin(email,senha)
+    tentativas=1
+    erro=verificaErro()
+    while erroEncontrado(erro):
+        if erro==CODIGO_CONECTANDO or erro==CODIGO_RESTAURA_CONEXAO:
+            if tentativas>10:
+                clickEspecifico(1,'enter')
+                tentativas = 0
+            tentativas+=1
+        elif erro==CODIGO_ERRO_EMAIL_SENHA_INCORRETA:
+            break
+        else:
+            print('Erro ao tentar logar...')
+        erro=verificaErro()
+    else:
+        print(f'Login efetuado com sucesso!')
+        confirmacao=True
+    return confirmacao
+
+def configuraLoginPersonagem():
+    menu = retornaMenu()
+    while menu != MENU_JOGAR:
+        if menu == MENU_NOTICIAS or menu == MENU_ESCOLHA_PERSONAGEM:
+            clickEspecifico(1, 'f1')
+        elif menu != MENU_INICIAL:
+            clickMouseEsquerdo(1, 2, 35)
+        else:
+            encerraSecao()
+        menu = retornaMenu()
+    else:
+        login = logaContaPersonagem()
+    return login
+
+def entraPersonagemAtivo():
+    global dicionarioPersonagemAtributos
+    contadorPersonagem = 0
+    menu = retornaMenu()
+    if menu == MENU_JOGAR:
+        print(f'Buscando personagem ativo...')
+        clickEspecifico(1, 'enter')
+        sleep(1)
+        tentativas = 1
+        erro = verificaErro()
+        while erroEncontrado(erro):
+            if erro == CODIGO_CONECTANDO:
+                if tentativas > 10:
+                    clickEspecifico(2, 'enter')
+                    tentativas = 0
+                tentativas += 1
+            erro = verificaErro()
+        else:
+            clickEspecifico(1, 'f2')
+            clickContinuo(10, 'left')   
+            personagemReconhecido = imagem.retornaTextoNomePersonagemReconhecido(1)
+            while variavelExiste(personagemReconhecido) and contadorPersonagem < 13:
+                confirmaNomePersonagem(personagemReconhecido)
+                if variavelExiste(dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO]):
+                    modificaAtributoUso(True)
+                    clickEspecifico(1, 'f2')
+                    sleep(1)
+                    print(f'Personagem ({dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO].pegaNome()}) ESTÁ EM USO.')
+                    tentativas = 1
+                    erro = verificaErro()
+                    while erroEncontrado(erro):
+                        if ehErroOutraConexao(erro):
+                            dicionarioPersonagemAtributos[CHAVE_UNICA_CONEXAO] = False
+                            contadorPersonagem = 14
+                            break
+                        elif ehErroConectando(erro):
+                            if tentativas > 10:
+                                clickEspecifico(2, 'enter')
+                                tentativas = 0
+                            tentativas += 1
+                        erro = verificaErro()
+                    else:
+                        print(f'Login efetuado com sucesso!')
+                        break
+                else:
+                    clickEspecifico(1, 'right')
+                    personagemReconhecido = imagem.retornaTextoNomePersonagemReconhecido(1)
+                contadorPersonagem += 1
+            else:
+                print(f'Personagem não encontrado!')
+                if retornaMenu() == MENU_ESCOLHA_PERSONAGEM:
+                    clickEspecifico(1, 'f1')
+    elif menu == MENU_INICIAL:
+        deslogaPersonagem(dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_RETIRADO][-1].pegaEmail())
+    else:
+        clickMouseEsquerdo(1,2,35)
+
 def iniciaProcessoBusca():
     global dicionarioPersonagemAtributos
     dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM] = repositorioPersonagem.pegaTodosPersonagens()
@@ -1231,7 +1622,7 @@ def iniciaProcessoBusca():
             defineChaveDicionarioPersonagemEmUso()
             if variavelExiste(dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO]):
                 modificaAtributoUso(True)
-                print(f'Personagem ({dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO][CHAVE_NOME]}) ESTÁ EM USO.')
+                print(f'Personagem ({dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO].pegaNome()}) ESTÁ EM USO.')
                 inicializaChavesPersonagem()
                 print('Inicia busca...')
                 if vaiParaMenuProduzir():
@@ -1241,67 +1632,39 @@ def iniciaProcessoBusca():
                     if not tamanhoIgualZero(listaDicionariosTrabalhosParaProduzirProduzindo):
                         dicionarioTrabalho = {
                             CHAVE_LISTA_TRABALHOS_PRODUCAO: listaDicionariosTrabalhosParaProduzirProduzindo,
-                            CHAVE_DICIONARIO_TRABALHO_DESEJADO: None}
+                            CHAVE_TRABALHO_PRODUCAO_ENCONTRADO: None}
                         # if dicionarioPersonagemAtributos[CHAVE_VERIFICA_TRABALHO]:
                         #     verificaProdutosRarosMaisVendidos(None)
                         iniciaBuscaTrabalho(dicionarioTrabalho)
-    #                 else:
-    #                     print(f'Lista de trabalhos desejados vazia.')
-    #                      
-    #                     listaPersonagem = [dicionarioPersonagemAtributos[CHAVE_DICIONARIO_PERSONAGEM_EM_USO][CHAVE_ID]]
-    #                     dicionarioPersonagemAtributos = modificaAtributoPersonagem(dicionarioPersonagemAtributos,listaPersonagem,CHAVE_ESTADO,False)
-    #             if dicionarioPersonagemAtributos[CHAVE_UNICA_CONEXAO]:
-    #                 if haMaisQueUmPersonagemAtivo():
-    #                     clickMouseEsquerdo(1, 2, 35)
-    #                 dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIO_PERSONAGEM_RETIRADO].append(dicionarioPersonagemAtributos[CHAVE_DICIONARIO_PERSONAGEM_EM_USO])
-    #                 retiraDicionarioPersonagemListaAtivo()
-    #             else:
-    #                 dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIO_PERSONAGEM_RETIRADO].append(dicionarioPersonagemAtributos[CHAVE_DICIONARIO_PERSONAGEM_EM_USO])
-    #                 retiraDicionarioPersonagemListaAtivo()
-    #         else:#se o nome reconhecido não estiver na lista de ativos
-    #             if tamanhoIgualZero(dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIO_PERSONAGEM_RETIRADO]):
-    #                 if configuraLoginPersonagem():
-    #                     entraPersonagemAtivo()
-    #             else:
-    #                 if textoEhIgual(dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIO_PERSONAGEM_RETIRADO][-1][CHAVE_EMAIL],dicionarioPersonagemAtributos[CHAVE_LISTA_DICIONARIO_PERSONAGEM_ATIVO][0][CHAVE_EMAIL]):
-    #                     entraPersonagemAtivo()
-    #                 elif configuraLoginPersonagem():
-    #                     entraPersonagemAtivo()
-                    pass
+                    else:
+                        print(f'Lista de trabalhos desejados vazia.')
+                        repositorioPersonagem.alternaEstado(dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO])
+                if dicionarioPersonagemAtributos[CHAVE_UNICA_CONEXAO]:
+                    if haMaisQueUmPersonagemAtivo(dicionarioPersonagemAtributos):
+                        clickMouseEsquerdo(1, 2, 35)
+                    dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_RETIRADO].append(dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO])
+                    retiraDicionarioPersonagemListaAtivo()
+                else:
+                    dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_RETIRADO].append(dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO])
+                    retiraDicionarioPersonagemListaAtivo()
+            else:#se o nome reconhecido não estiver na lista de ativos
+                if tamanhoIgualZero(dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_RETIRADO]):
+                    if configuraLoginPersonagem():
+                        entraPersonagemAtivo()
+                else:
+                    if textoEhIgual(dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_RETIRADO][-1].pegaEmail(),dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO][0].pegaEmail()):
+                        entraPersonagemAtivo()
+                    elif configuraLoginPersonagem():
+                        entraPersonagemAtivo()
     
 def preparaPersonagem():
+    global repositorioPersonagem, repositorioTrabalho
+    repositorioPersonagem = RepositorioPersonagem()
+    repositorioTrabalho = RepositorioTrabalho()
     clickAtalhoEspecifico('alt', 'tab')
-    # clickAtalhoEspecifico('win', 'left')
+    clickAtalhoEspecifico('win', 'left')
     iniciaProcessoBusca()
 
-def testes():
-    # testRepositorioPersonagem = TestRepositorioPersonagem()
-    testRepositorioProfissao = TestRepositorioProfisssao()
-    # testRepositorioTrabalho = TestRepositorioTrabalho()
-    # testRepositorioVendas = TestRespositorioVendas()
-    # testRepositorioEstoque = TestRepositorioEstoque()
-    testRepositorioTrabalhoProducao = TestRepositorioTrabalhoProducao()
-
-    # testRepositorioPersonagem.testDeveRetornarListaComOitoPersonagens()
-    # testRepositorioPersonagem.testDeveAlternarChaveUso()
-    # testRepositorioPersonagem.testDeveAlternarChaveEstado()
-    # testRepositorioProfissao.testDeveRetornarListaComNoveProfissoes()
-    # testRepositorioProfissao.testDeveModificarPrimeiraProfissao()
-    testRepositorioProfissao.testDeveMostrarListadeProfissoesOrdenadaPorExperiencia()
-    # testRepositorioTrabalho.testDeveRetornarListaComMaisDeZeroItens()
-    # testRepositorioVendas.testDeveLimparListaVenda()
-    # testRepositorioVendas.testDeveAdicionarNovaVendaALista()
-    # testRepositorioVendas.testDeveRemoverPrimeiraVendaDaLista()
-    # testRepositorioVendas.testDeveRetornarListaComMaisDeZeroItens()
-    # testRepositorioEstoque.testDeveRetornaListaComMaisDeZeroItens()
-    # testRepositorioEstoque.testDeveAdicionarItemAoEstoque()
-    # testRepositorioEstoque.testDeveModificarQuantidadeDoPrimeiroItemDoEstoque()
-    # testRepositorioTrabalhoProducao.testDeveRetornarZeroItensQuandoLimparListaProducao()
-    # testRepositorioTrabalhoProducao.testDeveAdicionarItemNaLista()
-    # testRepositorioTrabalhoProducao.testDeveRetornarListaComMaisDeZeroItens()
-    # testRepositorioTrabalhoProducao.testDeveRemoverPrimeiroItemDaLista()
-    # testRepositorioTrabalhoProducao.testDeveModificarPrimeiroItemDaLista()
-
 if __name__=='__main__':
-    # preparaPersonagem()
-    testes()
+    preparaPersonagem()
+    # imagem.salvaNovaTela('testeErroFalhaAoConectarAoServidor.png')

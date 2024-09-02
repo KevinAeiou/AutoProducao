@@ -23,4 +23,12 @@ class RepositorioPersonagem:
         return listaPersonagens
     
     def modificaPersonagem(self, personagem):
-        self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.pegaId()).update(personagem)
+        self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.pegaId()).update(personagem.__dict__)
+
+    def alternaUso(self, personagem):
+        personagem.alternaUso()
+        self.modificaPersonagem(personagem)
+
+    def alternaEstado(self, personagem):
+        personagem.alternaEstado()
+        self.modificaPersonagem(personagem)
