@@ -218,7 +218,7 @@ def retornaMenu():
         if texto1PertenceTexto2('spearonline',textoMenu):
             textoMenu=imagem.retornaTextoMenuReconhecido(216,197,270)
             if variavelExiste(textoMenu):
-                if texto1PertenceTexto2('Notícias',textoMenu):
+                if texto1PertenceTexto2('noticias',textoMenu):
                     print(f'Menu notícias...')
                     return MENU_NOTICIAS
                 if texto1PertenceTexto2('Personagens',textoMenu):
@@ -1666,5 +1666,6 @@ def preparaPersonagem():
     iniciaProcessoBusca()
 
 if __name__=='__main__':
-    preparaPersonagem()
-    # imagem.salvaNovaTela('testeErroFalhaAoConectarAoServidor.png')
+    # preparaPersonagem()
+    imagem.salvaNovaTela('testeMenuPrincipal.png')
+    # print(imagem.reconheceNomeConfirmacaoTrabalhoProducao(imagem.abreImagem('tests/imagemTeste/testeTrabalhoAnelDeJadeBrutaPosicaoUm.png'), 1))

@@ -72,26 +72,28 @@ class ManipulaImagem:
             os.makedirs('tests/imagemTeste')
             cv2.imwrite('tests/imagemTeste/{}'.format(nomeImagem),imagem)
 
-    def retornaNomeTrabalhoReconhecido(self, yinicialNome, identificador):
-        sleep(1.5)
+    def reconheceNomeTrabalho(self, tela, y, identificador):
         altura = 34
         if identificador == 1:
             altura = 68
-        telaInteira = self.retornaAtualizacaoTela()
-        frameTelaInteira = telaInteira[yinicialNome:yinicialNome + altura, 233:478]
+        frameTelaInteira = tela[y:y + altura, 233:478]
         frameNomeTrabalhoTratado = self.retornaImagemCinza(frameTelaInteira)
         frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalhoTratado)
-        if np.sum(frameNomeTrabalhoTratado == 0) > 0:
+        if existePixelPreto(frameNomeTrabalhoTratado):
             return self.reconheceTexto(frameNomeTrabalhoTratado)
         return None
+    
+    def retornaNomeTrabalhoReconhecido(self, yinicialNome, identificador):
+        sleep(1.5)
+        return self.reconheceNomeTrabalho(self.retornaAtualizacaoTela(), yinicialNome, identificador)
 
     def reconheceNomeConfirmacaoTrabalhoProducao(self, tela, tipoTrabalho):
-        listaFrames = [[169, 280, 303, 33], [183, 195, 318, 31]]
+        listaFrames = [[169, 285, 303, 33], [183, 200, 318, 31]] # [x, y, altura, largura]
         posicao = listaFrames[tipoTrabalho]
         frameNomeTrabalho = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
-        frameNomeTrabalhoTratado = self.retornaImagemCinza(frameNomeTrabalho)
-        frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalho)
-        self.reconheceTexto(frameNomeTrabalhoTratado)
+        frameNomeTrabalhoCinza = self.retornaImagemCinza(frameNomeTrabalho)
+        frameNomeTrabalhoBinarizado = self.retornaImagemBinarizada(frameNomeTrabalhoCinza)
+        return self.reconheceTexto(frameNomeTrabalhoBinarizado)
 
     def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho):
         return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho)
@@ -135,35 +137,36 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def retornaTextoMenuReconhecido(self, x, y, largura):
+    def reconheceTextoMenu(self, tela, x, y, largura):
         alturaFrame = 30
-        texto = None
-        telaInteira = self.retornaAtualizacaoTela()
-        frameTela = telaInteira[y:y+alturaFrame,x:x+largura]
+        frameTela = tela[y:y+alturaFrame,x:x+largura]
         if y > alturaFrame:
             frameTela = self.retornaImagemCinza(frameTela)
             frameTela = self.retornaImagemEqualizada(frameTela)
             frameTela = self.retornaImagemBinarizada(frameTela)
-        contadorPixelPreto = np.sum(frameTela==0)
-        if existePixelPretoSuficiente(contadorPixelPreto):
+        if existePixelPretoSuficiente(frameTela):
             texto = self.reconheceTexto(frameTela)
             if variavelExiste(texto):
-                texto = limpaRuidoTexto(texto)
-        return texto
+                return limpaRuidoTexto(texto)
+        return None
+
+    def retornaTextoMenuReconhecido(self, x, y, largura):        
+        return self.reconheceTextoMenu(self.retornaAtualizacaoTela(), x, y, largura)
     
-    def verificaMenuReferencia(self):
+    def verificaMenuReferenciaInicial(self, tela):
         posicaoMenu = [[703,627],[712,1312]]
-        telaInteira = self.retornaAtualizacaoTela()
         for posicao in posicaoMenu:
-            frameTela = telaInteira[posicao[0]:posicao[0] + 53, posicao[1]:posicao[1] + 53]
+            frameTela = tela[posicao[0]:posicao[0] + 53, posicao[1]:posicao[1] + 53]
             contadorPixelPreto = np.sum(frameTela == (85,204,255))
             if contadorPixelPreto == 1720:
                 return True
         return False
     
-    def retornaTextoSair(self):
-        telaInteira = self.retornaAtualizacaoTela()
-        frameTelaTratado = self.retornaImagemCinza(telaInteira[telaInteira.shape[0]-50:telaInteira.shape[0]-15,50:50+60])
+    def verificaMenuReferencia(self):
+        return self.verificaMenuReferenciaInicial(self.retornaAtualizacaoTela())
+    
+    def reconheceTextoSair(self, tela):
+        frameTelaTratado = self.retornaImagemCinza(tela[tela.shape[0]-50:tela.shape[0]-15,50:50+60])
         frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
         contadorPixelPreto = np.sum(frameTelaTratado==0)
         if contadorPixelPreto > 100 and contadorPixelPreto < 400:
@@ -171,7 +174,10 @@ class ManipulaImagem:
             if variavelExiste(texto):
                 return limpaRuidoTexto(texto)
         return None
-
+    
+    def retornaTextoSair(self):
+        return self.reconheceTextoSair(self.retornaAtualizacaoTela())
+        
     def existePixelCorrespondencia(self):
         confirmacao = False
         tela = self.retornaAtualizacaoTela()

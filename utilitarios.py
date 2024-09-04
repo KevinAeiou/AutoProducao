@@ -1,5 +1,6 @@
 from unidecode import unidecode
 from constantes import *
+import numpy as np
 
 def textoEhIgual(texto1, texto2):
     return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
@@ -25,8 +26,11 @@ def retiraDigitos(texto):
 def erroEncontrado(erro):
     return erro != 0
 
-def existePixelPretoSuficiente(contadorPixelPreto):
-    return contadorPixelPreto > 250 and contadorPixelPreto < 3000
+def existePixelPreto(frameTela):
+    return np.sum(frameTela == 0) > 0
+
+def existePixelPretoSuficiente(frameTela):
+    return np.sum(frameTela==0) > 250 and np.sum(frameTela==0) < 3000
 
 def ehMenuInicial(menu):
     return menu == MENU_INICIAL

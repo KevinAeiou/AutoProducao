@@ -34,54 +34,53 @@ class TestImagem:
         assert esperado == recebido
 
     def testDeveRetornarStringAnelDeJadeBrutaQuandoPosicaoForZero(self):
-        imagemTeste = self.imagem.abreImagem('')
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeTrabalhoAnelDeJadeBrutaPosicaoZero.png')
         posicao = 0
         esperado = 'Anel de jade bruta'
         recebido = self.imagem.reconheceNomeConfirmacaoTrabalhoProducao(imagemTeste, posicao)
         assert recebido == esperado
 
     def testDeveRetornarStringAnelDeJadeBrutaQuandoPosicaoForUm(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeTrabalhoAnelDeJadeBrutaPosicaoUm.png')
         posicao = 1
         esperado = 'Anel de jade bruta'
-        recebido = self.imagem.reconheceNomeConfirmacaoTrabalhoProducao(posicao)
+        recebido = self.imagem.reconheceNomeConfirmacaoTrabalhoProducao(imagemTeste, posicao)
         assert recebido == esperado
 
     def testDeveRetornarStringAnelDeJadeBrutaQuandoYFor530EIdentificadorIgual1(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeTrabalhoAnelDeJadeBrutaY530Identificador1.png')
         y = 530
         identificador = 1
         esperado = 'Anel de jade bruta'
-        recebido = self.imagem.retornaNomeTrabalhoReconhecido(y, identificador)
+        recebido = self.imagem.reconheceNomeTrabalho(imagemTeste, y, identificador)
         assert recebido == esperado
 
     def testDeveRetornarStringErroLicencaDeProducaoNecessaria(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeErroLicencaDeProducaoNecessaria.png')
         esperado = 'Você precisa de uma licença defabricação para iniciar este pedido'
-        recebido = self.imagem.retornaErroReconhecido()
+        recebido = self.imagem.reconheceTextoErro(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringWarspearQuandoXIgual26EYIgual1ELarguraIgual150(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuInicial.png')
         x = 26
         y = 1
         largura = 150
         esperado = 'warspearonline'
-        recebido = self.imagem.retornaTextoMenuReconhecido(x, y, largura)
-        assert esperado in recebido
-
-    def testDeveRetornarStringWarspearQuandoXIgual26EYIgual1ELarguraIgual150(self):
-        x = 26
-        y = 1
-        largura = 150
-        esperado = 'warspearonline'
-        recebido = self.imagem.retornaTextoMenuReconhecido(x, y, largura)
+        recebido = self.imagem.reconheceTextoMenu(imagemTeste, x, y, largura)
         assert esperado in recebido
 
     def testDeveRetornarTrueQuandoEhMenuInicial(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuInicial.png')
         esperado = True
-        recebido = self.imagem.verificaMenuReferencia()
+        recebido = self.imagem.verificaMenuReferenciaInicial(imagemTeste)
         assert esperado == recebido
 
     def testDeveRetornarStringSair(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuPrincipal.png')
         esperado = 'sair'
-        recebido = self.imagem.retornaTextoSair()
+        recebido = self.imagem.reconheceTextoSair(imagemTeste)
+        assert esperado == recebido
 
     def testDeveRetornarTrueQuandoExistePixelCorreioRecebido(self):
         esperado = True
@@ -122,10 +121,6 @@ class TestImagem:
         recebido = self.imagem.retornaEstadoTrabalho()
         assert esperado == recebido
     
-    def testDeveMostrarImagem(self):
-        self.imagem.mostraImagem(0, self.imagem.retornaAtualizacaoTela()[311:311+43, 233:486], None)
-        assert '' == ''
-    
     def testDeveRetornarNomeTrabalhoConcluidoReconhecido(self):
         esperado = 'Adquirir molde do aprendiz'
         recebido = self.imagem.retornaNomeTrabalhoConcluidoReconhecido()
@@ -149,4 +144,34 @@ class TestImagem:
         imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeErroFalhaAoConectarAoServidor.png')
         esperado = 'Falha ao se conectar ao servidor'
         recebido = self.imagem.reconheceTextoErro(imagemTeste)
+        assert esperado == recebido
+
+    def testDeveRetornaTrueQuandoMenuPrincipal(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuInicial.png')
+        esperado = True
+        recebido = self.imagem.verificaMenuReferenciaInicial(imagemTeste)
+        assert esperado == recebido
+
+    def testDeveRetornarStringWarspearOnline(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuInicial.png')
+        esperado = 'warspearonline'
+        recebido = self.imagem.reconheceTextoMenu(imagemTeste, 26, 1, 150)
+        assert esperado == recebido
+
+    def testDeveRetornarStringNoticias(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuNoticias.png')
+        esperado = 'noticias'
+        recebido = self.imagem.reconheceTextoMenu(imagemTeste, 216, 197, 270)
+        assert esperado == recebido
+
+    def testDeveRetornarStringPersonagens(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuEscolhaPersonagem.png')
+        esperado = 'personagens'
+        recebido = self.imagem.reconheceTextoMenu(imagemTeste, 216, 197, 270)
+        assert esperado == recebido
+
+    def testDeveRetornarStringProducao(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuProducao.png')
+        esperado = 'producao'
+        recebido = self.imagem.reconheceTextoMenu(imagemTeste, 216, 197, 270)
         assert esperado == recebido
