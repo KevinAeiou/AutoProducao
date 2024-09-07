@@ -48,10 +48,10 @@ class ManipulaImagem:
         ret, thresh = cv2.threshold(blur, 180, 255, cv2.THRESH_BINARY_INV)
         return thresh
 
-    def retornaImagemDitalata(imagem, kernel, iteracoes):
+    def retornaImagemDitalata(self, imagem, kernel, iteracoes):
         return cv2.dilate(imagem, kernel, iterations = iteracoes)
 
-    def retornaImagemErodida(imagem, kernel, iteracoes):
+    def retornaImagemErodida(self,imagem, kernel, iteracoes):
         return cv2.erode(imagem, kernel, iterations = iteracoes)
     
     def mostraImagem(self, indice, imagem, nomeFrame):
@@ -113,26 +113,29 @@ class ManipulaImagem:
         return self.reconheceTextoLicenca(self.retornaAtualizacaoTela())
     
     def reconheceTextoNomePersonagem(self, tela, posicao):
-        posicaoNome = [[2,33,169,27], [190,351,177,30]]
+        posicaoNome = [[2,33,169,27], [190,355,177,30]] # [x, y, altura, largura]
         frameNomePersonagem = tela[posicaoNome[posicao][1]:posicaoNome[posicao][1]+posicaoNome[posicao][3], posicaoNome[posicao][0]:posicaoNome[posicao][0]+posicaoNome[posicao][2]]
-        frameNomePersonagemTratado = self.retornaImagemCinza(frameNomePersonagem)
-        frameNomePersonagemTratado = self.retornaImagemBinarizada(frameNomePersonagem)
-        contadorPixelPretoEhMaiorQueCinquenta = np.sum(frameNomePersonagemTratado == 0) > 50
+        frameNomePersonagemCinza = self.retornaImagemCinza(frameNomePersonagem)
+        frameNomePersonagemEqualizada = self.retornaImagemEqualizada(frameNomePersonagemCinza)
+        frameNomePersonagemBinarizado = self.retornaImagemBinarizada(frameNomePersonagemEqualizada)
+        print(np.sum(frameNomePersonagemBinarizado == 0))
+        contadorPixelPretoEhMaiorQueCinquenta = np.sum(frameNomePersonagemBinarizado == 0) > 50
         if contadorPixelPretoEhMaiorQueCinquenta:
-            nomePersonagemReconhecido = self.reconheceTexto(frameNomePersonagemTratado)
+            nomePersonagemReconhecido = self.reconheceTexto(frameNomePersonagemBinarizado)
             if variavelExiste(nomePersonagemReconhecido):
                 nome = limpaRuidoTexto(nomePersonagemReconhecido)
                 print(f'Personagem reconhecido: {nome}.')
                 return nome
-            # if contadorPixelPretoEhMaiorQueCinquenta:
-            #     return 'provisorioatecair'
+            if np.sum(frameNomePersonagemBinarizado == 0) >= 170 and np.sum(frameNomePersonagemBinarizado == 0) <= 320:
+                return 'provisorioatecair'
         return None
+    
     def retornaTextoNomePersonagemReconhecido(self, posicao):
         print(f'Verificando nome personagem...')
         return self.reconheceTextoNomePersonagem(self.retornaAtualizacaoTela(), posicao)
     
     def reconheceTextoErro(self, tela):
-        return self.reconheceTexto(tela[335:335+100,150:526])
+        return self.reconheceTexto(tela[318:318+120,150:526])
 
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
@@ -205,8 +208,8 @@ class ManipulaImagem:
             return int(ouro)
         return 0
     
-    def retornaEstadoTrabalho(self):
-        texto = self.reconheceTexto(self.retornaAtualizacaoTela()[311:311+43, 233:486])
+    def reconheceEstadoTrabalho(self, tela):
+        texto = self.reconheceTexto(tela[311:311+43, 233:486])
         if variavelExiste(texto):
             if texto1PertenceTexto2("pedidoconcluido", texto):
                 print(f'Pedido concluído!')
@@ -216,10 +219,16 @@ class ManipulaImagem:
                 return CODIGO_PARA_PRODUZIR
         print(f'Em produção...')
         return CODIGO_PRODUZINDO
+    
+    def retornaEstadoTrabalho(self):
+        return self.reconheceEstadoTrabalho(self.retornaAtualizacaoTela())
 
-    def retornaNomeTrabalhoConcluidoReconhecido(self):
-        frameNomeTrabalhoBinarizado = self.retornaImagemBinarizada(self.retornaAtualizacaoTela()[285:285+37, 233:486])
-        return self.reconheceTexto(frameNomeTrabalhoBinarizado)
+    def reconheceNomeTrabalhoFrameProducao(self, tela):
+        tela = self.retornaImagemBinarizada(tela[285:285+37, 233:486])
+        return self.reconheceTexto(tela)
+    
+    def retornaNomeTrabalhoFrameProducaoReconhecido(self):
+        return self.reconheceNomeTrabalhoFrameProducao(self.retornaAtualizacaoTela())
     
     def retornaReferencia(self):
         print(f'Buscando referência "PEGAR"...')

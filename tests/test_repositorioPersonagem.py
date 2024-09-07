@@ -1,32 +1,28 @@
 from repositorio.repositorioPersonagem import RepositorioPersonagem
 
 class TestRepositorioPersonagem:
-    repositorio = RepositorioPersonagem()
-    listaPersonagens = []
-    # def __init__(self) -> None:
-    #     self.listaPersonagens = self.repositorio.pegaTodosPersonagens()
-    #     self._personagemTeste = self.listaPersonagens[1]
+    _repositorio = RepositorioPersonagem()
+    _listaPersonagens = []
+    _listaPersonagens = _repositorio.pegaTodosPersonagens()
+    _personagemTeste = _listaPersonagens[0]
 
     def testDeveRetornarListaComOitoPersonagens(self):
-        # assert len(self.listaPersonagens) != 0
-        condicao = len(self.listaPersonagens) != 0
-        resultado = 'Sucesso' if condicao else 'Falha'
-        print(resultado)
+        esperado = 8
+        recebido = len(self._listaPersonagens)
+        assert esperado == recebido
 
     def testDeveAlternarChaveUso(self):
-        self.repositorio.alternaUso(self._personagemTeste)
-        self.listaPersonagens = self.repositorio.pegaTodosPersonagens()
-        personagemTesteModificado = self.listaPersonagens[1]
-        # assert personagemTeste.pegaUso() != personagemTesteModificado.pegaUso()
-        condicao = self._personagemTeste.pegaUso() != personagemTesteModificado.pegaUso()
-        resultado = 'Sucesso' if condicao else 'Falha'
-        print(resultado)
+        esperado = not self._personagemTeste.pegaUso()
+        self._repositorio.alternaUso(self._personagemTeste)
+        self._listaPersonagens = self._repositorio.pegaTodosPersonagens()
+        personagemTesteModificado = self._listaPersonagens[0]
+        recebido = personagemTesteModificado.pegaUso()
+        assert esperado == recebido
 
     def testDeveAlternarChaveEstado(self):
-        self.repositorio.alternaEstado(self._personagemTeste)
-        self.listaPersonagens = self.repositorio.pegaTodosPersonagens()
-        personagemTesteModificado = self.listaPersonagens[1]
-        # assert self._personagemTeste.pegaEstado() != personagemTesteModificado.pegaUso()
-        condicao = self._personagemTeste.pegaEstado() != personagemTesteModificado.pegaEstado()
-        resultado = 'Sucesso' if condicao else 'Falha'
-        print(resultado)
+        esperado = not self._personagemTeste.pegaEstado()
+        self._repositorio.alternaEstado(self._personagemTeste)
+        self._listaPersonagens = self._repositorio.pegaTodosPersonagens()
+        personagemTesteModificado = self._listaPersonagens[0]
+        recebido = personagemTesteModificado.pegaEstado()
+        assert esperado == recebido

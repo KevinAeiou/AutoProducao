@@ -36,70 +36,73 @@ def ehMenuInicial(menu):
     return menu == MENU_INICIAL
 
 def ehMenuProduzir(menu):
-    return menu == MENU_PRODUZIR
+    return menu == MENU_PROFISSOES
 
 def ehErroOutraConexao(erro):
     return erro == CODIGO_ERRO_OUTRA_CONEXAO
 
 def ehErroRestauraConexao(erro):
-    print(f'Erro restaurando conexão...')
     return erro == CODIGO_RESTAURA_CONEXAO
 
 def ehErroConectando(erro):
-    print(f'Erro conectando...')
     return erro == CODIGO_CONECTANDO
 
 def ehErroRecursosInsuficiente(erro):
-    print(f'Erro recursos insuficientes...')
     return erro == CODIGO_ERRO_RECURSOS_INSUFICIENTES
 
 def ehErroEspacoProducaoInsuficiente(erro):
-    print(f'Erro espaços de produção insuficientes...')
     return erro == CODIGO_ERRO_ESPACO_PRODUCAO_INSUFICIENTE
 
 def ehErroEspacoBolsaInsuficiente(erro):
     return erro == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE
 
 def ehErroLicencaNecessaria(erro):
-    print(f'Erro licença necessária...')
     return erro == CODIGO_ERRO_PRECISA_LICENCA
 
 def ehErroFalhaConexao(erro):
-    print(f'Erro ao conectar...')
     return erro == CODIGO_ERRO_FALHA_CONECTAR
 
 def ehErroConexaoInterrompida(erro):
-    print(f'Erro conexão interrompida...')
     return erro == CODIGO_ERRO_CONEXAO_INTERROMPIDA
 
 def ehErroServidorEmManutencao(erro):
-    print(f'Erro servidor em manutenção...')
     return erro == CODIGO_ERRO_MANUTENCAO_SERVIDOR
 
 def ehErroReinoIndisponivel(erro):
-    print(f'Erro reino de jogo indisponível...')
     return erro == CODIGO_ERRO_REINO_INDISPONIVEL
 
 def ehErroOutraConexao(erro):
-    print(f'Erro outra conexão detectada...')
     return erro == CODIGO_ERRO_OUTRA_CONEXAO
 
 def ehErroExperienciaInsuficiente(erro):
-    print(F'Erro experiência insuficiente...')
     return erro == CODIGO_ERRO_EXPERIENCIA_INSUFICIENTE
 
 def ehErroTempoDeProducaoExpirada(erro):
-    if erro == CODIGO_ERRO_TEMPO_PRODUCAO_EXPIRADA:
-        print(f'Erro tempo de produção expirou...')
     return erro == CODIGO_ERRO_TEMPO_PRODUCAO_EXPIRADA
 
 def ehErroEscolhaItemNecessaria(erro):
-    print(f'Erro escolha de item necessária...')
     return erro == CODIGO_ERRO_ESCOLHA_ITEM_NECESSARIA
 
 def ehErroReceberRecompensaDiaria(erro):
-    print(f'Erro receber recompensa diária...')
     return erro == CODIGO_RECEBER_RECOMPENSA
+
+def ehErroVersaoJogoDesatualizada(erro):
+    return erro == CODIGO_ERRO_ATUALIZACAO_JOGO
+
+def ehErroSairDoJogo(erro):
+    return erro == CODIGO_SAIR_JOGO
+
+def ehErroTrabalhoNaoConcluido(erro):
+    return erro == CODIGO_ERRO_CONCLUIR_TRABALHO
+
+def ehErroEspacoBolsaInsuficiente(erro):
+    return erro == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE
+
+def ehErroUsuarioOuSenhaInvalida(erro):
+    return erro == CODIGO_ERRO_USUARIO_SENHA_INVALIDA
+
+def ehErroMoedasMilagrosasInsuficientes(erro):
+    return erro == CODIGO_ERRO_MOEDAS_MILAGROSAS_INSUFICIENTES
 
 def chaveConfirmacaoEhVerdadeira(dicionario):
     return dicionario[CHAVE_CONFIRMACAO]
@@ -114,39 +117,42 @@ def haMaisQueUmPersonagemAtivo(dicionarioPersonagemAtributos):
     return not len(dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO]) == 1
 
 def trabalhoEhProducaoRecursos(trabalhoProducao):
-    listaProducaoRecurso = [
-        'melhorarlicençacomum',
-        'licençadeproduçãodoaprendiz',
-        'grandecoleçãoderecursoscomuns',
-        'grandecoleçãoderecursosavançados',
-        'coletaemmassaderecursosavançados',
-        'melhoriadaessênciacomum',
-        'melhoriadasubstânciacomum',
-        'melhoriadocatalizadorcomum',
-        'melhoriadaessênciacomposta',
-        'melhoriadasubtânciacomposta',
-        'melhoriadocatalizadoramplificado',
-        'criaresferadoaprendiz','produzindoavarinhademadeira','produzindocabeçadocajadodejade',
-        'produzindocabeçadecajadodeônix','criaresferadoneófito','produzindoavarinhadeaço',
-        'extraçãodelascas','manipulaçãodelascas','fazermódoaprendiz',
-        'preparandolascasdequartzo','manipulaçãodeminériodecobre','fazermódoprincipiante',
-        'adquirirtesouradoaprendiz','produzindofioresistente','fazendotecidodelinho',
-        'fazendotecidodecetim','comprartesouradoprincipiante','produzindofiogrosso',
-        'adquirirfacadoaprendiz','recebendoescamasdaserpente','concluindocouroresistente',
-        'adquirirfacadoprincipiante','recebendoescamasdolagarto','curtindocourogrosso',
-        'adquirirmarretãodoaprendiz','forjandoplacasdecobre','fazendoplacasdebronze',
-        'adquirirmarretãodoprincipiante','forjandoplacasdeferro','fazendoanéisdeaço',
-        'adquirirmoldedoaprendiz','extraçãodepepitasdecobre','recebendogemadassombras',
-        'adquirirmoldedoprincipiante','extraçãodepepitasdeprata','recebendogemadaluz',
-        'adquirirpinçadoaprendiz','extraçãodejadebruta','recebendoenergiainicial',
-        'adquirirpinçasdoprincipiante','extraçãodeônixextraordinária','recebendoéterinicial',
-        'adquirirfuradordoaprendiz','produzindotecidodelicado','extraçãodesubstânciainstável',
-        'adquirirfuradordoprincipiante','produzindotecidodenso','extraçãodesubstânciaestável',
-        'recebendofibradebronze','recebendoprata','recebendoinsígniadeestudante',
-        'recebendofibradeplatina','recebendoâmbar','recebendodistintivodeaprendiz']
-    for recurso in listaProducaoRecurso:
-        if textoEhIgual(recurso, trabalhoProducao.pegaNomeProducao()):
-            return True
+    if variavelExiste(trabalhoProducao):
+        listaProducaoRecurso = [
+            'melhorarlicençacomum',
+            'licençadeproduçãodoaprendiz',
+            'grandecoleçãoderecursoscomuns',
+            'grandecoleçãoderecursosavançados',
+            'coletaemmassaderecursosavançados',
+            'melhoriadaessênciacomum',
+            'melhoriadasubstânciacomum',
+            'melhoriadocatalizadorcomum',
+            'melhoriadaessênciacomposta',
+            'melhoriadasubtânciacomposta',
+            'melhoriadocatalizadoramplificado',
+            'criaresferadoaprendiz','produzindoavarinhademadeira','produzindocabeçadocajadodejade',
+            'produzindocabeçadecajadodeônix','criaresferadoneófito','produzindoavarinhadeaço',
+            'extraçãodelascas','manipulaçãodelascas','fazermódoaprendiz',
+            'preparandolascasdequartzo','manipulaçãodeminériodecobre','fazermódoprincipiante',
+            'adquirirtesouradoaprendiz','produzindofioresistente','fazendotecidodelinho',
+            'fazendotecidodecetim','comprartesouradoprincipiante','produzindofiogrosso',
+            'adquirirfacadoaprendiz','recebendoescamasdaserpente','concluindocouroresistente',
+            'adquirirfacadoprincipiante','recebendoescamasdolagarto','curtindocourogrosso',
+            'adquirirmarretãodoaprendiz','forjandoplacasdecobre','fazendoplacasdebronze',
+            'adquirirmarretãodoprincipiante','forjandoplacasdeferro','fazendoanéisdeaço',
+            'adquirirmoldedoaprendiz','extraçãodepepitasdecobre','recebendogemadassombras',
+            'adquirirmoldedoprincipiante','extraçãodepepitasdeprata','recebendogemadaluz',
+            'adquirirpinçadoaprendiz','extraçãodejadebruta','recebendoenergiainicial',
+            'adquirirpinçasdoprincipiante','extraçãodeônixextraordinária','recebendoéterinicial',
+            'adquirirfuradordoaprendiz','produzindotecidodelicado','extraçãodesubstânciainstável',
+            'adquirirfuradordoprincipiante','produzindotecidodenso','extraçãodesubstânciaestável',
+            'recebendofibradebronze','recebendoprata','recebendoinsígniadeestudante',
+            'recebendofibradeplatina','recebendoâmbar','recebendodistintivodeaprendiz']
+        for recurso in listaProducaoRecurso:
+            if textoEhIgual(recurso, trabalhoProducao.pegaNomeProducao()):
+                print(f'Trabalho produção é recurso')
+                return True
+    print(f'Trabalho produção não é recurso')
     return False
 
 def trabalhoEhColecaoRecursosAvancados(dicionarioTrabalho):

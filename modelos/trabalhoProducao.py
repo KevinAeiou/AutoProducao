@@ -70,13 +70,13 @@ class TrabalhoProducao:
         self.tipo_licenca = licenca
 
     def ehParaProduzir(self):
-        return self.estado == CODIGO_PARA_PRODUZIR
+        return self.pegaEstado() == CODIGO_PARA_PRODUZIR
     
     def ehProduzindo(self):
-        return self.estado == CODIGO_PRODUZINDO
+        return self.pegaEstado() == CODIGO_PRODUZINDO
     
     def ehConcluido(self):
-        return self.estado == CODIGO_CONCLUIDO
+        return self.pegaEstado() == CODIGO_CONCLUIDO
 
     def ehEspecial(self):
         return self.raridade == CHAVE_RARIDADE_ESPECIAL
@@ -94,4 +94,4 @@ class TrabalhoProducao:
         return self.pegaRecorrencia()
     
     def __str__(self) -> str:
-        return f'{(self.nome).ljust(20)} | {(self.profissao).ljust(6)} | {self.nivel}'
+        return f'{(self.nome).ljust(40)} | {(self.profissao).ljust(10)} | {str(self.nivel).ljust(2)} | {self.estado}'

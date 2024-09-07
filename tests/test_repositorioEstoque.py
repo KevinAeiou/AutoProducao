@@ -3,30 +3,33 @@ from repositorio.repositorioPersonagem import RepositorioPersonagem
 from modelos.trabalhoEstoque import TrabalhoEstoque
 
 class TestRepositorioEstoque:
+    _listaTrabalhosEstoque = []
     _repositorioPersonagem = RepositorioPersonagem()
     _personagemTeste = _repositorioPersonagem.pegaTodosPersonagens()[0]
     _repositorioEstoque = RepositorioEstoque(_personagemTeste)
-    listaTrabalhosEstoque = _repositorioEstoque.pegaTodosTrabalhosEstoque()
     _trabalhoTeste = TrabalhoEstoque('', 'NomeTeste', 'ProfissaoTeste', 0, 1, 'RaridadeTeste', 'IdTeste')
 
     def testDeveRetornaListaComMaisDeZeroItens(self):
-        self._repositorioEstoque = RepositorioEstoque(self._personagemTeste)
-        self.listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        assert len(self.listaTrabalhosEstoque) != 0
+        esperado = 0
+        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
+        recebido = len(self._listaTrabalhosEstoque)
+        assert esperado != recebido
 
     def testDeveAdicionarItemAoEstoque(self):
-        tamanhoLista1 = len(self.listaTrabalhosEstoque)
+        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
+        esperado = len(self._listaTrabalhosEstoque)
         self._repositorioEstoque.adicionaTrabalhoEstoque(self._trabalhoTeste)
-        self.listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        tamanhoLista2 = len(self.listaTrabalhosEstoque)
-        assert tamanhoLista1 == tamanhoLista2 - 1
+        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
+        recebido = len(self._listaTrabalhosEstoque) - 1
+        assert esperado == recebido
 
     def testDeveModificarQuantidadeDoPrimeiroItemDoEstoque(self):
-        primeiroTrabalho = self.listaTrabalhosEstoque[0]
-        quantidade1 = primeiroTrabalho.pegaQuantidade()
-        primeiroTrabalho.setQuantidade(quantidade1+1)
-        self._repositorioEstoque.modificaTrabalhoEstoque(primeiroTrabalho)
-        self.listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        primeiroTrabalho = self.listaTrabalhosEstoque[0]
-        quantidade2 = primeiroTrabalho.pegaQuantidade()
-        assert quantidade1 == quantidade2 - 1
+        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
+        trabalhoTeste = self._listaTrabalhosEstoque[0]
+        esperado = trabalhoTeste.pegaQuantidade() + 1
+        trabalhoTeste.setQuantidade(esperado)
+        self._repositorioEstoque.modificaTrabalhoEstoque(trabalhoTeste)
+        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
+        trabalhoTeste = self._listaTrabalhosEstoque[0]
+        recebido = trabalhoTeste.pegaQuantidade()
+        assert esperado == recebido
