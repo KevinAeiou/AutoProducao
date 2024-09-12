@@ -26,6 +26,9 @@ def retiraDigitos(texto):
 def erroEncontrado(erro):
     return erro != 0
 
+def nenhumErroEncontrado(erro):
+    return not erroEncontrado(erro)
+
 def existePixelPreto(frameTela):
     return np.sum(frameTela == 0) > 0
 
@@ -37,6 +40,12 @@ def ehMenuInicial(menu):
 
 def ehMenuProduzir(menu):
     return menu == MENU_PROFISSOES
+
+def ehMenuJogar(menu):
+    return menu == MENU_JOGAR
+
+def ehMenuEscolhaPersonagem(menu):
+    return menu == MENU_ESCOLHA_PERSONAGEM
 
 def ehErroOutraConexao(erro):
     return erro == CODIGO_ERRO_OUTRA_CONEXAO
@@ -104,17 +113,14 @@ def ehErroUsuarioOuSenhaInvalida(erro):
 def ehErroMoedasMilagrosasInsuficientes(erro):
     return erro == CODIGO_ERRO_MOEDAS_MILAGROSAS_INSUFICIENTES
 
-def chaveConfirmacaoEhVerdadeira(dicionario):
-    return dicionario[CHAVE_CONFIRMACAO]
-
 def chaveUnicaConexaoEhVerdadeira(dicionarioPersonagem):
     return dicionarioPersonagem[CHAVE_UNICA_CONEXAO]
 
 def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
     return dicionarioPersonagem[CHAVE_ESPACO_BOLSA]
 
-def haMaisQueUmPersonagemAtivo(dicionarioPersonagemAtributos):
-    return not len(dicionarioPersonagemAtributos[CHAVE_LISTA_PERSONAGEM_ATIVO]) == 1
+def haMaisQueUmPersonagemAtivo(listaPersonagemAtivo):
+    return not len(listaPersonagemAtivo) == 1
 
 def trabalhoEhProducaoRecursos(trabalhoProducao):
     if variavelExiste(trabalhoProducao):
