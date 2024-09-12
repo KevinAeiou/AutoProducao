@@ -38,3 +38,7 @@ class TestRespositorioVendas:
         self._repositorioVendas.limpaListaVenda()
         recebido = len(self._repositorioVendas.pegaTodasVendas())
         assert recebido == esperado
+
+    def testDeveRetornarStringTrabalhoVendido(self):
+        imagemTeste = self.imagem
+        esperado = ''

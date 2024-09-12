@@ -181,32 +181,27 @@ class ManipulaImagem:
     def retornaTextoSair(self):
         return self.reconheceTextoSair(self.retornaAtualizacaoTela())
         
-    def existePixelCorrespondencia(self):
-        confirmacao = False
-        tela = self.retornaAtualizacaoTela()
+    def verificaPixelCorrespondencia(self, tela):
         frameTela = tela[665:690, 644:675]
         contadorPixelCorrespondencia = np.sum(frameTela==(173,239,247))
         if contadorPixelCorrespondencia > 50:
             print(f'Há correspondencia!')
-            confirmacao = True
-        else:
-            print(f'Não há correspondencia!')
-        return confirmacao
-    
+            return True
+        print(f'Não há correspondencia!')
+        return False
+
+    def retornaExistePixelCorrespondencia(self):
+        return self.verificaPixelCorrespondencia(self.retornaAtualizacaoTela())
+        
     def existeCorrespondencia(self):
         print(f'Verificando se possui correspondencia...')
         return np.sum(self.retornaAtualizacaoTela()[233:233+30, 235:235+200] == 255) > 0
     
-    def retornaTextoCorrespondenciaReconhecido(self, telaInteira):
-        return self.reconheceTexto(telaInteira[231:231+50, 168:168+343])
-    
-    def retornaValorDoTrabalhoVendido(self, telaInteira):
-        frameTelaTratado = self.retornaImagemCinza(telaInteira[490:490+30,410:410+100])
-        frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
-        ouro = re.sub('[^0-9]','', self.reconheceDigito(frameTelaTratado))
-        if ouro.isdigit():
-            return int(ouro)
-        return 0
+    def reconheceTextoCorrespondencia(self, tela):
+        return self.reconheceTexto(tela[231:231+100, 168:168+343])
+
+    def retornaTextoCorrespondenciaReconhecido(self):
+        return self.reconheceTextoCorrespondencia(self.retornaAtualizacaoTela())
     
     def reconheceEstadoTrabalho(self, tela):
         texto = self.reconheceTexto(tela[311:311+43, 233:486])
@@ -230,24 +225,60 @@ class ManipulaImagem:
     def retornaNomeTrabalhoFrameProducaoReconhecido(self):
         return self.reconheceNomeTrabalhoFrameProducao(self.retornaAtualizacaoTela())
     
+    def desenhaRetangulo(self, imagem, contorno):
+        area = cv2.contourArea(contorno)
+        x,y,l,a=cv2.boundingRect(contorno)
+        print(f'Area:{area}, x:{x}, y:{y}.')
+        return cv2.rectangle(imagem,(x,y),(x+l,y+a),(0,255,0),2)
+
+    def retonaImagemRedimensionada(self, imagem, porcentagem):
+        return cv2.resize(imagem,(0,0),fx=porcentagem,fy=porcentagem)
+
     def retornaReferencia(self):
         print(f'Buscando referência "PEGAR"...')
         telaInteira = self.retornaAtualizacaoTela()
         frameTela = telaInteira[0:telaInteira.shape[0],330:488]
-        imagem = self.retornaImagemCinza(frameTela)
-        imagem = cv2.GaussianBlur(imagem,(1,1),0)
-        imagem = cv2.Canny(imagem,150,180)
+        frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
+        imagemCinza = self.retornaImagemCinza(frameTela)
+        imagemDesfocada = cv2.GaussianBlur(imagemCinza,(1,1),1)
+        imagemLimiarizada = cv2.Canny(imagemDesfocada,150,180)
         kernel = np.ones((2,2),np.uint8)
-        imagem = self.retornaImagemDitalata(imagem,kernel,1)
-        imagem = self.retornaImagemErodida(imagem,kernel,1)
-        contornos,h1 = cv2.findContours(imagem,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+        imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel,1)
+        imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel,1)
+        contornos, h1 = cv2.findContours(imagemErodida,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
         for cnt in contornos:
             area = cv2.contourArea(cnt)
             if area > 4500 and area < 5700:
-                x, y, l, a = cv2.boundingRect(cnt)
-                print(f'Area:{area}, x:{x}, y:{y}.')
-                cv2.rectangle(frameTela,(x,y),(x+l,y+a),(0,255,0),2)
+                x,y,l,a=cv2.boundingRect(cnt)
+                frameTela = self.desenhaRetangulo(frameTela, cnt)
                 centroX = 330+x+(l/2)
                 centroY = y+(a/2)
                 return [centroX, centroY]
         return None
+    
+    def retornaReferenciaTeste(self):
+        telaInteira = self.abreImagem('tests/imagemTeste/testeMenuEscolhaPersonagem.png')
+        telaInteira = self.retonaImagemRedimensionada(telaInteira, 0.8)
+        frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
+        imagemCinza = self.retornaImagemCinza(frameTela)
+        # self.mostraImagem(0, imagemCinza, 'TELA_CINZA')
+        # imagemDesfocada = cv2.GaussianBlur(imagemCinza, (3, 3), cv2.BORDER_DEFAULT)
+        # self.mostraImagem(0, imagemDesfocada, 'TELA_DESFOCADA')
+        # kernel = np.ones((2,2),np.uint8)
+        imagemLimiarizada = cv2.Canny(imagemCinza,200,255)
+        self.mostraImagem(0, imagemLimiarizada, 'TELA_LIMIARIZADA')
+        # imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel,1)
+        # self.mostraImagem(0, imagemDilatada, 'TELA_DILATADA')
+        # imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel,1)
+        # self.mostraImagem(0, imagemErodida, 'TELA_ERODIDA')
+        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        for contorno in contornos:
+            epsilon = 0.02 * cv2.arcLength(contorno, True)
+            aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
+            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4:
+                x, y, l, a = cv2.boundingRect(contorno)
+                frameTela = self.desenhaRetangulo(frameTela, contorno)
+                centroX = 330+x+(l/2)
+                centroY = y+(a/2)
+                print(f'Centro da forma: {centroX} - {centroY}')
+        self.mostraImagem(0, frameTela, 'BORDAS_RECONHECIDAS')

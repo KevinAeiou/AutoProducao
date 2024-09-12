@@ -140,8 +140,17 @@ class TestImagem:
         assert esperado == recebido
 
     def testDeveRetornarTrueQuandoExistePixelCorreioRecebido(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuInicialComCorrespondencia.png')
         esperado = True
-        recebido = self.imagem.existePixelCorrespondencia()
+        recebido = self.imagem.verificaPixelCorrespondencia(imagemTeste)
+        assert esperado == recebido
+
+    def testDeveRetornarFalseQuandoNaoExistirPixelCorreioRecebido(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuInicial.png')
+        esperado = False
+        recebido = self.imagem.verificaPixelCorrespondencia(imagemTeste)
+        assert esperado == recebido
+
 
     def testDeveRetornarTrueQuandoExisteCorrespondencia(self):
         esperado = True
@@ -154,14 +163,10 @@ class TestImagem:
         assert esperado == recebido
 
     def testDeveRetornarTextoCorrespondenciaQuandoLoteVendido(self):
-        esperado = 'Lote vendido'
-        recebido = self.imagem.retornaTextoCorrespondenciaReconhecido(self.imagem.retornaAtualizacaoTela())
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeTrabalhoProducaoVendido.png')
+        esperado = 'Item vendido'
+        recebido = self.imagem.reconheceTextoCorrespondencia(imagemTeste)
         assert esperado in recebido
-
-    def testDeveRetornarValorDoLoteVendido(self):
-        esperado = 1
-        recebido = self.imagem.retornaValorDoTrabalhoVendido(self.imagem.retornaAtualizacaoTela())
-        assert esperado == recebido
 
     def testDeveRetornarCodigoParaProduzirQuandoNaoExistirNemUmTrabalhoSendoProduzido(self):
         imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeEstadoTrabalhoParaProduzir.png')
@@ -274,3 +279,9 @@ class TestImagem:
         esperado = 'Selecione um item para iniciar umpedido de artesanato'
         recebido = self.imagem.reconheceTextoErro(imagemTeste)
         assert esperado in recebido
+
+    def testDeveRetornarStringSapatosAltosDaLuzImQuandoTrabalhoProducaoEhConcluido(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeReconheceNomeTrabalhoProducaoConcluido.png')
+        esperado = 'Sapatos altos da Luz Impura'
+        recebido = self.imagem.reconheceNomeTrabalhoFrameProducao(imagemTeste)
+        assert recebido in esperado

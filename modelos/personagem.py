@@ -13,6 +13,9 @@ class Personagem:
     
     def pegaId(self):
         return self.id
+    
+    def setId(self, id):
+        self.id = id
 
     def pegaNome(self):
         return self.nome
@@ -46,3 +49,7 @@ class Personagem:
 
     def alternaEstado(self):
         self.estado = not self.estado
+
+    def dicionarioParaObjeto(self, dicionario):
+        for chave in dicionario:
+            setattr(self, chave, dicionario[chave])

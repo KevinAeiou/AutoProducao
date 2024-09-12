@@ -3,8 +3,10 @@ from modelos.personagem import Personagem
 from repositorio.firebaseDatabase import FirebaseDatabase
 
 class RepositorioPersonagem:
+    listaPersonagens = []
     def __init__(self):
         self._meuBanco = FirebaseDatabase()._dataBase
+        self.listaPersonagens = self.pegaTodosPersonagens()
     
     def pegaTodosPersonagens(self):
         listaPersonagens = []

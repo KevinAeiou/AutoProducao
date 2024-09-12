@@ -31,6 +31,9 @@ class RepositorioTrabalhoProducao:
         listaTrabalhosProducao = sorted(listaTrabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.pegaEstado(), reverse=True)
         return listaTrabalhosProducao
     
+    def pegaTrabalhoProducaoProId(self, trabalhoProducao):
+        return self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).order_by_child(CHAVE_ID).equal_to(trabalhoProducao.pegaId()).get()
+    
     def retornaListaTrabalhosProducaoParaProduzirProduzindo(self):
         listaTrabalhosParaProduzirProduzindo = []
         for trabalhoProducao in self._listaTrabalhosProducao:

@@ -2,13 +2,11 @@ from repositorio.repositorioPersonagem import RepositorioPersonagem
 
 class TestRepositorioPersonagem:
     _repositorio = RepositorioPersonagem()
-    _listaPersonagens = []
-    _listaPersonagens = _repositorio.pegaTodosPersonagens()
-    _personagemTeste = _listaPersonagens[0]
+    _personagemTeste = _repositorio.listaPersonagens[0]
 
     def testDeveRetornarListaComOitoPersonagens(self):
         esperado = 8
-        recebido = len(self._listaPersonagens)
+        recebido = len(self._repositorio.listaPersonagens)
         assert esperado == recebido
 
     def testDeveAlternarChaveUso(self):

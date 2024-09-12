@@ -33,7 +33,9 @@ class TrabalhoEstoque:
         self.id = id
     
     def setQuantidade(self, quantidade):
+        if quantidade < 0:
+            quantidade = 0
         self.quantidade = quantidade
     
     def __str__(self) -> str:
-        return f'{(self.nome).ljust(20)} | {(self.profissao).ljust(20)} | {(self.quantidade).ljust(3)} | {(self.nivel).ljust(3)} | {(self.raridade).ljust(10)} | {self.trabalhoId}'
+        return f'{(self.nome).ljust(40)} | {(self.profissao).ljust(25)} | {str(self.quantidade).ljust(3)} | {str(self.nivel).ljust(3)} | {(self.raridade).ljust(10)} | {self.trabalhoId}'

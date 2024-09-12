@@ -29,7 +29,10 @@ class RepositorioVendas:
     def adicionaNovaVenda(self, novaVenda):
         res = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).push(novaVenda.__dict__)
         novaVenda.setId(res['name'])
-        res = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(novaVenda.pegaId()).update(novaVenda.__dict__)
+        return self.modificaVenda(novaVenda)
+
+    def modificaVenda(self, venda):
+        return self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(venda.pegaId()).update(venda.__dict__)
 
     def removeVenda(self, venda):
         self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(venda.pegaId()).remove()
