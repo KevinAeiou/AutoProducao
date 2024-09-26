@@ -1,5 +1,5 @@
 class Personagem:
-    def __init__(self, id, nome, email, senha, espacoProducao, estado, uso):
+    def __init__(self, id, nome, email, senha, espacoProducao, estado, uso, autoProducao):
         self.id = id
         self.nome = nome
         self.email = email
@@ -7,9 +7,13 @@ class Personagem:
         self.espacoProducao = espacoProducao
         self.estado = estado
         self.uso = uso
+        self.autoProducao = autoProducao
 
     def __str__(self) -> str:
-        return f'{(self.nome).ljust(20)} | {self.email}'
+        estado = 'Verdadeiro' if self.estado else 'Falso'
+        uso = 'Verdadeiro' if self.uso else 'Falso'
+        autoProducao = 'Verdadeiro' if self.autoProducao else 'Falso'
+        return f'{(self.id).ljust(20)} | {(self.nome).ljust(17)} | {str(self.espacoProducao).ljust(6)} | {(estado).ljust(10)} | {uso.ljust(10)} | {autoProducao}'
     
     def pegaId(self):
         return self.id
@@ -35,6 +39,9 @@ class Personagem:
     def pegaUso(self):
         return self.uso
     
+    def pegaAutoProducao(self):
+        return self.autoProducao
+    
     def setEstado(self, estado):
         self.estado = estado
     
@@ -49,6 +56,9 @@ class Personagem:
 
     def alternaEstado(self):
         self.estado = not self.estado
+
+    def alternaAutoProducao(self):
+        self.autoProducao = not self.autoProducao
 
     def dicionarioParaObjeto(self, dicionario):
         for chave in dicionario:

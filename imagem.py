@@ -91,15 +91,17 @@ class ManipulaImagem:
         listaFrames = [[169, 285, 303, 33], [183, 200, 318, 31]] # [x, y, altura, largura]
         posicao = listaFrames[tipoTrabalho]
         frameNomeTrabalho = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
-        frameNomeTrabalhoCinza = self.retornaImagemCinza(frameNomeTrabalho)
-        frameNomeTrabalhoBinarizado = self.retornaImagemBinarizada(frameNomeTrabalhoCinza)
+        # self.mostraImagem(0, frameNomeTrabalho, None)
+        # frameNomeTrabalhoCinza = self.retornaImagemCinza(frameNomeTrabalho)
+        frameNomeTrabalhoBinarizado = self.retornaImagemBinarizada(frameNomeTrabalho)
+        # self.mostraImagem(0, frameNomeTrabalhoBinarizado, None)
         return self.reconheceTexto(frameNomeTrabalhoBinarizado)
 
     def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho):
         return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho)
 
     def reconheceTextoLicenca(self, telaInteira):
-        listaLicencas = ['iniciante','principiante','aprendiz','mestre','nenhumitem']
+        listaLicencas = ['novato','iniciante','aprendiz','mestre','nenhumitem']
         frameTelaCinza = self.retornaImagemCinza(telaInteira[275:317,169:512])
         frameTelaEqualizado = self.retornaImagemEqualizada(frameTelaCinza)
         textoReconhecido = self.reconheceTexto(frameTelaEqualizado)
@@ -251,7 +253,7 @@ class ManipulaImagem:
             if area > 4500 and area < 5700:
                 x,y,l,a=cv2.boundingRect(cnt)
                 frameTela = self.desenhaRetangulo(frameTela, cnt)
-                centroX = 330+x+(l/2)
+                centroX = x+(l/2)
                 centroY = y+(a/2)
                 return [centroX, centroY]
         return None

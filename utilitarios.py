@@ -1,6 +1,7 @@
 from unidecode import unidecode
 from constantes import *
 import numpy as np
+import os
 
 def textoEhIgual(texto1, texto2):
     return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
@@ -113,9 +114,6 @@ def ehErroUsuarioOuSenhaInvalida(erro):
 def ehErroMoedasMilagrosasInsuficientes(erro):
     return erro == CODIGO_ERRO_MOEDAS_MILAGROSAS_INSUFICIENTES
 
-def chaveUnicaConexaoEhVerdadeira(dicionarioPersonagem):
-    return dicionarioPersonagem[CHAVE_UNICA_CONEXAO]
-
 def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
     return dicionarioPersonagem[CHAVE_ESPACO_BOLSA]
 
@@ -187,9 +185,6 @@ def trabalhoEhProducaoLicenca(trabalhoProducao):
 
 def trabalhoEhMelhoriaEssenciaComum(dicionarioTrabalho):
     return textoEhIgual(dicionarioTrabalho.pegaNome(), 'melhoriadaessênciacomum')
-
-def listaProfissoesFoiModificada(dicionarioPersonagemAtributos):
-    return dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSAO_MODIFICADA]
 
 def naoFizerQuatroVerificacoes(dicionarioTrabalho):
     return dicionarioTrabalho[CHAVE_POSICAO] < 4
@@ -263,20 +258,12 @@ def retornaChaveTipoRecurso(trabalhoEstoque):
                     break
     return None
 
-def existeEspacoProducao(dicionarioPersonagemAtributos):
-    espacoProducao = dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO].pegaEspacoProducao()
-    for trabalhoProducao in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
-        if trabalhoProducao.ehProduzindo():
-            espacoProducao -= 1
-            if espacoProducao <= 0:
-                print(f'{espacoProducao} espaços de produção - FALSO.')
-                return False
-    print(f'{espacoProducao} espaços de produção - VERDADEIRO.')
-    return True
-
 def retornaListaTrabalhosParaProduzirProduzindo(dicionarioPersonagemAtributos):
     listaTrabalhosParaProduzirProduzindo = []
     for trabalhoProducao in dicionarioPersonagemAtributos[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
         if trabalhoProducao.ehParaProduzir() or trabalhoProducao.ehProduzindo():
             listaTrabalhosParaProduzirProduzindo.append(trabalhoProducao)
     return listaTrabalhosParaProduzirProduzindo
+
+def limpaTela():
+    print("\n" * os.get_terminal_size().lines)

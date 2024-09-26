@@ -93,5 +93,14 @@ class TrabalhoProducao:
     def ehRecorrente(self):
         return self.pegaRecorrencia()
     
+    def alternaRecorrencia(self):
+        self.recorrencia = not self.recorrencia
+    
+    def dicionarioParaObjeto(self, dicionario):
+        for chave in dicionario:
+            setattr(self, chave, dicionario[chave])
+    
     def __str__(self) -> str:
-        return f'{(self.nome).ljust(40)} | {(self.profissao).ljust(10)} | {str(self.nivel).ljust(2)} | {self.estado}'
+        estado = 'Produzir' if self.estado == 0 else 'Produzindo' if self.estado == 1 else 'Feito'
+        recorrencia = 'Recorrente' if self.recorrencia else 'Único'
+        return f'{self.nome.ljust(40)} | {self.profissao.ljust(21)} | {str(self.nivel).ljust(5)} | {estado.ljust(10)} | {self.tipo_licenca.ljust(31)} | {recorrencia}'

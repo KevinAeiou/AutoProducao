@@ -34,4 +34,4 @@ class Trabalho:
         return self.trabalhoNecessario
 
     def __str__(self) -> str:
-        return f'{(self.nome).ljust(20)} | {(self.profissao).ljust(6)} | {self.nivel}'
+        return f'{(self.nome).ljust(44)} | {(self.profissao).ljust(22)} | {(self.raridade).ljust(9)} | {self.nivel}'

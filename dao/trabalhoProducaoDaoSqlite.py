@@ -1,0 +1,85 @@
+__author__ = 'Kevin Amazonas'
+
+from modelos.trabalhoProducao import TrabalhoProducao
+from db.db import MeuBanco
+
+class TrabalhoProducaoDaoSqlite:
+    def __init__(self, personagem):
+        self.__conexao = None
+        self.__erro = None
+        self.__personagem = personagem
+        try:
+            meuBanco = MeuBanco()
+            self.__conexao = meuBanco.pegaConexao(1)
+            meuBanco.criaTabelas()
+        except Exception as e:
+            self.__erro = str(e)
+    
+    def pegaTrabalhosProducao(self):
+        trabalhosProducao = []
+        sql = """SELECT * FROM Lista_desejo WHERE idPersonagem == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (self.__personagem.pegaId()))
+            for linha in cursor.fetchall():
+                recorrencia = True if linha[10] == 1 else False
+                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
+        except Exception as e:
+            self.__erro = str(e)
+        return trabalhosProducao
+    
+    def pegaTrabalhosProducaoParaProduzirProduzindo(self):
+        trabalhosProducao = []
+        sql = """SELECT * FROM Lista_desejo WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (self.__personagem.pegaId()))
+            for linha in cursor.fetchall():
+                recorrencia = True if linha[10] == 1 else False
+                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
+        except Exception as e:
+            self.__erro = str(e)
+        return trabalhosProducao
+    
+    def insereTrabalhoProducao(self, trabalhoProducao):
+        recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
+        sql = """INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario, recorrencia, tipoLicenca, estado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (trabalhoProducao.pegaId(), trabalhoProducao.pegaTrabalhoId(), self.__personagem.pegaId(), trabalhoProducao.pegaNome(), trabalhoProducao.pegaNomeProducao(), trabalhoProducao.pegaExperiencia(), trabalhoProducao.pegaNivel(), trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaRaridade(), trabalhoProducao.pegaTrabalhoNecessario(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado()))
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            return False
+        
+    def removeTrabalhoProducao(self, trabalhoProducao):
+        sql = """
+            DELETE FROM Lista_desejo
+            WHERE id == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [trabalhoProducao.pegaId()])
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            return False
+        
+    def modificaTrabalhoProducao(self, trabalhoProducao):
+        recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
+        sql = """
+            UPDATE Lista_desejo 
+            SET idTrabalho = ?, nome = ?, nomeProducao = ?, experiencia = ?, nivel = ?, profissao = ?, raridade = ?, trabalhoNecessario = ?, recorrencia = ?, tipoLicenca = ?, estado = ? 
+            WHERE id == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (trabalhoProducao.pegaTrabalhoId(), trabalhoProducao.pegaNome(), trabalhoProducao.pegaNomeProducao(), trabalhoProducao.pegaExperiencia(), trabalhoProducao.pegaNivel(), trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaRaridade(), trabalhoProducao.pegaTrabalhoNecessario(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado(), trabalhoProducao.pegaId()))
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            return False
+    
+    def pegaErro(self):
+        return self.__erro

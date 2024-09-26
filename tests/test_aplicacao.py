@@ -34,7 +34,7 @@ class TesteAplicacao:
     def testDeveDefinirListaDeProfissoesNecessariasComUmItem(self):
         self.aplicacao._dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO] = self._personagemTeste
         self.aplicacao.inicializaChavesPersonagem()
-        self.aplicacao.defineChaveListaDicionariosProfissoesNecessarias()
+        self.aplicacao.defineChaveListaProfissoesNecessarias()
         esperado = 1
         recebido = len(self.aplicacao._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS])
         assert esperado == recebido
@@ -42,7 +42,7 @@ class TesteAplicacao:
     def testDeveRetornarPosicaoUmQuandoProfissaoForArmaDeLongoAlcance(self):
         self.aplicacao._dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO] = self._personagemTeste
         self.aplicacao.inicializaChavesPersonagem()
-        self.aplicacao.defineChaveListaDicionariosProfissoesNecessarias()
+        self.aplicacao.defineChaveListaProfissoesNecessarias()
         esperado = 1    
         profissao = self.aplicacao._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS][0]
         recebido =profissao.pegaPosicao()

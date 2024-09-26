@@ -4,70 +4,75 @@ from utilitarios import *
 from imagem import ManipulaImagem
 from time import sleep
 import datetime
-import re
+import uuid
 
-from repositorio.repositorioPersonagem import *
-from repositorio.repositorioEstoque import *
-from repositorio.repositorioProfissao import *
-from repositorio.repositorioTrabalho import *
-from repositorio.repositorioVendas import *
-from repositorio.repositorioTrabalhoProducao import *
-# from repositorio. import *
 from modelos.trabalhoRecurso import TrabalhoRecurso
+from modelos.trabalho import Trabalho
+from modelos.trabalhoVendido import TrabalhoVendido
+from modelos.trabalhoProducao import TrabalhoProducao
+from modelos.trabalhoEstoque import TrabalhoEstoque
+
+from dao.personagemDaoSqlite import PersonagemDaoSqlite
+from dao.trabalhoDaoSqlite import TrabalhoDaoSqlite
+from dao.profissaoDaoSqlite import ProfissaoDaoSqlite
+from dao.vendaDaoSqlite import VendaDaoSqlite
+from dao.estoqueDaoSqlite import EstoqueDaoSqlite
+from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 
 class Aplicacao:
     def __init__(self) -> None:
         self._imagem = ManipulaImagem()
-        self._repositorioTrabalho = RepositorioTrabalho()
-        self._dicionarioPersonagemAtributos = {}
-        self._repositorioPersonagem = RepositorioPersonagem()
-        self._repositorioVendas = None
-        self._repositorioProfissao = None
-        self._repositorioEstoque = None
-        self._repositorioTrabalhoProducao = None
-        self._listaPersonagem = self._repositorioPersonagem.pegaTodosPersonagens()
-        self._listaPersonagemJaVerificado = []
-        self._listaPersonagemAtivo = []
-        self._personagemEmUso = None
+        self.__listaPersonagemJaVerificado = []
+        self.__listaPersonagemAtivo = []
+        self.__listaProfissoesNecessarias = []
+        self.__personagemEmUso = None
+        self.__personagemDaoSqlite = PersonagemDaoSqlite()
+        self.__trabalhoDaoSqlite = TrabalhoDaoSqlite()
+        self.__profissaoDaoSqlite = None
+        self.__estoqueDaoSqlite = None
+        self.__trabalhoProducaoDaoSqlite = None
 
-    def defineListaPersonagemMesmoEmail(self, personagemEmUso):
+    def defineListaPersonagemMesmoEmail(self):
         listaDicionarioPersonagemMesmoEmail = []
-        if variavelExiste(personagemEmUso):
-            for personagem in self._listaPersonagem:
-                if textoEhIgual(personagem.pegaEmail(), personagemEmUso.pegaEmail()):
+        if variavelExiste(self.__personagemEmUso):
+            for personagem in self.__personagemDaoSqlite.pegaPersonagens():
+                if textoEhIgual(personagem.pegaEmail(), self.__personagemEmUso.pegaEmail()):
                     listaDicionarioPersonagemMesmoEmail.append(personagem)
         return listaDicionarioPersonagemMesmoEmail
 
-    def modificaAtributoUso(self, valor):
-        personagemEmUso = None
-        if valor:
-            personagemEmUso = self._personagemEmUso
-        else:
-            if not tamanhoIgualZero(self._listaPersonagemJaVerificado):
-                personagemEmUso = self._listaPersonagemJaVerificado[-1]
-        listaPersonagemMesmoEmail = self.defineListaPersonagemMesmoEmail(personagemEmUso)
-        if not tamanhoIgualZero(listaPersonagemMesmoEmail):
-            for personagem in self._listaPersonagem:
-                for personagemEmUso in listaPersonagemMesmoEmail:
-                    if textoEhIgual(personagem.pegaId(), personagemEmUso.pegaId()):
-                        if not personagem.pegaUso():
-                            self._repositorioPersonagem.alternaUso(personagem)
-                            personagem.alternaUso()
-                    elif personagem.pegaUso():
-                        self._repositorioPersonagem.alternaUso(personagem)
+    def modificaAtributoUso(self):
+        listaPersonagemMesmoEmail = self.defineListaPersonagemMesmoEmail()
+        for personagem in self.__personagemDaoSqlite.pegaPersonagens():
+            for personagemMesmoEmail in listaPersonagemMesmoEmail:
+                if textoEhIgual(personagem.pegaId(), personagemMesmoEmail.pegaId()):
+                    if not personagem.pegaUso():
                         personagem.alternaUso()
+                        if self.__personagemDaoSqlite.modificaPersonagem(personagem):
+                            uso = 'verdadeiro' if personagem.pegaUso() else 'falso'
+                            print(f'{personagem.pegaNome()}: Uso modificado para {uso} com sucesso!')
+                            break
+                        print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+                    break
+            else:
+                if personagem.pegaUso():
+                    personagem.alternaUso()
+                    if self.__personagemDaoSqlite.modificaPersonagem(personagem):
+                        uso = personagem.pegaUso()
+                        print(f'{personagem.pegaNome()}: Uso modificado para {uso} com sucesso!')
+                        continue
+                    print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
 
     def confirmaNomePersonagem(self, personagemReconhecido):
-        for personagemAtivo in self._listaPersonagemAtivo:
+        for personagemAtivo in self.__listaPersonagemAtivo:
             if textoEhIgual(personagemReconhecido, personagemAtivo.pegaNome()):
                 print(f'Personagem {personagemReconhecido} confirmado!')
-                self._personagemEmUso = personagemAtivo
+                self.__personagemEmUso = personagemAtivo
                 break
         else:
             print(f'Personagem {personagemReconhecido} não está ativo!')
 
     def definePersonagemEmUso(self):
-        self._personagemEmUso = None
+        self.__personagemEmUso = None
         nomePersonagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(0)
         if variavelExiste(nomePersonagemReconhecido):
             self.confirmaNomePersonagem(nomePersonagemReconhecido)
@@ -78,26 +83,22 @@ class Aplicacao:
 
     def defineListaPersonagensAtivos(self):
         print(f'Definindo lista de personagem ativo.')
-        self._listaPersonagemAtivo.clear()
-        for personagem in self._listaPersonagem:
+        listaPersonagem = self.__personagemDaoSqlite.pegaPersonagens()
+        self.__listaPersonagemAtivo.clear()
+        for personagem in listaPersonagem:
             if personagem.ehAtivo():
-                self._listaPersonagemAtivo.append(personagem)
+                self.__listaPersonagemAtivo.append(personagem)
 
     def inicializaChavesPersonagem(self):
-        self._autoProducaoTrabalho = False
+        self._autoProducaoTrabalho = self.__personagemEmUso.pegaAutoProducao()
         self._unicaConexao = True
         self._espacoBolsa = True
-        self._confirmacao = True
+        self.__confirmacao = True
         self._profissaoModificada = False
-        self._repositorioVendas = RepositorioVendas(self._personagemEmUso)
-        self._repositorioProfissao = RepositorioProfissao(self._personagemEmUso)
-        self._repositorioEstoque = RepositorioEstoque(self._personagemEmUso)
-        self._repositorioTrabalhoProducao = RepositorioTrabalhoProducao(self._personagemEmUso)
-        self._listaTrabalhos = self._repositorioTrabalho.pegaTodosTrabalhos()
-        self._listaProfissoes = self._repositorioProfissao.listaProfissoes
-        self._listaTrabalhosVendidos = self._repositorioVendas.pegaTodasVendas()
-        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        self._listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
+        self.__profissaoDaoSqlite = ProfissaoDaoSqlite(self.__personagemEmUso)
+        self.__vendaDaoSqlite = VendaDaoSqlite(self.__personagemEmUso)
+        self.__estoqueDaoSqlite = EstoqueDaoSqlite(self.__personagemEmUso)
+        self.__trabalhoProducaoDaoSqlite = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
 
     def retornaCodigoErroReconhecido(self):
         textoErroEncontrado = self._imagem.retornaErroReconhecido()
@@ -165,7 +166,6 @@ class Aplicacao:
                         confirmacao = True
                     # print(f'Sem licenças de produção...')
                     # clickEspecifico(1, 'f1')
-                    # self._repositorioPersonagem.alternaEstado(dicionarioPersonagem[CHAVE_PERSONAGEM_EM_USO])
             else:
                 print(f'Erro ao reconhecer licença!')
         return confirmacao, dicionarioTrabalho
@@ -237,6 +237,9 @@ class Aplicacao:
                     if texto1PertenceTexto2('artesanato',textoMenu):
                         textoMenu = self._imagem.retornaTextoMenuReconhecido(266, 242, 150)
                         if variavelExiste(textoMenu):
+                            if texto1PertenceTexto2('pedidosativos',textoMenu):
+                                print(f'Menu trabalhos atuais...')
+                                return MENU_TRABALHOS_ATUAIS
                             if texto1PertenceTexto2('profissoes',textoMenu):
                                 textoMenu=self._imagem.retornaTextoMenuReconhecido(191,612,100)
                                 if variavelExiste(textoMenu):
@@ -246,9 +249,6 @@ class Aplicacao:
                                     if texto1PertenceTexto2('voltar',textoMenu):
                                         print(f'Menu trabalhos diponíveis...')
                                         return MENU_TRABALHOS_DISPONIVEIS
-                            if texto1PertenceTexto2('pedidosativos',textoMenu):
-                                print(f'Menu trabalhos atuais...')
-                                return MENU_TRABALHOS_ATUAIS
                 textoMenu = self._imagem.retornaTextoSair()
                 if variavelExiste(textoMenu):
                     if textoEhIgual(textoMenu,'sair'):
@@ -334,29 +334,35 @@ class Aplicacao:
         if variavelExiste(textoCarta):
             trabalhoFoiVendido = texto1PertenceTexto2('Item vendido', textoCarta)
             if trabalhoFoiVendido:
-                print(f'Produto vendido:')
+                print(f'Produto vendido')
                 listaTextoCarta = ' '.join(textoCarta.split())
                 chaveIdTrabalho = self.retornaChaveIdTrabalho(listaTextoCarta)
-                return self._repositorioVendas.adicionaNovaVenda(TrabalhoVendido('', listaTextoCarta, str(datetime.date.today()), self._personagemEmUso.pegaId(), self.retornaQuantidadeTrabalhoVendido(listaTextoCarta), chaveIdTrabalho, self.retornaValorTrabalhoVendido(listaTextoCarta)))
+                trabalhoVendido = TrabalhoVendido(str(uuid.uuid4()), listaTextoCarta, str(datetime.date.today()), self.__personagemEmUso.pegaId(), self.retornaQuantidadeTrabalhoVendido(listaTextoCarta), chaveIdTrabalho, self.retornaValorTrabalhoVendido(listaTextoCarta))
+                if self.__vendaDaoSqlite.insereVenda(trabalhoVendido):
+                    print(f'Nova venda cadastrada com sucesso!')
+                else:
+                    print(f'Erro ao inserir nova venda: {self.__vendaDaoSqlite.pegaErro()}')
+                return trabalhoVendido
             else:
                 print(f'Erro...')
         return None
 
     def retornaChaveIdTrabalho(self, listaTextoCarta):
-        for trabalho in self._listaTrabalhos:
+        for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
             if texto1PertenceTexto2(trabalho.pegaNome(), listaTextoCarta):
                 return trabalho.pegaId()
         return ''
 
     def atualizaQuantidadeTrabalhoEstoque(self, venda):
-        for trabalhoEstoque in self._listaTrabalhosEstoque:
-            if textoEhIgual(trabalhoEstoque.pegaTrabalhoId(), venda[CHAVE_TRABALHO_ID]):
-                novaQuantidade = trabalhoEstoque.pegaQuantidade() - venda[CHAVE_QUANTIDADE_PRODUTO]
+        for trabalhoEstoque in self.__estoqueDaoSqlite.pegaEstoque():
+            if textoEhIgual(trabalhoEstoque.pegaTrabalhoId(), venda.pegaTrabalhoId()):
+                novaQuantidade = trabalhoEstoque.pegaQuantidade() - venda.pegaQuantidadeProduto()
                 trabalhoEstoque.setQuantidade(novaQuantidade)
-                self._repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
-                print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
-                return
-        print(f'Trabalho ({venda[CHAVE_NOME_PRODUTO]}) não encontrado no estoque.')
+                if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                    print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
+                    return
+                print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+        print(f'Trabalho ({venda.pegaNomeProduto()}) não encontrado no estoque.')
 
     def recuperaCorrespondencia(self, ):
         while self._imagem.existeCorrespondencia():
@@ -391,28 +397,30 @@ class Aplicacao:
 
     def retornaListaPossiveisTrabalhoRecuperado(self, nomeTrabalhoConcluido):
         listaPossiveisDicionariosTrabalhos = []
-        if not tamanhoIgualZero(self._listaTrabalhos):
-            for trabalho in self._listaTrabalhos:
-                if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
-                    listaPossiveisDicionariosTrabalhos.append(trabalho)
-        else:
-            print(f'Erro ao definir lista de trabalhos.')
+        for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+            if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
+                listaPossiveisDicionariosTrabalhos.append(trabalho)
         return listaPossiveisDicionariosTrabalhos
 
     def retornaTrabalhoConcluido(self, nomeTrabalhoConcluido):
         listaPossiveisTrabalhos = self.retornaListaPossiveisTrabalhoRecuperado(nomeTrabalhoConcluido)
         if not tamanhoIgualZero(listaPossiveisTrabalhos):
-            listaDicionariosTrabalhosProduzirProduzindo = self._repositorioTrabalhoProducao.retornaListaTrabalhosProducaoParaProduzirProduzindo()
             for possivelTrabalho in listaPossiveisTrabalhos:
-                for trabalhoProduzirProduzindo in listaDicionariosTrabalhosProduzirProduzindo:
+                for trabalhoProduzirProduzindo in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo():
                     condicoes = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.pegaNome(), possivelTrabalho.pegaNome())
                     if condicoes:
+                        trabalhoProduzirProduzindo.setEstado(CODIGO_CONCLUIDO)
                         trabalhoProduzirProduzindo.setTrabalhoId(possivelTrabalho.pegaId())
                         trabalhoProduzirProduzindo.setNomeProducao(possivelTrabalho.pegaNomeProducao())
                         return trabalhoProduzirProduzindo
             else:
                 print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].pegaNome()}) não encontrado na lista produzindo...')
-                return self._repositorioTrabalhoProducao.adicionaTrabalhoProducao(TrabalhoProducao('', listaPossiveisTrabalhos[0].pegaId(), listaPossiveisTrabalhos[0].pegaNome(), listaPossiveisTrabalhos[0].pegaNomeProducao(), listaPossiveisTrabalhos[0].pegaExperiencia(), listaPossiveisTrabalhos[0].pegaNivel(), listaPossiveisTrabalhos[0].pegaProfissao(), listaPossiveisTrabalhos[0].pegaRaridade(), listaPossiveisTrabalhos[0].pegaTrabalhoNecessario(), False, CHAVE_LICENCA_INICIANTE, CODIGO_CONCLUIDO))
+                trabalhoProducaoConcluido = TrabalhoProducao(str(uuid.uuid4()), listaPossiveisTrabalhos[0].pegaId(), listaPossiveisTrabalhos[0].pegaNome(), listaPossiveisTrabalhos[0].pegaNomeProducao(), listaPossiveisTrabalhos[0].pegaExperiencia(), listaPossiveisTrabalhos[0].pegaNivel(), listaPossiveisTrabalhos[0].pegaProfissao(), listaPossiveisTrabalhos[0].pegaRaridade(), listaPossiveisTrabalhos[0].pegaTrabalhoNecessario(), False, CHAVE_LICENCA_NOVATO, CODIGO_CONCLUIDO)
+                if self.__trabalhoProducaoDaoSqlite.insereTrabalhoProducao(trabalhoProducaoConcluido):
+                    print(f'{trabalhoProducaoConcluido.pegaNome()} adicionado com sucesso!')
+                    return trabalhoProducaoConcluido
+                print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                return trabalhoProducaoConcluido
         return None
 
     def modificaTrabalhoConcluidoListaProduzirProduzindo(self, trabalhoProducaoConcluido):
@@ -420,35 +428,28 @@ class Aplicacao:
             trabalhoProducaoConcluido.setRecorrencia(True)
         if trabalhoProducaoConcluido.pegaRecorrencia():
             print(f'Trabalho recorrente.')
-            self._repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducaoConcluido)
-            for posicao in range(len(self._listaTrabalhosProducao)):
-                if textoEhIgual(self._listaTrabalhosProducao[posicao].pegaId(), trabalhoProducaoConcluido.pegaId()):
-                    del self._listaTrabalhosProducao[posicao]
-                    break
-        else:
-            print(f'Trabalho sem recorrencia.')
-            self._repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducaoConcluido)
+            if self.__trabalhoProducaoDaoSqlite.removeTrabalhoProducao(trabalhoProducaoConcluido):
+                print(f'Trabalho ({trabalhoProducaoConcluido.pegaNome()}) removido com sucesso!')
+                return trabalhoProducaoConcluido
+            print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+            return trabalhoProducaoConcluido
+        print(f'Trabalho sem recorrencia.')
+        if self.__trabalhoProducaoDaoSqlite.modificaTrabalhoProducao(trabalhoProducaoConcluido):
             print(f'Trabalho ({trabalhoProducaoConcluido.pegaNome()}) modificado para concluído.')
-            for dicionarioTrabalho in self._listaTrabalhosProducao:
-                if textoEhIgual(dicionarioTrabalho.pegaId(), trabalhoProducaoConcluido.pegaId()):
-                    dicionarioTrabalho.setEstado(CODIGO_CONCLUIDO)
-                    break
-            else:
-                self._listaTrabalhosProducao.append(trabalhoProducaoConcluido)
+            return trabalhoProducaoConcluido
+        print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
         return trabalhoProducaoConcluido
 
     def modificaExperienciaProfissao(self, trabalhoProducao):
-        for profissao in self._listaProfissoes:
+        for profissao in self.__profissaoDaoSqlite.pegaProfissoes():
             if textoEhIgual(profissao.pegaNome(), trabalhoProducao.pegaProfissao()):
                 experiencia = profissao.pegaExperiencia() + trabalhoProducao.pegaExperiencia()
-                if experiencia > 830000:
-                    experiencia = 830000
                 profissao.setExperiencia(experiencia)
-                self._repositorioProfissao.modificaProfissao(profissao)
+                self.__profissaoDaoSqlite.modificaProfissao(profissao)
                 print(f'Experiência de {profissao.pegaNome()} atualizada para {experiencia}.')
                 break
 
-    def retornaListaDicionarioTrabalhoProduzido(self, trabalhoProducaoConcluido):
+    def retornaListaTrabalhoProduzido(self, trabalhoProducaoConcluido):
         '''
         Função que recebe um objeto TrabalhoProducao
         '''
@@ -479,7 +480,7 @@ class Aplicacao:
                     nivelColecao = 1
                     if trabalhoEhColecaoRecursosAvancados(trabalhoProducaoConcluido):
                         nivelColecao = 8
-                    for trabalho in self._listaTrabalhos:
+                    for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
                         condicoes = textoEhIgual(trabalho.pegaProfissao(), trabalhoProducaoConcluido.pegaProfissao()) and trabalho.pegaNivel() == nivelColecao and textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_COMUM)
                         if condicoes:
                             trabalhoEstoque = TrabalhoEstoque('', trabalho.pegaNome(),trabalho.pegaProfissao(), trabalho.pegaNivel(), 1, trabalho.pegaRaridade(), trabalho.pegaId())
@@ -526,33 +527,35 @@ class Aplicacao:
                 novaQuantidade = trabalhoEstoque.pegaQuantidade() + trabalhoEstoqueConcluido.pegaQuantidade()
                 trabalhoEstoque.setQuantidade(novaQuantidade)
                 print(trabalhoEstoque)
-                self._repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
-                for indice in range(len(listaTrabalhoEstoqueConcluido)):
-                    if listaTrabalhoEstoqueConcluido[indice].pegaNome() == trabalhoEstoque.pegaNome():
-                        del listaTrabalhoEstoqueConcluido[indice]
-                        break
-                if tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
-                    break
+                if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                    print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
+                    continue
+                print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
         return listaTrabalhoEstoqueConcluido, trabalhoEstoque
 
     def atualizaEstoquePersonagem(self, trabalhoEstoqueConcluido):
-        listaTrabalhoEstoqueConcluido = self.retornaListaDicionarioTrabalhoProduzido(trabalhoEstoqueConcluido)
+        listaTrabalhoEstoqueConcluido = self.retornaListaTrabalhoProduzido(trabalhoEstoqueConcluido)
         if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
-            if not tamanhoIgualZero(self._listaTrabalhosEstoque):
-                for trabalhoEstoque in self._listaTrabalhosEstoque:
+            listaEstoque = self.__estoqueDaoSqlite.pegaEstoque()
+            if not tamanhoIgualZero(listaEstoque):
+                for trabalhoEstoque in listaEstoque:
                     listaTrabalhoEstoqueConcluido, trabalhoEstoque = self.modificaQuantidadeTrabalhoEstoque(listaTrabalhoEstoqueConcluido, trabalhoEstoque)
                 else:
                     if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
                         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-                            self._repositorioEstoque.adicionaTrabalhoEstoque(trabalhoEstoqueConcluido)
-                            self._listaTrabalhosEstoque.append(trabalhoEstoqueConcluido)
+                            if self.__estoqueDaoSqlite.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
+                                print(f'Novo trabalho adicionado com sucesso!')
+                            else:
+                                print(f'Erro ao adicionar novo trabalho ao estoque: {self.__estoqueDaoSqlite.pegaErro()}')
             else:
                 for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-                    self._repositorioEstoque.adicionaTrabalhoEstoque(trabalhoEstoqueConcluido)
-                    self._listaTrabalhosEstoque.append(trabalhoEstoqueConcluido)
+                    if self.__estoqueDaoSqlite.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
+                        print(f'{trabalhoEstoqueConcluido.pegaNome()} adicionado com sucesso!')
+                    else:
+                        print(f'Erro ao adicionar novo trabalho ao estoque: {self.__estoqueDaoSqlite.pegaErro()}')
 
     def retornaProfissaoTrabalhoProducaoConcluido(self, trabalhoProducaoConcluido):
-        for profissao in self._listaProfissoes:
+        for profissao in self.__profissaoDaoSqlite.pegaProfissoes():
             if textoEhIgual(profissao.pegaNome(), trabalhoProducaoConcluido.pegaProfissao()):
                 return profissao
         return None
@@ -582,17 +585,16 @@ class Aplicacao:
         return nivelProfissao, xpMinimo, xpMaximo
 
     def verificaProducaoTrabalhoRaro(self, trabalhoProducaoConcluido):
-        
         trabalhoProducaoRaro = None
         dicionarioProfissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoProducaoConcluido)
         if variavelExiste(dicionarioProfissao):
             _, _, xpMaximo = self.retornaNivelXpMinimoMaximo(dicionarioProfissao)
-            licencaProducaoIdeal = CHAVE_LICENCA_PRINCIPIANTE
+            licencaProducaoIdeal = CHAVE_LICENCA_INICIANTE
             if xpMaximo >= 830000:
-                licencaProducaoIdeal = CHAVE_LICENCA_INICIANTE
+                licencaProducaoIdeal = CHAVE_LICENCA_NOVATO
             if textoEhIgual(trabalhoProducaoConcluido.pegaRaridade(), CHAVE_RARIDADE_MELHORADO):
                 print(f'Trabalhos MELHORADO. Profissão {trabalhoProducaoConcluido.pegaProfissao()}. Nível {trabalhoProducaoConcluido.pegaNivel()}.')
-                for trabalho in self._listaTrabalhos:
+                for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
                     condicoes = (textoEhIgual(trabalho.pegaProfissao(), trabalhoProducaoConcluido.pegaProfissao())
                         and textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_RARO)
                         and trabalho.pegaNivel() == trabalhoProducaoConcluido.pegaNivel())
@@ -602,8 +604,10 @@ class Aplicacao:
                             trabalhoProducaoRaro = TrabalhoProducao('', trabalho.pegaTrabalhoId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), experiencia, trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, licencaProducaoIdeal, trabalho.pegaEstado())
                             break
         if variavelExiste(trabalhoProducaoRaro):
-            trabalhoProducaoRaroComId = self._repositorioTrabalhoProducao.adicionaTrabalhoProducao(trabalhoProducaoRaro)
-            self._listaTrabalhosProducao.append(trabalhoProducaoRaroComId)
+            if self.__trabalhoProducaoDaoSqlite.insereTrabalhoProducao(trabalhoProducaoRaro):
+                print(f'{trabalhoProducaoRaro.pegaNome()} adicionado com sucesso!')
+                return 
+            print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado):
         if tamanhoIgualZero(listaPersonagemPresenteRecuperado):
@@ -625,7 +629,7 @@ class Aplicacao:
             referenciaEncontrada = self._imagem.retornaReferencia()
             if variavelExiste(referenciaEncontrada):
                 print(f'Referência encontrada!')
-                clickMouseEsquerdo(1,referenciaEncontrada[0],referenciaEncontrada[1])
+                clickMouseEsquerdo(1, referenciaEncontrada[0], referenciaEncontrada[1])
                 posicionaMouseEsquerdo(360,600)
                 if self.verificaErro() != 0:
                     evento=2
@@ -637,7 +641,7 @@ class Aplicacao:
         clickEspecifico(2,'f1')
 
     def reconheceMenuRecompensa(self, menu):
-        print(f'Entrou em recuperaPresente.')
+        sleep(2)
         if menu == MENU_LOJA_MILAGROSA:
             clickEspecifico(1,'down')
             clickEspecifico(1,'enter')
@@ -729,7 +733,6 @@ class Aplicacao:
             menu = self.retornaMenu()
 
     def trataMenu(self, menu):
-        self._confirmacao = True
         if menu == MENU_DESCONHECIDO:
             pass
         elif menu == MENU_TRABALHOS_ATUAIS:
@@ -748,9 +751,9 @@ class Aplicacao:
                 else:
                     print(f'Nome trabalho concluído não reconhecido.')
             elif estadoTrabalho == CODIGO_PRODUZINDO:
-                if not existeEspacoProducao(self._dicionarioPersonagemAtributos):
+                if not self.existeEspacoProducao():
                     print(f'Todos os espaços de produção ocupados.')
-                    self._confirmacao = False
+                    self.__confirmacao = False
                 else:
                     clickContinuo(3,'up')
                     clickEspecifico(1,'left')
@@ -759,11 +762,15 @@ class Aplicacao:
                 clickEspecifico(1,'left')
         elif menu == MENU_RECOMPENSAS_DIARIAS or menu == MENU_LOJA_MILAGROSA:
             self.recebeTodasRecompensas(menu)
-            for personagem in self._listaPersonagem:
+            for personagem in self.__personagemDaoSqlite.pegaPersonagens():
                 if not personagem.pegaEstado():
-                    personagem.setEstado(True)
-                    self._repositorioPersonagem.modificaPersonagem(personagem)
-            self._confirmacao = False
+                    personagem.alternaEstado()
+                    if self.__personagemDaoSqlite.modificaPersonagem(personagem):
+                        estado = 'verdadeiro' if personagem.pegaEstado() else 'falso'
+                        print(f'{personagem.pegaNome()}: Estado modificado para {estado} com sucesso!')
+                    else:
+                        print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+            self.__confirmacao = False
         elif menu == MENU_PRINCIPAL:
             clickEspecifico(1,'num1')
             clickEspecifico(1,'num7')
@@ -783,9 +790,9 @@ class Aplicacao:
             clickEspecifico(1,'num1')
             clickEspecifico(1,'num7')
         else:
-            self._confirmacao = False
+            self.__confirmacao = False
         if ehErroOutraConexao(self.verificaErro()):
-            self._confirmacao = False
+            self.__confirmacao = False
             self._unicaConexao = False
 
     def vaiParaMenuProduzir(self):
@@ -798,7 +805,7 @@ class Aplicacao:
                     self.recuperaCorrespondencia()
             while not ehMenuProduzir(menu):
                 self.trataMenu(menu)
-                if not self._confirmacao:
+                if not self.__confirmacao:
                     return False
                 menu = self.retornaMenu()
             else:
@@ -807,65 +814,48 @@ class Aplicacao:
             self._unicaConexao = False
         return False
 
-    def retornaListaDicionariosTrabalhosRarosVendidos(self, dicionarioUsuario):
-        print(f'Definindo lista dicionários produtos raros vendidos...')
-        listaDicionariosTrabalhosRarosVendidos = []
-        if dicionarioUsuario != None:
-            self._personagemEmUso = dicionarioUsuario[CHAVE_PERSONAGEM_EM_USO]
-            self._dicionarioPersonagemAtributos[CHAVE_ID_USUARIO] = dicionarioUsuario[CHAVE_ID_USUARIO]
-            self._listaProfissoes = self._repositorioProfissao.pegaTodasProfissoes()
-            self._listaTrabalhos = self._repositorioTrabalho.pegaTodosTrabalhos()
-            self._listaTrabalhosVendidos = self._repositorioVendas.pegaTodasVendas()
-            self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-            self._listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
-        if not tamanhoIgualZero(self._listaTrabalhos):
-            for produtoVendido in self._listaTrabalhosVendidos:
-                for trabalho in self._listaTrabalhos:
-                    condicoes = (
-                        textoEhIgual(trabalho[CHAVE_RARIDADE], CHAVE_RARIDADE_RARO)
-                        and texto1PertenceTexto2(trabalho[CHAVE_NOME], produtoVendido['nomeProduto'])
-                        and textoEhIgual(produtoVendido['nomePersonagem'], self._personagemEmUso[CHAVE_ID])
-                        and not trabalhoEhProducaoRecursos(trabalho))
-                    if condicoes:
-                        # dicionarioTrabalhoRaroVendido = {
-                        #     CHAVE_ID:trabalho[CHAVE_ID],
-                        #     CHAVE_NOME:trabalho[CHAVE_NOME],
-                        #     CHAVE_NOME_PRODUCAO:trabalho[CHAVE_NOME_PRODUCAO],
-                        #     CHAVE_NIVEL:trabalho[CHAVE_NIVEL],
-                        #     CHAVE_RARIDADE:trabalho[CHAVE_RARIDADE],
-                        #     CHAVE_PROFISSAO:trabalho[CHAVE_PROFISSAO],
-                        #     CHAVE_QUANTIDADE:produtoVendido['quantidadeProduto'],
-                        #     CHAVE_EXPERIENCIA:trabalho[CHAVE_EXPERIENCIA]}
-                        # if CHAVE_TRABALHO_NECESSARIO in trabalho:
-                        #     dicionarioTrabalhoRaroVendido[CHAVE_TRABALHO_NECESSARIO] = trabalho[CHAVE_TRABALHO_NECESSARIO]
-                        # listaDicionariosTrabalhosRarosVendidos.append(dicionarioTrabalhoRaroVendido)
-                        break
-        listaDicionariosTrabalhosRarosVendidosOrdenados = sorted(listaDicionariosTrabalhosRarosVendidos, key = lambda dicionario: (dicionario[CHAVE_PROFISSAO], dicionario[CHAVE_NIVEL], dicionario[CHAVE_NOME]))
-        return listaDicionariosTrabalhosRarosVendidosOrdenados
+    def retornaListaTrabalhosRarosVendidos(self):
+        print(f'Definindo lista produtos raros vendidos...')
+        listaTrabalhosRarosVendidos = []
+        for trabalhoVendido in self.__vendaDaoSqlite.pegaVendas():
+            for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+                condicoes = (
+                    textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_RARO)
+                    and texto1PertenceTexto2(trabalho.pegaNome(), trabalhoVendido.pegaNomeProduto())
+                    and textoEhIgual(trabalhoVendido.pegaNomePersonagem(), self.__personagemEmUso.pegaId())
+                    and not trabalhoEhProducaoRecursos(trabalho))
+                if condicoes:
+                    print(trabalhoVendido)
+                    listaTrabalhosRarosVendidos.append(trabalhoVendido)
+                    break
+        listaTrabalhosRarosVendidosOrdenados = sorted(listaTrabalhosRarosVendidos, key = lambda trabalho: (trabalho.pegaProfissao(), trabalho.pegaNivel(), trabalho.pegaNome()))
+        return listaTrabalhosRarosVendidosOrdenados
 
-    def verificaProdutosRarosMaisVendidos(self, dicionarioUsuario):
-        listaDicionariosProdutosRarosVendidos = self.retornaListaDicionariosTrabalhosRarosVendidos(dicionarioUsuario)
-        if not tamanhoIgualZero(listaDicionariosProdutosRarosVendidos):
+    def verificaProdutosRarosMaisVendidos(self):
+        listaTrabalhosRarosVendidos = self.retornaListaTrabalhosRarosVendidos()
+        if not tamanhoIgualZero(listaTrabalhosRarosVendidos):
             # produzProdutoMaisVendido(listaDicionariosProdutosRarosVendidos)
             pass
         else:
             print(f'Lista de trabalhos raros vendidos está vazia!')
 
-    def defineChaveListaDicionariosProfissoesNecessarias(self):
+    def defineChaveListaProfissoesNecessarias(self):
         print(f'Verificando profissões necessárias...')
-        self._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS] = []
-        for profissao in self._listaProfissoes:
-            for trabalhoProducaoDesejado in self._listaTrabalhosProducao:
+        self.__listaProfissoesNecessarias.clear()
+        for profissao in self.__profissaoDaoSqlite.pegaProfissoes():
+            for trabalhoProducaoDesejado in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducao():
                 chaveProfissaoEhIgualEEstadoEhParaProduzir = textoEhIgual(profissao.pegaNome(), trabalhoProducaoDesejado.pegaProfissao()) and trabalhoProducaoDesejado.ehParaProduzir()
                 if chaveProfissaoEhIgualEEstadoEhParaProduzir:
-                    self._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS].append(profissao)
+                    self.__listaProfissoesNecessarias.append(profissao)
                     break
         else:
-            self._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS] = sorted(self._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS],key=lambda profissao:profissao.pegaPrioridade(),reverse=True)
+            self.__listaProfissoesNecessarias = sorted(self.__listaProfissoesNecessarias,key=lambda profissao:profissao.pegaPrioridade(),reverse=True)
+            for profissaoNecessaria in self.__listaProfissoesNecessarias:
+                print(f'{profissaoNecessaria}')
 
     def retornaContadorEspacosProducao(self, contadorEspacosProducao, nivel):
         contadorNivel = 0
-        for dicionarioProfissao in self._listaProfissoes:
+        for dicionarioProfissao in self.__profissaoDaoSqlite.pegaProfissoes():
             if dicionarioProfissao.pegaNivel() >= nivel:
                 contadorNivel += 1
         else:
@@ -879,7 +869,7 @@ class Aplicacao:
     def retornaQuantidadeEspacosDeProducao(self):
         print(f'Define quantidade de espaços de produção...')
         quantidadeEspacosProducao = 2
-        for dicionarioProfissao in self._listaProfissoes:
+        for dicionarioProfissao in self.__profissaoDaoSqlite.pegaProfissoes():
             nivel, _ , _= self.retornaNivelXpMinimoMaximo(dicionarioProfissao)
             if nivel >= 5:
                 quantidadeEspacosProducao += 1
@@ -892,15 +882,17 @@ class Aplicacao:
 
     def verificaEspacoProducao(self):
         quantidadeEspacoProducao = self.retornaQuantidadeEspacosDeProducao()
-        if self._personagemEmUso.pegaEspacoProducao() != quantidadeEspacoProducao:
-            self._personagemEmUso.setEspacoProducao(quantidadeEspacoProducao)
-            self._repositorioPersonagem.modificaPersonagem(self._personagemEmUso)
+        if self.__personagemEmUso.pegaEspacoProducao() != quantidadeEspacoProducao:
+            self.__personagemEmUso.setEspacoProducao(quantidadeEspacoProducao)
+            if self.__personagemDaoSqlite.modificaPersonagem(self.__personagemEmUso):
+                print(f'{self.__personagemEmUso.pegaNome()}: Espaço de produção modificado para {self.__personagemEmUso.pegaEspacoProducao()} com sucesso!')
+                return
+            print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
 
     def retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(self, dicionarioTrabalho, raridade):
         listaTrabalhosProducaoRaridadeEspecifica = []
-        listaTrabalhosProducaoParaProduzirProduzindo = self._repositorioTrabalhoProducao.retornaListaTrabalhosProducaoParaProduzirProduzindo()
         print(f'Buscando trabalho {raridade} na lista...')
-        for trabalhoProducao in listaTrabalhosProducaoParaProduzirProduzindo:
+        for trabalhoProducao in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo():
             raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.pegaRaridade(), raridade) and textoEhIgual(trabalhoProducao.pegaProfissao(), dicionarioTrabalho[CHAVE_PROFISSAO]) and trabalhoProducao.ehParaProduzir()
             if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
                 for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
@@ -952,8 +944,7 @@ class Aplicacao:
                             dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizada
                             print(f'Trabalho confirmado: {nomeTrabalhoReconhecido}')
                             return dicionarioTrabalho
-            else:
-                print(f'Trabalho negado: {nomeTrabalhoReconhecido}')
+        print(f'Trabalho negado: {nomeTrabalhoReconhecido}')
         return dicionarioTrabalho
 
     def incrementaChavePosicaoTrabalho(self, dicionarioTrabalho):
@@ -971,7 +962,7 @@ class Aplicacao:
         while not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
             erro = self.verificaErro()
             if erroEncontrado(erro):
-                dicionarioTrabalho[CHAVE_CONFIRMACAO] = False
+                self.__confirmacao = False
                 break
             if primeiraBusca(dicionarioTrabalho):
                 clicks = 3
@@ -1022,15 +1013,16 @@ class Aplicacao:
         return dicionarioTrabalho
 
     def defineCloneDicionarioTrabalhoDesejado(self, trabalhoProducaoEncontrado):
-        return TrabalhoProducao('', trabalhoProducaoEncontrado.pegaTrabalhoId(),trabalhoProducaoEncontrado.pegaNome(), trabalhoProducaoEncontrado.pegaNomeProducao(), trabalhoProducaoEncontrado.pegaExperiencia(), trabalhoProducaoEncontrado.pegaNivel(), trabalhoProducaoEncontrado.pegaProfissao(), trabalhoProducaoEncontrado.pegaRaridade(), trabalhoProducaoEncontrado.pegaTrabalhoNecessario(), trabalhoProducaoEncontrado.pegaRecorrencia(), trabalhoProducaoEncontrado.pegaLinceca(), trabalhoProducaoEncontrado.pegaEstado())
+        return TrabalhoProducao(str(uuid.uuid4()), trabalhoProducaoEncontrado.pegaTrabalhoId(),trabalhoProducaoEncontrado.pegaNome(), trabalhoProducaoEncontrado.pegaNomeProducao(), trabalhoProducaoEncontrado.pegaExperiencia(), trabalhoProducaoEncontrado.pegaNivel(), trabalhoProducaoEncontrado.pegaProfissao(), trabalhoProducaoEncontrado.pegaRaridade(), trabalhoProducaoEncontrado.pegaTrabalhoNecessario(), trabalhoProducaoEncontrado.pegaRecorrencia(), trabalhoProducaoEncontrado.pegaLicenca(), trabalhoProducaoEncontrado.pegaEstado())
 
     def clonaTrabalhoProducaoEncontrado(self, dicionarioTrabalho, trabalhoProducaoEncontrado):
-        
         print(f'Recorrencia está ligada.')
         cloneTrabalhoProducaoEncontrado = self.defineCloneDicionarioTrabalhoDesejado(trabalhoProducaoEncontrado)
-        trabalhoProducaoAdicionado = self._repositorioTrabalhoProducao.adicionaTrabalhoProducao(cloneTrabalhoProducaoEncontrado)
-        self._listaTrabalhosProducao.append(trabalhoProducaoAdicionado)
-        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoAdicionado
+        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = cloneTrabalhoProducaoEncontrado
+        if self.__trabalhoProducaoDaoSqlite.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado):
+            print(f'{trabalhoProducaoEncontrado.pegaNome()} adicionado com sucesso!')
+            return
+        print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
 
     def retornaChaveTipoRecurso(self, dicionarioRecurso):
         listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(dicionarioRecurso[CHAVE_NIVEL])
@@ -1107,105 +1099,118 @@ class Aplicacao:
         return TrabalhoRecurso(trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaNivel(), nomeRecursoTerciario, nomeRecursoSecundario, nomeRecursoPrimario, recursoTerciario)
 
     def removeTrabalhoEstoque(self, trabalhoProducao):
-        if not tamanhoIgualZero(self._listaTrabalhosEstoque):
-            if trabalhoProducao.ehComum():
-                if trabalhoEhProducaoRecursos(trabalhoProducao):
-                    print(f'Trabalho é recurso de produção!')
-                    print(f'Nome recurso produzido: {trabalhoProducao.pegaNome()}')
-                    dicionarioRecurso = {
-                        CHAVE_NOME:trabalhoProducao.pegaNome(),
-                        CHAVE_PROFISSAO:trabalhoProducao.pegaProfissao(),
-                        CHAVE_NIVEL:trabalhoProducao.pegaNivel()}
-                    dicionarioRecurso[CHAVE_TIPO] = retornaChaveTipoRecurso(dicionarioRecurso)
-                    print(f'Dicionário recurso reconhecido:')
-                    for atributo in dicionarioRecurso:
-                        print(f'{atributo} - {dicionarioRecurso[atributo]}')
-                    chaveProfissao = limpaRuidoTexto(dicionarioRecurso[CHAVE_PROFISSAO])
-                    nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, 1)
-                    listaNomeRecursoBuscado = []
-                    if dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCS:
-                        listaNomeRecursoBuscado.append([nomeRecursoPrimario, 2])
-                    elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCT:
-                        listaNomeRecursoBuscado.append([nomeRecursoPrimario, 3])
-                    elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAP:
-                        listaNomeRecursoBuscado.append([nomeRecursoPrimario, 6])
-                    elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAS:
-                        listaNomeRecursoBuscado.append([nomeRecursoPrimario, 7])
-                        listaNomeRecursoBuscado.append([nomeRecursoSecundario, 2])
-                    elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAT:
-                        listaNomeRecursoBuscado.append([nomeRecursoPrimario, 8])
-                        listaNomeRecursoBuscado.append([nomeRecursoTerciario, 2])
-                    for trabalhoEstoque in self._listaTrabalhosEstoque:
-                        for recursoBuscado in listaNomeRecursoBuscado:
-                            if textoEhIgual(trabalhoEstoque.pegaNome(), recursoBuscado[0]):
-                                novaQuantidade = trabalhoEstoque.pegaQuantidade() - recursoBuscado[1]
-                                if novaQuantidade < 0:
-                                    novaQuantidade = 0
-                                print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada de {trabalhoEstoque.pegaQuantidade()} para {novaQuantidade}.')
-                                trabalhoEstoque.setQuantidade(novaQuantidade)
-                                self._repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
-                        if textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoProducao.pegaLicenca()):
-                            novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
+        if trabalhoProducao.ehComum():
+            if trabalhoEhProducaoRecursos(trabalhoProducao):
+                print(f'Trabalho é recurso de produção!')
+                print(f'Nome recurso produzido: {trabalhoProducao.pegaNome()}')
+                dicionarioRecurso = {
+                    CHAVE_NOME:trabalhoProducao.pegaNome(),
+                    CHAVE_PROFISSAO:trabalhoProducao.pegaProfissao(),
+                    CHAVE_NIVEL:trabalhoProducao.pegaNivel()}
+                dicionarioRecurso[CHAVE_TIPO] = retornaChaveTipoRecurso(dicionarioRecurso)
+                print(f'Dicionário recurso reconhecido:')
+                for atributo in dicionarioRecurso:
+                    print(f'{atributo} - {dicionarioRecurso[atributo]}')
+                chaveProfissao = limpaRuidoTexto(dicionarioRecurso[CHAVE_PROFISSAO])
+                nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, 1)
+                listaNomeRecursoBuscado = []
+                if dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCS:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 2])
+                elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCT:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 3])
+                elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAP:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 6])
+                elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAS:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 7])
+                    listaNomeRecursoBuscado.append([nomeRecursoSecundario, 2])
+                elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAT:
+                    listaNomeRecursoBuscado.append([nomeRecursoPrimario, 8])
+                    listaNomeRecursoBuscado.append([nomeRecursoTerciario, 2])
+                for trabalhoEstoque in self.__estoqueDaoSqlite.pegaEstoque():
+                    for recursoBuscado in listaNomeRecursoBuscado:
+                        if textoEhIgual(trabalhoEstoque.pegaNome(), recursoBuscado[0]):
+                            novaQuantidade = trabalhoEstoque.pegaQuantidade() - recursoBuscado[1]
                             if novaQuantidade < 0:
                                 novaQuantidade = 0
                             print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada de {trabalhoEstoque.pegaQuantidade()} para {novaQuantidade}.')
                             trabalhoEstoque.setQuantidade(novaQuantidade)
-                            self._repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
-                else:
-                    trabalhoRecurso = self.retornaTrabalhoRecurso(trabalhoProducao)
-                    for trabalhoEstoque in self._listaTrabalhosEstoque:
-                        novaQuantidade = None
-                        if textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaPrimario()):
-                            novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadePrimario()
-                            if novaQuantidade < 0:
-                                novaQuantidade = 0
-                        elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaSecundario()):
-                            novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadeSecundario()
-                            if novaQuantidade < 0:
-                                novaQuantidade = 0
-                        elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaTerciario()):
-                            novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadeTerciario()
-                            if novaQuantidade < 0:
-                                novaQuantidade = 0
-                        elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaLicenca()):
+                            if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                                print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
+                                continue
+                            print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+                    if textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoProducao.pegaLicenca()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                        print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada de {trabalhoEstoque.pegaQuantidade()} para {novaQuantidade}.')
+                        trabalhoEstoque.setQuantidade(novaQuantidade)
+                        if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                            print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
+                            continue
+                        print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+            else:
+                trabalhoRecurso = self.retornaTrabalhoRecurso(trabalhoProducao)
+                for trabalhoEstoque in self.__estoqueDaoSqlite.pegaEstoque():
+                    novaQuantidade = None
+                    if textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaPrimario()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadePrimario()
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                    elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaSecundario()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadeSecundario()
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                    elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaTerciario()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadeTerciario()
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                    elif textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaLicenca()):
+                        novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
+                        if novaQuantidade < 0:
+                            novaQuantidade = 0
+                    if variavelExiste(novaQuantidade):
+                        print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada para {novaQuantidade}.')
+                        trabalhoEstoque.setQuantidade(novaQuantidade)
+                        if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                            print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
+                            continue
+                        print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+        elif trabalhoProducao.ehMelhorado() or trabalhoProducao.ehRaro():
+            if not trabalhoEhProducaoRecursos(trabalhoProducao):
+                listaTrabalhosNecessarios = trabalhoProducao.pegaTrabalhoNecessario().split(',')
+                for trabalhoNecessario in listaTrabalhosNecessarios:
+                    for trabalhoEstoque in self.__estoqueDaoSqlite.pegaEstoque():
+                        if textoEhIgual(trabalhoNecessario, trabalhoEstoque.pegaNome()):
                             novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
                             if novaQuantidade < 0:
                                 novaQuantidade = 0
-                        if variavelExiste(novaQuantidade):
                             print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada para {novaQuantidade}.')
                             trabalhoEstoque.setQuantidade(novaQuantidade)
-                            self._repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
-            elif trabalhoProducao.ehMelhorado() or trabalhoProducao.ehRaro():
-                if not trabalhoEhProducaoRecursos(trabalhoProducao):
-                    listaTrabalhosNecessarios = trabalhoProducao.pegaTrabalhoNecessario().split(',')
-                    for trabalhoNecessario in listaTrabalhosNecessarios:
-                        for trabalhoEstoque in self._listaTrabalhosEstoque:
-                            if textoEhIgual(trabalhoNecessario, trabalhoEstoque.pegaNome()):
-                                novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
-                                if novaQuantidade < 0:
-                                    novaQuantidade = 0
-                                print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada para {novaQuantidade}.')
-                                trabalhoEstoque.setQuantidade(novaQuantidade)
-                                self._repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque)
+                            if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                                print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
                                 break
-        else:
-            print(f'Lista de estoque está vazia!')
+                            print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+                            break
             
     def iniciaProcessoDeProducao(self, dicionarioTrabalho):
-        
         primeiraBusca = True
         trabalhoProducaoEncontrado = dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]
         while True:
             menu = self.retornaMenu()
             if menuTrabalhosAtuaisReconhecido(menu):
-                if not tamanhoIgualZero(trabalhoProducaoEncontrado):
+                if variavelExiste(trabalhoProducaoEncontrado):
                     if trabalhoProducaoEncontrado.ehRecorrente():
                         self.clonaTrabalhoProducaoEncontrado(dicionarioTrabalho, trabalhoProducaoEncontrado)
+                        self.verificaNovamente = True
+                        break
+                    if self.__trabalhoProducaoDaoSqlite.modificaTrabalhoProducao(trabalhoProducaoEncontrado):
+                        estado = 'produzir' if trabalhoProducaoEncontrado.pegaEstado() == 0 else 'produzindo' if trabalhoProducaoEncontrado.pegaEstado() == 1 else 'concluido'
+                        print(f'Trabalho ({trabalhoProducaoEncontrado.pegaNome()}) modificado para {estado}.')
                     else:
-                        self._repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducaoEncontrado)
+                        print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
                     self.removeTrabalhoEstoque(trabalhoProducaoEncontrado)
                     clickContinuo(12,'up')
-                    self._confirmacao = True
+                    self.verificaNovamente = True
                     break
                 else:
                     print(f'Dicionário trabalho desejado está vazio!')
@@ -1222,8 +1227,8 @@ class Aplicacao:
                 print(f"Buscando: {trabalhoProducaoEncontrado.pegaLicenca()}")
                 textoReconhecido = self._imagem.retornaTextoLicencaReconhecida()
                 if variavelExiste(textoReconhecido):
-                    print(f'Licença reconhecida: {textoReconhecido}.')
-                    if not texto1PertenceTexto2('licençasdeproduçao', textoReconhecido):
+                    print(f'Licença reconhecida: {textoReconhecido}')
+                    if texto1PertenceTexto2('Licença de Artesanato', textoReconhecido):
                         primeiraBusca = True
                         listaCiclo = []
                         while not texto1PertenceTexto2(textoReconhecido, trabalhoProducaoEncontrado.pegaLicenca()):
@@ -1233,25 +1238,29 @@ class Aplicacao:
                             if variavelExiste(textoReconhecido):
                                 print(f'Licença reconhecida: {textoReconhecido}.')
                                 if textoEhIgual(textoReconhecido, 'nenhumitem'):
-                                    if textoEhIgual(trabalhoProducaoEncontrado.pegaLicenca(), CHAVE_LICENCA_INICIANTE):
+                                    if textoEhIgual(trabalhoProducaoEncontrado.pegaLicenca(), CHAVE_LICENCA_NOVATO):
                                         if not textoEhIgual(listaCiclo[-1], 'nenhumitem'):
                                             print(f'Sem licenças de produção...')
-                                            self._personagemEmUso.setEstado(False)
-                                            self._repositorioPersonagem.modificaPersonagem(self._personagemEmUso)
+                                            self.__personagemEmUso.alternaEstado()
+                                            if self.__personagemDaoSqlite.modificaPersonagem(self.__personagemEmUso):
+                                                estado = 'verdadeiro' if self.__personagemEmUso.pegaEstado() else 'falso'
+                                                print(f'{self.__personagemEmUso.pegaNome()}: Estado modificado para {estado} com sucesso!')
+                                            else:
+                                                print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
                                             clickEspecifico(3, 'f1')
                                             clickContinuo(10, 'up')
                                             clickEspecifico(1, 'left')
-                                            break
+                                            return dicionarioTrabalho
                                     else:
                                         print(f'{trabalhoProducaoEncontrado.pegaLicenca()} não encontrado!')
                                         print(f'Licença buscada agora é Licença de produção do iniciante!')
-                                        trabalhoProducaoEncontrado.setLicenca(CHAVE_LICENCA_INICIANTE)
+                                        trabalhoProducaoEncontrado.setLicenca(CHAVE_LICENCA_NOVATO)
                                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado
                                 else:
                                     if len(listaCiclo) > 10:
                                         print(f'{trabalhoProducaoEncontrado.pegaLicenca()} não encontrado!')
                                         print(f'Licença buscada agora é Licença de produção do iniciante!')
-                                        trabalhoProducaoEncontrado.setLicenca(CHAVE_LICENCA_INICIANTE)
+                                        trabalhoProducaoEncontrado.setLicenca(CHAVE_LICENCA_NOVATO)
                                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado          
                             else:
                                 erro = self.verificaErro()
@@ -1261,71 +1270,74 @@ class Aplicacao:
                                 break
                             primeiraBusca = False
                         else:
+                            trabalhoProducaoEncontrado.setEstado(CODIGO_PRODUZINDO)
                             if primeiraBusca:
                                 clickEspecifico(1, "f1")
                             else:
                                 clickEspecifico(1, "f2")
                     else:
                         print(f'Sem licenças de produção...')
-                        self._personagemEmUso.setEstado(False)
-                        self._repositorioPersonagem.modificaPersonagem(self._personagemEmUso)
+                        self.__personagemEmUso.alternaEstado()
+                        if self.__personagemDaoSqlite.modificaPersonagem(self.__personagemEmUso):
+                            estado = 'verdadeiro' if self.__personagemEmUso.pegaEstado() else 'falso'
+                            print(f'{self.__personagemEmUso.pegaNome()}: Estado modificado para {estado} com sucesso!')
+                        else:
+                            print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
                         clickEspecifico(3, 'f1')
                         clickContinuo(10, 'up')
                         clickEspecifico(1, 'left')
-                        break
+                        return dicionarioTrabalho
                 else:
                     print(f'Erro ao reconhecer licença!')
-                    
-                    break
+                    return dicionarioTrabalho
             elif menuEscolhaEquipamentoReconhecido(menu) or menuAtributosEquipamentoReconhecido(menu):
                 print(f'Clica f2.')
                 clickEspecifico(1, 'f2')
             else:
-                break
+                return dicionarioTrabalho
             print(f'Tratando possíveis erros...')
-            self._confirmacao = True
             tentativas = 1
             erro = self.verificaErro()
             while erroEncontrado(erro):
                 if ehErroRecursosInsuficiente(erro):
-                    self._repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducaoEncontrado)
-                    posicao = 0
-                    for trabalhoProducao in self._listaTrabalhosProducao:
-                        if textoEhIgual(trabalhoProducao.pegaId(), trabalhoProducaoEncontrado.pegaId()):
-                            del self._listaTrabalhosProducao[posicao]
-                            break
-                        posicao += 1
-                    dicionarioTrabalho[CHAVE_CONFIRMACAO] = False
-                elif ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
-                    self._confirmacao = False
-                    dicionarioTrabalho[CHAVE_CONFIRMACAO] = False
+                    self.__confirmacao = False
+                    if self.__trabalhoProducaoDaoSqlite.removeTrabalhoProducao(trabalhoProducaoEncontrado):
+                        print(f'Trabalho ({trabalhoProducaoEncontrado.pegaNome()}) removido com sucesso!')
+                        erro = self.verificaErro()
+                        continue
+                    print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                    erro = self.verificaErro()
+                    continue
+                if ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
+                    self.__confirmacao = False
                     if ehErroOutraConexao(erro):
                         self._unicaConexao = False
-                    elif ehErroConectando(erro):
+                        erro = self.verificaErro()
+                        continue
+                    if ehErroConectando(erro):
                         if tentativas > 10:
                             clickEspecifico(1, 'enter')
                             tentativas = 0
                         tentativas+=1
                 erro = self.verificaErro()
-            if not self._confirmacao:
+            if not self.__confirmacao:
                 break
             primeiraBusca = False
         return dicionarioTrabalho
 
     def retornaListaPossiveisTrabalhos(self, nomeTrabalhoConcluido):
         listaPossiveisTrabalhos = []
-        for trabalho in self._listaTrabalhos:
+        for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
             if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
-                trabalhoEncontrado = TrabalhoProducao('', trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, CHAVE_LICENCA_INICIANTE, CODIGO_CONCLUIDO)
+                trabalhoEncontrado = TrabalhoProducao('', trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, CHAVE_LICENCA_NOVATO, CODIGO_CONCLUIDO)
                 listaPossiveisTrabalhos.append(trabalhoEncontrado)
         return listaPossiveisTrabalhos
 
     def retornaTrabalhoProducaoConcluido(self, nomeTrabalhoConcluido):
         listaPossiveisTrabalhosProducao = self.retornaListaPossiveisTrabalhos(nomeTrabalhoConcluido)
         if not tamanhoIgualZero(listaPossiveisTrabalhosProducao):
-            listaTrabalhosProducaoProduzirProduzindo = self._repositorioTrabalhoProducao.retornaListaTrabalhosProducaoParaProduzirProduzindo()
             for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
-                for dicionarioTrabalhoProduzirProduzindo in listaTrabalhosProducaoProduzirProduzindo:
+                for dicionarioTrabalhoProduzirProduzindo in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo():
                     condicoes = dicionarioTrabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(dicionarioTrabalhoProduzirProduzindo.pegaNome(), possivelTrabalhoProducao.pegaNome())
                     if condicoes:
                         return dicionarioTrabalhoProduzirProduzindo
@@ -1334,29 +1346,49 @@ class Aplicacao:
                 return listaPossiveisTrabalhosProducao[0]
         return None
 
-    def iniciaBuscaTrabalho(self, dicionarioTrabalho):
-        self.defineChaveListaDicionariosProfissoesNecessarias()
-        indiceProfissao = 0
-        dicionarioTrabalho[CHAVE_POSICAO] = -1
-        while indiceProfissao < len(self._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS]):
-            if self.vaiParaMenuProduzir():
-                profissaoNecessaria = self._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS][indiceProfissao]
-                if not self._confirmacao or not chaveUnicaConexaoEhVerdadeira(self._dicionarioPersonagemAtributos):
+    
+    def existeEspacoProducao(self):
+        espacoProducao = self.__personagemEmUso.pegaEspacoProducao()
+        for trabalhoProducao in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducao():
+            if trabalhoProducao.ehProduzindo():
+                espacoProducao -= 1
+                if espacoProducao <= 0:
+                    print(f'{espacoProducao} espaços de produção.')
+                    return False
+        print(f'{espacoProducao} espaços de produção.')
+        return True
+
+    def iniciaBuscaTrabalho(self):
+        dicionarioTrabalho = {CHAVE_TRABALHO_PRODUCAO_ENCONTRADO: None}
+        self.defineChaveListaProfissoesNecessarias()
+        for profissaoNecessaria in self.__listaProfissoesNecessarias:
+            if not self.__confirmacao or not self._unicaConexao:
+                break
+            if not self.existeEspacoProducao():
+                continue
+            dicionarioTrabalho[CHAVE_POSICAO] = -1
+            while self.__confirmacao:
+                self.verificaNovamente = False
+                self.vaiParaMenuProduzir()
+                if not self.__confirmacao or not self._unicaConexao or not self.existeEspacoProducao():
                     break
-                elif not existeEspacoProducao(self._dicionarioPersonagemAtributos):
-                    indiceProfissao += 1
-                    continue
-                if listaProfissoesFoiModificada(self._dicionarioPersonagemAtributos):
+                if self._profissaoModificada:
                     self.verificaEspacoProducao()
-                entraProfissaoEspecifica(profissaoNecessaria)
+                profissoes = self.__profissaoDaoSqlite.pegaProfissoes()
+                for profissao in profissoes:
+                    if profissao.pegaNome() == profissaoNecessaria.pegaNome():
+                        posicao = profissoes.index(profissao) + 1 
+                entraProfissaoEspecifica(profissaoNecessaria, posicao)
                 print(f'Verificando profissão: {profissaoNecessaria.pegaNome()}')
                 dicionarioTrabalho[CHAVE_PROFISSAO] = profissaoNecessaria.pegaNome()
-                dicionarioTrabalho[CHAVE_CONFIRMACAO] = True
                 listaDeListasTrabalhosProducao = self.retornaListaDeListasTrabalhosProducao(dicionarioTrabalho)
-                indiceLista = 0
                 for listaTrabalhosProducao in listaDeListasTrabalhosProducao:
+                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
+                        break
                     dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA] = listaTrabalhosProducao
                     for trabalhoProducaoPriorizado in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
+                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
+                            break
                         if trabalhoProducaoPriorizado.ehEspecial() or trabalhoProducaoPriorizado.ehRaro():
                             print(f'Trabalho desejado: {trabalhoProducaoPriorizado.pegaNome()}.')
                             posicaoAux = -1
@@ -1368,16 +1400,15 @@ class Aplicacao:
                                 print(f'Trabalho {trabalhoProducaoPriorizado.pegaRaridade()} reconhecido: {nomeTrabalhoReconhecido}.')
                                 if variavelExiste(nomeTrabalhoReconhecido):
                                     if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducaoPriorizado.pegaNomeProducao()):
-                                        dicionarioTrabalho[CHAVE_CONFIRMACAO] = True
                                         erro = self.verificaErro()
                                         if erroEncontrado(erro):
                                             if ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
-                                                dicionarioTrabalho[CHAVE_CONFIRMACAO] = False
+                                                self.__confirmacao = False
                                                 if ehErroOutraConexao(erro):
                                                     dicionarioTrabalho[CHAVE_UNICA_CONEXAO] = False
                                         else:
                                             entraTrabalhoEncontrado(dicionarioTrabalho)
-                                        if self._confirmacao:
+                                        if self.__confirmacao:
                                             dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizado
                                             tipoTrabalho = 0
                                             if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]):
@@ -1392,56 +1423,47 @@ class Aplicacao:
                                     dicionarioTrabalho[CHAVE_POSICAO] = 4
                                 dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
                             dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
-                            if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self._confirmacao:
+                            if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
                                 break
-                        elif trabalhoProducaoPriorizado.ehMelhorado() or trabalhoProducaoPriorizado.ehComum():
+                            continue
+                        if trabalhoProducaoPriorizado.ehMelhorado() or trabalhoProducaoPriorizado.ehComum():
                             dicionarioTrabalho = self.defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho)
-                            self._confirmacao = dicionarioTrabalho[CHAVE_CONFIRMACAO]
-                            if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self._confirmacao:
+                            if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
                                 break
-                            elif indiceLista + 1 >= len(listaDeListasTrabalhosProducao):
+                            elif listaDeListasTrabalhosProducao.index(listaTrabalhosProducao) + 1 >= len(listaDeListasTrabalhosProducao):
                                 vaiParaMenuTrabalhoEmProducao()
                             else:
                                 vaiParaOTopoDaListaDeTrabalhosComunsEMelhorados(dicionarioTrabalho)
-                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self._confirmacao:
-                            break
-                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self._confirmacao:
-                        break
-                    else:
-                        indiceLista += 1
-                        dicionarioTrabalho[CHAVE_POSICAO] = -1
-                if self._confirmacao:
+                if self.__confirmacao:
                     if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
                         dicionarioTrabalho = self.iniciaProcessoDeProducao(dicionarioTrabalho)
                     else:
                         saiProfissaoVerificada(dicionarioTrabalho)
-                        indiceProfissao += 1
-                        dicionarioTrabalho[CHAVE_POSICAO] = -1
-                    if chaveUnicaConexaoEhVerdadeira(self._dicionarioPersonagemAtributos):
-                        if chaveEspacoBolsaForVerdadeira(self._dicionarioPersonagemAtributos):
-                            if self._imagem.retornaEstadoTrabalho() == CODIGO_CONCLUIDO:
-                                nomeTrabalhoConcluido = self.reconheceRecuperaTrabalhoConcluido()
-                                if variavelExiste(nomeTrabalhoConcluido):
-                                    trabalhoProducaoConcluido = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoConcluido)
-                                    if variavelExiste(trabalhoProducaoConcluido):
-                                        trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
-                                        self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
-                                        self.atualizaEstoquePersonagem(trabalhoProducaoConcluido)
-                                        self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
-                                    else:
-                                        print(f'Dicionário trabalho concluido não reconhecido.')
+                    if self._unicaConexao and self._espacoBolsa:
+                        if self._imagem.retornaEstadoTrabalho() == CODIGO_CONCLUIDO:
+                            nomeTrabalhoConcluido = self.reconheceRecuperaTrabalhoConcluido()
+                            if variavelExiste(nomeTrabalhoConcluido):
+                                trabalhoProducaoConcluido = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoConcluido)
+                                if variavelExiste(trabalhoProducaoConcluido):
+                                    trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
+                                    self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
+                                    self.atualizaEstoquePersonagem(trabalhoProducaoConcluido)
+                                    self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
                                 else:
                                     print(f'Dicionário trabalho concluido não reconhecido.')
-                            elif not existeEspacoProducao(self._dicionarioPersonagemAtributos):
-                                break
+                            else:
+                                print(f'Dicionário trabalho concluido não reconhecido.')
+                            self.verificaNovamente = True
+                        elif not self.existeEspacoProducao():
+                            break
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = None
                         clickContinuo(3,'up')
                         clickEspecifico(1,'left')
                         sleep(1.5)
-            else:
-                break
+                if not self.verificaNovamente:
+                    break
         else:
-            if listaProfissoesFoiModificada(self._dicionarioPersonagemAtributos):
+            if self._profissaoModificada:
                 self.verificaEspacoProducao()
             print(f'Fim da lista de profissões...')
 
@@ -1468,18 +1490,19 @@ class Aplicacao:
     def retiraPersonagemListaAtivo(self):
         self.defineListaPersonagensAtivos()
         novaListaPersonagensAtivos = []
-        for personagemAtivo in self._listaPersonagemAtivo:
-            for personagemRemovido in self._listaPersonagemJaVerificado:
+        for personagemAtivo in self.__listaPersonagemAtivo:
+            for personagemRemovido in self.__listaPersonagemJaVerificado:
                 if textoEhIgual(personagemAtivo.pegaNome(), personagemRemovido.pegaNome()):
                     break
             else:
+                print(personagemAtivo)
                 novaListaPersonagensAtivos.append(personagemAtivo)
-        self._listaPersonagemAtivo = novaListaPersonagensAtivos
+        self.__listaPersonagemAtivo = novaListaPersonagensAtivos
 
     def logaContaPersonagem(self):
         confirmacao=False
-        email=self._listaPersonagemAtivo[0].pegaEmail()
-        senha=self._listaPersonagemAtivo[0].pegaSenha()
+        email=self.__listaPersonagemAtivo[0].pegaEmail()
+        senha=self.__listaPersonagemAtivo[0].pegaSenha()
         print(f'Tentando logar conta personagem...')
         preencheCamposLogin(email,senha)
         tentativas=1
@@ -1537,11 +1560,10 @@ class Aplicacao:
             personagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(1)
             while variavelExiste(personagemReconhecido) and contadorPersonagem < 13:
                 self.confirmaNomePersonagem(personagemReconhecido)
-                if variavelExiste(self._personagemEmUso):
-                    self.modificaAtributoUso(True)
+                if variavelExiste(self.__personagemEmUso):
                     clickEspecifico(1, 'f2')
                     sleep(1)
-                    print(f'Personagem ({self._personagemEmUso.pegaNome()}) encontrado.')
+                    print(f'Personagem ({self.__personagemEmUso.pegaNome()}) encontrado.')
                     tentativas = 1
                     erro = self.verificaErro()
                     while erroEncontrado(erro):
@@ -1571,45 +1593,43 @@ class Aplicacao:
         clickMouseEsquerdo(1,2,35)
 
     def iniciaProcessoBusca(self):
-        self.defineListaPersonagensAtivos()
         while True:
-            listaPersonagensAtivosEstaVazia = tamanhoIgualZero(self._listaPersonagemAtivo)
+            self.retiraPersonagemListaAtivo()
+            listaPersonagensAtivosEstaVazia = tamanhoIgualZero(self.__listaPersonagemAtivo)
             if listaPersonagensAtivosEstaVazia:
-                self._listaPersonagem = self._repositorioPersonagem.pegaTodosPersonagens()
-                self._listaPersonagemJaVerificado.clear()
-                self.defineListaPersonagensAtivos()
+                self.__listaPersonagemJaVerificado.clear()
                 continue
             self.definePersonagemEmUso()
-            if variavelExiste(self._personagemEmUso):
-                self.modificaAtributoUso(True)
-                print(f'Personagem ({self._personagemEmUso.pegaNome()}) ESTÁ EM USO.')
+            if variavelExiste(self.__personagemEmUso):
+                self.modificaAtributoUso()
+                print(f'Personagem ({self.__personagemEmUso.pegaNome()}) ESTÁ EM USO.')
                 self.inicializaChavesPersonagem()
                 print('Inicia busca...')
                 if self.vaiParaMenuProduzir():
                     # while defineTrabalhoComumProfissaoPriorizada():
                     #     continue
-                    listaTrabalhoProducaoParaProduzirProduzindo = self._repositorioTrabalhoProducao.retornaListaTrabalhosProducaoParaProduzirProduzindo()
-                    if not tamanhoIgualZero(listaTrabalhoProducaoParaProduzirProduzindo):
-                        dicionarioTrabalho = {
-                            CHAVE_LISTA_TRABALHOS_PRODUCAO: listaTrabalhoProducaoParaProduzirProduzindo,
-                            CHAVE_TRABALHO_PRODUCAO_ENCONTRADO: None}
-                        if self._autoProducaoTrabalho:
-                            self.verificaProdutosRarosMaisVendidos(None)
-                        self.iniciaBuscaTrabalho(dicionarioTrabalho)
-                    else:
+                    if tamanhoIgualZero(self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo()):
                         print(f'Lista de trabalhos desejados vazia.')
-                        self._repositorioPersonagem.alternaEstado(self._personagemEmUso)
+                        self.__personagemEmUso.alternaEstado()
+                        if self.__personagemDaoSqlite.modificaPersonagem(self.__personagemEmUso):
+                            estado = 'verdadeiro' if self.__personagemEmUso.pegaEstado() else 'falso'
+                            print(f'{self.__personagemEmUso.pegaNome()}: Estado modificado para {estado} com sucesso!')
+                            continue
+                        print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+                        continue
+                    if self._autoProducaoTrabalho:
+                        self.verificaProdutosRarosMaisVendidos()
+                    self.iniciaBuscaTrabalho()
                 if self._unicaConexao:
-                    if haMaisQueUmPersonagemAtivo(self._listaPersonagemAtivo):
+                    if haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo):
                         clickMouseEsquerdo(1, 2, 35)
-                self._listaPersonagemJaVerificado.append(self._personagemEmUso)
-                self.retiraPersonagemListaAtivo()
+                self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
                 continue
-            if tamanhoIgualZero(self._listaPersonagemJaVerificado):
+            if tamanhoIgualZero(self.__listaPersonagemJaVerificado):
                 if self.configuraLoginPersonagem():
                     self.entraPersonagemAtivo()
                 continue
-            if textoEhIgual(self._listaPersonagemJaVerificado[-1].pegaEmail(), self._listaPersonagemAtivo[0].pegaEmail()):
+            if textoEhIgual(self.__listaPersonagemJaVerificado[-1].pegaEmail(), self.__listaPersonagemAtivo[0].pegaEmail()):
                 self.entraPersonagemAtivo()
                 continue
             if self.configuraLoginPersonagem():
@@ -1620,11 +1640,297 @@ class Aplicacao:
         clickAtalhoEspecifico('win', 'left')
         self.iniciaProcessoBusca()
 
-def teste():
-    imagem = ManipulaImagem()
-    imagem.retornaReferenciaTeste()
+    def modificaProfissao(self):
+        while True:
+            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
+            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            for personagem in personagens:
+                print(personagem)
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            self.__profissaoDaoSqlite = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem)-1])
+            while True:
+                profissoes = self.__profissaoDaoSqlite.pegaProfissoes()
+                print(f'{('ID').ljust(40)} | {('NOME').ljust(22)} | {str('EXP').ljust(6)} | PRIORIDADE')
+                for profissao in profissoes:
+                    print(profissao)
+                opcaoProfissao = input(f'Opção: ')
+                if int(opcaoProfissao) == 0:
+                    break
+                novoNome = input(f'Novo nome: ')
+                novaExperiencia = input(f'Nova experiência: ')
+                profissaoModificado = profissoes[int(opcaoProfissao)-1]
+                if tamanhoIgualZero(novoNome):
+                    novoNome = profissaoModificado.pegaNome()
+                profissaoModificado.setNome(novoNome)
+                if tamanhoIgualZero(novaExperiencia):
+                    novaExperiencia = profissaoModificado.pegaExperiencia()
+                profissaoModificado.setExperiencia(int(novaExperiencia))
+                alternaPrioridade = input(f'Alternar prioridade? (S/N) ')
+                if alternaPrioridade.lower() == 's':
+                    profissaoModificado.alternaPrioridade()
+                self.__profissaoDaoSqlite.modificaProfissao(profissaoModificado)
+
+    def insereNovoTrabalho(self):
+        while True:
+            limpaTela()
+            trabalhos = self.__trabalhoDaoSqlite.pegaTrabalhos()
+            print(f'{('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            for trabalho in trabalhos:
+                print(trabalho)
+            opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')    
+            if opcaoTrabalho.lower() == 'n':
+                break
+            limpaTela()
+            raridades = ['Comum', 'Melhorado', 'Raro', 'Especial']
+            for raridade in raridades:
+                print(f'{raridades.index(raridade) + 1} - {raridade}')
+            opcaoRaridade = input(f'Opção raridade: ')
+            if int(opcaoRaridade) == 0:
+                continue
+            limpaTela()
+            raridade = raridades[int(opcaoRaridade) - 1]
+            profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
+            for profissao in profissoes:
+                print(f'{profissoes.index(profissao) + 1} - {profissao}')
+            opcaoProfissao = input(f'Opção de profissao: ')
+            if int(opcaoProfissao) == 0:
+                continue
+            limpaTela()
+            profissao = profissoes[int(opcaoProfissao) - 1]
+            nome = input(f'Nome: ')
+            nomeProducao = input(f'Nome produção: ')
+            experiencia = input(f'Experiência: ')
+            nivel = input(f'Nível: ')
+            trabalhoNecessario = input(f'Trabalhos necessarios: ')
+            novoTrabalho = Trabalho(str(uuid.uuid4()), nome, nomeProducao, int(experiencia), int(nivel), profissao, raridade, trabalhoNecessario)
+            if self.__trabalhoDaoSqlite.insereTrabalho(novoTrabalho):
+                print(f'{novoTrabalho.pegaNome()} adicionado com sucesso!')
+                continue
+            print(f'Erro: {self.__trabalhoDaoSqlite.pegaErro()}')
+
+    def insereNovoTrabalhoProducao(self):
+        while True:
+            limpaTela()
+            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
+            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            for personagem in personagens:
+                print(personagem)
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            while True:
+                limpaTela()
+                personagem = personagens[int(opcaoPersonagem) - 1]
+                self.__trabalhoProducaoDaoSqlite = TrabalhoProducaoDaoSqlite(personagem)
+                print(f'{('NOME').ljust(40)} | {('PROFISSÃO').ljust(21)} | {('NÍVEL').ljust(5)} | ESTADO')
+                for trabalhoProducao in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo():
+                    print(trabalhoProducao)
+                opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')    
+                if (opcaoTrabalho).lower() == 'n':
+                    break
+                limpaTela()
+                profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
+                print(f'{('ÍNDICE').ljust(6)} - PROFISSÃO')
+                for profissao in profissoes:
+                    print(f'{str(profissoes.index(profissao) + 1).ljust(6)} - {profissao}')
+                opcaoProfissao = input(f'Opção de profissao: ')
+                if int(opcaoProfissao) == 0:
+                    continue
+                profissao = profissoes[int(opcaoProfissao) - 1]
+                trabalhosFiltrados = []
+                for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+                    if trabalho.pegaProfissao() == profissao:
+                        trabalhosFiltrados.append(trabalho)
+                print(f'{('INDICE').ljust(6)} | {('NOME').ljust(40)} | {('PROFISSÃO').ljust(20)} | NÍVEL')
+                for trabalho in trabalhosFiltrados:
+                    print(f'{str(trabalhosFiltrados.index(trabalho) + 1).ljust(6)} - {trabalho}')
+                opcaoTrabalho = input(f'Trabalhos escolhido: ')
+                if int(opcaoTrabalho) == 0:
+                    continue
+                trabalho = trabalhosFiltrados[int(opcaoTrabalho) - 1]
+                licencas = [CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_APRENDIZ, CHAVE_LICENCA_INICIANTE, CHAVE_LICENCA_MESTRE]
+                for licenca in licencas:
+                    print(f'{licencas.index(licenca) + 1} - {licenca}')
+                opcaoLicenca = input(f'Licença escolhida: ')
+                if int(opcaoLicenca) == 0:
+                    continue
+                licenca = licencas[int(opcaoLicenca) - 1]
+                opcaoRecorrencia = input(f'Trabalho recorrente? (S/N)')
+                recorrencia = True if (opcaoRecorrencia).lower() == 's' else False
+                novoTrabalhoProducao = TrabalhoProducao(str(uuid.uuid4()), trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), recorrencia, licenca, 0)
+                if self.__trabalhoProducaoDaoSqlite.insereTrabalhoProducao(novoTrabalhoProducao):
+                    print(f'{novoTrabalhoProducao.pegaNome()} adicionado com sucesso!')
+                    continue
+                print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+
+    def modificaPersonagem(self):
+        while True:
+            limpaTela()
+            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            for personagem in personagens:
+                print(personagem)
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            limpaTela()
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            novoNome = input(f'Novo nome: ')
+            if tamanhoIgualZero(novoNome):
+                novoNome = personagem.pegaNome()
+            novoEspaco = input(f'Nova quantidade: ')
+            if tamanhoIgualZero(novoEspaco):
+                novoEspaco = personagem.pegaEspacoProducao()
+            novoEstado = input(f'Modificar estado? (S/N) ')
+            if novoEstado.lower() == 's':
+                personagem.alternaEstado()
+            novoUso = input(f'Modificar uso? (S/N) ')
+            if novoUso.lower() == 's':
+                personagem.alternaUso()
+            novoAutoProducao = input(f'Modificar autoProducao? (S/N) ')
+            if novoAutoProducao.lower() == 's':
+                personagem.alternaAutoProducao()
+            if self.__personagemDaoSqlite.modificaPersonagem(personagem):
+                print(f'{personagem.pegaNome()}: Modificado com sucesso!')
+                continue
+            print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+            
+    def removeTrabalho(self):
+        while True:
+            limpaTela()
+            trabalhos = self.__trabalhoDaoSqlite.pegaTrabalhos()
+            print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(40)} | {('PROFISSÃO').ljust(22)} | NÍVEL')
+            for trabalho in trabalhos:
+                print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
+            opcaoTrabalho = input(f'Opção trabalho: ')    
+            if int(opcaoTrabalho) == 0:
+                break
+            trabalhoEscolhido = trabalhos[int(opcaoTrabalho) - 1]
+            if self.__trabalhoDaoSqlite.removeTrabalho(trabalhoEscolhido):
+                print(f'{trabalhoEscolhido.pegaNome()} excluído com sucesso!')
+            else:
+                print(f'Erro: {self.__trabalhoDaoSqlite.pegaErro()}')
+            input(f'Clique para continuar...')
+
+    def modificaTrabalhoProducao(self):
+        while True:
+            limpaTela()
+            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
+            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            for personagem in personagens:
+                print(personagem)
+            opcaoPersonagem = input(f'Opção: ')
+            if int(opcaoPersonagem) == 0:
+                break
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            self.__trabalhoProducaoDaoSqlite = TrabalhoProducaoDaoSqlite(personagem)
+            while True:
+                limpaTela()
+                trabalhosProducao = self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducao()
+                for trabalhoProducao in trabalhosProducao:
+                    print(f'{str(trabalhosProducao.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao}')
+                opcaoTrabalho = input(f'Opção trabalho: ')
+                if int(opcaoTrabalho) == 0:
+                    break
+                limpaTela()
+                trabalhoEscolhido = trabalhosProducao[int(opcaoTrabalho) - 1]
+                licencas = [CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_APRENDIZ, CHAVE_LICENCA_INICIANTE, CHAVE_LICENCA_MESTRE]
+                for licenca in licencas:
+                    print(f'{licencas.index(licenca) + 1} - {licenca}')
+                novaLicenca = input(f'Nova licença: ')
+                if tamanhoIgualZero(novaLicenca):
+                    novaLicenca = trabalhoEscolhido.pegaLicenca()
+                else:
+                    trabalhoEscolhido.setLicenca(licencas[int(novaLicenca) - 1])
+                limpaTela()
+                novaRecorrencia = input(f'Alterna recorrencia? (S/N) ')
+                if novaRecorrencia.lower() == 's':
+                    trabalhoEscolhido.alternaRecorrencia()
+                limpaTela()
+                novoEstado = input(f'Novo estado: (0 - PRODUZIR, 1 - PRODUZINDO, 2 - CONCLUÍDO)')
+                if tamanhoIgualZero(novoEstado):
+                    novoEstado = trabalhoEscolhido.pegaEstado()
+                else:
+                    trabalhoEscolhido.setEstado(int(novoEstado))
+                if self.__trabalhoProducaoDaoSqlite.modificaTrabalhoProducao(trabalhoEscolhido):
+                    print(f'{trabalhoEscolhido.pegaNome()} modificado com sucesso!')
+                    continue
+                print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+
+    def removeTrabalhoProducao(self):
+        while True:
+            limpaTela()
+            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
+            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            for personagem in personagens:
+                print(personagem)
+            opcaoPersonagem = input(f'Opção: ')
+            if int(opcaoPersonagem) == 0:
+                break
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            self.__trabalhoProducaoDaoSqlite = TrabalhoProducaoDaoSqlite(personagem)
+            while True: 
+                limpaTela()
+                print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(40)} | {('PROFISSÃO').ljust(21)} | {('NÍVEL').ljust(5)} | {('ESTADO').ljust(10)} | LICENÇA')
+                trabalhosProducao = self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducao()
+                for trabalhoProducao in trabalhosProducao:
+                    print(f'{str(trabalhosProducao.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao}')
+                opcaoTrabalho = input(f'Opcção trabalho: ')
+                if int(opcaoTrabalho) == 0:
+                    break
+                if self.__trabalhoProducaoDaoSqlite.removeTrabalhoProducao(trabalhosProducao[int(opcaoTrabalho) - 1]):
+                    print(f'Removido com sucesso!')
+                else:
+                    print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                input(f'Clique para continuar...')
+
+    def teste(self):
+        if self.__personagemDaoSqlite.insereColunaAutoProducaoTabelaPesonagem():
+            print(f'Coluna autoProducao adicionada com sucesso!')
+        else:
+            print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+        while True:
+            limpaTela()
+            print(f'MENU')
+            print(f'1 - Adiciona trabalho')
+            print(f'2 - Adiciona trabalho produção')
+            print(f'3 - Modifica personagem')
+            print(f'4 - Modifica profissao')
+            print(f'5 - Remove trabalho')
+            print(f'6 - Modifica trabalho produção')
+            print(f'7 - Remove trabalho produção')
+            print(f'0 - Sair')
+            try:
+                opcaoMenu = input(f'Opção escolhida: ')
+                if int(opcaoMenu) == 0:
+                    break
+                if int(opcaoMenu) == 1:
+                    self.insereNovoTrabalho()
+                    continue
+                if int(opcaoMenu) == 2:
+                    self.insereNovoTrabalhoProducao()
+                    continue
+                if int(opcaoMenu) == 3:
+                    self.modificaPersonagem()
+                    continue
+                if int(opcaoMenu) == 4:
+                    self.modificaProfissao()
+                    continue
+                if int(opcaoMenu) == 5:
+                    self.removeTrabalho()
+                    continue
+                if int(opcaoMenu) == 6:
+                    self.modificaTrabalhoProducao()
+                    continue
+                if int(opcaoMenu) == 7:
+                    self.removeTrabalhoProducao()
+                    continue
+            except Exception as erro:
+                print(f'Erro: {erro}')
+                input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    # Aplicacao().preparaPersonagem()
-    teste()
+    Aplicacao().preparaPersonagem()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))

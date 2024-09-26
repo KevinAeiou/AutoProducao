@@ -26,11 +26,11 @@ def clickContinuo(cliques, teclaEspecifica):
 def tiraScreenshot():
     return tecla.screenshot()
 
-def clickMouseEsquerdo(clicks, xTela,yTela):
+def clickMouseEsquerdo(clicks, xTela, yTela):
     sleep(0.5)
     for x in range(clicks):
         tecla.leftClick(xTela, yTela)
-        print(f'Click em {xTela}:{yTela}.')
+        print(f'Click em x:{xTela} - y:{yTela}.')
         sleep(1)
 
 def clickAtalhoEspecifico(tecla1, tecla2):
@@ -53,10 +53,10 @@ def encerraSecao():
     clickEspecifico(1,5)
     clickEspecifico(1,'f2')
 
-def entraProfissaoEspecifica(profissao):
+def entraProfissaoEspecifica(profissao, posicao):
     print(f'Entrando na profissão {profissao.pegaNome()}...')
     sleep(1)
-    for x in range(profissao.pegaPosicao()):
+    for x in range(posicao):
         tecla.hotkey('down')
         print('Baixo.')
         sleep(0.5)
