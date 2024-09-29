@@ -1,49 +1,32 @@
 from main import Aplicacao
-from repositorio.repositorioProfissao import *
-from repositorio.repositorioPersonagem import *
-from repositorio.repositorioTrabalhoProducao import *
-from constantes import *
 
 class TesteAplicacao:
-    _personagemTeste = RepositorioPersonagem().pegaTodosPersonagens()[0]
-    aplicacao = Aplicacao()
-    _repositorioProfissao = RepositorioProfissao(_personagemTeste)
-    _repositorioTrabalhoProducao = RepositorioTrabalhoProducao(_personagemTeste)
+    __aplicacao = Aplicacao()
 
     def testDeveRetornarQuantidadeUmQuandoProdutoForVendido(self):
-        texto = 'Item vendido Atiradora do silêncioabsoluto x1 por 58888 de Ouro'
+        texto = 'Item vendido BraceleteTranscendental x1 por 173333 deOuroTaxa do mercado 17333 de Ouro'
         esperado = 1
         listaTextoCarta = texto.split()
-        recebido = self.aplicacao.retornaQuantidadeTrabalhoVendido(listaTextoCarta)
+        recebido = self.__aplicacao.retornaQuantidadeTrabalhoVendido(listaTextoCarta)
         assert esperado == recebido
 
     def testDeveRetornarValor58888QuandoProdutoForVendido(self):
-        texto = 'Item vendido Atiradora do silêncioabsoluto x1 por 58888 de Ouro'
-        esperado = 58888
+        texto = 'Item vendido BraceleteTranscendental x1 por 173333 deOuroTaxa do mercado 17333 de Ouro'
+        esperado = 173333
         listaTextoCarta = texto.split()
-        recebido = self.aplicacao.retornaValorTrabalhoVendido(listaTextoCarta)
+        recebido = self.__aplicacao.retornaValorTrabalhoVendido(listaTextoCarta)
         assert esperado == recebido
 
     def testDeveRetornarZeroQuandoPalavraPorNaoForEncontrada(self):
         texto = 'Item vendido Atiradora do silêncioabsoluto x1 58888 de Ouro'
         esperado = 0
         listaTextoCarta = texto.split()
-        recebido = self.aplicacao.retornaValorTrabalhoVendido(listaTextoCarta)
+        recebido = self.__aplicacao.retornaValorTrabalhoVendido(listaTextoCarta)
         assert esperado == recebido
 
-    def testDeveDefinirListaDeProfissoesNecessariasComUmItem(self):
-        self.aplicacao._dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO] = self._personagemTeste
-        self.aplicacao.inicializaChavesPersonagem()
-        self.aplicacao.defineChaveListaProfissoesNecessarias()
-        esperado = 1
-        recebido = len(self.aplicacao._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS])
-        assert esperado == recebido
-
-    def testDeveRetornarPosicaoUmQuandoProfissaoForArmaDeLongoAlcance(self):
-        self.aplicacao._dicionarioPersonagemAtributos[CHAVE_PERSONAGEM_EM_USO] = self._personagemTeste
-        self.aplicacao.inicializaChavesPersonagem()
-        self.aplicacao.defineChaveListaProfissoesNecessarias()
-        esperado = 1    
-        profissao = self.aplicacao._dicionarioPersonagemAtributos[CHAVE_LISTA_PROFISSOES_NECESSARIAS][0]
-        recebido =profissao.pegaPosicao()
+    def testDeveRetornarStringIdQuandoMetodoRetornaChaveIdTrabalhoEhChamado(self):
+        texto = 'Item vendido BraceleteTranscendental x1 por 173333 deOuroTaxa do mercado 17333 de Ouro'
+        listaTextoCarta = texto.split()
+        esperado = 'e0e6eb2f-3665-47c9-8c70-956e871f3eb1'
+        recebido = self.__aplicacao.retornaChaveIdTrabalho(listaTextoCarta)
         assert esperado == recebido

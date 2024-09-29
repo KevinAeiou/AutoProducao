@@ -327,7 +327,7 @@ class Aplicacao:
                 if valor.isdigit():
                     print(f'quantidadeProduto:{valor}')
                     return int(valor)
-        return 0
+        return 1
 
     def retornaConteudoCorrespondencia(self):
         textoCarta = self._imagem.retornaTextoCorrespondenciaReconhecido()
@@ -335,7 +335,7 @@ class Aplicacao:
             trabalhoFoiVendido = texto1PertenceTexto2('Item vendido', textoCarta)
             if trabalhoFoiVendido:
                 print(f'Produto vendido')
-                listaTextoCarta = ' '.join(textoCarta.split())
+                listaTextoCarta = textoCarta.split()
                 chaveIdTrabalho = self.retornaChaveIdTrabalho(listaTextoCarta)
                 trabalhoVendido = TrabalhoVendido(str(uuid.uuid4()), listaTextoCarta, str(datetime.date.today()), self.__personagemEmUso.pegaId(), self.retornaQuantidadeTrabalhoVendido(listaTextoCarta), chaveIdTrabalho, self.retornaValorTrabalhoVendido(listaTextoCarta))
                 if self.__vendaDaoSqlite.insereVenda(trabalhoVendido):
@@ -348,6 +348,7 @@ class Aplicacao:
         return None
 
     def retornaChaveIdTrabalho(self, listaTextoCarta):
+        listaTextoCarta = ' '.join(listaTextoCarta)
         for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
             if texto1PertenceTexto2(trabalho.pegaNome(), listaTextoCarta):
                 return trabalho.pegaId()
@@ -362,7 +363,7 @@ class Aplicacao:
                     print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
                     return
                 print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
-        print(f'Trabalho ({venda.pegaNomeProduto()}) não encontrado no estoque.')
+        print(f'Trabalho ({venda.pegaNome()}) não encontrado no estoque.')
 
     def recuperaCorrespondencia(self, ):
         while self._imagem.existeCorrespondencia():
@@ -814,17 +815,130 @@ class Aplicacao:
             self._unicaConexao = False
         return False
 
+    def retornaListaTrabalhosRarosVendidosOrdenada(self, listaTrabalhosRarosVendidos):
+        print(f'Definindo lista trabalhos raros vendidos ordenada...')
+        listaTrabalhosRarosVendidosOrdenada = []
+        for trabalhosRarosVendidos in listaTrabalhosRarosVendidos:
+            if tamanhoIgualZero(listaTrabalhosRarosVendidosOrdenada):
+                listaTrabalhosRarosVendidosOrdenada.append(trabalhosRarosVendidos)
+                continue
+            for trabalhoRaroVendidoOrdenado in listaTrabalhosRarosVendidosOrdenada:
+                if textoEhIgual(trabalhoRaroVendidoOrdenado.pegaNome(), trabalhosRarosVendidos.pegaNome()):
+                    trabalhoRaroVendidoOrdenado.setQuantidade(trabalhoRaroVendidoOrdenado.pegaQuantidade() + 1)
+                    break
+            else:
+                listaTrabalhosRarosVendidosOrdenada.append(trabalhosRarosVendidos)
+        listaTrabalhosRarosVendidosOrdenada = sorted(listaTrabalhosRarosVendidosOrdenada, key=lambda trabalho: (trabalho.pegaQuantidade(), trabalho.pegaNivel(), trabalho.pegaNome()), reverse = True)
+        for trabalhoRaroVendido in listaTrabalhosRarosVendidosOrdenada:
+            print(trabalhoRaroVendido)
+        return listaTrabalhosRarosVendidosOrdenada
+
+    # def verificaTrabalhoRaroNecessario(self, verificacoes, dicionarioProdutoRaroVendido):
+    #     print(f' Verificando quantidade de ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) no estoque...')
+    #     quantidadeTrabalhoRaroNoEstoque = retornaQuantidadeTrabalhoNoEstoque(dicionarioProdutoRaroVendido)
+    #     quantidadeTrabalhoRaroNecessario = CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE - quantidadeTrabalhoRaroNoEstoque
+    #     if quantidadeTrabalhoRaroNecessario > 0:
+    #         print(f' Quantidade de ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) no estoque é ({quantidadeTrabalhoRaroNoEstoque}).')
+    #         print(f' Verificando se ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) já está sendo produzido...')
+    #         quantidadeTrabalhoRaroProduzirOuProduzindo = retornaQuantidadeTrabalhoListaProduzirProduzindo(dicionarioProdutoRaroVendido[CHAVE_NOME])
+    #         quantidadeTrabalhoRaroNecessario = quantidadeTrabalhoRaroNecessario - quantidadeTrabalhoRaroProduzirOuProduzindo
+    #         if quantidadeTrabalhoRaroNecessario > 0:
+    #             print(f' Existem {quantidadeTrabalhoRaroProduzirOuProduzindo} unidades de ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) na lista para produzir/produzindo.')
+                
+    #             print(f' Atributos do trabalho raro mais vendido:')
+    #             for atributo in dicionarioProdutoRaroVendido:
+    #                 print(f' {atributo} - {dicionarioProdutoRaroVendido[atributo]}.')
+                
+    #             if CHAVE_TRABALHO_NECESSARIO in dicionarioProdutoRaroVendido:
+    #                 listaTrabalhosMelhoradosNecessarios = dicionarioProdutoRaroVendido[CHAVE_TRABALHO_NECESSARIO].split(',')
+    #                 if not tamanhoIgualZero(listaTrabalhosMelhoradosNecessarios):
+    #                     print(f' Lista de trabalhos MELHORADOS necessários: ({listaTrabalhosMelhoradosNecessarios}).')
+    #                     if len(listaTrabalhosMelhoradosNecessarios) == 1:
+    #                         dicionarioProfissao = retornaDicionarioProfissaoTrabalho(dicionarioProdutoRaroVendido)
+    #                         if not tamanhoIgualZero(dicionarioProfissao):
+    #                             _, _, xpMaximo = retornaNivelXpMinimoMaximo(dicionarioProfissao)
+    #                             licencaProducaoIdeal = CHAVE_LICENCA_PRINCIPIANTE
+    #                             if xpMaximo >= 830000:
+    #                                 licencaProducaoIdeal = CHAVE_LICENCA_INICIANTE
+    #                             nomeTrabalhoMelhoradoNecessario = listaTrabalhosMelhoradosNecessarios[0]
+    #                             dicionarioTrabalhoBuscado = {
+    #                                 CHAVE_NOME:nomeTrabalhoMelhoradoNecessario,
+    #                                 CHAVE_RARIDADE:CHAVE_RARIDADE_MELHORADO}
+    #                             print(f' Verificando quantidade de ({nomeTrabalhoMelhoradoNecessario}) no estoque...')
+    #                             quantidadeTrabalhoMelhoradoNecessarioNoEstoque = retornaQuantidadeTrabalhoNoEstoque(dicionarioTrabalhoBuscado)
+    #                             print(f' Quantidade de ({nomeTrabalhoMelhoradoNecessario}) no estoque é ({quantidadeTrabalhoMelhoradoNecessarioNoEstoque}).')
+    #                             if quantidadeTrabalhoMelhoradoNecessarioNoEstoque >= quantidadeTrabalhoRaroNecessario:
+    #                                 if quantidadeTrabalhoMelhoradoNecessarioNoEstoque > 0:
+    #                                     print(f' Adicionando ({quantidadeTrabalhoRaroNecessario}) unidades de ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) a lista para produzir/produzindo...')
+    #                                     dicionarioProdutoRaroVendido[LC.CHAVE_RECORRENCIA] = False
+    #                                     dicionarioProdutoRaroVendido[CHAVE_LICENCA] = licencaProducaoIdeal
+    #                                     dicionarioProdutoRaroVendido[CHAVE_ESTADO] = CODIGO_PARA_PRODUZIR
+    #                                     for x in range(quantidadeTrabalhoRaroNecessario):
+    #                                         dicionarioProdutoRaroVendido = adicionaTrabalhoDesejo(dicionarioPersonagemAtributos, dicionarioProdutoRaroVendido)
+    #                                         dicionarioPersonagemAtributos[CHAVE_LISTA_DESEJO].append(dicionarioProdutoRaroVendido)
+                                        
+    #                             elif quantidadeTrabalhoMelhoradoNecessarioNoEstoque < quantidadeTrabalhoRaroNecessario and quantidadeTrabalhoMelhoradoNecessarioNoEstoque >= 0:
+    #                                 print(f' Adicionando ({quantidadeTrabalhoMelhoradoNecessarioNoEstoque}) unidades de ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) a lista para produzir/produzindo...')
+    #                                 dicionarioProdutoRaroVendido[LC.CHAVE_RECORRENCIA] = False
+    #                                 dicionarioProdutoRaroVendido[CHAVE_LICENCA] = licencaProducaoIdeal
+    #                                 dicionarioProdutoRaroVendido[CHAVE_ESTADO] = CODIGO_PARA_PRODUZIR
+    #                                 for x in range(quantidadeTrabalhoMelhoradoNecessarioNoEstoque):
+    #                                     dicionarioProdutoRaroVendido = adicionaTrabalhoDesejo(dicionarioPersonagemAtributos, dicionarioProdutoRaroVendido)
+    #                                     dicionarioPersonagemAtributos[CHAVE_LISTA_DESEJO].append(dicionarioProdutoRaroVendido)
+                                    
+    #                                 quantidadeTrabalhoMelhoradoNecessarioFaltante = quantidadeTrabalhoRaroNecessario - quantidadeTrabalhoMelhoradoNecessarioNoEstoque
+    #                                 quantidadeTrabalhoMelhoradoNecessarioNaListaProduzirProduzindo = retornaQuantidadeTrabalhoListaProduzirProduzindo(nomeTrabalhoMelhoradoNecessario)
+    #                                 quantidadeTrabalhoMelhoradoNecessarioFaltante = quantidadeTrabalhoMelhoradoNecessarioFaltante - quantidadeTrabalhoMelhoradoNecessarioNaListaProduzirProduzindo
+    #                                 print(f' Verificando se ({nomeTrabalhoMelhoradoNecessario}) já está sendo produzido...')
+    #                                 print(f' Existem ({quantidadeTrabalhoMelhoradoNecessarioNaListaProduzirProduzindo}) unidades de ({nomeTrabalhoMelhoradoNecessario}) na lista para produzir/produzindo.')
+    #                                 if quantidadeTrabalhoMelhoradoNecessarioFaltante <= 0:
+    #                                     print(f' Passando para o próximo trabalho...')
+                                        
+    #                                 else:
+    #                                     verificacoes += 1
+    #                                     verificaTrabalhoMelhoradoNecessario(licencaProducaoIdeal, nomeTrabalhoMelhoradoNecessario, quantidadeTrabalhoMelhoradoNecessarioFaltante)
+    #                     elif len(listaTrabalhosMelhoradosNecessarios) == 2:
+    #                         print(f' Falta desenvolver...')
+    #                         print(f' Passando para o próximo trabalho...')
+                            
+    #                 else:
+    #                     print(f' Lista de trabalhos raros necessários do trabalho ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) está vazia.')
+    #                     print(f' Passando para o próximo trabalho...')
+                        
+    #             else:
+    #                 print(f' Trabalho ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) não possui CHAVE_TRABALHO_NECESSARIO.')
+    #                 print(f' Passando para o próximo trabalho...')
+                    
+    #         else:
+    #             print(f' Existem ({quantidadeTrabalhoRaroProduzirOuProduzindo}) unidades de ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) sendo produzidos!')
+    #             print(f' Passando para o próximo trabalho...')
+                       
+    #     else:
+    #         print(f' Existem ({quantidadeTrabalhoRaroNoEstoque}) unidades do produto mais vendido ({dicionarioProdutoRaroVendido[CHAVE_NOME]}) no estoque.')
+    #         print(f' Passando para o próximo trabalho...')
+    #     return verificacoes
+
+    def produzProdutoMaisVendido(self, listaTrabalhosRarosVendidos):
+        listaTrabalhosRarosVendidosOrdenada = self.retornaListaTrabalhosRarosVendidosOrdenada(listaTrabalhosRarosVendidos)
+        verificacoes = 0
+        for trabalhoRaroVendido in listaTrabalhosRarosVendidosOrdenada:
+            print(f'{verificacoes + 1} verificações.')
+            if verificacoes >= 4:
+                break
+            # verificacoes = self.verificaTrabalhoRaroNecessario(verificacoes, trabalhoRaroVendido)
+        print(f'Fim do processo de verificação de produto mais vendido...')
+
     def retornaListaTrabalhosRarosVendidos(self):
         print(f'Definindo lista produtos raros vendidos...')
         listaTrabalhosRarosVendidos = []
         for trabalhoVendido in self.__vendaDaoSqlite.pegaVendas():
             for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
-                condicoes = (
+                raridadeEhRaroIdPersonagemEhPersonagemEmUsoTrabalhoNaoEhProducaoDeRecursos = (
                     textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_RARO)
-                    and texto1PertenceTexto2(trabalho.pegaNome(), trabalhoVendido.pegaNomeProduto())
+                    and texto1PertenceTexto2(trabalho.pegaNome(), trabalhoVendido.pegaNome())
                     and textoEhIgual(trabalhoVendido.pegaNomePersonagem(), self.__personagemEmUso.pegaId())
                     and not trabalhoEhProducaoRecursos(trabalho))
-                if condicoes:
+                if raridadeEhRaroIdPersonagemEhPersonagemEmUsoTrabalhoNaoEhProducaoDeRecursos:
                     print(trabalhoVendido)
                     listaTrabalhosRarosVendidos.append(trabalhoVendido)
                     break
@@ -833,11 +947,10 @@ class Aplicacao:
 
     def verificaProdutosRarosMaisVendidos(self):
         listaTrabalhosRarosVendidos = self.retornaListaTrabalhosRarosVendidos()
-        if not tamanhoIgualZero(listaTrabalhosRarosVendidos):
-            # produzProdutoMaisVendido(listaDicionariosProdutosRarosVendidos)
-            pass
-        else:
+        if tamanhoIgualZero(listaTrabalhosRarosVendidos):
             print(f'Lista de trabalhos raros vendidos está vazia!')
+            return
+        self.produzProdutoMaisVendido(listaTrabalhosRarosVendidos)
 
     def defineChaveListaProfissoesNecessarias(self):
         print(f'Verificando profissões necessárias...')
@@ -1886,11 +1999,29 @@ class Aplicacao:
                     print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
                 input(f'Clique para continuar...')
 
+    def mostraVendas(self):
+        while True:
+            limpaTela()
+            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
+            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            for personagem in personagens:
+                print(personagem)
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            while True:
+                limpaTela()
+                personagem = personagens[int(opcaoPersonagem) - 1]
+                self.__vendaDaoSqlite = VendaDaoSqlite(personagem)
+                vendas = self.__vendaDaoSqlite.pegaVendas()
+                print(f'{('NOME').ljust(112)} | {('DATA').ljust(10)} | {('ID TRABALHO').ljust(36)} | {('VALOR').ljust(5)} | QUANT')
+                for trabalhoVendido in vendas:
+                    print(trabalhoVendido)
+                opcaoTrabalhoVendido = input(f'Opção trabalho vendido: ')
+                if int(opcaoTrabalhoVendido) == 0:
+                    break
+
     def teste(self):
-        if self.__personagemDaoSqlite.insereColunaAutoProducaoTabelaPesonagem():
-            print(f'Coluna autoProducao adicionada com sucesso!')
-        else:
-            print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
         while True:
             limpaTela()
             print(f'MENU')
@@ -1901,6 +2032,7 @@ class Aplicacao:
             print(f'5 - Remove trabalho')
             print(f'6 - Modifica trabalho produção')
             print(f'7 - Remove trabalho produção')
+            print(f'8 - Mostra vendas')
             print(f'0 - Sair')
             try:
                 opcaoMenu = input(f'Opção escolhida: ')
@@ -1927,10 +2059,13 @@ class Aplicacao:
                 if int(opcaoMenu) == 7:
                     self.removeTrabalhoProducao()
                     continue
+                if int(opcaoMenu) == 8:
+                    self.mostraVendas()
+                    continue
             except Exception as erro:
                 print(f'Erro: {erro}')
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().preparaPersonagem()
+    Aplicacao().teste()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))

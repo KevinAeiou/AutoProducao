@@ -23,6 +23,7 @@ class VendaDaoSqlite:
             cursor.execute(sql, self.__personagem.pegaId())
             for linha in cursor.fetchall():
                 vendas.append(TrabalhoVendido(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6]))
+            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.pegaData(), trabalhoVendido.pegaNome()))
         except Exception as e:
             self.__erro = str(e)
         return vendas

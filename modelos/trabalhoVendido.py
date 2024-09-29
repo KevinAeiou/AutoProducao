@@ -11,7 +11,7 @@ class TrabalhoVendido:
     def pegaId(self):
         return self.id
     
-    def pegaNomeProduto(self):
+    def pegaNome(self):
         return self.nomeProduto
     
     def pegaDataVenda(self):
@@ -33,4 +33,4 @@ class TrabalhoVendido:
         self.id = id
 
     def __str__(self) -> str:
-        return f'{(self.nomeProduto).ljust(20)} | {str(self.valorProduto).ljust(6)} | {self.quantidadeProduto}'
+        return f'{(self.nomeProduto).ljust(112)} | {(self.dataVenda).ljust(10)} | {(self.trabalhoId).ljust(36)} | {str(self.valorProduto).ljust(5)} | {self.quantidadeProduto}'
