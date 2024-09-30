@@ -5,6 +5,7 @@ from imagem import ManipulaImagem
 from time import sleep
 import datetime
 import uuid
+import logging
 
 from modelos.trabalhoRecurso import TrabalhoRecurso
 from modelos.trabalho import Trabalho
@@ -21,6 +22,7 @@ from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 
 class Aplicacao:
     def __init__(self) -> None:
+        logging.basicConfig(level = logging.INFO, filename = 'aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
         self._imagem = ManipulaImagem()
         self.__listaPersonagemJaVerificado = []
         self.__listaPersonagemAtivo = []
@@ -40,7 +42,7 @@ class Aplicacao:
                     listaDicionarioPersonagemMesmoEmail.append(personagem)
         return listaDicionarioPersonagemMesmoEmail
 
-    def modificaAtributoUso(self):
+    def modificaAtributoUso(self): 
         listaPersonagemMesmoEmail = self.defineListaPersonagemMesmoEmail()
         for personagem in self.__personagemDaoSqlite.pegaPersonagens():
             for personagemMesmoEmail in listaPersonagemMesmoEmail:
@@ -63,26 +65,37 @@ class Aplicacao:
                     print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
 
     def confirmaNomePersonagem(self, personagemReconhecido):
+        '''
+        Esta função é responsável por confirmar se o nome do personagem reconhecido está na lista de personagens ativos atual
+        Argumentos:
+            personagemReconhecido {string} -- Valor reconhecido via processamento de imagem
+        '''
         for personagemAtivo in self.__listaPersonagemAtivo:
             if textoEhIgual(personagemReconhecido, personagemAtivo.pegaNome()):
                 print(f'Personagem {personagemReconhecido} confirmado!')
                 self.__personagemEmUso = personagemAtivo
-                break
-        else:
-            print(f'Personagem {personagemReconhecido} não está ativo!')
+                return
+        print(f'Personagem {personagemReconhecido} não encontrado na lista de personagens ativos atual!')
 
     def definePersonagemEmUso(self):
+        '''
+        Esta função é responsável por atribuir ao atributo __personagemEmUso o objeto da classe Personagem que foi reconhecida 
+        '''
         self.__personagemEmUso = None
         nomePersonagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(0)
         if variavelExiste(nomePersonagemReconhecido):
             self.confirmaNomePersonagem(nomePersonagemReconhecido)
-        elif nomePersonagemReconhecido == 'provisorioatecair':
+            return
+        if nomePersonagemReconhecido == 'provisorioatecair':
             print(f'Nome personagem diferente!')
-        else:
-            print(f'Nome personagem não reconhecido!')
+            return
+        print(f'Nome personagem não reconhecido!')
 
     def defineListaPersonagensAtivos(self):
-        print(f'Definindo lista de personagem ativo.')
+        '''
+        Esta função é responsável por preencher a lista de personagens ativos, recuperando os dados do banco
+        '''
+        print(f'Definindo lista de personagem ativo')
         listaPersonagem = self.__personagemDaoSqlite.pegaPersonagens()
         self.__listaPersonagemAtivo.clear()
         for personagem in listaPersonagem:
@@ -1600,7 +1613,10 @@ class Aplicacao:
             listaDeListaTrabalhos.append(listaTrabalhosProducaoComuns)
         return listaDeListaTrabalhos
 
-    def retiraPersonagemListaAtivo(self):
+    def retiraPersonagemJaVerificadoListaAtivo(self):
+        """
+        Esta função é responsável por redefinir a lista de personagens ativos, verificando a lista de personagens já verificados
+        """        
         self.defineListaPersonagensAtivos()
         novaListaPersonagensAtivos = []
         for personagemAtivo in self.__listaPersonagemAtivo:
@@ -1707,7 +1723,7 @@ class Aplicacao:
 
     def iniciaProcessoBusca(self):
         while True:
-            self.retiraPersonagemListaAtivo()
+            self.retiraPersonagemJaVerificadoListaAtivo()
             listaPersonagensAtivosEstaVazia = tamanhoIgualZero(self.__listaPersonagemAtivo)
             if listaPersonagensAtivosEstaVazia:
                 self.__listaPersonagemJaVerificado.clear()
@@ -1792,36 +1808,48 @@ class Aplicacao:
             print(f'{('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
             for trabalho in trabalhos:
                 print(trabalho)
-            opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')    
-            if opcaoTrabalho.lower() == 'n':
-                break
-            limpaTela()
-            raridades = ['Comum', 'Melhorado', 'Raro', 'Especial']
-            for raridade in raridades:
-                print(f'{raridades.index(raridade) + 1} - {raridade}')
-            opcaoRaridade = input(f'Opção raridade: ')
-            if int(opcaoRaridade) == 0:
-                continue
-            limpaTela()
-            raridade = raridades[int(opcaoRaridade) - 1]
-            profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
-            for profissao in profissoes:
-                print(f'{profissoes.index(profissao) + 1} - {profissao}')
-            opcaoProfissao = input(f'Opção de profissao: ')
-            if int(opcaoProfissao) == 0:
-                continue
-            limpaTela()
-            profissao = profissoes[int(opcaoProfissao) - 1]
-            nome = input(f'Nome: ')
-            nomeProducao = input(f'Nome produção: ')
-            experiencia = input(f'Experiência: ')
-            nivel = input(f'Nível: ')
-            trabalhoNecessario = input(f'Trabalhos necessarios: ')
-            novoTrabalho = Trabalho(str(uuid.uuid4()), nome, nomeProducao, int(experiencia), int(nivel), profissao, raridade, trabalhoNecessario)
-            if self.__trabalhoDaoSqlite.insereTrabalho(novoTrabalho):
-                print(f'{novoTrabalho.pegaNome()} adicionado com sucesso!')
-                continue
-            print(f'Erro: {self.__trabalhoDaoSqlite.pegaErro()}')
+            opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')
+            try:
+                if opcaoTrabalho.lower() == 'n':
+                    break
+                limpaTela()
+                raridades = ['Comum', 'Melhorado', 'Raro', 'Especial']
+                for raridade in raridades:
+                    print(f'{raridades.index(raridade) + 1} - {raridade}')
+                opcaoRaridade = input(f'Opção raridade: ')
+                try:
+                    if int(opcaoRaridade) == 0:
+                        continue
+                    limpaTela()
+                    raridade = raridades[int(opcaoRaridade) - 1]
+                    profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
+                    for profissao in profissoes:
+                        print(f'{profissoes.index(profissao) + 1} - {profissao}')
+                    opcaoProfissao = input(f'Opção de profissao: ')
+                    if int(opcaoProfissao) == 0:
+                        continue
+                    limpaTela()
+                    profissao = profissoes[int(opcaoProfissao) - 1]
+                    nome = input(f'Nome: ')
+                    nomeProducao = input(f'Nome produção: ')
+                    experiencia = input(f'Experiência: ')
+                    nivel = input(f'Nível: ')
+                    trabalhoNecessario = input(f'Trabalhos necessarios: ')
+                    novoTrabalho = Trabalho(str(uuid.uuid4()), nome, nomeProducao, int(experiencia), int(nivel), profissao, raridade, trabalhoNecessario)
+                    if self.__trabalhoDaoSqlite.insereTrabalho(novoTrabalho):
+                        print(f'{novoTrabalho.pegaNome()} adicionado com sucesso!')
+                        continue
+                    print(f'Erro: {self.__trabalhoDaoSqlite.pegaErro()}')
+                except Exception as erro:
+                    logger = logging.getLogger(__name__)
+                    logger.exception(erro)
+                    print(f'Opção inválida!')
+                    input(f'Clique para continuar...')
+            except Exception as erro:
+                logger = logging.getLogger(__name__)
+                logger.exception(erro)
+                print(f'Opção inválida!')
+                input(f'Clique para continuar...')
 
     def insereNovoTrabalhoProducao(self):
         while True:
@@ -2063,7 +2091,9 @@ class Aplicacao:
                     self.mostraVendas()
                     continue
             except Exception as erro:
-                print(f'Erro: {erro}')
+                logger = logging.getLogger(__name__)
+                logger.exception(erro)
+                print(f'Opção inválida!')
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':

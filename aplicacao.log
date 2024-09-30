@@ -1,0 +1,18 @@
+2024-09-29 11:31:22,952 - ERROR - invalid literal for int() with base 10: ''
+Traceback (most recent call last):
+  File "c:\Users\HOZANA SOUZA\.vscode\AutoProducao\main.py", line 2041, in teste
+    if int(opcaoMenu) == 0:
+       ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+09/29/2024 11:53:51 AM - ERROR - invalid literal for int() with base 10: ' '
+Traceback (most recent call last):
+  File "c:\Users\HOZANA SOUZA\.vscode\AutoProducao\main.py", line 2047, in teste
+    if int(opcaoMenu) == 0:
+       ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ' '
+09/29/2024 11:57:07 AM - ERROR - invalid literal for int() with base 10: ''
+Traceback (most recent call last):
+  File "c:\Users\HOZANA SOUZA\.vscode\AutoProducao\main.py", line 1807, in insereNovoTrabalho
+    if int(opcaoRaridade) == 0:
+       ^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
