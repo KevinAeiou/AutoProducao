@@ -113,7 +113,6 @@ class Aplicacao:
         self.__profissaoDaoSqlite = ProfissaoDaoSqlite(self.__personagemEmUso)
         self.__vendaDaoSqlite = VendaDaoSqlite(self.__personagemEmUso)
         self.__estoqueDaoSqlite = EstoqueDaoSqlite(self.__personagemEmUso)
-        self.__trabalhoProducaoDaoSqlite = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
 
     def retornaCodigoErroReconhecido(self):
         textoErroEncontrado = self._imagem.retornaErroReconhecido()
@@ -422,7 +421,7 @@ class Aplicacao:
         listaPossiveisTrabalhos = self.retornaListaPossiveisTrabalhoRecuperado(nomeTrabalhoConcluido)
         if not tamanhoIgualZero(listaPossiveisTrabalhos):
             for possivelTrabalho in listaPossiveisTrabalhos:
-                for trabalhoProduzirProduzindo in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo():
+                for trabalhoProduzirProduzindo in TrabalhoProducaoDaoSqlite(self.__personagemEmUso).pegaTrabalhosProducaoParaProduzirProduzindo():
                     condicoes = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.pegaNome(), possivelTrabalho.pegaNome())
                     if condicoes:
                         trabalhoProduzirProduzindo.setEstado(CODIGO_CONCLUIDO)
@@ -432,10 +431,13 @@ class Aplicacao:
             else:
                 print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].pegaNome()}) não encontrado na lista produzindo...')
                 trabalhoProducaoConcluido = TrabalhoProducao(str(uuid.uuid4()), listaPossiveisTrabalhos[0].pegaId(), listaPossiveisTrabalhos[0].pegaNome(), listaPossiveisTrabalhos[0].pegaNomeProducao(), listaPossiveisTrabalhos[0].pegaExperiencia(), listaPossiveisTrabalhos[0].pegaNivel(), listaPossiveisTrabalhos[0].pegaProfissao(), listaPossiveisTrabalhos[0].pegaRaridade(), listaPossiveisTrabalhos[0].pegaTrabalhoNecessario(), False, CHAVE_LICENCA_NOVATO, CODIGO_CONCLUIDO)
-                if self.__trabalhoProducaoDaoSqlite.insereTrabalhoProducao(trabalhoProducaoConcluido):
+                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoConcluido):
                     print(f'{trabalhoProducaoConcluido.pegaNome()} adicionado com sucesso!')
                     return trabalhoProducaoConcluido
-                print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                logger = logging.getLogger('trabalhoProducaoDao')
+                logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                print(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                 return trabalhoProducaoConcluido
         return None
 
@@ -444,16 +446,22 @@ class Aplicacao:
             trabalhoProducaoConcluido.setRecorrencia(True)
         if trabalhoProducaoConcluido.pegaRecorrencia():
             print(f'Trabalho recorrente.')
-            if self.__trabalhoProducaoDaoSqlite.removeTrabalhoProducao(trabalhoProducaoConcluido):
+            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+            if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoConcluido):
                 print(f'Trabalho ({trabalhoProducaoConcluido.pegaNome()}) removido com sucesso!')
                 return trabalhoProducaoConcluido
-            print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+            logger = logging.getLogger('trabalhoProducaoDao')
+            logger.error(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+            print(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
             return trabalhoProducaoConcluido
         print(f'Trabalho sem recorrencia.')
-        if self.__trabalhoProducaoDaoSqlite.modificaTrabalhoProducao(trabalhoProducaoConcluido):
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+        if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoConcluido):
             print(f'Trabalho ({trabalhoProducaoConcluido.pegaNome()}) modificado para concluído.')
             return trabalhoProducaoConcluido
-        print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+        logger = logging.getLogger('trabalhoProducaoDao')
+        logger.error(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+        print(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
         return trabalhoProducaoConcluido
 
     def modificaExperienciaProfissao(self, trabalhoProducao):
@@ -621,10 +629,13 @@ class Aplicacao:
                             trabalhoProducaoRaro = TrabalhoProducao('', trabalho.pegaTrabalhoId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), experiencia, trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, licencaProducaoIdeal, trabalho.pegaEstado())
                             break
         if variavelExiste(trabalhoProducaoRaro):
-            if self.__trabalhoProducaoDaoSqlite.insereTrabalhoProducao(trabalhoProducaoRaro):
+            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoRaro):
                 print(f'{trabalhoProducaoRaro.pegaNome()} adicionado com sucesso!')
                 return 
-            print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+            logger = logging.getLogger('trabalhoProducaoDao')
+            logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+            print(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado):
         if tamanhoIgualZero(listaPersonagemPresenteRecuperado):
@@ -975,7 +986,7 @@ class Aplicacao:
         print(f'Verificando profissões necessárias...')
         self.__listaProfissoesNecessarias.clear()
         for profissao in self.__profissaoDaoSqlite.pegaProfissoes():
-            for trabalhoProducaoDesejado in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducao():
+            for trabalhoProducaoDesejado in TrabalhoProducaoDaoSqlite(self.__personagemEmUso).pegaTrabalhosProducao():
                 chaveProfissaoEhIgualEEstadoEhParaProduzir = textoEhIgual(profissao.pegaNome(), trabalhoProducaoDesejado.pegaProfissao()) and trabalhoProducaoDesejado.ehParaProduzir()
                 if chaveProfissaoEhIgualEEstadoEhParaProduzir:
                     self.__listaProfissoesNecessarias.append(profissao)
@@ -1027,7 +1038,7 @@ class Aplicacao:
     def retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(self, dicionarioTrabalho, raridade):
         listaTrabalhosProducaoRaridadeEspecifica = []
         print(f'Buscando trabalho {raridade} na lista...')
-        for trabalhoProducao in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo():
+        for trabalhoProducao in TrabalhoProducaoDaoSqlite(self.__personagemEmUso).pegaTrabalhosProducaoParaProduzirProduzindo():
             raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.pegaRaridade(), raridade) and textoEhIgual(trabalhoProducao.pegaProfissao(), dicionarioTrabalho[CHAVE_PROFISSAO]) and trabalhoProducao.ehParaProduzir()
             if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
                 for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
@@ -1154,10 +1165,13 @@ class Aplicacao:
         print(f'Recorrencia está ligada.')
         cloneTrabalhoProducaoEncontrado = self.defineCloneDicionarioTrabalhoDesejado(trabalhoProducaoEncontrado)
         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = cloneTrabalhoProducaoEncontrado
-        if self.__trabalhoProducaoDaoSqlite.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado):
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+        if trabalhoProducaoDao.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado):
             print(f'{trabalhoProducaoEncontrado.pegaNome()} adicionado com sucesso!')
             return
-        print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+        logger = logging.getLogger('trabalhoProducaoDao')
+        logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+        print(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
 
     def retornaChaveTipoRecurso(self, dicionarioRecurso):
         listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(dicionarioRecurso[CHAVE_NIVEL])
@@ -1338,11 +1352,14 @@ class Aplicacao:
                         self.clonaTrabalhoProducaoEncontrado(dicionarioTrabalho, trabalhoProducaoEncontrado)
                         self.verificaNovamente = True
                         break
-                    if self.__trabalhoProducaoDaoSqlite.modificaTrabalhoProducao(trabalhoProducaoEncontrado):
+                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                    if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoEncontrado):
                         estado = 'produzir' if trabalhoProducaoEncontrado.pegaEstado() == 0 else 'produzindo' if trabalhoProducaoEncontrado.pegaEstado() == 1 else 'concluido'
                         print(f'Trabalho ({trabalhoProducaoEncontrado.pegaNome()}) modificado para {estado}.')
                     else:
-                        print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                        logger = logging.getLogger('trabalhoProducaoDao')
+                        logger.error(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                        print(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                     self.removeTrabalhoEstoque(trabalhoProducaoEncontrado)
                     clickContinuo(12,'up')
                     self.verificaNovamente = True
@@ -1442,11 +1459,14 @@ class Aplicacao:
             while erroEncontrado(erro):
                 if ehErroRecursosInsuficiente(erro):
                     self.__confirmacao = False
-                    if self.__trabalhoProducaoDaoSqlite.removeTrabalhoProducao(trabalhoProducaoEncontrado):
+                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                    if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoEncontrado):
                         print(f'Trabalho ({trabalhoProducaoEncontrado.pegaNome()}) removido com sucesso!')
                         erro = self.verificaErro()
                         continue
-                    print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                    logger = logging.getLogger('trabalhoProducaoDao')
+                    logger.error(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                    print(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                     erro = self.verificaErro()
                     continue
                 if ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
@@ -1478,7 +1498,7 @@ class Aplicacao:
         listaPossiveisTrabalhosProducao = self.retornaListaPossiveisTrabalhos(nomeTrabalhoConcluido)
         if not tamanhoIgualZero(listaPossiveisTrabalhosProducao):
             for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
-                for dicionarioTrabalhoProduzirProduzindo in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo():
+                for dicionarioTrabalhoProduzirProduzindo in TrabalhoProducaoDaoSqlite(self.__personagemEmUso).pegaTrabalhosProducaoParaProduzirProduzindo():
                     condicoes = dicionarioTrabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(dicionarioTrabalhoProduzirProduzindo.pegaNome(), possivelTrabalhoProducao.pegaNome())
                     if condicoes:
                         return dicionarioTrabalhoProduzirProduzindo
@@ -1490,7 +1510,7 @@ class Aplicacao:
     
     def existeEspacoProducao(self):
         espacoProducao = self.__personagemEmUso.pegaEspacoProducao()
-        for trabalhoProducao in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducao():
+        for trabalhoProducao in TrabalhoProducaoDaoSqlite(self.__personagemEmUso).pegaTrabalhosProducao():
             if trabalhoProducao.ehProduzindo():
                 espacoProducao -= 1
                 if espacoProducao <= 0:
@@ -1752,7 +1772,7 @@ class Aplicacao:
                 if self.vaiParaMenuProduzir():
                     # while defineTrabalhoComumProfissaoPriorizada():
                     #     continue
-                    if tamanhoIgualZero(self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo()):
+                    if tamanhoIgualZero(TrabalhoProducaoDaoSqlite(self.__personagemEmUso).pegaTrabalhosProducaoParaProduzirProduzindo()):
                         print(f'Lista de trabalhos desejados vazia.')
                         self.__personagemEmUso.alternaEstado()
                         personagemDao = PersonagemDaoSqlite()
@@ -1931,9 +1951,8 @@ class Aplicacao:
             while True:
                 limpaTela()
                 personagem = personagens[int(opcaoPersonagem) - 1]
-                self.__trabalhoProducaoDaoSqlite = TrabalhoProducaoDaoSqlite(personagem)
-                print(f'{('NOME').ljust(40)} | {('PROFISSÃO').ljust(21)} | {('NÍVEL').ljust(5)} | ESTADO')
-                for trabalhoProducao in self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo():
+                print(f'{('NOME').ljust(40)} | {('PROFISSÃO').ljust(22)} | {('NÍVEL').ljust(5)} | {('ESTADO').ljust(10)} | {('LICENÇA').ljust(31)} | RECORRÊNCIA')
+                for trabalhoProducao in TrabalhoProducaoDaoSqlite(personagem).pegaTrabalhosProducaoParaProduzirProduzindo():
                     print(trabalhoProducao)
                 opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')    
                 if (opcaoTrabalho).lower() == 'n':
@@ -1968,10 +1987,13 @@ class Aplicacao:
                 opcaoRecorrencia = input(f'Trabalho recorrente? (S/N)')
                 recorrencia = True if (opcaoRecorrencia).lower() == 's' else False
                 novoTrabalhoProducao = TrabalhoProducao(str(uuid.uuid4()), trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), recorrencia, licenca, 0)
-                if self.__trabalhoProducaoDaoSqlite.insereTrabalhoProducao(novoTrabalhoProducao):
+                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                if trabalhoProducaoDao.insereTrabalhoProducao(novoTrabalhoProducao):
                     print(f'{novoTrabalhoProducao.pegaNome()} adicionado com sucesso!')
                     continue
-                print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                logger = logging.getLogger('trabalhoProducaoDao')
+                logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                print(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
 
     def modificaPersonagem(self):
         while True:
@@ -2040,10 +2062,9 @@ class Aplicacao:
             if int(opcaoPersonagem) == 0:
                 break
             personagem = personagens[int(opcaoPersonagem) - 1]
-            self.__trabalhoProducaoDaoSqlite = TrabalhoProducaoDaoSqlite(personagem)
             while True:
                 limpaTela()
-                trabalhosProducao = self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducao()
+                trabalhosProducao = TrabalhoProducaoDaoSqlite(personagem).pegaTrabalhosProducao()
                 for trabalhoProducao in trabalhosProducao:
                     print(f'{str(trabalhosProducao.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao}')
                 opcaoTrabalho = input(f'Opção trabalho: ')
@@ -2069,10 +2090,13 @@ class Aplicacao:
                     novoEstado = trabalhoEscolhido.pegaEstado()
                 else:
                     trabalhoEscolhido.setEstado(int(novoEstado))
-                if self.__trabalhoProducaoDaoSqlite.modificaTrabalhoProducao(trabalhoEscolhido):
+                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoEscolhido):
                     print(f'{trabalhoEscolhido.pegaNome()} modificado com sucesso!')
                     continue
-                print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                logger = logging.getLogger('trabalhoProducaoDao')
+                logger.error(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                print(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
 
     def removeTrabalhoProducao(self):
         while True:
@@ -2085,20 +2109,23 @@ class Aplicacao:
             if int(opcaoPersonagem) == 0:
                 break
             personagem = personagens[int(opcaoPersonagem) - 1]
-            self.__trabalhoProducaoDaoSqlite = TrabalhoProducaoDaoSqlite(personagem)
             while True: 
                 limpaTela()
                 print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(40)} | {('PROFISSÃO').ljust(21)} | {('NÍVEL').ljust(5)} | {('ESTADO').ljust(10)} | LICENÇA')
-                trabalhosProducao = self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducao()
+                trabalhosProducao = TrabalhoProducaoDaoSqlite(personagem).pegaTrabalhosProducao()
                 for trabalhoProducao in trabalhosProducao:
                     print(f'{str(trabalhosProducao.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao}')
                 opcaoTrabalho = input(f'Opcção trabalho: ')
                 if int(opcaoTrabalho) == 0:
                     break
-                if self.__trabalhoProducaoDaoSqlite.removeTrabalhoProducao(trabalhosProducao[int(opcaoTrabalho) - 1]):
-                    print(f'Removido com sucesso!')
+                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                trabalhoRemovido = trabalhosProducao[int(opcaoTrabalho) - 1]
+                if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoRemovido):
+                    print(f'{trabalhoRemovido.pegaNome()} removido com sucesso!')
                 else:
-                    print(f'Erro: {self.__trabalhoProducaoDaoSqlite.pegaErro()}')
+                    logger = logging.getLogger('trabalhoProducaoDao')
+                    logger.error(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                    print(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                 input(f'Clique para continuar...')
 
     def mostraVendas(self):

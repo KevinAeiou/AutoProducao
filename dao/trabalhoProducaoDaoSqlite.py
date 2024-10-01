@@ -9,9 +9,9 @@ class TrabalhoProducaoDaoSqlite:
         self.__erro = None
         self.__personagem = personagem
         try:
-            meuBanco = MeuBanco()
-            self.__conexao = meuBanco.pegaConexao(1)
-            meuBanco.criaTabelas()
+            self.__meuBanco = MeuBanco()
+            self.__conexao = self.__meuBanco.pegaConexao(1)
+            self.__meuBanco.criaTabelas()
         except Exception as e:
             self.__erro = str(e)
     
@@ -26,6 +26,7 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
         except Exception as e:
             self.__erro = str(e)
+        self.__meuBanco.desconecta()
         return trabalhosProducao
     
     def pegaTrabalhosProducaoParaProduzirProduzindo(self):
@@ -39,6 +40,7 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
         except Exception as e:
             self.__erro = str(e)
+        self.__meuBanco.desconecta()
         return trabalhosProducao
     
     def insereTrabalhoProducao(self, trabalhoProducao):
@@ -48,10 +50,12 @@ class TrabalhoProducaoDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (trabalhoProducao.pegaId(), trabalhoProducao.pegaTrabalhoId(), self.__personagem.pegaId(), trabalhoProducao.pegaNome(), trabalhoProducao.pegaNomeProducao(), trabalhoProducao.pegaExperiencia(), trabalhoProducao.pegaNivel(), trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaRaridade(), trabalhoProducao.pegaTrabalhoNecessario(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado()))
             self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
         
     def removeTrabalhoProducao(self, trabalhoProducao):
         sql = """
@@ -61,10 +65,12 @@ class TrabalhoProducaoDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [trabalhoProducao.pegaId()])
             self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
         
     def modificaTrabalhoProducao(self, trabalhoProducao):
         recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
@@ -76,10 +82,12 @@ class TrabalhoProducaoDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (trabalhoProducao.pegaTrabalhoId(), trabalhoProducao.pegaNome(), trabalhoProducao.pegaNomeProducao(), trabalhoProducao.pegaExperiencia(), trabalhoProducao.pegaNivel(), trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaRaridade(), trabalhoProducao.pegaTrabalhoNecessario(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado(), trabalhoProducao.pegaId()))
             self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
     
     def pegaErro(self):
         return self.__erro
