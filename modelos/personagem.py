@@ -13,7 +13,7 @@ class Personagem:
         estado = 'Verdadeiro' if self.estado else 'Falso'
         uso = 'Verdadeiro' if self.uso else 'Falso'
         autoProducao = 'Verdadeiro' if self.autoProducao else 'Falso'
-        return f'{(self.id).ljust(20)} | {(self.nome).ljust(17)} | {str(self.espacoProducao).ljust(6)} | {(estado).ljust(10)} | {uso.ljust(10)} | {autoProducao}'
+        return f'{(self.id).ljust(36)} | {(self.nome).ljust(17)} | {str(self.espacoProducao).ljust(6)} | {(estado).ljust(10)} | {uso.ljust(10)} | {autoProducao}'
     
     def pegaId(self):
         return self.id
@@ -24,6 +24,9 @@ class Personagem:
     def pegaNome(self):
         return self.nome
     
+    def setNome(self, nome):
+        self.nome = nome
+    
     def pegaEmail(self):
         return self.email
     
@@ -32,6 +35,9 @@ class Personagem:
     
     def pegaEspacoProducao(self):
         return self.espacoProducao
+    
+    def setEspacoProducao(self, espacoProducao):
+        self.espacoProducao = espacoProducao
     
     def pegaEstado(self):
         return self.estado

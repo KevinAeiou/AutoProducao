@@ -12,6 +12,7 @@ from modelos.trabalho import Trabalho
 from modelos.trabalhoVendido import TrabalhoVendido
 from modelos.trabalhoProducao import TrabalhoProducao
 from modelos.trabalhoEstoque import TrabalhoEstoque
+from modelos.personagem import Personagem
 
 from dao.personagemDaoSqlite import PersonagemDaoSqlite
 from dao.trabalhoDaoSqlite import TrabalhoDaoSqlite
@@ -22,7 +23,7 @@ from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 
 class Aplicacao:
     def __init__(self) -> None:
-        logging.basicConfig(level = logging.INFO, filename = 'aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
+        logging.basicConfig(level = logging.INFO, filename = 'aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
         self._imagem = ManipulaImagem()
         self.__listaPersonagemJaVerificado = []
         self.__listaPersonagemAtivo = []
@@ -32,32 +33,38 @@ class Aplicacao:
     def defineListaPersonagemMesmoEmail(self):
         listaDicionarioPersonagemMesmoEmail = []
         if variavelExiste(self.__personagemEmUso):
-            for personagem in self.__personagemDaoSqlite.pegaPersonagens():
+            for personagem in PersonagemDaoSqlite().pegaPersonagens():
                 if textoEhIgual(personagem.pegaEmail(), self.__personagemEmUso.pegaEmail()):
                     listaDicionarioPersonagemMesmoEmail.append(personagem)
         return listaDicionarioPersonagemMesmoEmail
 
     def modificaAtributoUso(self): 
         listaPersonagemMesmoEmail = self.defineListaPersonagemMesmoEmail()
-        for personagem in self.__personagemDaoSqlite.pegaPersonagens():
+        for personagem in PersonagemDaoSqlite().pegaPersonagens():
             for personagemMesmoEmail in listaPersonagemMesmoEmail:
                 if textoEhIgual(personagem.pegaId(), personagemMesmoEmail.pegaId()):
                     if not personagem.pegaUso():
                         personagem.alternaUso()
-                        if self.__personagemDaoSqlite.modificaPersonagem(personagem):
+                        personagemDao = PersonagemDaoSqlite()
+                        if personagemDao.modificaPersonagem(personagem):
                             uso = 'verdadeiro' if personagem.pegaUso() else 'falso'
                             print(f'{personagem.pegaNome()}: Uso modificado para {uso} com sucesso!')
                             break
-                        print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+                        logger = logging.getLogger('personagemDao')
+                        logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+                        print(f'Erro: {personagemDao.pegaErro()}')
                     break
             else:
                 if personagem.pegaUso():
                     personagem.alternaUso()
-                    if self.__personagemDaoSqlite.modificaPersonagem(personagem):
+                    personagemDao = PersonagemDaoSqlite()
+                    if personagemDao.modificaPersonagem(personagem):
                         uso = personagem.pegaUso()
                         print(f'{personagem.pegaNome()}: Uso modificado para {uso} com sucesso!')
                         continue
-                    print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+                    logger = logging.getLogger('personagemDao')
+                    logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+                    print(f'Erro: {personagemDao.pegaErro()}')
 
     def confirmaNomePersonagem(self, personagemReconhecido):
         '''
@@ -91,7 +98,7 @@ class Aplicacao:
         Esta função é responsável por preencher a lista de personagens ativos, recuperando os dados do banco
         '''
         print(f'Definindo lista de personagem ativo')
-        listaPersonagem = self.__personagemDaoSqlite.pegaPersonagens()
+        listaPersonagem = PersonagemDaoSqlite().pegaPersonagens()
         self.__listaPersonagemAtivo.clear()
         for personagem in listaPersonagem:
             if personagem.ehAtivo():
@@ -772,14 +779,17 @@ class Aplicacao:
                 clickEspecifico(1,'left')
         elif menu == MENU_RECOMPENSAS_DIARIAS or menu == MENU_LOJA_MILAGROSA:
             self.recebeTodasRecompensas(menu)
-            for personagem in self.__personagemDaoSqlite.pegaPersonagens():
+            for personagem in PersonagemDaoSqlite().pegaPersonagens():
                 if not personagem.pegaEstado():
                     personagem.alternaEstado()
-                    if self.__personagemDaoSqlite.modificaPersonagem(personagem):
+                    personagemDao = PersonagemDaoSqlite()
+                    if personagemDao.modificaPersonagem(personagem):
                         estado = 'verdadeiro' if personagem.pegaEstado() else 'falso'
                         print(f'{personagem.pegaNome()}: Estado modificado para {estado} com sucesso!')
                     else:
-                        print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+                        logger = logging.getLogger('personagemDao')
+                        logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+                        print(f'Erro: {personagemDao.pegaErro()}')
             self.__confirmacao = False
         elif menu == MENU_PRINCIPAL:
             clickEspecifico(1,'num1')
@@ -1006,10 +1016,13 @@ class Aplicacao:
         quantidadeEspacoProducao = self.retornaQuantidadeEspacosDeProducao()
         if self.__personagemEmUso.pegaEspacoProducao() != quantidadeEspacoProducao:
             self.__personagemEmUso.setEspacoProducao(quantidadeEspacoProducao)
-            if self.__personagemDaoSqlite.modificaPersonagem(self.__personagemEmUso):
+            personagemDao = PersonagemDaoSqlite()
+            if personagemDao.modificaPersonagem(self.__personagemEmUso):
                 print(f'{self.__personagemEmUso.pegaNome()}: Espaço de produção modificado para {self.__personagemEmUso.pegaEspacoProducao()} com sucesso!')
                 return
-            print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+            logger = logging.getLogger('personagemDao')
+            logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+            print(f'Erro: {personagemDao.pegaErro()}')
 
     def retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(self, dicionarioTrabalho, raridade):
         listaTrabalhosProducaoRaridadeEspecifica = []
@@ -1364,11 +1377,14 @@ class Aplicacao:
                                         if not textoEhIgual(listaCiclo[-1], 'nenhumitem'):
                                             print(f'Sem licenças de produção...')
                                             self.__personagemEmUso.alternaEstado()
-                                            if self.__personagemDaoSqlite.modificaPersonagem(self.__personagemEmUso):
+                                            personagemDao = PersonagemDaoSqlite()
+                                            if personagemDao.modificaPersonagem(self.__personagemEmUso):
                                                 estado = 'verdadeiro' if self.__personagemEmUso.pegaEstado() else 'falso'
                                                 print(f'{self.__personagemEmUso.pegaNome()}: Estado modificado para {estado} com sucesso!')
                                             else:
-                                                print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+                                                logger = logging.getLogger('personagemDao')
+                                                logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+                                                print(f'Erro: {personagemDao.pegaErro()}')
                                             clickEspecifico(3, 'f1')
                                             clickContinuo(10, 'up')
                                             clickEspecifico(1, 'left')
@@ -1400,11 +1416,14 @@ class Aplicacao:
                     else:
                         print(f'Sem licenças de produção...')
                         self.__personagemEmUso.alternaEstado()
-                        if self.__personagemDaoSqlite.modificaPersonagem(self.__personagemEmUso):
+                        personagemDao = PersonagemDaoSqlite()
+                        if personagemDao.modificaPersonagem(self.__personagemEmUso):
                             estado = 'verdadeiro' if self.__personagemEmUso.pegaEstado() else 'falso'
                             print(f'{self.__personagemEmUso.pegaNome()}: Estado modificado para {estado} com sucesso!')
                         else:
-                            print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+                            logger = logging.getLogger('personagemDao')
+                            logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')   
+                            print(f'Erro: {personagemDao.pegaErro()}')
                         clickEspecifico(3, 'f1')
                         clickContinuo(10, 'up')
                         clickEspecifico(1, 'left')
@@ -1736,11 +1755,14 @@ class Aplicacao:
                     if tamanhoIgualZero(self.__trabalhoProducaoDaoSqlite.pegaTrabalhosProducaoParaProduzirProduzindo()):
                         print(f'Lista de trabalhos desejados vazia.')
                         self.__personagemEmUso.alternaEstado()
-                        if self.__personagemDaoSqlite.modificaPersonagem(self.__personagemEmUso):
+                        personagemDao = PersonagemDaoSqlite()
+                        if personagemDao.modificaPersonagem(self.__personagemEmUso):
                             estado = 'verdadeiro' if self.__personagemEmUso.pegaEstado() else 'falso'
                             print(f'{self.__personagemEmUso.pegaNome()}: Estado modificado para {estado} com sucesso!')
                             continue
-                        print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+                        logger = logging.getLogger('personagemDao')
+                        logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+                        print(f'Erro: {personagemDao.pegaErro()}')
                         continue
                     if self._autoProducaoTrabalho:
                         self.verificaProdutosRarosMaisVendidos()
@@ -1767,8 +1789,8 @@ class Aplicacao:
 
     def modificaProfissao(self):
         while True:
-            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
-            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
                 print(personagem)
             opcaoPersonagem = input(f'Opção:')
@@ -1899,8 +1921,8 @@ class Aplicacao:
     def insereNovoTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
-            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
                 print(personagem)
             opcaoPersonagem = input(f'Opção:')
@@ -1954,8 +1976,8 @@ class Aplicacao:
     def modificaPersonagem(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
-            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
                 print(personagem)
             opcaoPersonagem = input(f'Opção:')
@@ -1966,9 +1988,11 @@ class Aplicacao:
             novoNome = input(f'Novo nome: ')
             if tamanhoIgualZero(novoNome):
                 novoNome = personagem.pegaNome()
+            personagem.setNome(novoNome)
             novoEspaco = input(f'Nova quantidade: ')
             if tamanhoIgualZero(novoEspaco):
                 novoEspaco = personagem.pegaEspacoProducao()
+            personagem.setEspacoProducao(novoEspaco)
             novoEstado = input(f'Modificar estado? (S/N) ')
             if novoEstado.lower() == 's':
                 personagem.alternaEstado()
@@ -1978,10 +2002,13 @@ class Aplicacao:
             novoAutoProducao = input(f'Modificar autoProducao? (S/N) ')
             if novoAutoProducao.lower() == 's':
                 personagem.alternaAutoProducao()
-            if self.__personagemDaoSqlite.modificaPersonagem(personagem):
+            personagemDao = PersonagemDaoSqlite()
+            if personagemDao.modificaPersonagem(personagem):
                 print(f'{personagem.pegaNome()}: Modificado com sucesso!')
                 continue
-            print(f'Erro: {self.__personagemDaoSqlite.pegaErro()}')
+            logger = logging.getLogger('personagemDao')
+            logger.error(f'Erro ao modificar persoangem: {personagemDao.pegaErro()}')
+            print(f'Erro: {personagemDao.pegaErro()}')
             
     def removeTrabalho(self):
         while True:
@@ -2005,8 +2032,8 @@ class Aplicacao:
     def modificaTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
-            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
                 print(personagem)
             opcaoPersonagem = input(f'Opção: ')
@@ -2050,8 +2077,8 @@ class Aplicacao:
     def removeTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
-            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
                 print(personagem)
             opcaoPersonagem = input(f'Opção: ')
@@ -2077,8 +2104,8 @@ class Aplicacao:
     def mostraVendas(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(20)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | USO')
-            personagens = self.__personagemDaoSqlite.pegaPersonagens()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
                 print(personagem)
             opcaoPersonagem = input(f'Opção:')
@@ -2096,6 +2123,47 @@ class Aplicacao:
                 if int(opcaoTrabalhoVendido) == 0:
                     break
 
+    def inserePersonagem(self):
+         while True:
+            limpaTela()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
+            for personagem in personagens:
+                print(personagem)
+            opcaoPersonagem = input(f'Inserir novo personagem? (S/N) ')
+            if opcaoPersonagem.lower() == 'n':
+                break
+            nome = input(f'Nome: ')
+            email = input(f'Email: ')
+            senha = input(f'Senha: ')
+            novoPersonagem = Personagem(str(uuid.uuid4()), nome, email, senha, 1, False, False, False)
+            personagemDao = PersonagemDaoSqlite()
+            if personagemDao.inserePersonagem(novoPersonagem):
+                print(f'Novo personagem {novoPersonagem.pegaNome()} inserido com sucesso!')
+                continue
+            logger = logging.getLogger('personagemDao')
+            logger.error(personagemDao.pegaErro())
+            print(f'Erro ao inserir novo personagem: {personagemDao.pegaErro()}')
+
+    def removePersonagem(self):
+        while True:
+            limpaTela()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
+            for personagem in personagens:
+                print(personagem)
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            personagemDao = PersonagemDaoSqlite()
+            if personagemDao.removePersonagem(personagem):
+                print(f'Personagem {personagem.pegaNome()} removido com sucesso!')
+                continue
+            logger = logging.getLogger('personagemDao')
+            logger.error(f'Erro ao remover personagem: {personagemDao.pegaErro()}')
+            print(f'Erro ao remover personagem: {personagemDao.pegaErro()}')
+    
     def teste(self):
         while True:
             limpaTela()
@@ -2109,6 +2177,8 @@ class Aplicacao:
             print(f'7 - Remove trabalho produção')
             print(f'8 - Mostra vendas')
             print(f'9 - Modifica trabalho')
+            print(f'10 - Remove personagem')
+            print(f'11 - Insere personagem')
             print(f'0 - Sair')
             try:
                 opcaoMenu = input(f'Opção escolhida: ')
@@ -2140,6 +2210,12 @@ class Aplicacao:
                     continue
                 if int(opcaoMenu) == 9:
                     self.modificaTrabalho()
+                    continue
+                if int(opcaoMenu) == 10:
+                    self.removePersonagem()
+                    continue
+                if int(opcaoMenu) == 11:
+                    self.inserePersonagem()
                     continue
             except Exception as erro:
                 logger = logging.getLogger(__name__)

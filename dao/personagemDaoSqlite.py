@@ -9,10 +9,10 @@ class PersonagemDaoSqlite():
         self.__erro = None
         self.__fabrica = None
         try:
-            meuBanco = MeuBanco()
-            self.__conexao = meuBanco.pegaConexao(1)
-            self.__fabrica = meuBanco.pegaFabrica()
-            meuBanco.criaTabelas()
+            self.__meuBanco = MeuBanco()
+            self.__conexao = self.__meuBanco.pegaConexao(1)
+            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__meuBanco.criaTabelas()
         except Exception as e:
             self.__erro = str(e)
 
@@ -30,6 +30,7 @@ class PersonagemDaoSqlite():
                     personagens.append(Personagem(linha[0], linha[1], linha[2],linha[3],linha[4],estado,uso,autoProducao))
         except Exception as e:
             self.__erro = str(e)
+        self.__meuBanco.desconecta()
         return personagens
     
     def modificaPersonagem(self, personagem):
@@ -44,10 +45,12 @@ class PersonagemDaoSqlite():
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, (personagem.pegaNome(), personagem.pegaEmail(), personagem.pegaSenha(), personagem.pegaEspacoProducao(), estado, uso, autoProducao, personagem.pegaId()))
                 self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
     
     def inserePersonagem(self, personagem):
         estado = 1 if personagem.pegaEstado() else 0
@@ -56,15 +59,30 @@ class PersonagemDaoSqlite():
         sql = """
             INSERT INTO personagens (id, nome, email, senha, espacoProducao, estado, uso, autoProducao)
             VALUES (?,?,?,?,?,?,?,?)
-            """, (personagem.pegaId(), personagem.pegaNome(), personagem.pegaEmail(), personagem.pegaSenha(), personagem.pegaEspacoProducao(), estado, uso, autoProducao)
+            """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql)
+            cursor.execute(sql, (personagem.pegaId(), personagem.pegaNome(), personagem.pegaEmail(), personagem.pegaSenha(), personagem.pegaEspacoProducao(), estado, uso, autoProducao))
             self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
+    
+    def removePersonagem(self, personagem):
+        sql = """DELETE FROM personagens WHERE id == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [personagem.pegaId()])
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
         
     def insereColunaAutoProducaoTabelaPesonagem(self):
         sql = """
@@ -75,10 +93,12 @@ class PersonagemDaoSqlite():
             cursor = self.__conexao.cursor()
             cursor.execute(sql)
             self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
 
     def pegaErro(self):
         return self.__erro
