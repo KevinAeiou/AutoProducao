@@ -1,4 +1,3 @@
-from modelos.personagem import Personagem
 from dao.personagemDaoSqlite import PersonagemDaoSqlite
 
 class TestePersonagemDaoSqlite:

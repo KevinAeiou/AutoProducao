@@ -16,3 +16,51 @@ Traceback (most recent call last):
     if int(opcaoRaridade) == 0:
        ^^^^^^^^^^^^^^^^^^
 ValueError: invalid literal for int() with base 10: ''
+01/10/2024 01:25:06 AM - ERROR - 'Aplicacao' object has no attribute '_Aplicacao__trabalhoDaoSqlite'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2080, in teste
+    self.removeTrabalho()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 1942, in removeTrabalho
+    trabalhos = self.__trabalhoDaoSqlite.pegaTrabalhos()
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Aplicacao' object has no attribute '_Aplicacao__trabalhoDaoSqlite'
+01/10/2024 01:25:12 AM - ERROR - 'Aplicacao' object has no attribute '_Aplicacao__trabalhoDaoSqlite'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2080, in teste
+    self.removeTrabalho()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 1942, in removeTrabalho
+    trabalhos = self.__trabalhoDaoSqlite.pegaTrabalhos()
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Aplicacao' object has no attribute '_Aplicacao__trabalhoDaoSqlite'
+01/10/2024 01:25:46 AM - ERROR - 'Aplicacao' object has no attribute '_Aplicacao__personagemDaoSqlite'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2071, in teste
+    self.insereNovoTrabalhoProducao()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 1856, in insereNovoTrabalhoProducao
+    personagens = self.__personagemDaoSqlite.pegaPersonagens()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Aplicacao' object has no attribute '_Aplicacao__personagemDaoSqlite'. Did you mean: '_Aplicacao__personagemEmUso'?
+01/10/2024 01:26:40 AM - ERROR - 'Aplicacao' object has no attribute '_Aplicacao__personagemDaoSqlite'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2071, in teste
+    self.insereNovoTrabalhoProducao()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 1856, in insereNovoTrabalhoProducao
+    personagens = self.__personagemDaoSqlite.pegaPersonagens()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Aplicacao' object has no attribute '_Aplicacao__personagemDaoSqlite'. Did you mean: '_Aplicacao__personagemEmUso'?
+01/10/2024 01:29:05 AM - ERROR - TrabalhoDaoSqlite.pegaTrabalhos() missing 1 required positional argument: 'self'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2082, in teste
+    self.removeTrabalho()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 1942, in removeTrabalho
+    trabalhos = TrabalhoDaoSqlite.pegaTrabalhos()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: TrabalhoDaoSqlite.pegaTrabalhos() missing 1 required positional argument: 'self'
+01/10/2024 01:45:16 AM - ERROR - 'Trabalho' object has no attribute 'set'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2142, in teste
+    self.modificaTrabalho()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 1884, in modificaTrabalho
+    trabalhoEscolhido.set(novoNome)
+    ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Trabalho' object has no attribute 'set'

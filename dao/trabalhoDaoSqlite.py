@@ -9,10 +9,10 @@ class TrabalhoDaoSqlite():
         self.__erro = None
         self.__fabrica = None
         try:
-            meuBanco = MeuBanco()
-            self.__conexao = meuBanco.pegaConexao(1)
-            self.__fabrica = meuBanco.pegaFabrica()
-            meuBanco.criaTabelas()
+            self.__meuBanco = MeuBanco()
+            self.__conexao = self.__meuBanco.pegaConexao(1)
+            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__meuBanco.criaTabelas()
         except Exception as e:
             self.__erro = str(e)
 
@@ -28,6 +28,7 @@ class TrabalhoDaoSqlite():
                 todosTrabalhos = sorted(todosTrabalhos, key= lambda trabalho: (trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaNivel()))
         except Exception as e:
             self.__erro = str(e)
+        self.__meuBanco.desconecta()
         return todosTrabalhos
     
     def insereTrabalho(self, trabalho):
@@ -37,10 +38,12 @@ class TrabalhoDaoSqlite():
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario()))
             self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
 
     def modificaTrabalho(self, trabalho):
         sql = """
@@ -50,10 +53,12 @@ class TrabalhoDaoSqlite():
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), trabalho.pegaId()))
             self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
         
     def removeTrabalho(self, trabalho):
         sql = """DELETE FROM trabalhos WHERE id == ?;"""
@@ -61,10 +66,12 @@ class TrabalhoDaoSqlite():
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [trabalho.pegaId()])
             self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.__meuBanco.desconecta()
+        return False
     
     def pegaErro(self):
         return self.__erro

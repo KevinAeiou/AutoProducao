@@ -28,11 +28,6 @@ class Aplicacao:
         self.__listaPersonagemAtivo = []
         self.__listaProfissoesNecessarias = []
         self.__personagemEmUso = None
-        self.__personagemDaoSqlite = PersonagemDaoSqlite()
-        self.__trabalhoDaoSqlite = TrabalhoDaoSqlite()
-        self.__profissaoDaoSqlite = None
-        self.__estoqueDaoSqlite = None
-        self.__trabalhoProducaoDaoSqlite = None
 
     def defineListaPersonagemMesmoEmail(self):
         listaDicionarioPersonagemMesmoEmail = []
@@ -362,7 +357,7 @@ class Aplicacao:
 
     def retornaChaveIdTrabalho(self, listaTextoCarta):
         listaTextoCarta = ' '.join(listaTextoCarta)
-        for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+        for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
             if texto1PertenceTexto2(trabalho.pegaNome(), listaTextoCarta):
                 return trabalho.pegaId()
         return ''
@@ -411,7 +406,7 @@ class Aplicacao:
 
     def retornaListaPossiveisTrabalhoRecuperado(self, nomeTrabalhoConcluido):
         listaPossiveisDicionariosTrabalhos = []
-        for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+        for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
             if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
                 listaPossiveisDicionariosTrabalhos.append(trabalho)
         return listaPossiveisDicionariosTrabalhos
@@ -494,7 +489,7 @@ class Aplicacao:
                     nivelColecao = 1
                     if trabalhoEhColecaoRecursosAvancados(trabalhoProducaoConcluido):
                         nivelColecao = 8
-                    for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+                    for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
                         condicoes = textoEhIgual(trabalho.pegaProfissao(), trabalhoProducaoConcluido.pegaProfissao()) and trabalho.pegaNivel() == nivelColecao and textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_COMUM)
                         if condicoes:
                             trabalhoEstoque = TrabalhoEstoque('', trabalho.pegaNome(),trabalho.pegaProfissao(), trabalho.pegaNivel(), 1, trabalho.pegaRaridade(), trabalho.pegaId())
@@ -550,6 +545,7 @@ class Aplicacao:
     def atualizaEstoquePersonagem(self, trabalhoEstoqueConcluido):
         listaTrabalhoEstoqueConcluido = self.retornaListaTrabalhoProduzido(trabalhoEstoqueConcluido)
         if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
+            self.__estoqueDaoSqlite = EstoqueDaoSqlite(self.__personagemEmUso)
             listaEstoque = self.__estoqueDaoSqlite.pegaEstoque()
             if not tamanhoIgualZero(listaEstoque):
                 for trabalhoEstoque in listaEstoque:
@@ -608,7 +604,7 @@ class Aplicacao:
                 licencaProducaoIdeal = CHAVE_LICENCA_NOVATO
             if textoEhIgual(trabalhoProducaoConcluido.pegaRaridade(), CHAVE_RARIDADE_MELHORADO):
                 print(f'Trabalhos MELHORADO. Profissão {trabalhoProducaoConcluido.pegaProfissao()}. Nível {trabalhoProducaoConcluido.pegaNivel()}.')
-                for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+                for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
                     condicoes = (textoEhIgual(trabalho.pegaProfissao(), trabalhoProducaoConcluido.pegaProfissao())
                         and textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_RARO)
                         and trabalho.pegaNivel() == trabalhoProducaoConcluido.pegaNivel())
@@ -945,7 +941,7 @@ class Aplicacao:
         print(f'Definindo lista produtos raros vendidos...')
         listaTrabalhosRarosVendidos = []
         for trabalhoVendido in self.__vendaDaoSqlite.pegaVendas():
-            for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+            for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
                 raridadeEhRaroIdPersonagemEhPersonagemEmUsoTrabalhoNaoEhProducaoDeRecursos = (
                     textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_RARO)
                     and texto1PertenceTexto2(trabalho.pegaNome(), trabalhoVendido.pegaNome())
@@ -1453,7 +1449,7 @@ class Aplicacao:
 
     def retornaListaPossiveisTrabalhos(self, nomeTrabalhoConcluido):
         listaPossiveisTrabalhos = []
-        for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+        for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
             if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
                 trabalhoEncontrado = TrabalhoProducao('', trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, CHAVE_LICENCA_NOVATO, CODIGO_CONCLUIDO)
                 listaPossiveisTrabalhos.append(trabalhoEncontrado)
@@ -1804,7 +1800,7 @@ class Aplicacao:
     def insereNovoTrabalho(self):
         while True:
             limpaTela()
-            trabalhos = self.__trabalhoDaoSqlite.pegaTrabalhos()
+            trabalhos = TrabalhoDaoSqlite().pegaTrabalhos()
             print(f'{('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
             for trabalho in trabalhos:
                 print(trabalho)
@@ -1836,10 +1832,12 @@ class Aplicacao:
                     nivel = input(f'Nível: ')
                     trabalhoNecessario = input(f'Trabalhos necessarios: ')
                     novoTrabalho = Trabalho(str(uuid.uuid4()), nome, nomeProducao, int(experiencia), int(nivel), profissao, raridade, trabalhoNecessario)
-                    if self.__trabalhoDaoSqlite.insereTrabalho(novoTrabalho):
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.insereTrabalho(novoTrabalho):
                         print(f'{novoTrabalho.pegaNome()} adicionado com sucesso!')
                         continue
-                    print(f'Erro: {self.__trabalhoDaoSqlite.pegaErro()}')
+                    print(f'Erro: {trabalhoDao.pegaErro()}')
+                    logger.error(f'Erro ao inserir novo trabalho: {trabalhoDao.pegaErro()}')
                 except Exception as erro:
                     logger = logging.getLogger(__name__)
                     logger.exception(erro)
@@ -1850,6 +1848,53 @@ class Aplicacao:
                 logger.exception(erro)
                 print(f'Opção inválida!')
                 input(f'Clique para continuar...')
+
+    def modificaTrabalho(self):
+        while True:
+            limpaTela()
+            trabalhos = TrabalhoDaoSqlite().pegaTrabalhos()
+            print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            for trabalho in trabalhos:
+                print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
+            opcaoTrabalho = input(f'Opção trabalho: ')    
+            if int(opcaoTrabalho) == 0:
+                break
+            trabalhoEscolhido = trabalhos[int(opcaoTrabalho) - 1]
+            novoNome = input(f'Novo nome: ')
+            if tamanhoIgualZero(novoNome):
+                novoNome = trabalhoEscolhido.pegaNome()
+            novoNomeProducao = input(f'Novo nome de produção: ')
+            if tamanhoIgualZero(novoNomeProducao):
+                novoNomeProducao = trabalhoEscolhido.pegaNomeProducao()
+            novaExperiencia = input(f'Nova experiência: ')
+            if tamanhoIgualZero(novaExperiencia):
+                novaExperiencia = trabalhoEscolhido.pegaExperiencia()
+            novoNivel = input(f'Novo nível: ')
+            if tamanhoIgualZero(novoNivel):
+                novoNivel = trabalhoEscolhido.pegaNivel()
+            novaProfissao = input(f'Nova profissão: ')
+            if tamanhoIgualZero(novaProfissao):
+                novaProfissao = trabalhoEscolhido.pegaProfissao()
+            novaRaridade = input(f'Nova raridade: ')
+            if tamanhoIgualZero(novaRaridade):
+                novaRaridade = trabalhoEscolhido.pegaRaridade()
+            novoTrabalhoNecessario = input(f'Novo trabalho necessário: ')
+            if tamanhoIgualZero(novoTrabalhoNecessario):
+                novoTrabalhoNecessario = trabalhoEscolhido.pegaTrabalhoNecessario()
+            trabalhoEscolhido.setNome(novoNome)
+            trabalhoEscolhido.setNomeProducao(novoNomeProducao)
+            trabalhoEscolhido.setExperiencia(novaExperiencia)
+            trabalhoEscolhido.setNivel(novoNivel)
+            trabalhoEscolhido.setProfissao(novaProfissao)
+            trabalhoEscolhido.setRaridade(novaRaridade)
+            trabalhoEscolhido.setTrabalhoNecessario(novoTrabalhoNecessario)
+            trabalhoDao = TrabalhoDaoSqlite()
+            if trabalhoDao.modificaTrabalho(trabalhoEscolhido):
+                print(f'{trabalhoEscolhido.pegaNome()} modificado com sucesso!')
+            else:
+                print(f'Erro: {trabalhoDao.pegaErro()}')
+                logging.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+            input(f'Clique para continuar...')
 
     def insereNovoTrabalhoProducao(self):
         while True:
@@ -1881,7 +1926,7 @@ class Aplicacao:
                     continue
                 profissao = profissoes[int(opcaoProfissao) - 1]
                 trabalhosFiltrados = []
-                for trabalho in self.__trabalhoDaoSqlite.pegaTrabalhos():
+                for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
                     if trabalho.pegaProfissao() == profissao:
                         trabalhosFiltrados.append(trabalho)
                 print(f'{('INDICE').ljust(6)} | {('NOME').ljust(40)} | {('PROFISSÃO').ljust(20)} | NÍVEL')
@@ -1941,18 +1986,20 @@ class Aplicacao:
     def removeTrabalho(self):
         while True:
             limpaTela()
-            trabalhos = self.__trabalhoDaoSqlite.pegaTrabalhos()
-            print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(40)} | {('PROFISSÃO').ljust(22)} | NÍVEL')
+            trabalhos = TrabalhoDaoSqlite().pegaTrabalhos()
+            print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
             for trabalho in trabalhos:
                 print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
             opcaoTrabalho = input(f'Opção trabalho: ')    
             if int(opcaoTrabalho) == 0:
                 break
             trabalhoEscolhido = trabalhos[int(opcaoTrabalho) - 1]
-            if self.__trabalhoDaoSqlite.removeTrabalho(trabalhoEscolhido):
+            trabalhoDao = TrabalhoDaoSqlite()
+            if trabalhoDao.removeTrabalho(trabalhoEscolhido):
                 print(f'{trabalhoEscolhido.pegaNome()} excluído com sucesso!')
             else:
-                print(f'Erro: {self.__trabalhoDaoSqlite.pegaErro()}')
+                print(f'Erro: {trabalhoDao.pegaErro()}')
+                logging.error(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
             input(f'Clique para continuar...')
 
     def modificaTrabalhoProducao(self):
@@ -2061,6 +2108,7 @@ class Aplicacao:
             print(f'6 - Modifica trabalho produção')
             print(f'7 - Remove trabalho produção')
             print(f'8 - Mostra vendas')
+            print(f'9 - Modifica trabalho')
             print(f'0 - Sair')
             try:
                 opcaoMenu = input(f'Opção escolhida: ')
@@ -2090,10 +2138,13 @@ class Aplicacao:
                 if int(opcaoMenu) == 8:
                     self.mostraVendas()
                     continue
+                if int(opcaoMenu) == 9:
+                    self.modificaTrabalho()
+                    continue
             except Exception as erro:
                 logger = logging.getLogger(__name__)
                 logger.exception(erro)
-                print(f'Opção inválida!')
+                print(f'Opção inválida! Erro: {erro}')
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':

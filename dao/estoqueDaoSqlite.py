@@ -9,9 +9,9 @@ class EstoqueDaoSqlite:
         self.__erro = None
         self.__personagem = personagem
         try:
-            meuBanco = MeuBanco()
-            self.__conexao = meuBanco.pegaConexao(1)
-            meuBanco.criaTabelas()
+            self.meuBanco = MeuBanco()
+            self.__conexao = self.meuBanco.pegaConexao(1)
+            self.meuBanco.criaTabelas()
         except Exception as e:
             self.__erro = str(e)
 
@@ -19,12 +19,13 @@ class EstoqueDaoSqlite:
         estoque = []
         sql = """SELECT * FROM Lista_estoque WHERE idPersonagem = ?;"""
         try:
-            cursor = self.conexao.cursor()
+            cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
                 estoque.append(TrabalhoEstoque(linha[0], linha[3], linha[4], linha[5], linha[6], linha[7], linha[2]))
         except Exception as e:
             self.__erro = str(e)
+        self.meuBanco.desconecta()
         return estoque
     
     def insereTrabalhoEstoque(self, trabalhoEstoque):
@@ -37,7 +38,8 @@ class EstoqueDaoSqlite:
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.meuBanco.desconecta()
+        return False
 
     def modificaTrabalhoEstoque(self, trabalhoEstoque):
         sql = """UPDATE Lista_estoque SET idTrabalho = ?, nome = ?, profissao = ?, nivel = ?, quantidade = ?, raridade = ? WHERE id = ?"""
@@ -48,7 +50,8 @@ class EstoqueDaoSqlite:
             return True
         except Exception as e:
             self.__erro = str(e)
-            return False
+        self.meuBanco.desconecta()
+        return False
             
     def pegaErro(self):
         return self.__erro
