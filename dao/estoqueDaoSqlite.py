@@ -9,9 +9,9 @@ class EstoqueDaoSqlite:
         self.__erro = None
         self.__personagem = personagem
         try:
-            self.meuBanco = MeuBanco()
-            self.__conexao = self.meuBanco.pegaConexao(1)
-            self.meuBanco.criaTabelas()
+            self.__meuBanco = MeuBanco()
+            self.__conexao = self.__meuBanco.pegaConexao(1)
+            self.__meuBanco.criaTabelas()
         except Exception as e:
             self.__erro = str(e)
 
@@ -28,7 +28,7 @@ class EstoqueDaoSqlite:
                 estoque.append(TrabalhoEstoque(linha[0], linha[3], linha[4], linha[5], linha[6], linha[7], linha[2]))
         except Exception as e:
             self.__erro = str(e)
-        self.meuBanco.desconecta()
+        self.__meuBanco.desconecta()
         return estoque
 
     def pegaTodosTrabalhosEstoque(self):
@@ -43,7 +43,7 @@ class EstoqueDaoSqlite:
                 estoque.append(TrabalhoEstoque(linha[0], linha[3], linha[4], linha[5], linha[6], linha[7], linha[2]))
         except Exception as e:
             self.__erro = str(e)
-        self.meuBanco.desconecta()
+        self.__meuBanco.desconecta()
         return estoque
     
     def insereTrabalhoEstoque(self, trabalhoEstoque):
@@ -54,11 +54,11 @@ class EstoqueDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (trabalhoEstoque.pegaId(), self.__personagem.pegaId(), trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaNome(), trabalhoEstoque.pegaProfissao(), trabalhoEstoque.pegaNivel(), trabalhoEstoque.pegaQuantidade(), trabalhoEstoque.pegaRaridade()))
             self.__conexao.commit()
-            self.meuBanco.desconecta()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-        self.meuBanco.desconecta()
+        self.__meuBanco.desconecta()
         return False
 
     def modificaTrabalhoEstoque(self, trabalhoEstoque):
@@ -69,11 +69,11 @@ class EstoqueDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaNome(), trabalhoEstoque.pegaProfissao(), trabalhoEstoque.pegaNivel(), trabalhoEstoque.pegaQuantidade(), trabalhoEstoque.pegaRaridade(), trabalhoEstoque.pegaId()))
             self.__conexao.commit()
-            self.meuBanco.desconecta()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-        self.meuBanco.desconecta()
+        self.__meuBanco.desconecta()
         return False
     
     def removeTrabalhoEstoque(self, trabalhoEstoque):
@@ -85,11 +85,11 @@ class EstoqueDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [trabalhoEstoque.pegaId()])
             self.__conexao.commit()
-            self.meuBanco.desconecta()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-        self.meuBanco.desconecta()
+        self.__meuBanco.desconecta()
         return False
 
     def pegaErro(self):

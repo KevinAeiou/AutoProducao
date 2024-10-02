@@ -6,6 +6,7 @@ from time import sleep
 import datetime
 import uuid
 import logging
+import re
 
 from modelos.trabalhoRecurso import TrabalhoRecurso
 from modelos.trabalho import Trabalho
@@ -324,7 +325,8 @@ class Aplicacao:
         self.verificaErro()
         return MENU_DESCONHECIDO
     
-    def retornaValorTrabalhoVendido(self, listaTextoCarta):
+    def retornaValorTrabalhoVendido(self, textoCarta):
+        listaTextoCarta = textoCarta.split()
         for palavra in listaTextoCarta:
             if textoEhIgual(palavra, 'por') and listaTextoCarta.index(palavra)+1 < len(listaTextoCarta):
                 valorProduto = listaTextoCarta[listaTextoCarta.index(palavra)+1].strip()
@@ -332,7 +334,8 @@ class Aplicacao:
                     return int(valorProduto)
         return 0
 
-    def retornaQuantidadeTrabalhoVendido(self, listaTextoCarta):
+    def retornaQuantidadeTrabalhoVendido(self, textoCarta):
+        listaTextoCarta = textoCarta.split()
         for texto in listaTextoCarta:
             if texto1PertenceTexto2('x', texto):
                 valor = texto.replace('x', '').strip()
@@ -347,22 +350,22 @@ class Aplicacao:
             trabalhoFoiVendido = texto1PertenceTexto2('Item vendido', textoCarta)
             if trabalhoFoiVendido:
                 print(f'Produto vendido')
-                listaTextoCarta = textoCarta.split()
-                chaveIdTrabalho = self.retornaChaveIdTrabalho(listaTextoCarta)
-                trabalhoVendido = TrabalhoVendido(str(uuid.uuid4()), listaTextoCarta, str(datetime.date.today()), self.__personagemEmUso.pegaId(), self.retornaQuantidadeTrabalhoVendido(listaTextoCarta), chaveIdTrabalho, self.retornaValorTrabalhoVendido(listaTextoCarta))
-                if self.__vendaDaoSqlite.insereVenda(trabalhoVendido):
-                    print(f'Nova venda cadastrada com sucesso!')
-                else:
-                    print(f'Erro ao inserir nova venda: {self.__vendaDaoSqlite.pegaErro()}')
-                return trabalhoVendido
+                textoCarta = re.sub("Item vendido", "", textoCarta)
+                trabalhoVendido = TrabalhoVendido(str(uuid.uuid4()), textoCarta, str(datetime.date.today()), self.__personagemEmUso.pegaId(), self.retornaQuantidadeTrabalhoVendido(textoCarta), self.retornaChaveIdTrabalho(textoCarta), self.retornaValorTrabalhoVendido(textoCarta))
+                vendaDAO = VendaDaoSqlite(self.__personagemEmUso)
+                if vendaDAO.insereVenda(trabalhoVendido):
+                    print(f'Nova venda {trabalhoVendido.pegaNome()} cadastrada com sucesso!')
+                    return trabalhoVendido
+                logger = logging.getLogger('vendaDao')
+                logger.error(f'Erro ao inserir nova venda: {vendaDAO.pegaErro()}')
+                print(f'Erro ao inserir nova venda: {vendaDAO.pegaErro()}')
             else:
                 print(f'Erro...')
         return None
 
-    def retornaChaveIdTrabalho(self, listaTextoCarta):
-        listaTextoCarta = ' '.join(listaTextoCarta)
+    def retornaChaveIdTrabalho(self, textoCarta):
         for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
-            if texto1PertenceTexto2(trabalho.pegaNome(), listaTextoCarta):
+            if texto1PertenceTexto2(trabalho.pegaNome(), textoCarta):
                 return trabalho.pegaId()
         return ''
 
@@ -544,7 +547,7 @@ class Aplicacao:
                     else:
                         print(f'Tipo de recurso não encontrado!')
         else:
-            trabalhoEstoque = TrabalhoEstoque('', trabalhoProducaoConcluido.pegaNome(), trabalhoProducaoConcluido.pegaProfissao(), trabalhoProducaoConcluido.pegaNivel(), 1, trabalhoProducaoConcluido.pegaRaridade(), trabalhoProducaoConcluido.pegaTrabalhoId())
+            trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), trabalhoProducaoConcluido.pegaNome(), trabalhoProducaoConcluido.pegaProfissao(), trabalhoProducaoConcluido.pegaNivel(), 1, trabalhoProducaoConcluido.pegaRaridade(), trabalhoProducaoConcluido.pegaTrabalhoId())
             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
         print(f'Lista de dicionários trabalhos concluídos:')
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
@@ -570,28 +573,27 @@ class Aplicacao:
         listaTrabalhoEstoqueConcluido = self.retornaListaTrabalhoProduzido(trabalhoEstoqueConcluido)
         if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
             listaEstoque = EstoqueDaoSqlite(self.__personagemEmUso).pegaEstoque()
-            if not tamanhoIgualZero(listaEstoque):
-                for trabalhoEstoque in listaEstoque:
-                    listaTrabalhoEstoqueConcluido, trabalhoEstoque = self.modificaQuantidadeTrabalhoEstoque(listaTrabalhoEstoqueConcluido, trabalhoEstoque)
-                else:
-                    if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
-                        for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-                            trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-                            if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
-                                print(f'Novo trabalho adicionado com sucesso!')
-                            else:
-                                logger = logging.getLogger('estoqueDao')
-                                logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
-                                print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
-            else:
+            if tamanhoIgualZero(listaEstoque):
                 for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
                     trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                     if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
                         print(f'{trabalhoEstoqueConcluido.pegaNome()} adicionado com sucesso!')
-                    else:
-                        logger = logging.getLogger('estoqueDao')
-                        logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
-                        print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                        continue
+                    logger = logging.getLogger('estoqueDao')
+                    logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                    print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                return
+            for trabalhoEstoque in listaEstoque:
+                listaTrabalhoEstoqueConcluido, trabalhoEstoque = self.modificaQuantidadeTrabalhoEstoque(listaTrabalhoEstoqueConcluido, trabalhoEstoque)
+            if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
+                for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
+                    trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                    if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
+                        print(f'{trabalhoEstoqueConcluido.pegaNome()} adicionado com sucesso!')
+                        continue
+                    logger = logging.getLogger('estoqueDao')
+                    logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                    print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
 
     def retornaProfissaoTrabalhoProducaoConcluido(self, trabalhoProducaoConcluido):
         for profissao in ProfissaoDaoSqlite(self.__personagemEmUso).pegaProfissoes():
@@ -975,7 +977,7 @@ class Aplicacao:
     def retornaListaTrabalhosRarosVendidos(self):
         print(f'Definindo lista produtos raros vendidos...')
         listaTrabalhosRarosVendidos = []
-        for trabalhoVendido in self.__vendaDaoSqlite.pegaVendas():
+        for trabalhoVendido in VendaDaoSqlite(self.__personagemEmUso).pegaVendas():
             for trabalho in TrabalhoDaoSqlite().pegaTrabalhos():
                 raridadeEhRaroIdPersonagemEhPersonagemEmUsoTrabalhoNaoEhProducaoDeRecursos = (
                     textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_RARO)
@@ -2178,7 +2180,7 @@ class Aplicacao:
                 limpaTela()
                 personagem = personagens[int(opcaoPersonagem) - 1]
                 self.__vendaDaoSqlite = VendaDaoSqlite(personagem)
-                vendas = self.__vendaDaoSqlite.pegaVendas()
+                vendas = VendaDaoSqlite(personagem).pegaVendas()
                 print(f'{('NOME').ljust(112)} | {('DATA').ljust(10)} | {('ID TRABALHO').ljust(36)} | {('VALOR').ljust(5)} | QUANT')
                 for trabalhoVendido in vendas:
                     print(trabalhoVendido)
@@ -2333,6 +2335,13 @@ class Aplicacao:
             print(trabalhoEstoque)
         input(f'Clique para continuar...')
 
+    def pegaTodosTrabalhosVendidos(self):
+        limpaTela()
+        print(f'{'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+        for trabalhoVendido in VendaDaoSqlite().pegaTodosTrabalhosVendidos():
+            print(trabalhoVendido)
+        input(f'Clique para continuar...')
+
     def teste(self):
         while True:
             limpaTela()
@@ -2352,6 +2361,10 @@ class Aplicacao:
             print(f'13 - Modifica trabalho no estoque')
             print(f'14 - Remove trabalho no estoque')
             print(f'15 - Pega todos trabalhos no estoque')
+            print(f'16 - Insere trabalho vendido')
+            print(f'17 - Modifica trabalho vendido')
+            print(f'18 - Remove trabalho vendido')
+            print(f'19 - Pega todos trabalhos vendidos')
             print(f'0 - Sair')
             try:
                 opcaoMenu = input(f'Opção escolhida: ')
@@ -2402,6 +2415,20 @@ class Aplicacao:
                 if int(opcaoMenu) == 15:
                     self.pegaTodosTrabalhosEstoque()
                     continue
+                if int(opcaoMenu) == 16:
+                    # insere trabalho vendido
+                    continue
+                if int(opcaoMenu) == 17:
+                    # modifica trabalho vendido
+                    continue
+                if int(opcaoMenu) == 18:
+                    # remove trabalho vendido
+                    # self.removeTrabalhoVendidos()
+                    continue
+                if int(opcaoMenu) == 19:
+                    # pega todos trabalhos vendidos
+                    self.pegaTodosTrabalhosVendidos()
+                    continue
             except Exception as erro:
                 logger = logging.getLogger(__name__)
                 logger.exception(erro)
@@ -2409,5 +2436,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().teste()
+    Aplicacao().preparaPersonagem()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))

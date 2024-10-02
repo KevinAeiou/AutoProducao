@@ -38,3 +38,19 @@ Traceback (most recent call last):
        ^^^^^^^^^^^^^^
 TypeError: '<' not supported between instances of 'str' and 'int'
 02/10/2024 10:20:24 AM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: 'TrabalhoEstoque' object has no attribute 'pegaRarirdade'
+02/10/2024 10:44:57 AM - ERROR - __main__ - Aplicacao.pegaTodosTrabalhosVendidos() takes 0 positional arguments but 1 was given
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2426, in teste
+    self.pegaTodosTrabalhosVendidos()
+TypeError: Aplicacao.pegaTodosTrabalhosVendidos() takes 0 positional arguments but 1 was given
+02/10/2024 10:46:37 AM - ERROR - __main__ - TrabalhoVendido.__init__() missing 7 required positional arguments: 'id', 'nomeProduto', 'dataVenda', 'nomePersonagem', 'quantidadeProduto', 'trabalhoId', and 'valorProduto'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2426, in teste
+    self.pegaTodosTrabalhosVendidos()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2338, in pegaTodosTrabalhosVendidos
+    for trabalhoVendido in TrabalhoVendido().pegaTodosTrabalhosVendidos():
+                           ^^^^^^^^^^^^^^^^^
+TypeError: TrabalhoVendido.__init__() missing 7 required positional arguments: 'id', 'nomeProduto', 'dataVenda', 'nomePersonagem', 'quantidadeProduto', 'trabalhoId', and 'valorProduto'
+02/10/2024 11:28:22 AM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
+02/10/2024 11:28:34 AM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
+02/10/2024 11:37:02 AM - ERROR - vendaDao - Erro ao inserir nova venda: 'TrabalhoVendido' object has no attribute 'pegaNomeProduto'

@@ -33,4 +33,4 @@ class TrabalhoVendido:
         self.id = id
 
     def __str__(self) -> str:
-        return f'{(self.nomeProduto).ljust(112)} | {(self.dataVenda).ljust(10)} | {(self.trabalhoId).ljust(36)} | {str(self.valorProduto).ljust(5)} | {self.quantidadeProduto}'
+        return f'{(self.nomeProduto).ljust(113)} | {(self.dataVenda).ljust(10)} | {(self.trabalhoId).ljust(36)} | {str(self.valorProduto).ljust(5)} | {self.quantidadeProduto}'
