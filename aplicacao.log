@@ -6,3 +6,24 @@ Traceback (most recent call last):
     personagem.setNome(novoNome)
     ^^^^^^^^^^^^^^^^^^
 AttributeError: 'Personagem' object has no attribute 'setNome'. Did you mean: 'pegaNome'?
+02/10/2024 12:32:03 AM - ERROR - personagemDao - table personagens has no column named autoProducao
+02/10/2024 12:52:43 AM - ERROR - __main__ - unsupported operand type(s) for +: 'int' and 'UUID'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2238, in teste
+    self.modificaProfissao()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 1828, in modificaProfissao
+    ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1]).insereListaProfissoes()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\dao\profissaoDaoSqlite.py", line 57, in insereListaProfissoes
+    if self.insereProfissao(Profissao(str(profissoes.index(profissao) + uuid4()), profissao, 0, False)):
+                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+TypeError: unsupported operand type(s) for +: 'int' and 'UUID'
+02/10/2024 12:53:41 AM - ERROR - __main__ - can only concatenate str (not "UUID") to str
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2238, in teste
+    self.modificaProfissao()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 1828, in modificaProfissao
+    ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1]).insereListaProfissoes()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\dao\profissaoDaoSqlite.py", line 57, in insereListaProfissoes
+    if self.insereProfissao(Profissao(str(profissoes.index(profissao)) + uuid4(), profissao, 0, False)):
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+TypeError: can only concatenate str (not "UUID") to str

@@ -36,7 +36,7 @@ class MeuBanco:
             cursor = self.conexao.cursor()
             cursor.execute(""" CREATE TABLE IF NOT EXISTS trabalhos(id VARCHAR(30) PRIMARY KEY, nome TEXT, nomeProducao TEXT, experiencia INTEGER, nivel INTEGER, profissao TEXT, raridade TEXT, trabalhoNecessario TEXT); """)
 
-            cursor.execute(""" CREATE TABLE IF NOT EXISTS personagens(id VARCHAR(30) PRIMARY KEY, nome TEXT, email TEXT, senha TEXT, espacoProducao INTEGER, estado TINYINT, uso TINYINT); """)
+            cursor.execute(""" CREATE TABLE IF NOT EXISTS personagens(id VARCHAR(30) PRIMARY KEY, nome TEXT, email TEXT, senha TEXT, espacoProducao INTEGER, estado TINYINT, uso TINYINT, autoProducao TINYINT); """)
 
             cursor.execute(""" CREATE TABLE IF NOT EXISTS profissoes(id VARCHAR(30) PRIMARY KEY, idPersonagem VARCHAR(30), nome TEXT, experiencia INTEGER, prioridade TINYINT); """)
 

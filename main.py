@@ -110,7 +110,6 @@ class Aplicacao:
         self._espacoBolsa = True
         self.__confirmacao = True
         self._profissaoModificada = False
-        self.__profissaoDaoSqlite = ProfissaoDaoSqlite(self.__personagemEmUso)
         self.__vendaDaoSqlite = VendaDaoSqlite(self.__personagemEmUso)
         self.__estoqueDaoSqlite = EstoqueDaoSqlite(self.__personagemEmUso)
 
@@ -465,13 +464,18 @@ class Aplicacao:
         return trabalhoProducaoConcluido
 
     def modificaExperienciaProfissao(self, trabalhoProducao):
-        for profissao in self.__profissaoDaoSqlite.pegaProfissoes():
+        for profissao in ProfissaoDaoSqlite(self.__personagemEmUso).pegaProfissoes():
             if textoEhIgual(profissao.pegaNome(), trabalhoProducao.pegaProfissao()):
                 experiencia = profissao.pegaExperiencia() + trabalhoProducao.pegaExperiencia()
                 profissao.setExperiencia(experiencia)
-                self.__profissaoDaoSqlite.modificaProfissao(profissao)
-                print(f'Experiência de {profissao.pegaNome()} atualizada para {experiencia}.')
-                break
+                profissaoDao = ProfissaoDaoSqlite(self.__personagemEmUso)
+                if profissaoDao.modificaProfissao(profissao):
+                    print(f'Experiência de {profissao.pegaNome()} atualizada para {experiencia}  com sucesso!')
+                    return
+                logger = logging.getLogger('profissaoDao')
+                logger.error(f'Erro ao modificar profissão: {profissaoDao.pegaErro()}')
+                print(f'Erro ao modificar profissão: {profissaoDao.pegaErro()}')
+                return
 
     def retornaListaTrabalhoProduzido(self, trabalhoProducaoConcluido):
         '''
@@ -580,7 +584,7 @@ class Aplicacao:
                         print(f'Erro ao adicionar novo trabalho ao estoque: {self.__estoqueDaoSqlite.pegaErro()}')
 
     def retornaProfissaoTrabalhoProducaoConcluido(self, trabalhoProducaoConcluido):
-        for profissao in self.__profissaoDaoSqlite.pegaProfissoes():
+        for profissao in ProfissaoDaoSqlite(self.__personagemEmUso).pegaProfissoes():
             if textoEhIgual(profissao.pegaNome(), trabalhoProducaoConcluido.pegaProfissao()):
                 return profissao
         return None
@@ -985,7 +989,7 @@ class Aplicacao:
     def defineChaveListaProfissoesNecessarias(self):
         print(f'Verificando profissões necessárias...')
         self.__listaProfissoesNecessarias.clear()
-        for profissao in self.__profissaoDaoSqlite.pegaProfissoes():
+        for profissao in ProfissaoDaoSqlite(self.__personagemEmUso).pegaProfissoes():
             for trabalhoProducaoDesejado in TrabalhoProducaoDaoSqlite(self.__personagemEmUso).pegaTrabalhosProducao():
                 chaveProfissaoEhIgualEEstadoEhParaProduzir = textoEhIgual(profissao.pegaNome(), trabalhoProducaoDesejado.pegaProfissao()) and trabalhoProducaoDesejado.ehParaProduzir()
                 if chaveProfissaoEhIgualEEstadoEhParaProduzir:
@@ -998,7 +1002,7 @@ class Aplicacao:
 
     def retornaContadorEspacosProducao(self, contadorEspacosProducao, nivel):
         contadorNivel = 0
-        for dicionarioProfissao in self.__profissaoDaoSqlite.pegaProfissoes():
+        for dicionarioProfissao in ProfissaoDaoSqlite(self.__personagemEmUso).pegaProfissoes():
             if dicionarioProfissao.pegaNivel() >= nivel:
                 contadorNivel += 1
         else:
@@ -1012,7 +1016,7 @@ class Aplicacao:
     def retornaQuantidadeEspacosDeProducao(self):
         print(f'Define quantidade de espaços de produção...')
         quantidadeEspacosProducao = 2
-        for dicionarioProfissao in self.__profissaoDaoSqlite.pegaProfissoes():
+        for dicionarioProfissao in ProfissaoDaoSqlite(self.__personagemEmUso).pegaProfissoes():
             nivel, _ , _= self.retornaNivelXpMinimoMaximo(dicionarioProfissao)
             if nivel >= 5:
                 quantidadeEspacosProducao += 1
@@ -1535,7 +1539,7 @@ class Aplicacao:
                     break
                 if self._profissaoModificada:
                     self.verificaEspacoProducao()
-                profissoes = self.__profissaoDaoSqlite.pegaProfissoes()
+                profissoes = ProfissaoDaoSqlite(self.__personagemEmUso).pegaProfissoes()
                 for profissao in profissoes:
                     if profissao.pegaNome() == profissaoNecessaria.pegaNome():
                         posicao = profissoes.index(profissao) + 1 
@@ -1809,6 +1813,7 @@ class Aplicacao:
 
     def modificaProfissao(self):
         while True:
+            limpaTela()
             print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
@@ -1816,12 +1821,15 @@ class Aplicacao:
             opcaoPersonagem = input(f'Opção:')
             if int(opcaoPersonagem) == 0:
                 break
-            self.__profissaoDaoSqlite = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem)-1])
             while True:
-                profissoes = self.__profissaoDaoSqlite.pegaProfissoes()
-                print(f'{('ID').ljust(40)} | {('NOME').ljust(22)} | {str('EXP').ljust(6)} | PRIORIDADE')
+                limpaTela()
+                profissoes = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1]).pegaProfissoes()
+                if len(profissoes) == 0:
+                    ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1]).insereListaProfissoes()
+                    profissoes = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1]).pegaProfissoes()
+                print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(40)} | {('NOME').ljust(22)} | {str('EXP').ljust(6)} | PRIORIDADE')
                 for profissao in profissoes:
-                    print(profissao)
+                    print(f'{str(profissoes.index(profissao) + 1).ljust(6)} | {profissao}')
                 opcaoProfissao = input(f'Opção: ')
                 if int(opcaoProfissao) == 0:
                     break
@@ -1837,7 +1845,13 @@ class Aplicacao:
                 alternaPrioridade = input(f'Alternar prioridade? (S/N) ')
                 if alternaPrioridade.lower() == 's':
                     profissaoModificado.alternaPrioridade()
-                self.__profissaoDaoSqlite.modificaProfissao(profissaoModificado)
+                profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem)-1])
+                if profissaoDao.modificaProfissao(profissaoModificado):
+                    print(f'Profissão {profissaoModificado.pegaNome()} modificado com sucesso!')
+                    continue
+                logger = logging.getLogger('profissaoDao')
+                logger.error(f'Erro ao modificar profissão: {profissaoDao.pegaErro()}')
+                print(f'Erro ao modificar profissão: {profissaoDao.pegaErro()}')
 
     def insereNovoTrabalho(self):
         while True:

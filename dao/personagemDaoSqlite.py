@@ -100,5 +100,19 @@ class PersonagemDaoSqlite():
         self.__meuBanco.desconecta()
         return False
 
+    def deletaTabelaPersonagens(self):
+        sql = """
+            DROP TABLE personagens;            
+            """
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql)
+            self.__meuBanco.desconecta()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
+    
     def pegaErro(self):
         return self.__erro
