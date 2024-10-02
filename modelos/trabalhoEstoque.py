@@ -38,4 +38,4 @@ class TrabalhoEstoque:
         self.quantidade = quantidade
     
     def __str__(self) -> str:
-        return f'{(self.nome).ljust(40)} | {(self.profissao).ljust(25)} | {str(self.quantidade).ljust(3)} | {str(self.nivel).ljust(3)} | {(self.raridade).ljust(10)} | {self.trabalhoId}'
+        return f'{(self.nome).ljust(40)} | {(self.profissao).ljust(25)} | {str(self.quantidade).ljust(3)} | {str(self.nivel).ljust(5)} | {(self.raridade).ljust(10)} | {self.trabalhoId}'

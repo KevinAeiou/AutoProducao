@@ -27,3 +27,14 @@ Traceback (most recent call last):
     if self.insereProfissao(Profissao(str(profissoes.index(profissao)) + uuid4(), profissao, 0, False)):
                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
 TypeError: can only concatenate str (not "UUID") to str
+02/10/2024 10:19:16 AM - ERROR - __main__ - '<' not supported between instances of 'str' and 'int'
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2367, in teste
+    self.modificaTrabalhoEstoque()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2291, in modificaTrabalhoEstoque
+    trabalho.setQuantidade(quantidadeTrabalho)
+  File "c:\Users\kevin\VSProjetos\AutoProducao\modelos\trabalhoEstoque.py", line 36, in setQuantidade
+    if quantidade < 0:
+       ^^^^^^^^^^^^^^
+TypeError: '<' not supported between instances of 'str' and 'int'
+02/10/2024 10:20:24 AM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: 'TrabalhoEstoque' object has no attribute 'pegaRarirdade'

@@ -111,7 +111,6 @@ class Aplicacao:
         self.__confirmacao = True
         self._profissaoModificada = False
         self.__vendaDaoSqlite = VendaDaoSqlite(self.__personagemEmUso)
-        self.__estoqueDaoSqlite = EstoqueDaoSqlite(self.__personagemEmUso)
 
     def retornaCodigoErroReconhecido(self):
         textoErroEncontrado = self._imagem.retornaErroReconhecido()
@@ -368,14 +367,17 @@ class Aplicacao:
         return ''
 
     def atualizaQuantidadeTrabalhoEstoque(self, venda):
-        for trabalhoEstoque in self.__estoqueDaoSqlite.pegaEstoque():
+        for trabalhoEstoque in EstoqueDaoSqlite(self.__personagemEmUso).pegaEstoque():
             if textoEhIgual(trabalhoEstoque.pegaTrabalhoId(), venda.pegaTrabalhoId()):
                 novaQuantidade = trabalhoEstoque.pegaQuantidade() - venda.pegaQuantidadeProduto()
                 trabalhoEstoque.setQuantidade(novaQuantidade)
-                if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
                     return
-                print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+                logger = logging.getLogger('estoqueDao')
+                logger.error(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
+                print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
         print(f'Trabalho ({venda.pegaNome()}) não encontrado no estoque.')
 
     def recuperaCorrespondencia(self, ):
@@ -555,33 +557,41 @@ class Aplicacao:
                 novaQuantidade = trabalhoEstoque.pegaQuantidade() + trabalhoEstoqueConcluido.pegaQuantidade()
                 trabalhoEstoque.setQuantidade(novaQuantidade)
                 print(trabalhoEstoque)
-                if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
                     continue
-                print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+                logger = logging.getLogger('estoqueDao')
+                logger.error(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
+                print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
         return listaTrabalhoEstoqueConcluido, trabalhoEstoque
 
     def atualizaEstoquePersonagem(self, trabalhoEstoqueConcluido):
         listaTrabalhoEstoqueConcluido = self.retornaListaTrabalhoProduzido(trabalhoEstoqueConcluido)
         if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
-            self.__estoqueDaoSqlite = EstoqueDaoSqlite(self.__personagemEmUso)
-            listaEstoque = self.__estoqueDaoSqlite.pegaEstoque()
+            listaEstoque = EstoqueDaoSqlite(self.__personagemEmUso).pegaEstoque()
             if not tamanhoIgualZero(listaEstoque):
                 for trabalhoEstoque in listaEstoque:
                     listaTrabalhoEstoqueConcluido, trabalhoEstoque = self.modificaQuantidadeTrabalhoEstoque(listaTrabalhoEstoqueConcluido, trabalhoEstoque)
                 else:
                     if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
                         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-                            if self.__estoqueDaoSqlite.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
+                            trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                            if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
                                 print(f'Novo trabalho adicionado com sucesso!')
                             else:
-                                print(f'Erro ao adicionar novo trabalho ao estoque: {self.__estoqueDaoSqlite.pegaErro()}')
+                                logger = logging.getLogger('estoqueDao')
+                                logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                                print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
             else:
                 for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-                    if self.__estoqueDaoSqlite.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
+                    trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                    if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
                         print(f'{trabalhoEstoqueConcluido.pegaNome()} adicionado com sucesso!')
                     else:
-                        print(f'Erro ao adicionar novo trabalho ao estoque: {self.__estoqueDaoSqlite.pegaErro()}')
+                        logger = logging.getLogger('estoqueDao')
+                        logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                        print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
 
     def retornaProfissaoTrabalhoProducaoConcluido(self, trabalhoProducaoConcluido):
         for profissao in ProfissaoDaoSqlite(self.__personagemEmUso).pegaProfissoes():
@@ -1251,7 +1261,7 @@ class Aplicacao:
         nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, nivelRecurso)
         return TrabalhoRecurso(trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaNivel(), nomeRecursoTerciario, nomeRecursoSecundario, nomeRecursoPrimario, recursoTerciario)
 
-    def removeTrabalhoEstoque(self, trabalhoProducao):
+    def removeTrabalhoProducaoEstoque(self, trabalhoProducao):
         if trabalhoProducao.ehComum():
             if trabalhoEhProducaoRecursos(trabalhoProducao):
                 print(f'Trabalho é recurso de produção!')
@@ -1279,7 +1289,7 @@ class Aplicacao:
                 elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAT:
                     listaNomeRecursoBuscado.append([nomeRecursoPrimario, 8])
                     listaNomeRecursoBuscado.append([nomeRecursoTerciario, 2])
-                for trabalhoEstoque in self.__estoqueDaoSqlite.pegaEstoque():
+                for trabalhoEstoque in EstoqueDaoSqlite(self.__personagemEmUso).pegaEstoque():
                     for recursoBuscado in listaNomeRecursoBuscado:
                         if textoEhIgual(trabalhoEstoque.pegaNome(), recursoBuscado[0]):
                             novaQuantidade = trabalhoEstoque.pegaQuantidade() - recursoBuscado[1]
@@ -1287,23 +1297,29 @@ class Aplicacao:
                                 novaQuantidade = 0
                             print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada de {trabalhoEstoque.pegaQuantidade()} para {novaQuantidade}.')
                             trabalhoEstoque.setQuantidade(novaQuantidade)
-                            if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                            estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                            if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                                 print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
                                 continue
-                            print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+                            logger = logging.getLogger('estoqueDao')
+                            logger.error(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
+                            print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
                     if textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoProducao.pegaLicenca()):
                         novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
                         if novaQuantidade < 0:
                             novaQuantidade = 0
                         print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada de {trabalhoEstoque.pegaQuantidade()} para {novaQuantidade}.')
                         trabalhoEstoque.setQuantidade(novaQuantidade)
-                        if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                        estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                        if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                             print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
                             continue
-                        print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+                        logger = logging.getLogger('estoqueDao')
+                        logger.error(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
+                        print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
             else:
                 trabalhoRecurso = self.retornaTrabalhoRecurso(trabalhoProducao)
-                for trabalhoEstoque in self.__estoqueDaoSqlite.pegaEstoque():
+                for trabalhoEstoque in EstoqueDaoSqlite(self.__personagemEmUso).pegaEstoque():
                     novaQuantidade = None
                     if textoEhIgual(trabalhoEstoque.pegaNome(), trabalhoRecurso.pegaPrimario()):
                         novaQuantidade = trabalhoEstoque.pegaQuantidade() - trabalhoRecurso.pegaQuantidadePrimario()
@@ -1324,25 +1340,31 @@ class Aplicacao:
                     if variavelExiste(novaQuantidade):
                         print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada para {novaQuantidade}.')
                         trabalhoEstoque.setQuantidade(novaQuantidade)
-                        if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                        estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                        if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                             print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
                             continue
-                        print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+                        logger = logging.getLogger('estoqueDao')
+                        logger.error(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
+                        print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
         elif trabalhoProducao.ehMelhorado() or trabalhoProducao.ehRaro():
             if not trabalhoEhProducaoRecursos(trabalhoProducao):
                 listaTrabalhosNecessarios = trabalhoProducao.pegaTrabalhoNecessario().split(',')
                 for trabalhoNecessario in listaTrabalhosNecessarios:
-                    for trabalhoEstoque in self.__estoqueDaoSqlite.pegaEstoque():
+                    for trabalhoEstoque in EstoqueDaoSqlite(self.__personagemEmUso).pegaEstoque():
                         if textoEhIgual(trabalhoNecessario, trabalhoEstoque.pegaNome()):
                             novaQuantidade = trabalhoEstoque.pegaQuantidade() - 1
                             if novaQuantidade < 0:
                                 novaQuantidade = 0
                             print(f'Quantidade de {trabalhoEstoque.pegaNome()} atualizada para {novaQuantidade}.')
                             trabalhoEstoque.setQuantidade(novaQuantidade)
-                            if self.__estoqueDaoSqlite.modificaTrabalhoEstoque(trabalhoEstoque):
+                            estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                            if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                                 print(f'Quantidade do trabalho ({trabalhoEstoque.pegaNome()}) atualizada para {novaQuantidade}.')
                                 break
-                            print(f'Erro: {self.__estoqueDaoSqlite.pegaErro()}')
+                            logger = logging.getLogger('estoqueDao')
+                            logger.error(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
+                            print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
                             break
             
     def iniciaProcessoDeProducao(self, dicionarioTrabalho):
@@ -1364,7 +1386,7 @@ class Aplicacao:
                         logger = logging.getLogger('trabalhoProducaoDao')
                         logger.error(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                         print(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-                    self.removeTrabalhoEstoque(trabalhoProducaoEncontrado)
+                    self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
                     clickContinuo(12,'up')
                     self.verificaNovamente = True
                     break
@@ -1814,10 +1836,10 @@ class Aplicacao:
     def modificaProfissao(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
-                print(personagem)
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
             if int(opcaoPersonagem) == 0:
                 break
@@ -1955,10 +1977,10 @@ class Aplicacao:
     def insereNovoTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
-                print(personagem)
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
             if int(opcaoPersonagem) == 0:
                 break
@@ -2012,10 +2034,10 @@ class Aplicacao:
     def modificaPersonagem(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
-                print(personagem)
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
             if int(opcaoPersonagem) == 0:
                 break
@@ -2068,10 +2090,10 @@ class Aplicacao:
     def modificaTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
-                print(personagem)
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção: ')
             if int(opcaoPersonagem) == 0:
                 break
@@ -2115,10 +2137,10 @@ class Aplicacao:
     def removeTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
-                print(personagem)
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção: ')
             if int(opcaoPersonagem) == 0:
                 break
@@ -2145,10 +2167,10 @@ class Aplicacao:
     def mostraVendas(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
-                print(personagem)
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
             if int(opcaoPersonagem) == 0:
                 break
@@ -2189,10 +2211,10 @@ class Aplicacao:
     def removePersonagem(self):
         while True:
             limpaTela()
-            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
-                print(personagem)
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
             if int(opcaoPersonagem) == 0:
                 break
@@ -2205,6 +2227,112 @@ class Aplicacao:
             logger.error(f'Erro ao remover personagem: {personagemDao.pegaErro()}')
             print(f'Erro ao remover personagem: {personagemDao.pegaErro()}')
     
+    def insereTrabalhoEstoque(self):
+        while True:
+            limpaTela()
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
+            for personagem in personagens:
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            while True:
+                limpaTela()
+                print(f'{('NOME').ljust(40)} | {('PROFISSÃO').ljust(25)} | {('QNT').ljust(3)} | {('NÍVEL').ljust(5)} | {('RARIDADE').ljust(10)} | {'ID TRABALHO'}')
+                for trabalhoEstoque in EstoqueDaoSqlite(personagem).pegaEstoque():
+                    print(trabalhoEstoque)
+                opcaoTrabalho = input(f'Inserir novo trabalho ao estoque? (S/N) ')
+                if opcaoTrabalho.lower() == 'n':
+                    break
+                trabalhos = TrabalhoDaoSqlite().pegaTrabalhos()
+                print(f'{('ÍNDICE').ljust(6)} | {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+                for trabalho in trabalhos:
+                    print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} | {trabalho}')
+                opcaoTrabalho = input(f'Opção trabalho: ')    
+                if int(opcaoTrabalho) == 0:
+                    break
+                trabalho = trabalhos[int(opcaoTrabalho) - 1]
+                quantidadeTrabalho = input(f'Quantidade trabalho: ')
+                trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
+                if trabalhoEstoqueDao.insereTrabalhoEstoque(TrabalhoEstoque(str(uuid.uuid4()), trabalho.pegaNome(), trabalho.pegaProfissao(), trabalho.pegaNivel(), quantidadeTrabalho, trabalho.pegaRaridade(), trabalho.pegaId())):
+                    print(f'Trabalho {trabalho.pegaNome()} inserido no estoque com sucesso!')
+                    continue
+                logger = logging.getLogger('estoqueDao')
+                logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+    
+    def modificaTrabalhoEstoque(self):
+        while True:
+            limpaTela()
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
+            for personagem in personagens:
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            while True:
+                limpaTela()
+                print(f'{('ÍNDICE').ljust(6)} | {('NOME').ljust(40)} | {('PROFISSÃO').ljust(25)} | {('QNT').ljust(3)} | {('NÍVEL').ljust(5)} | {('RARIDADE').ljust(10)} | {'ID TRABALHO'}')
+                estoque = EstoqueDaoSqlite(personagem).pegaEstoque()
+                for trabalhoEstoque in estoque:
+                    print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} | {trabalhoEstoque}')
+                print(f'{('0').ljust(6)} | Sair')
+                opcaoTrabalho = input(f'opção trabalho ')
+                if int(opcaoTrabalho) == 0:
+                    break
+                trabalho = estoque[int(opcaoTrabalho) - 1]
+                quantidadeTrabalho = input(f'Quantidade trabalho: ')
+                if tamanhoIgualZero(quantidadeTrabalho):
+                    quantidadeTrabalho = trabalho.pegaQuantidade()
+                trabalho.setQuantidade(int(quantidadeTrabalho))
+                trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
+                if trabalhoEstoqueDao.modificaTrabalhoEstoque(trabalho):
+                    print(f'Trabalho {trabalho.pegaNome()} modificado no estoque com sucesso!')
+                    continue
+                logger = logging.getLogger('estoqueDao')
+                logger.error(f'Erro ao modificar trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                print(f'Erro ao modificar trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+
+    def removeTrabalhoEstoque(self):
+        while True:
+            limpaTela()
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagens = PersonagemDaoSqlite().pegaPersonagens()
+            for personagem in personagens:
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            while True:
+                limpaTela()
+                print(f'{('ÍNDICE').ljust(6)} | {('NOME').ljust(40)} | {('PROFISSÃO').ljust(25)} | {('QNT').ljust(3)} | {('NÍVEL').ljust(5)} | {('RARIDADE').ljust(10)} | {'ID TRABALHO'}')
+                estoque = EstoqueDaoSqlite(personagem).pegaEstoque()
+                for trabalhoEstoque in estoque:
+                    print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} | {trabalhoEstoque}')
+                print(f'{('0').ljust(6)} | Sair')
+                opcaoTrabalho = input(f'opção trabalho ')
+                if int(opcaoTrabalho) == 0:
+                    break
+                trabalho = estoque[int(opcaoTrabalho) - 1]
+                trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
+                if trabalhoEstoqueDao.removeTrabalhoEstoque(trabalho):
+                    print(f'Trabalho {trabalho.pegaNome()} removido do estoque com sucesso!')
+                    continue
+                logger = logging.getLogger('estoqueDao')
+                logger.error(f'Erro ao remover trabalho do estoque: {trabalhoEstoqueDao.pegaErro()}')
+                print(f'Erro ao remover trabalho do estoque: {trabalhoEstoqueDao.pegaErro()}')
+
+    def pegaTodosTrabalhosEstoque(self):
+        limpaTela()
+        for trabalhoEstoque in EstoqueDaoSqlite().pegaTodosTrabalhosEstoque():
+            print(trabalhoEstoque)
+        input(f'Clique para continuar...')
+
     def teste(self):
         while True:
             limpaTela()
@@ -2220,6 +2348,10 @@ class Aplicacao:
             print(f'9 - Modifica trabalho')
             print(f'10 - Remove personagem')
             print(f'11 - Insere personagem')
+            print(f'12 - Insere trabalho no estoque')
+            print(f'13 - Modifica trabalho no estoque')
+            print(f'14 - Remove trabalho no estoque')
+            print(f'15 - Pega todos trabalhos no estoque')
             print(f'0 - Sair')
             try:
                 opcaoMenu = input(f'Opção escolhida: ')
@@ -2257,6 +2389,18 @@ class Aplicacao:
                     continue
                 if int(opcaoMenu) == 11:
                     self.inserePersonagem()
+                    continue
+                if int(opcaoMenu) == 12:
+                    self.insereTrabalhoEstoque()
+                    continue
+                if int(opcaoMenu) == 13:
+                    self.modificaTrabalhoEstoque()
+                    continue
+                if int(opcaoMenu) == 14:
+                    self.removeTrabalhoEstoque()
+                    continue
+                if int(opcaoMenu) == 15:
+                    self.pegaTodosTrabalhosEstoque()
                     continue
             except Exception as erro:
                 logger = logging.getLogger(__name__)
