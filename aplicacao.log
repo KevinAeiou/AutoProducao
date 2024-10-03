@@ -54,3 +54,14 @@ TypeError: TrabalhoVendido.__init__() missing 7 required positional arguments: '
 02/10/2024 11:28:22 AM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
 02/10/2024 11:28:34 AM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
 02/10/2024 11:37:02 AM - ERROR - vendaDao - Erro ao inserir nova venda: 'TrabalhoVendido' object has no attribute 'pegaNomeProduto'
+02/10/2024 01:35:44 PM - ERROR - __main__ - invalid literal for int() with base 10: ''
+Traceback (most recent call last):
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2380, in teste
+    self.modificaPersonagem()
+  File "c:\Users\kevin\VSProjetos\AutoProducao\main.py", line 2044, in modificaPersonagem
+    if int(opcaoPersonagem) == 0:
+       ^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+02/10/2024 02:07:28 PM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
+02/10/2024 02:07:42 PM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
+03/10/2024 12:04:17 AM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id

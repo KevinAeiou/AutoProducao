@@ -20,7 +20,7 @@ class TrabalhoProducaoDaoSqlite:
         sql = """SELECT * FROM Lista_desejo WHERE idPersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (self.__personagem.pegaId()))
+            cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[10] == 1 else False
                 trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
@@ -34,7 +34,7 @@ class TrabalhoProducaoDaoSqlite:
         sql = """SELECT * FROM Lista_desejo WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (self.__personagem.pegaId()))
+            cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[10] == 1 else False
                 trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
@@ -45,7 +45,7 @@ class TrabalhoProducaoDaoSqlite:
     
     def insereTrabalhoProducao(self, trabalhoProducao):
         recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
-        sql = """INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario, recorrencia, tipoLicenca, estado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);"""
+        sql = """INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario, recorrencia, tipoLicenca, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (trabalhoProducao.pegaId(), trabalhoProducao.pegaTrabalhoId(), self.__personagem.pegaId(), trabalhoProducao.pegaNome(), trabalhoProducao.pegaNomeProducao(), trabalhoProducao.pegaExperiencia(), trabalhoProducao.pegaNivel(), trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaRaridade(), trabalhoProducao.pegaTrabalhoNecessario(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado()))
