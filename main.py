@@ -2007,72 +2007,73 @@ class Aplicacao:
                     novoTrabalho = Trabalho(str(uuid.uuid4()), nome, nomeProducao, int(experiencia), int(nivel), profissao, raridade, trabalhoNecessario)
                     trabalhoDao = TrabalhoDaoSqlite()
                     if trabalhoDao.insereTrabalho(novoTrabalho):
-                        print(f'{novoTrabalho.pegaNome()} adicionado com sucesso!')
+                        print(f'{novoTrabalho.pegaNome()} inserido com sucesso!')
+                        input(f'Clique para continuar...')
                         continue
-                    print(f'Erro: {trabalhoDao.pegaErro()}')
-                    logger.error(f'Erro ao inserir novo trabalho: {trabalhoDao.pegaErro()}')
+                    logger = logging.getLogger('trabalhoDao')
+                    logger.error(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
+                    print(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
+                    input(f'Clique para continuar...')
                 except Exception as erro:
-                    logger = logging.getLogger(__name__)
-                    logger.exception(erro)
                     print(f'Opção inválida!')
                     input(f'Clique para continuar...')
             except Exception as erro:
-                logger = logging.getLogger(__name__)
-                logger.exception(erro)
                 print(f'Opção inválida!')
                 input(f'Clique para continuar...')
 
     def modificaTrabalho(self):
         while True:
             limpaTela()
-            trabalhos = TrabalhoDaoSqlite().pegaTrabalhos()
             trabalhoDao = TrabalhoDaoSqlite()
             trabalhos = trabalhoDao.pegaTrabalhos()
-            if variavelExiste(trabalhos):
-                print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
-                for trabalho in trabalhos:
-                    print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
-                opcaoTrabalho = input(f'Opção trabalho: ')    
-                if int(opcaoTrabalho) == 0:
-                    break
-                trabalhoEscolhido = trabalhos[int(opcaoTrabalho) - 1]
-                novoNome = input(f'Novo nome: ')
-                if tamanhoIgualZero(novoNome):
-                    novoNome = trabalhoEscolhido.pegaNome()
-                novoNomeProducao = input(f'Novo nome de produção: ')
-                if tamanhoIgualZero(novoNomeProducao):
-                    novoNomeProducao = trabalhoEscolhido.pegaNomeProducao()
-                novaExperiencia = input(f'Nova experiência: ')
-                if tamanhoIgualZero(novaExperiencia):
-                    novaExperiencia = trabalhoEscolhido.pegaExperiencia()
-                novoNivel = input(f'Novo nível: ')
-                if tamanhoIgualZero(novoNivel):
-                    novoNivel = trabalhoEscolhido.pegaNivel()
-                novaProfissao = input(f'Nova profissão: ')
-                if tamanhoIgualZero(novaProfissao):
-                    novaProfissao = trabalhoEscolhido.pegaProfissao()
-                novaRaridade = input(f'Nova raridade: ')
-                if tamanhoIgualZero(novaRaridade):
-                    novaRaridade = trabalhoEscolhido.pegaRaridade()
-                novoTrabalhoNecessario = input(f'Novo trabalho necessário: ')
-                if tamanhoIgualZero(novoTrabalhoNecessario):
-                    novoTrabalhoNecessario = trabalhoEscolhido.pegaTrabalhoNecessario()
-                trabalhoEscolhido.setNome(novoNome)
-                trabalhoEscolhido.setNomeProducao(novoNomeProducao)
-                trabalhoEscolhido.setExperiencia(novaExperiencia)
-                trabalhoEscolhido.setNivel(novoNivel)
-                trabalhoEscolhido.setProfissao(novaProfissao)
-                trabalhoEscolhido.setRaridade(novaRaridade)
-                trabalhoEscolhido.setTrabalhoNecessario(novoTrabalhoNecessario)
-                trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.modificaTrabalho(trabalhoEscolhido):
-                    print(f'{trabalhoEscolhido.pegaNome()} modificado com sucesso!')
-                else:
-                    print(f'Erro: {trabalhoDao.pegaErro()}')
-                    logging.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+            if not variavelExiste(trabalhos):
+                print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                break
+            print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            for trabalho in trabalhos:
+                print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
+            opcaoTrabalho = input(f'Opção trabalho: ')    
+            if int(opcaoTrabalho) == 0:
+                break
+            trabalhoEscolhido = trabalhos[int(opcaoTrabalho) - 1]
+            novoNome = input(f'Novo nome: ')
+            if tamanhoIgualZero(novoNome):
+                novoNome = trabalhoEscolhido.pegaNome()
+            novoNomeProducao = input(f'Novo nome de produção: ')
+            if tamanhoIgualZero(novoNomeProducao):
+                novoNomeProducao = trabalhoEscolhido.pegaNomeProducao()
+            novaExperiencia = input(f'Nova experiência: ')
+            if tamanhoIgualZero(novaExperiencia):
+                novaExperiencia = trabalhoEscolhido.pegaExperiencia()
+            novoNivel = input(f'Novo nível: ')
+            if tamanhoIgualZero(novoNivel):
+                novoNivel = trabalhoEscolhido.pegaNivel()
+            novaProfissao = input(f'Nova profissão: ')
+            if tamanhoIgualZero(novaProfissao):
+                novaProfissao = trabalhoEscolhido.pegaProfissao()
+            novaRaridade = input(f'Nova raridade: ')
+            if tamanhoIgualZero(novaRaridade):
+                novaRaridade = trabalhoEscolhido.pegaRaridade()
+            novoTrabalhoNecessario = input(f'Novo trabalho necessário: ')
+            if tamanhoIgualZero(novoTrabalhoNecessario):
+                novoTrabalhoNecessario = trabalhoEscolhido.pegaTrabalhoNecessario()
+            trabalhoEscolhido.setNome(novoNome)
+            trabalhoEscolhido.setNomeProducao(novoNomeProducao)
+            trabalhoEscolhido.setExperiencia(int(novaExperiencia))
+            trabalhoEscolhido.setNivel(int(novoNivel))
+            trabalhoEscolhido.setProfissao(novaProfissao)
+            trabalhoEscolhido.setRaridade(novaRaridade)
+            trabalhoEscolhido.setTrabalhoNecessario(novoTrabalhoNecessario)
+            trabalhoDao = TrabalhoDaoSqlite()
+            if trabalhoDao.modificaTrabalho(trabalhoEscolhido):
+                print(f'{trabalhoEscolhido.pegaNome()} modificado com sucesso!')
                 input(f'Clique para continuar...')
                 continue
-            print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+            print(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+            logger = logging.getLogger('trabalhoDao')
+            logger.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+            input(f'Clique para continuar...')
 
     def insereNovoTrabalhoProducao(self):
         while True:
@@ -2197,8 +2198,13 @@ class Aplicacao:
     def removeTrabalho(self):
         while True:
             limpaTela()
-            trabalhos = TrabalhoDaoSqlite().pegaTrabalhos()
             print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhos = trabalhoDao.pegaTrabalhos()
+            if not variavelExiste(trabalhos):
+                print(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                break
             for trabalho in trabalhos:
                 print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
             opcaoTrabalho = input(f'Opção trabalho: ')    
@@ -2208,9 +2214,11 @@ class Aplicacao:
             trabalhoDao = TrabalhoDaoSqlite()
             if trabalhoDao.removeTrabalho(trabalhoEscolhido):
                 print(f'{trabalhoEscolhido.pegaNome()} removido com sucesso!')
-            else:
-                print(f'Erro: {trabalhoDao.pegaErro()}')
-                logging.error(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                continue
+            logger = logging.getLogger('trabalhoDao')
+            logger.error(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
+            print(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
             input(f'Clique para continuar...')
 
     def modificaTrabalhoProducao(self):
