@@ -1971,56 +1971,56 @@ class Aplicacao:
             limpaTela()
             trabalhoDao = TrabalhoDaoSqlite()
             trabalhos = trabalhoDao.pegaTrabalhos()
-            if variavelExiste(trabalhos):
-                print(f'{('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
-                for trabalho in trabalhos:
-                    print(trabalho)
-                opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')
+            if not variavelExiste(trabalhos):
+                print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+                break
+            print(f'{('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            for trabalho in trabalhos:
+                print(trabalho)
+            opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')
+            try:
+                if opcaoTrabalho.lower() == 'n':
+                    break
+                limpaTela()
+                raridades = ['Comum', 'Melhorado', 'Raro', 'Especial']
+                for raridade in raridades:
+                    print(f'{raridades.index(raridade) + 1} - {raridade}')
+                opcaoRaridade = input(f'Opção raridade: ')
                 try:
-                    if opcaoTrabalho.lower() == 'n':
-                        break
+                    if int(opcaoRaridade) == 0:
+                        continue
                     limpaTela()
-                    raridades = ['Comum', 'Melhorado', 'Raro', 'Especial']
-                    for raridade in raridades:
-                        print(f'{raridades.index(raridade) + 1} - {raridade}')
-                    opcaoRaridade = input(f'Opção raridade: ')
-                    try:
-                        if int(opcaoRaridade) == 0:
-                            continue
-                        limpaTela()
-                        raridade = raridades[int(opcaoRaridade) - 1]
-                        profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
-                        for profissao in profissoes:
-                            print(f'{profissoes.index(profissao) + 1} - {profissao}')
-                        opcaoProfissao = input(f'Opção de profissao: ')
-                        if int(opcaoProfissao) == 0:
-                            continue
-                        limpaTela()
-                        profissao = profissoes[int(opcaoProfissao) - 1]
-                        nome = input(f'Nome: ')
-                        nomeProducao = input(f'Nome produção: ')
-                        experiencia = input(f'Experiência: ')
-                        nivel = input(f'Nível: ')
-                        trabalhoNecessario = input(f'Trabalhos necessarios: ')
-                        novoTrabalho = Trabalho(str(uuid.uuid4()), nome, nomeProducao, int(experiencia), int(nivel), profissao, raridade, trabalhoNecessario)
-                        trabalhoDao = TrabalhoDaoSqlite()
-                        if trabalhoDao.insereTrabalho(novoTrabalho):
-                            print(f'{novoTrabalho.pegaNome()} adicionado com sucesso!')
-                            continue
-                        print(f'Erro: {trabalhoDao.pegaErro()}')
-                        logger.error(f'Erro ao inserir novo trabalho: {trabalhoDao.pegaErro()}')
-                    except Exception as erro:
-                        logger = logging.getLogger(__name__)
-                        logger.exception(erro)
-                        print(f'Opção inválida!')
-                        input(f'Clique para continuar...')
+                    raridade = raridades[int(opcaoRaridade) - 1]
+                    profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
+                    for profissao in profissoes:
+                        print(f'{profissoes.index(profissao) + 1} - {profissao}')
+                    opcaoProfissao = input(f'Opção de profissao: ')
+                    if int(opcaoProfissao) == 0:
+                        continue
+                    limpaTela()
+                    profissao = profissoes[int(opcaoProfissao) - 1]
+                    nome = input(f'Nome: ')
+                    nomeProducao = input(f'Nome produção: ')
+                    experiencia = input(f'Experiência: ')
+                    nivel = input(f'Nível: ')
+                    trabalhoNecessario = input(f'Trabalhos necessarios: ')
+                    novoTrabalho = Trabalho(str(uuid.uuid4()), nome, nomeProducao, int(experiencia), int(nivel), profissao, raridade, trabalhoNecessario)
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.insereTrabalho(novoTrabalho):
+                        print(f'{novoTrabalho.pegaNome()} adicionado com sucesso!')
+                        continue
+                    print(f'Erro: {trabalhoDao.pegaErro()}')
+                    logger.error(f'Erro ao inserir novo trabalho: {trabalhoDao.pegaErro()}')
                 except Exception as erro:
                     logger = logging.getLogger(__name__)
                     logger.exception(erro)
                     print(f'Opção inválida!')
                     input(f'Clique para continuar...')
-                continue
-            print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+            except Exception as erro:
+                logger = logging.getLogger(__name__)
+                logger.exception(erro)
+                print(f'Opção inválida!')
+                input(f'Clique para continuar...')
 
     def modificaTrabalho(self):
         while True:
@@ -2154,7 +2154,12 @@ class Aplicacao:
         while True:
             limpaTela()
             print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
-            personagens = PersonagemDaoSqlite().pegaPersonagens()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if not variavelExiste(personagens):
+                print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                break
             for personagem in personagens:
                 print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
@@ -2166,7 +2171,7 @@ class Aplicacao:
             if tamanhoIgualZero(novoNome):
                 novoNome = personagem.pegaNome()
             personagem.setNome(novoNome)
-            novoEspaco = input(f'Nova quantidade: ')
+            novoEspaco = input(f'Nova quantidade de produção: ')
             if tamanhoIgualZero(novoEspaco):
                 novoEspaco = personagem.pegaEspacoProducao()
             personagem.setEspacoProducao(novoEspaco)
@@ -2181,11 +2186,13 @@ class Aplicacao:
                 personagem.alternaAutoProducao()
             personagemDao = PersonagemDaoSqlite()
             if personagemDao.modificaPersonagem(personagem):
-                print(f'{personagem.pegaNome()}: Modificado com sucesso!')
+                print(f'{personagem.pegaNome()} modificado com sucesso!')
+                input(f'Clique para continuar...')
                 continue
             logger = logging.getLogger('personagemDao')
             logger.error(f'Erro ao modificar persoangem: {personagemDao.pegaErro()}')
-            print(f'Erro: {personagemDao.pegaErro()}')
+            print(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
             
     def removeTrabalho(self):
         while True:
@@ -2360,7 +2367,12 @@ class Aplicacao:
         while True:
             limpaTela()
             print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
-            personagens = PersonagemDaoSqlite().pegaPersonagens()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if not variavelExiste(personagens):
+                print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                break
             for personagem in personagens:
                 print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
@@ -2370,10 +2382,12 @@ class Aplicacao:
             personagemDao = PersonagemDaoSqlite()
             if personagemDao.removePersonagem(personagem):
                 print(f'Personagem {personagem.pegaNome()} removido com sucesso!')
+                input(f'Clique para continuar...')
                 continue
             logger = logging.getLogger('personagemDao')
             logger.error(f'Erro ao remover personagem: {personagemDao.pegaErro()}')
             print(f'Erro ao remover personagem: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
     
     def insereTrabalhoEstoque(self):
         while True:
