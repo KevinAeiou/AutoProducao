@@ -5,20 +5,21 @@ from constantes import *
 class RepositorioTrabalhoProducao:
     _listaTrabalhosProducao = []
     def __init__(self, personagem) -> None:
-        self._meuBanco = FirebaseDatabase()._dataBase
+        self.__erro = None
+        self.__meuBanco = FirebaseDatabase()._dataBase
         self._personagem = personagem
         self._listaTrabalhosProducao = self.pegaTodosTrabalhosProducao()
 
     def limpaListaProducao(self):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).remove()
         except:
             print(f'Erro')
 
     def pegaTodosTrabalhosProducao(self):
         listaTrabalhosProducao = []
         try:
-            todosTrabalhosProducao = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).get()
+            todosTrabalhosProducao = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).get()
             if todosTrabalhosProducao.pyres != None:
                 for trabalhoProducaoEncontrado in todosTrabalhosProducao.each():
                     if CHAVE_TRABALHO_NECESSARIO in trabalhoProducaoEncontrado.val():
@@ -36,42 +37,35 @@ class RepositorioTrabalhoProducao:
         except:
             print(f'Erro')
         return listaTrabalhosProducao
-    
-    def pegaTrabalhoProducaoProId(self, trabalhoProducao):
-        try:
-            return self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).order_by_child(CHAVE_ID).equal_to(trabalhoProducao.pegaId()).get()
-        except:
-            print(f'Erro')
-    
-    def retornaListaTrabalhosProducaoParaProduzirProduzindo(self):
-        listaTrabalhosParaProduzirProduzindo = []
-        for trabalhoProducao in self._listaTrabalhosProducao:
-            if trabalhoProducao.ehParaProduzir() or trabalhoProducao.ehProduzindo():
-                listaTrabalhosParaProduzirProduzindo.append(trabalhoProducao)
-        return listaTrabalhosParaProduzirProduzindo
+
     
     def removeTrabalhoProducao(self, trabalhoProducao):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.pegaId()).remove()
-        except:
-            print(f'Erro')
-
-    def adicionaTrabalhoProducao(self, trabalhoProducao):
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.pegaId()).remove()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+    
+    def insereTrabalhoProducao(self, trabalhoProducao):
         try:
-            resultado = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).push(trabalhoProducao.__dict__)
-            trabalhoProducao.setId(resultado['name'])
-        except:
-            print(f'Erro')
-        return self.modificaTrabalhoProducao(trabalhoProducao)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.pegaId()).set(trabalhoProducao.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
 
     def modificaTrabalhoProducao(self, trabalhoProducao):
         try:
-            trabalhoProducaoComId = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.pegaId()).update(trabalhoProducao.__dict__)
-            trabalhoProducao.dicionarioParaObjeto(trabalhoProducaoComId)
-        except:
-            print(f'Erro')
-        return trabalhoProducao
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.pegaId()).update(trabalhoProducao.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
     
     def mostraListaTrabalhosProducao(self):
         for trabalhoProducao in self._listaTrabalhosProducao:
             print(trabalhoProducao)
+
+    def pegaErro(self):
+        return self.__erro

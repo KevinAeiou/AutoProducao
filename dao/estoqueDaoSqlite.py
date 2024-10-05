@@ -61,13 +61,14 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return False
 
-    def modificaTrabalhoEstoque(self, trabalhoEstoque):
+    def modificaTrabalhoEstoque(self, trabalhoEstoque, idPersonagemNovo = None):
+        idPersonagem = idPersonagemNovo if idPersonagemNovo != None else self.__personagem
         sql = """
             UPDATE Lista_estoque 
-            SET idTrabalho = ?, nome = ?, profissao = ?, nivel = ?, quantidade = ?, raridade = ? WHERE id = ?"""
+            SET idPersonagem = ?, idTrabalho = ?, nome = ?, profissao = ?, nivel = ?, quantidade = ?, raridade = ? WHERE id = ?"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaNome(), trabalhoEstoque.pegaProfissao(), trabalhoEstoque.pegaNivel(), trabalhoEstoque.pegaQuantidade(), trabalhoEstoque.pegaRaridade(), trabalhoEstoque.pegaId()))
+            cursor.execute(sql, (idPersonagem, trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaNome(), trabalhoEstoque.pegaProfissao(), trabalhoEstoque.pegaNivel(), trabalhoEstoque.pegaQuantidade(), trabalhoEstoque.pegaRaridade(), trabalhoEstoque.pegaId()))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             return True
