@@ -244,7 +244,7 @@ class Aplicacao:
                     if texto1PertenceTexto2('noticias',textoMenu):
                         print(f'Menu notícias...')
                         return MENU_NOTICIAS
-                    if texto1PertenceTexto2('personagens',textoMenu):
+                    if texto1PertenceTexto2('personagem',textoMenu):
                         print(f'Menu escolha de personagem...')
                         return MENU_ESCOLHA_PERSONAGEM
                     if texto1PertenceTexto2('artesanato',textoMenu):
