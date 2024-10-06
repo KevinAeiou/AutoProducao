@@ -1927,8 +1927,13 @@ class Aplicacao:
     def modificaProfissao(self):
         while True:
             limpaTela()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if not variavelExiste(personagens):
+                print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                break
             print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
-            personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
                 print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
@@ -1936,10 +1941,22 @@ class Aplicacao:
                 break
             while True:
                 limpaTela()
-                profissoes = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1]).pegaProfissoes()
+                profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1])
+                profissoes = profissaoDao.pegaProfissoes()
+                if not variavelExiste(profissoes):
+                    print(f'Erro ao buscar profissões: {profissaoDao.pegaErro()}')
+                    input(f'Clique para continuar...')
+                    break
                 if len(profissoes) == 0:
-                    ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1]).insereListaProfissoes()
-                    profissoes = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1]).pegaProfissoes()
+                    profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1])
+                    if profissaoDao.insereListaProfissoes():
+                        print(f'Profissões inseridas com sucesso!')
+                        input(f'Clique para continuar...')
+                    else:
+                        print(f'Erro ao inserir profissões: {profissaoDao.pegaErro()}')
+                        input(f'Clique para continuar...')
+                        break
+                    continue
                 print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(40)} | {('NOME').ljust(22)} | {str('EXP').ljust(6)} | PRIORIDADE')
                 for profissao in profissoes:
                     print(f'{str(profissoes.index(profissao) + 1).ljust(6)} | {profissao}')
@@ -1954,17 +1971,19 @@ class Aplicacao:
                 profissaoModificado.setNome(novoNome)
                 if tamanhoIgualZero(novaExperiencia):
                     novaExperiencia = profissaoModificado.pegaExperiencia()
-                profissaoModificado.setExperiencia(int(novaExperiencia))
+                profissaoModificado.setExperiencia(novaExperiencia)
                 alternaPrioridade = input(f'Alternar prioridade? (S/N) ')
                 if alternaPrioridade.lower() == 's':
                     profissaoModificado.alternaPrioridade()
                 profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem)-1])
                 if profissaoDao.modificaProfissao(profissaoModificado):
-                    print(f'Profissão {profissaoModificado.pegaNome()} modificado com sucesso!')
+                    print(f'{profissaoModificado.pegaNome()} modificado com sucesso!')
+                    input(f'Clique para continuar...')
                     continue
                 logger = logging.getLogger('profissaoDao')
                 logger.error(f'Erro ao modificar profissão: {profissaoDao.pegaErro()}')
                 print(f'Erro ao modificar profissão: {profissaoDao.pegaErro()}')
+                input(f'Clique para continuar...')
 
     def insereNovoTrabalho(self):
         while True:
@@ -2060,8 +2079,8 @@ class Aplicacao:
                 novoTrabalhoNecessario = trabalhoEscolhido.pegaTrabalhoNecessario()
             trabalhoEscolhido.setNome(novoNome)
             trabalhoEscolhido.setNomeProducao(novoNomeProducao)
-            trabalhoEscolhido.setExperiencia(int(novaExperiencia))
-            trabalhoEscolhido.setNivel(int(novoNivel))
+            trabalhoEscolhido.setExperiencia(novaExperiencia)
+            trabalhoEscolhido.setNivel(novoNivel)
             trabalhoEscolhido.setProfissao(novaProfissao)
             trabalhoEscolhido.setRaridade(novaRaridade)
             trabalhoEscolhido.setTrabalhoNecessario(novoTrabalhoNecessario)

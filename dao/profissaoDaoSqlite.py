@@ -3,6 +3,7 @@ __author__ = 'Kevin Amazonas'
 from modelos.profissao import Profissao
 from db.db import MeuBanco
 from uuid import uuid4
+from repositorio.repositorioProfissao import RepositorioProfissao
 from constantes import CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES
 
 class ProfissaoDaoSqlite:
@@ -14,6 +15,7 @@ class ProfissaoDaoSqlite:
             self.__meuBanco = MeuBanco()
             self.__conexao = self.__meuBanco.pegaConexao(1)
             self.__meuBanco.criaTabelas()
+            self.__repositorioProfissao = RepositorioProfissao(personagem)
         except Exception as e:
             self.__erro = str(e)
     
@@ -29,10 +31,12 @@ class ProfissaoDaoSqlite:
                 prioridade = True if linha[4] == 1 else False
                 profissoes.append(Profissao(linha[0], linha[2], linha[3], prioridade))
             profissoes = sorted(profissoes, key=lambda profissao:(profissao.pegaExperiencia()), reverse=True)
+            self.__meuBanco.desconecta()
+            return profissoes
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
-        return profissoes
+        return None
     
     def modificaProfissao(self, profissao):
         prioridade = 1 if profissao.pegaPrioridade() else 0
@@ -45,6 +49,10 @@ class ProfissaoDaoSqlite:
             cursor.execute(sql, (profissao.pegaNome(), profissao.pegaExperiencia(), prioridade, profissao.pegaId()))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
+            if self.__repositorioProfissao.modificaProfissao(profissao):
+                print(f'{profissao.pegaNome()} modificada com sucesso no servidor!')
+            else:
+                print(f'Erro ao modificar profissão no servidor: {self.__repositorioProfissao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -59,6 +67,8 @@ class ProfissaoDaoSqlite:
                 print(f'Profissão {profissao} inserida com sucesso!')
                 continue
             print(f'Erro ao inserir profissão: {self.pegaErro()}')
+            return False
+        return True
     
     def insereProfissao(self, profissao):
         prioridade = 1 if profissao.pegaPrioridade() else 0
@@ -70,6 +80,10 @@ class ProfissaoDaoSqlite:
             cursor.execute(sql, (profissao.pegaId(), self.__personagem.pegaId(), profissao.pegaNome(), profissao.pegaExperiencia(), prioridade))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
+            if self.__repositorioProfissao.insereProfissao(profissao):
+                print(f'{profissao.pegaNome()} inserido com sucesso no servidor!')
+            else:
+                print(f'Erro ao inserir profissão no servidor: {self.__repositorioProfissao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -90,7 +104,5 @@ class ProfissaoDaoSqlite:
         self.__meuBanco.desconecta()
         return False
 
-        
-    
     def pegaErro(self):
         return self.__erro

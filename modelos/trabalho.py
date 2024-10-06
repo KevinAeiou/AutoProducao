@@ -3,8 +3,8 @@ class Trabalho:
         self.id = id
         self.nome = nome
         self.nomeProducao = nomeProducao
-        self.experiencia = experiencia
-        self.nivel = nivel
+        self.experiencia : int = experiencia
+        self.nivel : int = nivel
         self.profissao = profissao
         self.raridade = raridade
         self.trabalhoNecessario = trabalhoNecessario
@@ -28,14 +28,14 @@ class Trabalho:
         return self.experiencia
     
     def setExperiencia(self, experiencia):
-        self.experiencia = experiencia
+        self.experiencia = int(experiencia)
 
     
     def pegaNivel(self):
         return self.nivel
     
     def setNivel(self, nivel):
-        self.nivel = nivel
+        self.nivel = int(nivel)
     
     def pegaProfissao(self):
         return self.profissao

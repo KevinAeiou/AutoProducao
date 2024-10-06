@@ -24,6 +24,7 @@ class Profissao:
         return self.prioridade
     
     def setExperiencia(self, experiencia):
+        experiencia = int(experiencia)
         if experiencia > 830000:
             experiencia = 830000
         self.experiencia = experiencia
