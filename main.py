@@ -354,10 +354,10 @@ class Aplicacao:
             trabalhoFoiVendido = texto1PertenceTexto2('Item vendido', textoCarta)
             if trabalhoFoiVendido:
                 print(f'Produto vendido')
-                textoCarta = re.sub("Item vendido", "", textoCarta)
+                textoCarta = re.sub("Item vendido", "", textoCarta).strip()
                 trabalhoVendido = TrabalhoVendido(str(uuid.uuid4()), textoCarta, str(datetime.date.today()), self.__personagemEmUso.pegaId(), self.retornaQuantidadeTrabalhoVendido(textoCarta), self.retornaChaveIdTrabalho(textoCarta), self.retornaValorTrabalhoVendido(textoCarta))
                 vendaDAO = VendaDaoSqlite(self.__personagemEmUso)
-                if vendaDAO.insereVenda(trabalhoVendido):
+                if vendaDAO.insereTrabalhoVendido(trabalhoVendido):
                     print(f'Nova venda {trabalhoVendido.pegaNome()} cadastrada com sucesso!')
                     return trabalhoVendido
                 logger = logging.getLogger('vendaDao')
@@ -2572,8 +2572,14 @@ class Aplicacao:
 
     def pegaTodosTrabalhosVendidos(self):
         limpaTela()
+        vendaDao = VendaDaoSqlite()
+        vendas = vendaDao.pegaTodosTrabalhosVendidos()
+        if not variavelExiste(vendas):
+            print(f'Erro ao buscar todas as vendas: {vendaDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            return
         print(f'{'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
-        for trabalhoVendido in VendaDaoSqlite().pegaTodosTrabalhosVendidos():
+        for trabalhoVendido in vendas:
             print(trabalhoVendido)
         input(f'Clique para continuar...')
 
@@ -2595,16 +2601,16 @@ class Aplicacao:
             personagem = personagens[int(opcaoPersonagem) - 1]
             while True:
                 limpaTela()
-                print(f'{('NOME').ljust(40)} | {('PROFISSÃO').ljust(25)} | {('QNT').ljust(3)} | {('NÍVEL').ljust(5)} | {('RARIDADE').ljust(10)} | {'ID TRABALHO'}')
-                trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
-                estoque = trabalhoEstoqueDao.pegaEstoque()
-                if not variavelExiste(estoque):
-                    print(f'Erro ao buscar trabalhos no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                print(f'{'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+                trabalhoVendidoDao = VendaDaoSqlite(personagem)
+                vendas = trabalhoVendidoDao.pegaVendas()
+                if not variavelExiste(vendas):
+                    print(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
-                for trabalhoEstoque in estoque:
-                    print(trabalhoEstoque)
-                opcaoTrabalho = input(f'Inserir novo trabalho ao estoque? (S/N) ')
+                for trabalhoVendido in vendas:
+                    print(trabalhoVendido)
+                opcaoTrabalho = input(f'Inserir nova venda? (S/N) ')
                 if opcaoTrabalho.lower() == 'n':
                     break
                 trabalhoDao = TrabalhoDaoSqlite()
@@ -2620,15 +2626,114 @@ class Aplicacao:
                 if int(opcaoTrabalho) == 0:
                     break
                 trabalho = trabalhos[int(opcaoTrabalho) - 1]
-                quantidadeTrabalho = input(f'Quantidade trabalho: ')
-                trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
-                if trabalhoEstoqueDao.insereTrabalhoEstoque(TrabalhoEstoque(str(uuid.uuid4()), trabalho.pegaNome(), trabalho.pegaProfissao(), trabalho.pegaNivel(), quantidadeTrabalho, trabalho.pegaRaridade(), trabalho.pegaId())):
-                    print(f'Trabalho {trabalho.pegaNome()} inserido no estoque com sucesso!')
+                data = input(f'Data da venda: ')
+                quantidade = input(f'Quantidade trabalho vendido: ')
+                valor = input(f'Valor do trabalho vendido: ')
+                trabalhoVendidoDao = VendaDaoSqlite(personagem)
+                if trabalhoVendidoDao.insereTrabalhoVendido(TrabalhoVendido(str(uuid.uuid4()), trabalho.pegaNome(), data, personagem.pegaId(), quantidade, trabalho.pegaId(), valor)):
+                    print(f'Nova venda inserida com sucesso!')
                     input(f'Clique para continuar...')
                     continue
-                logger = logging.getLogger('estoqueDao')
-                logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
-                print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                logger = logging.getLogger('vendasDao')
+                logger.error(f'Erro ao inserir nova venda: {trabalhoVendidoDao.pegaErro()}')
+                print(f'Erro ao inserir nova venda: {trabalhoVendidoDao.pegaErro()}')
+                input(f'Clique para continuar...')
+
+    def removeTrabalhoVendido(self):
+        while True:
+            limpaTela()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if not variavelExiste(personagens):
+                print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                break
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            for personagem in personagens:
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            while True:
+                limpaTela()
+                trabalhoVendidoDao = VendaDaoSqlite(personagem)
+                vendas = trabalhoVendidoDao.pegaVendas()
+                if not variavelExiste(vendas):
+                    print(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
+                    input(f'Clique para continuar...')
+                    break
+                print(f'{('ÍNDICE').ljust(6)} | {'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+                for trabalhoVendido in vendas:
+                    print(f'{str(vendas.index(trabalhoVendido) + 1).ljust(6)} | {trabalhoVendido}')
+                opcaoTrabalho = input(f'Opção trabalho: ')    
+                if int(opcaoTrabalho) == 0:
+                    break
+                trabalhoVendidoDao = VendaDaoSqlite(personagem)
+                if trabalhoVendidoDao.removeTrabalhoVendido(vendas[int(opcaoTrabalho) - 1]):
+                    print(f'Trabalho vendido removido com sucesso!')
+                    input(f'Clique para continuar...')
+                    continue
+                logger = logging.getLogger('vendasDao')
+                logger.error(f'Erro ao remover trabalho vendido: {trabalhoVendidoDao.pegaErro()}')
+                print(f'Erro ao remover trabalho vendido: {trabalhoVendidoDao.pegaErro()}')
+                input(f'Clique para continuar...')
+    
+    def modificaTrabalhoVendido(self):
+        while True:
+            limpaTela()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if not variavelExiste(personagens):
+                print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                break
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            for personagem in personagens:
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            personagem = personagens[int(opcaoPersonagem) - 1]
+            while True:
+                limpaTela()
+                trabalhoVendidoDao = VendaDaoSqlite(personagem)
+                vendas = trabalhoVendidoDao.pegaVendas()
+                if not variavelExiste(vendas):
+                    print(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
+                    input(f'Clique para continuar...')
+                    break
+                print(f'{('ÍNDICE').ljust(6)} | {'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+                for trabalhoVendido in vendas:
+                    print(f'{str(vendas.index(trabalhoVendido) + 1).ljust(6)} | {trabalhoVendido}')
+                opcaoTrabalho = input(f'Opção trabalho: ')    
+                if int(opcaoTrabalho) == 0:
+                    break
+                trabalhoVendidoDao = VendaDaoSqlite(personagem)
+                trabalhoVendidoModificado = vendas[int(opcaoTrabalho) - 1]
+                nome = input(f'Nome do trabalho: ')
+                if tamanhoIgualZero(nome):
+                    nome = trabalhoVendidoModificado.pegaNome()
+                data = input(f'Data da venda: ')
+                if tamanhoIgualZero(data):
+                    data = trabalhoVendidoModificado.pegaDataVenda()
+                quantidade = input(f'Quantidade vendida: ')
+                if tamanhoIgualZero(quantidade):
+                    quantidade = trabalhoVendidoModificado.pegaQuantidadeProduto()
+                valor = input(f'Valor da venda: ')
+                if tamanhoIgualZero(valor):
+                    valor = trabalhoVendidoModificado.pegaValorProduto()
+                trabalhoVendidoModificado.setNome(nome)
+                trabalhoVendidoModificado.setData(data)
+                trabalhoVendidoModificado.setQuantidade(quantidade)
+                trabalhoVendidoModificado.setValor(valor)
+                if trabalhoVendidoDao.modificaTrabalhoVendido(trabalhoVendidoModificado):
+                    print(f'Trabalho vendido modificado com sucesso!')
+                    input(f'Clique para continuar...')
+                    continue
+                logger = logging.getLogger('vendasDao')
+                logger.error(f'Erro ao modificar trabalho vendido: {trabalhoVendidoDao.pegaErro()}')
+                print(f'Erro ao modificar trabalho vendido: {trabalhoVendidoDao.pegaErro()}')
                 input(f'Clique para continuar...')
 
     def teste(self):
@@ -2712,10 +2817,11 @@ class Aplicacao:
                     continue
                 if int(opcaoMenu) == 17:
                     # modifica trabalho vendido
+                    self.modificaTrabalhoVendido()
                     continue
                 if int(opcaoMenu) == 18:
                     # remove trabalho vendido
-                    # self.removeTrabalhoVendidos()
+                    self.removeTrabalhoVendido()
                     continue
                 if int(opcaoMenu) == 19:
                     # pega todos trabalhos vendidos

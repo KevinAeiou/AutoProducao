@@ -3,15 +3,16 @@ from modelos.trabalhoVendido import TrabalhoVendido
 from constantes import *
 
 class RepositorioVendas:
-    _meuBanco = None
+    __meuBanco = None
     def __init__(self, personagem) -> None:
-        self.personagem = personagem
-        self._meuBanco = FirebaseDatabase()._dataBase
+        self.__erro = None
+        self.__personagem = personagem
+        self.__meuBanco = FirebaseDatabase()._dataBase
 
     def pegaTodasVendas(self):
         listaVendas = []
         try:
-            todasVendas = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).get()
+            todasVendas = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).get()
             if todasVendas.pyres != None:
                 for vendaEncontrada in todasVendas.each():
                     if CHAVE_TRABALHO_ID in vendaEncontrada.val():
@@ -25,34 +26,42 @@ class RepositorioVendas:
                             vendaEncontrada.val()[CHAVE_VALOR_PRODUTO]
                         )
                         listaVendas.append(trabalhoVendido)
-        except:
-            print(f'Erro')
-        return listaVendas
+                return listaVendas
+        except Exception as e:
+            self.__erro = str(e)
+        return None
     
-    def adicionaNovaVenda(self, novaVenda):
+    def insereTrabalhoVendido(self, trabalhoVendido):
         try:
-            res = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).push(novaVenda.__dict__)
-            novaVenda.setId(res['name'])
-            return self.modificaVenda(novaVenda)
-        except:
-            print(f'Erro')
-        return novaVenda
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(trabalhoVendido.pegaId()).set(trabalhoVendido.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
 
     def modificaVenda(self, venda):
         try:
-            return self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(venda.pegaId()).update(venda.__dict__)
-        except:
-            print(f'Erro')
-        return venda
-
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(venda.pegaId()).update(venda.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+        
     def removeVenda(self, venda):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(venda.pegaId()).remove()
-        except:
-            print(f'Erro')
-
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(venda.pegaId()).remove()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+        
     def limpaListaVenda(self):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.personagem.pegaId()).child(CHAVE_LISTA_VENDAS).remove()
-        except:
-            print(f'Erro')
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).remove()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+
+    def pegaErro(self):
+        return self.__erro
