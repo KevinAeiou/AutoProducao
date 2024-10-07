@@ -3,8 +3,8 @@ class TrabalhoEstoque:
         self.id = id
         self.nome = nome
         self.profissao = profissao
-        self.nivel = nivel
-        self.quantidade = quantidade
+        self.nivel = int(nivel)
+        self.quantidade = int(quantidade)
         self.raridade = raridade
         self.trabalhoId = trabalhoId
 
@@ -33,9 +33,7 @@ class TrabalhoEstoque:
         self.id = id
     
     def setQuantidade(self, quantidade):
-        quantidade = int(quantidade)
-        if quantidade < 0:
-            quantidade = 0
+        quantidade = 0 if int(quantidade) < 0 else int(quantidade)
         self.quantidade = quantidade
     
     def __str__(self) -> str:

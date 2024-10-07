@@ -30,6 +30,7 @@ class PersonagemDaoSqlite():
                     uso = True if linha[6] else False
                     autoProducao = True if linha[7] else False
                     personagens.append(Personagem(linha[0], linha[1], linha[2],linha[3],linha[4],estado,uso,autoProducao))
+                self.__meuBanco.desconecta()
                 return personagens
         except Exception as e:
             self.__erro = str(e)
