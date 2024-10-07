@@ -33,6 +33,7 @@ class TrabalhoEstoque:
         self.id = id
     
     def setQuantidade(self, quantidade):
+        quantidade = int(quantidade)
         if quantidade < 0:
             quantidade = 0
         self.quantidade = quantidade

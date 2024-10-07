@@ -6,6 +6,7 @@ class RepositorioEstoque:
     def __init__(self, personagem):
         self._meuBanco = FirebaseDatabase()._dataBase
         self._personagem = personagem
+        self.__erro = None
 
     def pegaTodosTrabalhosEstoque(self):
         listaEstoque = []
@@ -30,16 +31,30 @@ class RepositorioEstoque:
             print(f'Erro')
         return listaEstoque
     
-    def adicionaTrabalhoEstoque(self, trabalho):
+    def insereTrabalhoEstoque(self, trabalho):
         try:
-            resultado = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_ESTOQUE).push(trabalho.__dict__)
-            trabalho.setId(resultado['name'])
-            self.modificaTrabalhoEstoque(trabalho)
-        except:
-            print(f'Erro')
+            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_ESTOQUE).child(trabalho.pegaId()).set(trabalho.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
 
     def modificaTrabalhoEstoque(self, trabalho):
         try:
             self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_ESTOQUE).child(trabalho.pegaId()).update(trabalho.__dict__)
-        except:
-            print(f'Erro')
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+    
+    def removeTrabalho(self, trabalho):
+        try:
+            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_ESTOQUE).child(trabalho.pegaId()).remove()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+
+    
+    def pegaErro(self):
+        return self.__erro

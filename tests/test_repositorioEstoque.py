@@ -18,7 +18,7 @@ class TestRepositorioEstoque:
     def testDeveAdicionarItemAoEstoque(self):
         self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
         esperado = len(self._listaTrabalhosEstoque)
-        self._repositorioEstoque.adicionaTrabalhoEstoque(self._trabalhoTeste)
+        self._repositorioEstoque.insereTrabalhoEstoque(self._trabalhoTeste)
         self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
         recebido = len(self._listaTrabalhosEstoque) - 1
         assert esperado == recebido
