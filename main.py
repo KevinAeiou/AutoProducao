@@ -2583,6 +2583,19 @@ class Aplicacao:
             print(trabalhoVendido)
         input(f'Clique para continuar...')
 
+    def pegaTodosTrabalhosProducao(self):
+        limpaTela()
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite()
+        trabalhosProducao = trabalhoProducaoDao.pegaTodosTrabalhosProducao()
+        if not variavelExiste(trabalhosProducao):
+            print(f'Erro ao buscar todas os trabalhos em produção: {trabalhoProducaoDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            return
+        # print(f'{'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+        for trabalhoProducao in trabalhosProducao:
+            print(trabalhoProducao)
+        input(f'Clique para continuar...')
+
     def insereTrabalhoVendido(self):
         while True:
             limpaTela()
@@ -2740,15 +2753,15 @@ class Aplicacao:
         while True:
             limpaTela()
             print(f'MENU')
-            print(f'1 - Adiciona trabalho')
-            print(f'2 - Adiciona trabalho produção')
-            print(f'3 - Modifica personagem')
-            print(f'4 - Modifica profissao')
-            print(f'5 - Remove trabalho')
-            print(f'6 - Modifica trabalho produção')
-            print(f'7 - Remove trabalho produção')
-            print(f'8 - Mostra vendas')
-            print(f'9 - Modifica trabalho')
+            print(f'01 - Adiciona trabalho')
+            print(f'02 - Adiciona trabalho produção')
+            print(f'03 - Modifica personagem')
+            print(f'04 - Modifica profissao')
+            print(f'05 - Remove trabalho')
+            print(f'06 - Modifica trabalho produção')
+            print(f'07 - Remove trabalho produção')
+            print(f'08 - Mostra vendas')
+            print(f'09 - Modifica trabalho')
             print(f'10 - Remove personagem')
             print(f'11 - Insere personagem')
             print(f'12 - Insere trabalho no estoque')
@@ -2828,7 +2841,8 @@ class Aplicacao:
                     self.pegaTodosTrabalhosVendidos()
                     continue
                 if int(opcaoMenu) == 20:
-                    # pega todos trabalhos vendidos
+                    # pega todos trabalhos produção
+                    self.pegaTodosTrabalhosProducao()
                     continue
                 if int(opcaoMenu) == 21:
                     # pega todos trabalhos vendidos

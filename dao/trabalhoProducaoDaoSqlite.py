@@ -5,7 +5,7 @@ from db.db import MeuBanco
 from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
 
 class TrabalhoProducaoDaoSqlite:
-    def __init__(self, personagem):
+    def __init__(self, personagem = None):
         self.__conexao = None
         self.__erro = None
         self.__personagem = personagem
@@ -17,6 +17,24 @@ class TrabalhoProducaoDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
     
+    def pegaTodosTrabalhosProducao(self):
+        trabalhosProducao = []
+        sql = """
+            SELECT * 
+            FROM Lista_desejo;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql)
+            for linha in cursor.fetchall():
+                recorrencia = True if linha[10] == 1 else False
+                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
+            self.__meuBanco.desconecta()
+            return trabalhosProducao
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
     def pegaTrabalhosProducao(self):
         trabalhosProducao = []
         sql = """SELECT * FROM Lista_desejo WHERE idPersonagem == ?;"""
@@ -26,6 +44,7 @@ class TrabalhoProducaoDaoSqlite:
             for linha in cursor.fetchall():
                 recorrencia = True if linha[10] == 1 else False
                 trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
+            self.__meuBanco.desconecta()
             return trabalhosProducao
         except Exception as e:
             self.__erro = str(e)
@@ -41,10 +60,12 @@ class TrabalhoProducaoDaoSqlite:
             for linha in cursor.fetchall():
                 recorrencia = True if linha[10] == 1 else False
                 trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
+            self.__meuBanco.desconecta()
+            return trabalhosProducao
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
-        return trabalhosProducao
+        return None
     
     def insereTrabalhoProducao(self, trabalhoProducao):
         recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
