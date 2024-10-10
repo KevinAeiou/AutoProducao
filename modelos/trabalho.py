@@ -1,5 +1,5 @@
 class Trabalho:
-    def __init__(self, id, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario) -> None:
+    def __init__(self, id = None, nome = None, nomeProducao = None, experiencia = None, nivel = None, profissao = None, raridade = None, trabalhoNecessario = None) -> None:
         self.id = id
         self.nome = nome
         self.nomeProducao = nomeProducao
@@ -11,6 +11,9 @@ class Trabalho:
 
     def pegaId(self):
         return self.id
+    
+    def setId(self, id):
+        self.id = id
     
     def pegaNome(self):
         return self.nome
@@ -54,6 +57,12 @@ class Trabalho:
     
     def setTrabalhoNecessario(self, trabalhoNecessario):
         self.trabalhoNecessario = trabalhoNecessario
+
+    def dicionarioParaObjeto(self, dicionario):
+        if dicionario is None:
+            return
+        for chave in dicionario:
+            setattr(self, chave, dicionario[chave])
 
     def __str__(self) -> str:
         return f'{(self.nome).ljust(44)} | {(self.profissao).ljust(22)} | {(self.raridade).ljust(9)} | {self.nivel}'

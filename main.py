@@ -2001,62 +2001,52 @@ class Aplicacao:
                 self.entraPersonagemAtivo()
         
     def sincronizaDados(self):
-        limpaTela()
-        print(f'PERSONAGENS FIREBASE')
-        personagemRepositorio = RepositorioPersonagem()
-        personagens = personagemRepositorio.pegaTodosPersonagens()
-        if tamanhoIgualZero(personagens):
-            print(f'Erro ao buscar personagens firebase: {personagemRepositorio.pegaErro()}')
-        else:
-            for personagem in personagens:
-                print(personagem)
-        personagemDao = PersonagemDaoSqlite()
-        personagens = personagemDao.pegaPersonagens()
-        if not variavelExiste(personagens):
-            logger = logging.getLogger('personagemDao')
-            logger.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            return
-        for personagemSqlite in personagens:
-            print(f'Verificado {personagemSqlite.pegaNome()}')
-            for personagemFire in personagens:
-                if personagemSqlite.pegaNome().lower() == personagemFire.pegaNome().lower():
-                    if personagemSqlite.pegaId() != personagemFire.pegaId() or personagemSqlite.pegaEmail() != personagemFire.pegaEmail() or personagemSqlite.pegaSenha() != personagemFire.pegaSenha() or personagemSqlite.pegaEspacoProducao() != personagemFire.pegaEspacoProducao() or personagemSqlite.pegaEstado() != personagemFire.pegaEstado() or personagemSqlite.pegaUso() != personagemFire.pegaUso() or personagemSqlite.pegaAutoProducao() != personagemFire.pegaAutoProducao():
-                        personagemDao = PersonagemDaoSqlite()
-                        if personagemDao.modificaPersonagem(personagemFire, personagemSqlite.pegaId()):
-                            print(f'Personagem {personagemSqlite.pegaNome()} sincronizada com sucesso!')
-                            break
-                        print(f'Erro ao sincronizar personagem {personagemSqlite.pegaNome()}: {personagemDao.pegaErro()}')
-                    break
-            else:
-                print(f'{personagemSqlite.pegaNome()} não encontrado no servidor')
-        print(f'PERSONAGENS SQL')
-        personagemDao = PersonagemDaoSqlite()
-        personagens = personagemDao.pegaPersonagens()
-        if not variavelExiste(personagens):
-            logger = logging.getLogger('personagemDao')
-            logger.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            return
-        for personagemSqlite in personagens:
-            print(personagemSqlite)
-        for trabalho in RepositorioTrabalho().pegaTodosTrabalhos():
-            trabalhoDao = TrabalhoDaoSqlite()
-            trabalhos = trabalhoDao.pegaTrabalhos()
-            if not variavelExiste(trabalhos):
-                logger = logging.getLogger('trabalhoDao')
-                logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-                print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-            for trabalhoSql in trabalhos:
-                if trabalho.pegaNome() == trabalhoSql.pegaNome():
-                    print(f'{trabalho.pegaNome()} já existe!')
-                    break
-            else:
-                trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.insereTrabalho(trabalho):
-                    print(f'{trabalho.pegaNome()} inserido com sucesso!')
-                    continue
-                print(f'Erro ao inserir {trabalho.pegaNome()} na lista de trabalhos: {trabalhoDao.pegaErro()}')
+        repositorioTrabalho = RepositorioTrabalho()
+        while True:
+            limpaTela()
+            if repositorioTrabalho.is_ready:
+                print(f'Dados da lista de trabalhos está pronta!')
+                for trabalho in repositorioTrabalho.pegaDadosModificados():
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecifico(trabalho)
+                    if trabalhoEncontrado is None:
+                        print(f'Trabalho não encontrado no banco!')
+                        if trabalho.pegaNome() is not None:
+                            print(f'Deve inserir novo trabalho no banco!')
+                            trabalhoDao = TrabalhoDaoSqlite()
+                            if trabalhoDao.insereTrabalho(trabalho):
+                                print(f'{trabalho.pegaNome()} inserido com sucesso!')
+                                input(f'Clique para continuar...')
+                                continue
+                            logger = logging.getLogger('trabalhoDao')
+                            logger.error(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
+                            print(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
+                        input(f'Clique para continuar...')
+                        continue
+                    if trabalho.pegaNome() is None:
+                        print(f'Deve remover trabalho do banco!')
+                        trabalhoDao = TrabalhoDaoSqlite()
+                        if trabalhoDao.removeTrabalho(trabalho):
+                            print(f'Trabalho removido com sucesso!')
+                            input(f'Clique para continuar...')
+                            continue
+                        logger = logging.getLogger('trabalhoDao')
+                        logger.error(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
+                        print(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
+                        input(f'Clique para continuar...')
+                        continue
+                    print(f'Deve modificar trabalho no banco!')
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.modificaTrabalho(trabalho):
+                        print(f'{trabalho.pegaNome()} modificado com sucesso!')
+                        input(f'Clique para continuar...')
+                        continue
+                    logger = logging.getLogger('trabalhoDao')
+                    logger.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+                    print(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+                    input(f'Clique para continuar...')
+                repositorioTrabalho.limpaLista()
+                input(f'Clique para continuar...')
         # 86c0b57c-8c2e-4eb4-8fe7-305c435a214d | Mrninguem         | 10     | Verdadeiro | Verdadeiro | Falso
         # 63b2f589-109a-4aba-b481-866cd2beb684 | Joezinho          | 10     | Verdadeiro | Verdadeiro | Falso
         # 729b1481-d806-4253-80dd-8acd8cff665d | Provisorioatecair | 6      | Verdadeiro | Falso      | Falso
@@ -2066,7 +2056,6 @@ class Aplicacao:
         # 5c551e2a-2494-4955-b62f-d2e979d66d9f | Raulssauro        | 1      | Falso      | Falso      | Falso
         # 770b93a1-2837-4a3c-96e1-0351efbf7063
 
-        input(f'Clique para continuar...')
 
     def preparaPersonagem(self):
         clickAtalhoEspecifico('alt', 'tab')

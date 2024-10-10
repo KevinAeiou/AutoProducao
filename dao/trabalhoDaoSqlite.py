@@ -33,6 +33,23 @@ class TrabalhoDaoSqlite():
         except Exception as e:
             self.__erro = str(e)
         return None
+
+    def pegaTrabalhoEspecifico(self, trabalho):
+        sql = """
+            SELECT * 
+            FROM trabalhos
+            WHERE id == ?;"""
+        try:
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, [trabalho.pegaId()])
+                for linha in cursor.fetchall():
+                    trabalhoEncontrado = Trabalho(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7])
+                self.__meuBanco.desconecta()
+                return trabalhoEncontrado            
+        except Exception as e:
+            self.__erro = str(e)
+        return None
     
     def insereTrabalho(self, trabalho):
         sql = """INSERT INTO trabalhos (id, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario)
