@@ -1,5 +1,5 @@
 import pyrebase
-from credenciais.firebaseCredenciais import config
+from repositorio.credenciais.firebaseCredenciais import config
 
 class FirebaseDatabase:
     def __init__(self):
