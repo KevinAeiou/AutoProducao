@@ -1,8 +1,8 @@
 from modelos.trabalho import Trabalho
-from dao.trabalhoDaoSqlite import TrabalhoDaoSqlite
+from dao.trabalhoDaoSqlite import PersonagemDaoSqlite
 
 class TesteTrabalhoDaoSqlite:
-    trabalhoDaoSqlite = TrabalhoDaoSqlite()
+    trabalhoDaoSqlite = PersonagemDaoSqlite()
 
     def testDeveRetornarListaComMiasDeZeroItens(self):
         esperado = 0

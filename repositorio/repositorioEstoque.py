@@ -4,7 +4,7 @@ from repositorio.firebaseDatabase import FirebaseDatabase
 
 class RepositorioEstoque:
     def __init__(self, personagem):
-        self._meuBanco = FirebaseDatabase()._dataBase
+        self._meuBanco = FirebaseDatabase().__dataBase
         self._personagem = personagem
         self.__erro = None
 
