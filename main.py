@@ -33,6 +33,13 @@ class Aplicacao:
         self.__listaPersonagemAtivo = []
         self.__listaProfissoesNecessarias = []
         self.__personagemEmUso = None
+        self.__repositorioTrabalho = RepositorioTrabalho()
+        if self.__repositorioTrabalho.abreStream():
+            print(f'Stream repositório trabalhos iniciada!')
+        else:
+            print(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
+            logger = logging.getLogger('repositorioTrabalho')
+            logger.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
 
     def defineListaPersonagemMesmoEmail(self):
         listaDicionarioPersonagemMesmoEmail = []
@@ -1949,6 +1956,7 @@ class Aplicacao:
 
     def iniciaProcessoBusca(self):
         while True:
+            self.verificaAlteracaoListaTrabalhos()
             self.retiraPersonagemJaVerificadoListaAtivo()
             listaPersonagensAtivosEstaVazia = tamanhoIgualZero(self.__listaPersonagemAtivo)
             if listaPersonagensAtivosEstaVazia:
@@ -1999,54 +2007,52 @@ class Aplicacao:
                 continue
             if self.configuraLoginPersonagem():
                 self.entraPersonagemAtivo()
-        
-    def sincronizaDados(self):
-        repositorioTrabalho = RepositorioTrabalho()
-        while True:
-            limpaTela()
-            if repositorioTrabalho.is_ready:
-                print(f'Dados da lista de trabalhos está pronta!')
-                for trabalho in repositorioTrabalho.pegaDadosModificados():
-                    trabalhoDao = TrabalhoDaoSqlite()
-                    trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecifico(trabalho)
-                    if trabalhoEncontrado is None:
-                        print(f'Trabalho não encontrado no banco!')
-                        if trabalho.pegaNome() is not None:
-                            print(f'Deve inserir novo trabalho no banco!')
-                            trabalhoDao = TrabalhoDaoSqlite()
-                            if trabalhoDao.insereTrabalho(trabalho):
-                                print(f'{trabalho.pegaNome()} inserido com sucesso!')
-                                input(f'Clique para continuar...')
-                                continue
-                            logger = logging.getLogger('trabalhoDao')
-                            logger.error(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
-                            print(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
-                        input(f'Clique para continuar...')
-                        continue
-                    if trabalho.pegaNome() is None:
-                        print(f'Deve remover trabalho do banco!')
+
+    def verificaAlteracaoListaTrabalhos(self):
+        if self.__repositorioTrabalho.estaPronto:
+            print(f'Lista de trabalhos foi alterada!')
+            for trabalho in self.__repositorioTrabalho.pegaDadosModificados():
+                trabalhoDao = TrabalhoDaoSqlite()
+                trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecifico(trabalho)
+                if trabalhoEncontrado is None:
+                    print(f'Trabalho não encontrado no banco!')
+                    if trabalho.pegaNome() is not None:
+                        print(f'Deve inserir novo trabalho no banco!')
                         trabalhoDao = TrabalhoDaoSqlite()
-                        if trabalhoDao.removeTrabalho(trabalho):
-                            print(f'Trabalho removido com sucesso!')
-                            input(f'Clique para continuar...')
+                        if trabalhoDao.insereTrabalho(trabalho):
+                            print(f'{trabalho.pegaNome()} inserido com sucesso!')
                             continue
                         logger = logging.getLogger('trabalhoDao')
-                        logger.error(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
-                        print(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
-                        input(f'Clique para continuar...')
-                        continue
-                    print(f'Deve modificar trabalho no banco!')
+                        logger.error(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
+                        print(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
+                    continue
+                if trabalho.pegaNome() is None:
+                    print(f'Deve remover trabalho do banco!')
                     trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.modificaTrabalho(trabalho):
-                        print(f'{trabalho.pegaNome()} modificado com sucesso!')
-                        input(f'Clique para continuar...')
+                    if trabalhoDao.removeTrabalho(trabalho):
+                        print(f'Trabalho removido com sucesso!')
                         continue
                     logger = logging.getLogger('trabalhoDao')
-                    logger.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
-                    print(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
-                    input(f'Clique para continuar...')
-                repositorioTrabalho.limpaLista()
-                input(f'Clique para continuar...')
+                    logger.error(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
+                    print(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
+                    continue
+                print(f'Deve modificar trabalho no banco!')
+                trabalhoDao = TrabalhoDaoSqlite()
+                if trabalhoDao.modificaTrabalho(trabalho):
+                    print(f'{trabalho.pegaNome()} modificado com sucesso!')
+                    continue
+                logger = logging.getLogger('trabalhoDao')
+                logger.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+                print(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+            self.__repositorioTrabalho.limpaLista()
+        
+    def sincronizaListaTrabalhos(self):
+        repositorioTrabalho = RepositorioTrabalho()        
+
+        pass
+    
+    def sincronizaDados(self):
+        self.sincronizaListaTrabalhos()
         # 86c0b57c-8c2e-4eb4-8fe7-305c435a214d | Mrninguem         | 10     | Verdadeiro | Verdadeiro | Falso
         # 63b2f589-109a-4aba-b481-866cd2beb684 | Joezinho          | 10     | Verdadeiro | Verdadeiro | Falso
         # 729b1481-d806-4253-80dd-8acd8cff665d | Provisorioatecair | 6      | Verdadeiro | Falso      | Falso
@@ -2524,7 +2530,10 @@ class Aplicacao:
             nome = input(f'Nome: ')
             email = input(f'Email: ')
             senha = input(f'Senha: ')
-            novoPersonagem = Personagem(str(uuid.uuid4()), nome, email, senha, 1, False, False, False)
+            novoPersonagem = Personagem()
+            novoPersonagem.setNome(nome)
+            novoPersonagem.setEmail(email)
+            novoPersonagem.setSenha(senha)
             personagemDao = PersonagemDaoSqlite()
             if personagemDao.inserePersonagem(novoPersonagem):
                 print(f'Novo personagem {novoPersonagem.pegaNome()} inserido com sucesso!')

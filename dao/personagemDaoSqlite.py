@@ -29,12 +29,41 @@ class PersonagemDaoSqlite():
                     estado = True if linha[5] else False
                     uso = True if linha[6] else False
                     autoProducao = True if linha[7] else False
-                    personagens.append(Personagem(linha[0], linha[1], linha[2],linha[3],linha[4],estado,uso,autoProducao))
+                    personagem = Personagem()
+                    personagem.setId(linha[0])
+                    personagem.setNome(linha[1])
+                    personagem.setEmail(linha[2])
+                    personagem.setSenha(linha[3])
+                    personagem.setEspacoProducao(linha[4])
+                    personagem.setEstado(estado)
+                    personagem.setUso(uso)
+                    personagem.setAutoProducao(autoProducao)
+                    personagens.append(personagem)
                 self.__meuBanco.desconecta()
                 return personagens
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
+        return None
+    
+    def pegaPersonagemEspecifico(self, personagem):
+        sql = """
+            SELECT * 
+            FROM personagens
+            WHERE id == ?;"""
+        try:
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, [personagem.pegaId()])
+                for linha in cursor.fetchall():
+                    estado = True if linha[5] else False
+                    uso = True if linha[6] else False
+                    autoProducao = True if linha[7] else False
+                    personagemEncontrado = Personagem(linha[0], linha[1], linha[2],linha[3],linha[4],estado,uso,autoProducao)
+                self.__meuBanco.desconecta()
+                return personagemEncontrado            
+        except Exception as e:
+            self.__erro = str(e)
         return None
     
     def modificaPersonagem(self, personagem, idAntigo = None):

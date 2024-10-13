@@ -1,13 +1,15 @@
+from uuid import uuid4
+
 class Personagem:
-    def __init__(self, id, nome, email, senha, espacoProducao, estado, uso, autoProducao):
-        self.id = id
-        self.nome = nome
-        self.email = email
-        self.senha = senha
-        self.espacoProducao = espacoProducao
-        self.estado = estado
-        self.uso = uso
-        self.autoProducao = autoProducao
+    def __init__(self):
+        self.id = str(uuid4())
+        self.nome = None
+        self.email = None
+        self.senha = None
+        self.espacoProducao = 1
+        self.estado = False
+        self.uso = False
+        self.autoProducao = False
 
     def __str__(self) -> str:
         estado = 'Verdadeiro' if self.estado else 'Falso'
@@ -30,29 +32,38 @@ class Personagem:
     def pegaEmail(self):
         return self.email
     
+    def setEmail(self, email):
+        self.email = email
+    
     def pegaSenha(self):
         return self.senha
+    
+    def setSenha(self, senha):
+        self.senha = senha
     
     def pegaEspacoProducao(self):
         return self.espacoProducao
     
     def setEspacoProducao(self, espacoProducao):
-        self.espacoProducao = espacoProducao
+        self.espacoProducao = int(espacoProducao)
     
     def pegaEstado(self):
         return self.estado
     
+    def setEstado(self, estado):
+        self.estado = estado
+    
     def pegaUso(self):
         return self.uso
+    
+    def setUso(self, uso):
+        self.uso = uso
     
     def pegaAutoProducao(self):
         return self.autoProducao
     
-    def setEstado(self, estado):
-        self.estado = estado
-    
-    def setEspacoProducao(self, espacoProducao):
-        self.espacoProducao = espacoProducao
+    def setAutoProducao(self, autoProducao):
+        self.autoProducao = autoProducao
     
     def ehAtivo(self):
         return True if self.estado else False
