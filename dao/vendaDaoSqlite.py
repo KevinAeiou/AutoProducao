@@ -106,6 +106,23 @@ class VendaDaoSqlite:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return False
+    
+    def modificaIdPersonagemTrabalhoVendido(self, idTrabalhoNovo, idTrabalhoAntigo):
+        sql = """
+            UPDATE vendas 
+            SET nomePersonagem = ?
+            WHERE nomePersonagem == ?"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (idTrabalhoNovo, idTrabalhoAntigo))
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
+    
         
     def pegaTodosTrabalhosVendidos(self):
         vendas = []

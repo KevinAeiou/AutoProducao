@@ -46,12 +46,13 @@ class PersonagemDaoSqlite():
         self.__meuBanco.desconecta()
         return None
     
-    def pegaPersonagemEspecifico(self, personagem):
+    def pegaPersonagemEspecificoPorId(self, personagem):
         sql = """
             SELECT * 
             FROM personagens
             WHERE id == ?;"""
         try:
+            personagemEncontrado = Personagem()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, [personagem.pegaId()])
@@ -59,7 +60,42 @@ class PersonagemDaoSqlite():
                     estado = True if linha[5] else False
                     uso = True if linha[6] else False
                     autoProducao = True if linha[7] else False
-                    personagemEncontrado = Personagem(linha[0], linha[1], linha[2],linha[3],linha[4],estado,uso,autoProducao)
+                    personagemEncontrado.setId(linha[0])
+                    personagemEncontrado.setNome(linha[1])
+                    personagemEncontrado.setEmail(linha[2])
+                    personagemEncontrado.setSenha(linha[3])
+                    personagemEncontrado.setEspacoProducao(linha[4])
+                    personagemEncontrado.setEstado(estado)
+                    personagemEncontrado.setUso(uso)
+                    personagemEncontrado.setAutoProducao(autoProducao)
+                self.__meuBanco.desconecta()
+                return personagemEncontrado            
+        except Exception as e:
+            self.__erro = str(e)
+        return None
+    
+    def pegaPersonagemEspecificoPorNome(self, personagem):
+        sql = """
+            SELECT * 
+            FROM personagens
+            WHERE nome == ?;"""
+        try:
+            personagemEncontrado = Personagem()
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, [personagem.pegaNome()])
+                for linha in cursor.fetchall():
+                    estado = True if linha[5] else False
+                    uso = True if linha[6] else False
+                    autoProducao = True if linha[7] else False
+                    personagemEncontrado.setId(linha[0])
+                    personagemEncontrado.setNome(linha[1])
+                    personagemEncontrado.setEmail(linha[2])
+                    personagemEncontrado.setSenha(linha[3])
+                    personagemEncontrado.setEspacoProducao(linha[4])
+                    personagemEncontrado.setEstado(estado)
+                    personagemEncontrado.setUso(uso)
+                    personagemEncontrado.setAutoProducao(autoProducao)
                 self.__meuBanco.desconecta()
                 return personagemEncontrado            
         except Exception as e:
@@ -86,6 +122,25 @@ class PersonagemDaoSqlite():
                 print(f'{personagem.pegaNome()} modificado com sucesso no servidor!')
             else:
                 print(f'Erro ao modificar personagem no servidor: {self.__repositorioPersonagem.pegaErro()}')
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
+    
+    def modificaPersonagemPorNome(self, personagem):
+        estado = 1 if personagem.pegaEstado() else 0
+        uso = 1 if personagem.pegaUso() else 0
+        autoProducao = 1 if personagem.pegaAutoProducao() else 0
+        sql = """
+            UPDATE personagens SET id = ?, nome = ?, email = ?, senha = ?, espacoProducao = ?, estado = ?, uso = ?, autoProducao = ?
+            WHERE nome == ?"""
+        try:
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, (personagem.pegaId(), personagem.pegaNome(), personagem.pegaEmail(), personagem.pegaSenha(), personagem.pegaEspacoProducao(), estado, uso, autoProducao, personagem.pegaNome()))
+                self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)

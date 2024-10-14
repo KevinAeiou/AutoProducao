@@ -107,6 +107,22 @@ class EstoqueDaoSqlite:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return False
+
+    def modificaIdPersonagemTrabalhoEstoque(self, idPersonagemNovo, idPersonagemAntigo):
+        sql = """
+            UPDATE Lista_estoque 
+            SET idPersonagem = ?
+            WHERE idPersonagem == ?"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (idPersonagemNovo, idPersonagemAntigo))
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
     
     def removeTrabalhoEstoque(self, trabalhoEstoque):
         sql = """

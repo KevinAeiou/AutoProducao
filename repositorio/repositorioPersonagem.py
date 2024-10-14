@@ -71,38 +71,32 @@ class RepositorioPersonagem:
             self.__dadosModificados.append(personagem)
     
     def pegaTodosPersonagens(self):
-        listaPersonagens = []
+        personagens = []
         try:
             todosPersonagens = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).get()
             if todosPersonagens.pyres != None:
                 for personagemEncontrado in todosPersonagens.each():
+                    personagem = Personagem()
+                    personagem.setId(personagemEncontrado.key())
+                    personagem.setNome(personagemEncontrado.val()[CHAVE_NOME])
+                    personagem.setEmail(personagemEncontrado.val()[CHAVE_EMAIL])
+                    personagem.setSenha(personagemEncontrado.val()[CHAVE_SENHA])
+                    personagem.setEspacoProducao(personagemEncontrado.val()[CHAVE_ESPACO_PRODUCAO])
+                    personagem.setEstado(personagemEncontrado.val()[CHAVE_ESTADO])
+                    personagem.setUso(personagemEncontrado.val()[CHAVE_USO])
                     if CHAVE_AUTO_PRODUCAO in personagemEncontrado.val():
-                        personagem = Personagem(
-                            personagemEncontrado.key(),
-                            personagemEncontrado.val()[CHAVE_NOME],
-                            personagemEncontrado.val()[CHAVE_EMAIL],
-                            personagemEncontrado.val()[CHAVE_SENHA],
-                            personagemEncontrado.val()[CHAVE_ESPACO_PRODUCAO],
-                            personagemEncontrado.val()[CHAVE_ESTADO],
-                            personagemEncontrado.val()[CHAVE_USO],
-                            personagemEncontrado.val()[CHAVE_AUTO_PRODUCAO])
+                        personagem.setAutoProducao(personagemEncontrado.val()[CHAVE_AUTO_PRODUCAO])
                     else:
-                        if self.modificaPersonagem(personagem = Personagem(
-                            personagemEncontrado.key(),
-                            personagemEncontrado.val()[CHAVE_NOME],
-                            personagemEncontrado.val()[CHAVE_EMAIL],
-                            personagemEncontrado.val()[CHAVE_SENHA],
-                            personagemEncontrado.val()[CHAVE_ESPACO_PRODUCAO],
-                            personagemEncontrado.val()[CHAVE_ESTADO],
-                            personagemEncontrado.val()[CHAVE_USO],
-                            False)):
+                        personagem.setAutoProducao(False)
+                        if self.modificaPersonagem(personagem):
                             print(f'CHAVE autoProducao inserida com sucesso!')
                         else:
                             print(f'Erro ao inserir chave autoProducao: {self.pegaErro()}')
-                    listaPersonagens.append(personagem)
+                    personagens.append(personagem)
+                return personagens
         except Exception as e:
             self.__erro = str(e)
-        return listaPersonagens
+        return None
     
     def inserePersonagem(self, personagem):
         try:

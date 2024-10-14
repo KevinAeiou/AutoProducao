@@ -2063,19 +2063,19 @@ class Aplicacao:
                     if trabalhoDao.modificaTrabalhoPorNomeProfissaoRaridade(trabalhoServidor):
                         print(f'ID do trabalho: {trabalhoServidor.pegaNome()} modificado de: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
                         trabalhoEstoqueDAO = EstoqueDaoSqlite()
-                        if trabalhoEstoqueDAO.modificaIdTrabalhoEstoque(trabalhoEncontradoBanco.pegaId(), trabalhoServidor.pegaId()):
+                        if trabalhoEstoqueDAO.modificaIdTrabalhoEstoque(trabalhoServidor.pegaId(), trabalhoEncontradoBanco.pegaId()):
                             print(f'Id do trabalho em estoque modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
                         else:
                             print(f'Erro ao modificar o id do trabalho no estoque: {trabalhoEstoqueDAO.pegaErro()}')
                             input(f'Clique para continuar...')
                         trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
-                        if trabalhoProducaoDAO.modificaIdTrabalhoEmProducao(trabalhoEncontradoBanco.pegaId(), trabalhoServidor.pegaId()):
+                        if trabalhoProducaoDAO.modificaIdTrabalhoEmProducao(trabalhoServidor.pegaId(), trabalhoEncontradoBanco.pegaId()):
                             print(f'Id do trabalho em produção modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
                         else:
                             print(f'Erro ao modificar o id do trabalho em produção: {trabalhoProducaoDAO.pegaErro()}')
                             input(f'Clique para continuar...')
                         vendaDAO = VendaDaoSqlite()
-                        if vendaDAO.modificaIdTrabalhoVendido(trabalhoEncontradoBanco.pegaId(), trabalhoServidor.pegaId()):
+                        if vendaDAO.modificaIdTrabalhoVendido(trabalhoServidor.pegaId(), trabalhoEncontradoBanco.pegaId()):
                             print(f'Id do trabalho em vendas modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
                         else:
                             print(f'Erro ao modificar o id do trabalho em vendas: {vendaDAO.pegaErro()}')
@@ -2092,15 +2092,65 @@ class Aplicacao:
             print(f'Erro ao inserir trabalho no banco: {trabalhoDao.pegaErro()}')
             input(f'Clique para continuar...')
 
+    def sincronizaListaPersonagens(self):
+        repositorioPersonagem = RepositorioPersonagem()
+        personagensServidor = repositorioPersonagem.pegaTodosPersonagens()
+        if not variavelExiste(personagensServidor):
+            print(f'Erro ao buscar lista de personagens no servidor: {repositorioPersonagem.pegaErro()}')
+            input(f'Clique para continuar...')
+            return
+        personagemDao = PersonagemDaoSqlite()
+        personagensBanco = personagemDao.pegaPersonagens()
+        if not variavelExiste(personagensBanco):
+            print(f'Erro ao buscar lista de personagens no banco: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            return
+        for personagemServidor in personagensServidor:
+            personagemDao = PersonagemDaoSqlite()
+            personagemEncontrado = personagemDao.pegaPersonagemEspecificoPorNome(personagemServidor)
+            if not variavelExiste(personagemEncontrado):
+                print(f'Erro ao buscar trabalho especifico no banco: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                continue
+            if personagemEncontrado.pegaNome() == None:
+                personagemDao = PersonagemDaoSqlite()
+                if personagemDao.inserePersonagem(personagemServidor):
+                    print(f'{personagemServidor.pegaNome()} inserido no banco com sucesso!')
+                    continue
+                print(f'Erro ao inserir {personagemServidor.pegaNome()} no banco: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                continue
+            if personagemServidor.pegaId() != personagemEncontrado.pegaId():
+                print(f'Sincronizando ids...')
+                personagemDao = PersonagemDaoSqlite()
+                if personagemDao.modificaPersonagemPorNome(personagemServidor):
+                    print(f'ID do personagem: {personagemServidor.pegaNome()} modificado de: {personagemEncontrado.pegaId()} -> {personagemServidor.pegaId()}')
+                    trabalhoEstoqueDAO = EstoqueDaoSqlite()
+                    if trabalhoEstoqueDAO.modificaIdPersonagemTrabalhoEstoque(personagemServidor.pegaId(), personagemEncontrado.pegaId()):
+                        print(f'idPersonagem do trabalho em estoque modificado: {personagemEncontrado.pegaId()} -> {personagemServidor.pegaId()}')
+                    else:
+                        print(f'Erro ao modificar o idPersonagem do trabalho no estoque: {trabalhoEstoqueDAO.pegaErro()}')
+                        input(f'Clique para continuar...')
+                    trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
+                    if trabalhoProducaoDAO.modificaIdPersonagemTrabalhoEmProducao(personagemServidor.pegaId(), personagemEncontrado.pegaId()):
+                        print(f'idPersonagem do trabalho em produção modificado: {personagemEncontrado.pegaId()} -> {personagemServidor.pegaId()}')
+                    else:
+                        print(f'Erro ao modificar o idPersonagem do trabalho em produção: {trabalhoProducaoDAO.pegaErro()}')
+                        input(f'Clique para continuar...')
+                    vendaDAO = VendaDaoSqlite()
+                    if vendaDAO.modificaIdPersonagemTrabalhoVendido(personagemServidor.pegaId(), personagemEncontrado.pegaId()):
+                        print(f'idPersonagem do trabalho em vendas modificado: {personagemEncontrado.pegaId()} -> {personagemServidor.pegaId()}')
+                    else:
+                        print(f'Erro ao modificar o idPersonagem do trabalho em vendas: {vendaDAO.pegaErro()}')
+                        input(f'Clique para continuar...')
 
-    # def sincronizaListaPersonagens(self):
-    #     repositorioPersonagem = RepositorioPersonagem()
-
-    #     pass
+                    continue
+                print(f'Erro ao modificar o id do personagem {personagemEncontrado.pegaId()}: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
 
     def sincronizaDados(self):
         self.sincronizaListaTrabalhos()
-        # self.sincronizaListaPersonagens()
+        self.sincronizaListaPersonagens()
         # 86c0b57c-8c2e-4eb4-8fe7-305c435a214d | Mrninguem         | 10     | Verdadeiro | Verdadeiro | Falso
         # 63b2f589-109a-4aba-b481-866cd2beb684 | Joezinho          | 10     | Verdadeiro | Verdadeiro | Falso
         # 729b1481-d806-4253-80dd-8acd8cff665d | Provisorioatecair | 6      | Verdadeiro | Falso      | Falso

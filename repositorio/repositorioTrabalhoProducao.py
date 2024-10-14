@@ -3,12 +3,10 @@ from modelos.trabalhoProducao import TrabalhoProducao
 from constantes import *
 
 class RepositorioTrabalhoProducao:
-    _listaTrabalhosProducao = []
     def __init__(self, personagem) -> None:
         self.__erro = None
         self.__meuBanco = FirebaseDatabase().pegaDataBase()
         self._personagem = personagem
-        self._listaTrabalhosProducao = self.pegaTodosTrabalhosProducao()
 
     def limpaListaProducao(self):
         try:
@@ -17,7 +15,7 @@ class RepositorioTrabalhoProducao:
             print(f'Erro')
 
     def pegaTodosTrabalhosProducao(self):
-        listaTrabalhosProducao = []
+        trabalhosProducao = []
         try:
             todosTrabalhosProducao = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).get()
             if todosTrabalhosProducao.pyres != None:
@@ -32,11 +30,12 @@ class RepositorioTrabalhoProducao:
                         trabalhoId = ''
                     if  CHAVE_NOME_PRODUCAO in trabalhoProducaoEncontrado.val():
                         trabalhoProducao = TrabalhoProducao(trabalhoProducaoEncontrado.key(), trabalhoId, trabalhoProducaoEncontrado.val()[CHAVE_NOME], trabalhoProducaoEncontrado.val()[CHAVE_NOME_PRODUCAO], trabalhoProducaoEncontrado.val()[CHAVE_EXPERIENCIA], trabalhoProducaoEncontrado.val()[CHAVE_NIVEL], trabalhoProducaoEncontrado.val()[CHAVE_PROFISSAO], trabalhoProducaoEncontrado.val()[CHAVE_RARIDADE], trabalhoNecessario, trabalhoProducaoEncontrado.val()[CHAVE_RECORRENCIA], trabalhoProducaoEncontrado.val()[CHAVE_TIPO_LICENCA], trabalhoProducaoEncontrado.val()[CHAVE_ESTADO])
-                        listaTrabalhosProducao.append(trabalhoProducao)
-            listaTrabalhosProducao = sorted(listaTrabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.pegaEstado(), reverse=True)
-        except:
-            print(f'Erro')
-        return listaTrabalhosProducao
+                        trabalhosProducao.append(trabalhoProducao)
+            trabalhosProducao = sorted(trabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.pegaEstado(), reverse=True)
+            return trabalhosProducao
+        except Exception as e:
+            self.__erro = str(e)
+        return None
 
     
     def removeTrabalhoProducao(self, trabalhoProducao):
@@ -62,10 +61,6 @@ class RepositorioTrabalhoProducao:
         except Exception as e:
             self.__erro = str(e)
         return False
-    
-    def mostraListaTrabalhosProducao(self):
-        for trabalhoProducao in self._listaTrabalhosProducao:
-            print(trabalhoProducao)
 
     def pegaErro(self):
         return self.__erro
