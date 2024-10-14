@@ -12,7 +12,7 @@ class TestRespositorioVendas:
     def testDeveAdicionarNovaVendaALista(self):
         self._listaVendas = self._repositorioVendas.pegaTodasVendas()
         esperado = len(self._listaVendas) + 1
-        self._repositorioVendas.adicionaNovaVenda(self._vendaTeste)
+        self._repositorioVendas.insereTrabalhoVendido(self._vendaTeste)
         self._listaVendas = self._repositorioVendas.pegaTodasVendas()
         recebido = len(self._listaVendas)
         assert esperado == recebido
@@ -24,8 +24,8 @@ class TestRespositorioVendas:
         assert esperado != recebido
 
     def testDeveRemoverPrimeiraVendaDaLista(self):
-        self._repositorioVendas.adicionaNovaVenda(self._vendaTeste)
-        self._repositorioVendas.adicionaNovaVenda(self._vendaTeste)
+        self._repositorioVendas.insereTrabalhoVendido(self._vendaTeste)
+        self._repositorioVendas.insereTrabalhoVendido(self._vendaTeste)
         self._listaVendas = self._repositorioVendas.pegaTodasVendas()
         esperado = len(self._listaVendas) - 1
         self._repositorioVendas.removeVenda(self._listaVendas[0])

@@ -5,14 +5,14 @@ from constantes import *
 class RepositorioProfissao:
     listaProfissoes = []
     def __init__(self, personagem) -> None:
-        self._meuBanco = FirebaseDatabase()._dataBase
-        self._personagem = personagem
-        self.listaProfissoes = self.pegaTodasProfissoes()
+        self.__erro = None
+        self.__meuBanco = FirebaseDatabase()._dataBase
+        self.__personagem = personagem
 
     def pegaTodasProfissoes(self):
-        listaProfissoes = []
+        profissoes = []
         try:
-            todasProfissoes = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).get()
+            todasProfissoes = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).get()
             if todasProfissoes.pyres != None:
                 for profissaoEncontrado in todasProfissoes.each():
                     profisao = Profissao(
@@ -20,18 +20,28 @@ class RepositorioProfissao:
                         profissaoEncontrado.val()[CHAVE_NOME],
                         profissaoEncontrado.val()[CHAVE_EXPERIENCIA],
                         profissaoEncontrado.val()[CHAVE_PRIORIDADE])
-                    listaProfissoes.append(profisao)
-                listaProfissoes = sorted(listaProfissoes, key = lambda profissao: profissao.pegaExperiencia(), reverse = True)
-        except:
-            print(f'Erro')
-        return listaProfissoes
+                    profissoes.append(profisao)
+                profissoes = sorted(profissoes, key = lambda profissao: profissao.pegaExperiencia(), reverse = True)
+                return profissoes
+        except Exception as e:
+            self.__erro = str(e)
+        return None
     
+    def insereProfissao(self, profissao):
+        try:
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).child(profissao.pegaId()).set(profissao.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+
     def modificaProfissao(self, profissao):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).child(profissao.pegaId()).update(profissao.__dict__)
-        except:
-            print(f'Erro')
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).child(profissao.pegaId()).update(profissao.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
 
-    def mostraListaProfissoes(self):
-        for profissao in self.listaProfissoes:
-            print(profissao)
+    def pegaErro(self):
+        return self.__erro

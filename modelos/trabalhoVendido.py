@@ -1,12 +1,12 @@
 class TrabalhoVendido:
-    def __init__(self, id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto) -> None:
+    def __init__(self, id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto):
         self.id = id
         self.nomeProduto = nomeProduto
         self.dataVenda = dataVenda
         self.nomePersonagem = nomePersonagem
-        self.quantidadeProduto = quantidadeProduto
+        self.quantidadeProduto = int(quantidadeProduto)
         self.trabalhoId = trabalhoId
-        self.valorProduto = valorProduto
+        self.valorProduto = int(valorProduto)
 
     def pegaId(self):
         return self.id
@@ -31,6 +31,20 @@ class TrabalhoVendido:
     
     def setId(self, id):
         self.id = id
+
+    def setNome(self, nome):
+        self.nomeProduto = nome
+
+    def setData(self, data):
+        self.dataVenda = data
+
+    def setQuantidade(self, quantidade):
+        quantidade = 0 if int(quantidade) < 0 else int(quantidade)
+        self.quantidadeProduto = quantidade
+
+    def setValor(self, valor):
+        valor = 0 if int(valor) < 0 else int(valor)
+        self.valorProduto = valor
 
     def __str__(self) -> str:
         return f'{(self.nomeProduto).ljust(113)} | {(self.dataVenda).ljust(10)} | {(self.trabalhoId).ljust(36)} | {str(self.valorProduto).ljust(5)} | {self.quantidadeProduto}'

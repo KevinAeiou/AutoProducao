@@ -65,3 +65,19 @@ ValueError: invalid literal for int() with base 10: ''
 02/10/2024 02:07:28 PM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
 02/10/2024 02:07:42 PM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
 03/10/2024 12:04:17 AM - ERROR - estoqueDao - Erro ao inserir trabalho no estoque: UNIQUE constraint failed: Lista_estoque.id
+03/10/2024 12:31:05 PM - ERROR - __main__ - invalid literal for int() with base 10: ''
+Traceback (most recent call last):
+  File "c:\Users\HOZANA SOUZA\.vscode\AutoProducao\main.py", line 2392, in teste
+    if int(opcaoMenu) == 0:
+       ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+05/10/2024 11:35:31 AM - ERROR - trabalhoProducaoDao - Erro ao inserir trabalho de produção: 'RepositorioTrabalhoProducao' object has no attribute '_RepositorioTrabalhoProducao__erro'
+07/10/2024 01:23:47 AM - ERROR - estoqueDao - Erro ao modificar trabalho no estoque: Error binding parameter 1: type 'Personagem' is not supported
+07/10/2024 01:29:59 AM - ERROR - estoqueDao - Erro ao modificar trabalho no estoque: Error binding parameter 1: type 'Personagem' is not supported
+07/10/2024 10:33:46 AM - ERROR - __main__ - invalid literal for int() with base 10: ''
+Traceback (most recent call last):
+  File "c:\Users\HOZANA SOUZA\.vscode\AutoProducao\main.py", line 2664, in teste
+    if int(opcaoMenu) == 0:
+       ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+07/10/2024 12:10:17 PM - ERROR - vendasDao - Erro ao modificar trabalho vendido: Incorrect number of bindings supplied. The current statement uses 6, and there are 5 supplied.

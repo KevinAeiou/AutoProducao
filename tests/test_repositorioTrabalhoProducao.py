@@ -17,7 +17,7 @@ class TestRepositorioTrabalhoProducao:
     def testDeveAdicionarItemNaLista(self):
         esperado = len(listaTrabalhosProducao) + 1
         listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
-        self._repositorioTrabalhoProducao.adicionaTrabalhoProducao(self._trabalhoProducaoTeste)
+        self._repositorioTrabalhoProducao.insereTrabalhoProducao(self._trabalhoProducaoTeste)
         listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
         recebido = len(listaTrabalhosProducao)
         assert esperado == recebido
@@ -32,7 +32,7 @@ class TestRepositorioTrabalhoProducao:
 
     def testDeveModificarPrimeiroItemDaLista(self):
         esperado = 1
-        trabalhoProducaoTeste = self._repositorioTrabalhoProducao.adicionaTrabalhoProducao(self._trabalhoProducaoTeste)
+        trabalhoProducaoTeste = self._repositorioTrabalhoProducao.insereTrabalhoProducao(self._trabalhoProducaoTeste)
         trabalhoProducaoTeste.setEstado(1)
         trabalhoProducaoModificadoTeste = self._repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducaoTeste)
         recebido = trabalhoProducaoModificadoTeste.pegaEstado()
@@ -47,7 +47,7 @@ class TestRepositorioTrabalhoProducao:
 
     def testDeveRetornarListaComuUmTrabalhoProducao(self):
         esperado = 1
-        trabalhoProducaoTeste = self._repositorioTrabalhoProducao.adicionaTrabalhoProducao(self._trabalhoProducaoTeste)
+        trabalhoProducaoTeste = self._repositorioTrabalhoProducao.insereTrabalhoProducao(self._trabalhoProducaoTeste)
         trabalhoProducaoTeste.setEstado(1)
         self._repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducaoTeste)
         listaTrabalhosProducaoProduzirProduzindo = self._repositorioTrabalhoProducao.retornaListaTrabalhosProducaoParaProduzirProduzindo()

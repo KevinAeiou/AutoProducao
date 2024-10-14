@@ -4,6 +4,7 @@ from constantes import *
 
 class RepositorioTrabalho:
     def __init__(self) -> None:
+        self.__erro = None
         self._meuBanco = FirebaseDatabase()._dataBase
 
     def pegaTodosTrabalhos(self):
@@ -29,3 +30,30 @@ class RepositorioTrabalho:
         except:
             print(f'Erro')
         return listaTrabalhos
+    
+    def insereTrabalho(self, trabalho):
+        try:
+            self._meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.pegaId()).set(trabalho.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+    
+    def modificaTrabalho(self, trabalho):
+        try:
+            self._meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.pegaId()).update(trabalho.__dict__)
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+    
+    def removeTrabalho(self, trabalho):
+        try:
+            self._meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.pegaId()).remove()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        return False
+
+    def pegaErro(self):
+        return self.__erro

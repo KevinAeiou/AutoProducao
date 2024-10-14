@@ -10,7 +10,7 @@ class TesteVendaDao:
 
     def testDeveInserirNovaVendaQuandoMetodoInsereVendaEhChamado(self):
         esperado = 'Sucesso'
-        if self.__vendaDao.insereVenda(self.__trabalhoVendido):
+        if self.__vendaDao.insereTrabalhoVendido(self.__trabalhoVendido):
             recebido = 'Sucesso'
         else:
             recebido = self.__vendaDao.pegaErro()
