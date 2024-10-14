@@ -1,5 +1,5 @@
 class Trabalho:
-    def __init__(self, id = None, nome = None, nomeProducao = None, experiencia = None, nivel = None, profissao = None, raridade = None, trabalhoNecessario = None) -> None:
+    def __init__(self, id = None, nome = None, nomeProducao = None, experiencia = None, nivel = None, profissao = None, raridade = None, trabalhoNecessario = ''):
         self.id = id
         self.nome = nome
         self.nomeProducao = nomeProducao

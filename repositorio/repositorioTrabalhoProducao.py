@@ -6,7 +6,7 @@ class RepositorioTrabalhoProducao:
     _listaTrabalhosProducao = []
     def __init__(self, personagem) -> None:
         self.__erro = None
-        self.__meuBanco = FirebaseDatabase().__dataBase
+        self.__meuBanco = FirebaseDatabase().pegaDataBase()
         self._personagem = personagem
         self._listaTrabalhosProducao = self.pegaTodosTrabalhosProducao()
 

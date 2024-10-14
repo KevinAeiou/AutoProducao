@@ -7,7 +7,7 @@ class RepositorioVendas:
     def __init__(self, personagem) -> None:
         self.__erro = None
         self.__personagem = personagem
-        self.__meuBanco = FirebaseDatabase().__dataBase
+        self.__meuBanco = FirebaseDatabase().pegaDataBase()
 
     def pegaTodasVendas(self):
         listaVendas = []

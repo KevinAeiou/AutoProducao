@@ -63,15 +63,15 @@ class RepositorioTrabalho:
             self.__dadosModificados.append(trabalho)
 
     def pegaTodosTrabalhos(self):
-        listaTrabalhos = []
+        trabalhos = []
         try:
             todosTrabalhos = self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).get()
             for trabalhoEncontrado in todosTrabalhos.each():
                 if CHAVE_EXPERIENCIA in trabalhoEncontrado.val():
                     if not CHAVE_TRABALHO_NECESSARIO in trabalhoEncontrado.val():
-                        trataNecessario = ''
+                        trabalhoNecessario = ''
                     else:
-                        trataNecessario = trabalhoEncontrado.val()[CHAVE_TRABALHO_NECESSARIO]
+                        trabalhoNecessario = trabalhoEncontrado.val()[CHAVE_TRABALHO_NECESSARIO]
                     trabalho = Trabalho(
                         trabalhoEncontrado.key(),
                         trabalhoEncontrado.val()[CHAVE_NOME],
@@ -80,11 +80,12 @@ class RepositorioTrabalho:
                         trabalhoEncontrado.val()[CHAVE_NIVEL],
                         trabalhoEncontrado.val()[CHAVE_PROFISSAO],
                         trabalhoEncontrado.val()[CHAVE_RARIDADE],
-                        trataNecessario)
-                    listaTrabalhos.append(trabalho)
-        except:
-            print(f'Erro')
-        return listaTrabalhos
+                        trabalhoNecessario)
+                    trabalhos.append(trabalho)
+            return trabalhos
+        except Exception as e:
+            self.__erro = str(e)
+        return None
     
     def insereTrabalho(self, trabalho):
         try:

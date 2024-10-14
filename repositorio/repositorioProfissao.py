@@ -6,7 +6,7 @@ class RepositorioProfissao:
     listaProfissoes = []
     def __init__(self, personagem) -> None:
         self.__erro = None
-        self.__meuBanco = FirebaseDatabase().__dataBase
+        self.__meuBanco = FirebaseDatabase().pegaDataBase()
         self.__personagem = personagem
 
     def pegaTodasProfissoes(self):

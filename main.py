@@ -34,12 +34,6 @@ class Aplicacao:
         self.__listaProfissoesNecessarias = []
         self.__personagemEmUso = None
         self.__repositorioTrabalho = RepositorioTrabalho()
-        if self.__repositorioTrabalho.abreStream():
-            print(f'Stream repositório trabalhos iniciada!')
-        else:
-            print(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
-            logger = logging.getLogger('repositorioTrabalho')
-            logger.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
 
     def defineListaPersonagemMesmoEmail(self):
         listaDicionarioPersonagemMesmoEmail = []
@@ -2013,7 +2007,7 @@ class Aplicacao:
             print(f'Lista de trabalhos foi alterada!')
             for trabalho in self.__repositorioTrabalho.pegaDadosModificados():
                 trabalhoDao = TrabalhoDaoSqlite()
-                trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecifico(trabalho)
+                trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalho)
                 if trabalhoEncontrado is None:
                     print(f'Trabalho não encontrado no banco!')
                     if trabalho.pegaNome() is not None:
@@ -2038,7 +2032,7 @@ class Aplicacao:
                     continue
                 print(f'Deve modificar trabalho no banco!')
                 trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.modificaTrabalho(trabalho):
+                if trabalhoDao.modificaTrabalhoPorId(trabalho):
                     print(f'{trabalho.pegaNome()} modificado com sucesso!')
                     continue
                 logger = logging.getLogger('trabalhoDao')
@@ -2048,11 +2042,65 @@ class Aplicacao:
         
     def sincronizaListaTrabalhos(self):
         repositorioTrabalho = RepositorioTrabalho()        
+        trabalhosServidor = repositorioTrabalho.pegaTodosTrabalhos()
+        if not variavelExiste(trabalhosServidor):
+            print(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
+            input(f'Clique para continuar...')
+            return
+        trabalhoDao = TrabalhoDaoSqlite()
+        trabalhosBanco = trabalhoDao.pegaTrabalhos()
+        if not variavelExiste(trabalhosBanco):
+            print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            return
+        for trabalhoServidor in trabalhosServidor:
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoEspecificoPorNomeProfissao(trabalhoServidor)
+            if variavelExiste(trabalhoEncontradoBanco):
+                if trabalhoServidor.pegaId() != trabalhoEncontradoBanco.pegaId():
+                    print(f'Sincronizando ids...')
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.modificaTrabalhoPorNomeProfissaoRaridade(trabalhoServidor):
+                        print(f'ID do trabalho: {trabalhoServidor.pegaNome()} modificado de: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
+                        trabalhoEstoqueDAO = EstoqueDaoSqlite()
+                        if trabalhoEstoqueDAO.modificaIdTrabalhoEstoque(trabalhoEncontradoBanco.pegaId(), trabalhoServidor.pegaId()):
+                            print(f'Id do trabalho em estoque modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
+                        else:
+                            print(f'Erro ao modificar o id do trabalho no estoque: {trabalhoEstoqueDAO.pegaErro()}')
+                            input(f'Clique para continuar...')
+                        trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
+                        if trabalhoProducaoDAO.modificaIdTrabalhoEmProducao(trabalhoEncontradoBanco.pegaId(), trabalhoServidor.pegaId()):
+                            print(f'Id do trabalho em produção modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
+                        else:
+                            print(f'Erro ao modificar o id do trabalho em produção: {trabalhoProducaoDAO.pegaErro()}')
+                            input(f'Clique para continuar...')
+                        vendaDAO = VendaDaoSqlite()
+                        if vendaDAO.modificaIdTrabalhoVendido(trabalhoEncontradoBanco.pegaId(), trabalhoServidor.pegaId()):
+                            print(f'Id do trabalho em vendas modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
+                        else:
+                            print(f'Erro ao modificar o id do trabalho em vendas: {vendaDAO.pegaErro()}')
+                            input(f'Clique para continuar...')
+                        continue
+                    else:
+                        print(f'Erro ao modificar o id do trabalho {trabalhoEncontradoBanco.pegaId()}: {trabalhoDao.pegaErro()}')
+                        input(f'Clique para continuar...')
+                continue
+            trabalhoDao = TrabalhoDaoSqlite()
+            if trabalhoDao.insereTrabalho(trabalhoServidor):
+                print(f'{trabalhoServidor.pegaNome()} inserido no banco!')
+                continue
+            print(f'Erro ao inserir trabalho no banco: {trabalhoDao.pegaErro()}')
+            input(f'Clique para continuar...')
 
-        pass
-    
+
+    # def sincronizaListaPersonagens(self):
+    #     repositorioPersonagem = RepositorioPersonagem()
+
+    #     pass
+
     def sincronizaDados(self):
         self.sincronizaListaTrabalhos()
+        # self.sincronizaListaPersonagens()
         # 86c0b57c-8c2e-4eb4-8fe7-305c435a214d | Mrninguem         | 10     | Verdadeiro | Verdadeiro | Falso
         # 63b2f589-109a-4aba-b481-866cd2beb684 | Joezinho          | 10     | Verdadeiro | Verdadeiro | Falso
         # 729b1481-d806-4253-80dd-8acd8cff665d | Provisorioatecair | 6      | Verdadeiro | Falso      | Falso
@@ -2064,6 +2112,12 @@ class Aplicacao:
 
 
     def preparaPersonagem(self):
+        if self.__repositorioTrabalho.abreStream():
+            print(f'Stream repositório trabalhos iniciada!')
+        else:
+            print(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
+            logger = logging.getLogger('repositorioTrabalho')
+            logger.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
         clickAtalhoEspecifico('alt', 'tab')
         clickAtalhoEspecifico('win', 'left')
         self.iniciaProcessoBusca()
@@ -2229,7 +2283,7 @@ class Aplicacao:
             trabalhoEscolhido.setRaridade(novaRaridade)
             trabalhoEscolhido.setTrabalhoNecessario(novoTrabalhoNecessario)
             trabalhoDao = TrabalhoDaoSqlite()
-            if trabalhoDao.modificaTrabalho(trabalhoEscolhido):
+            if trabalhoDao.modificaTrabalhoPorId(trabalhoEscolhido):
                 print(f'{trabalhoEscolhido.pegaNome()} modificado com sucesso!')
                 input(f'Clique para continuar...')
                 continue

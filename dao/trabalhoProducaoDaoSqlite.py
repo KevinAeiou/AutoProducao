@@ -125,5 +125,21 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return False
     
+    def modificaIdTrabalhoEmProducao(self, idTrabalhoNovo, idTrabalhoAntigo):
+        sql = """
+            UPDATE Lista_desejo 
+            SET idTrabalho = ?
+            WHERE idTrabalho == ?"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (idTrabalhoNovo, idTrabalhoAntigo))
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
+    
     def pegaErro(self):
         return self.__erro

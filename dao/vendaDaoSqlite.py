@@ -90,6 +90,22 @@ class VendaDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
         return False
+    
+    def modificaIdTrabalhoVendido(self, idTrabalhoNovo, idTrabalhoAntigo):
+        sql = """
+            UPDATE vendas 
+            SET trabalhoId = ?
+            WHERE trabalhoId == ?"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (idTrabalhoNovo, idTrabalhoAntigo))
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
         
     def pegaTodosTrabalhosVendidos(self):
         vendas = []

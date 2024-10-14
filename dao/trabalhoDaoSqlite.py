@@ -34,7 +34,7 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
         return None
 
-    def pegaTrabalhoEspecifico(self, trabalho):
+    def pegaTrabalhoEspecificoPorId(self, trabalho):
         sql = """
             SELECT * 
             FROM trabalhos
@@ -43,6 +43,23 @@ class TrabalhoDaoSqlite():
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, [trabalho.pegaId()])
+                for linha in cursor.fetchall():
+                    trabalhoEncontrado = Trabalho(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7])
+                self.__meuBanco.desconecta()
+                return trabalhoEncontrado            
+        except Exception as e:
+            self.__erro = str(e)
+        return None
+
+    def pegaTrabalhoEspecificoPorNomeProfissao(self, trabalho):
+        sql = """
+            SELECT * 
+            FROM trabalhos
+            WHERE nome == ? AND profissao = ? AND raridade == ?;"""
+        try:
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, (trabalho.pegaNome(), trabalho.pegaProfissao(), trabalho.pegaRaridade()))
                 for linha in cursor.fetchall():
                     trabalhoEncontrado = Trabalho(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7])
                 self.__meuBanco.desconecta()
@@ -69,7 +86,7 @@ class TrabalhoDaoSqlite():
         self.__meuBanco.desconecta()
         return False
 
-    def modificaTrabalho(self, trabalho):
+    def modificaTrabalhoPorId(self, trabalho):
         sql = """
             UPDATE trabalhos SET nome = ?, nomeProducao = ?, experiencia = ?, nivel = ?, profissao = ?, raridade = ?, trabalhoNecessario = ?
             WHERE id = ?"""
@@ -82,6 +99,21 @@ class TrabalhoDaoSqlite():
                 print(f'{trabalho.pegaNome()} modificado no servidor com sucesso!')
             else:
                 print(f'Erro ao modificar trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
+
+    def modificaTrabalhoPorNomeProfissaoRaridade(self, trabalho):
+        sql = """
+            UPDATE trabalhos SET id = ?, nome = ?, nomeProducao = ?, experiencia = ?, nivel = ?, profissao = ?, raridade = ?, trabalhoNecessario = ?
+            WHERE nome = ? AND profissao = ? AND raridade = ?"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), trabalho.pegaNome(), trabalho.pegaProfissao(), trabalho.pegaRaridade()))
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
