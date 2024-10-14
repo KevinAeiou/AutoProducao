@@ -148,7 +148,7 @@ class Aplicacao:
                 'Conectando',
                 'Você precisa de mais experiência de produção para iniciar este pedido',
                 'Você recebeu um novo presenteDessgja ir à Loja Milagrosa paraconferir',
-                'Todos os espaços de fabricaçãoestão ocupados',
+                'Todos os espaços de artesanato estão ocupados',
                 'Tem certeza de que deseja concluir aprodução',
                 'Estamos fazendo de tudo paraconcluíla o mais rápido possível',
                 'No momento esta conta está sendousada em outro dispositivo',
@@ -267,7 +267,7 @@ class Aplicacao:
                     if texto1PertenceTexto2('noticias',textoMenu):
                         print(f'Menu notícias...')
                         return MENU_NOTICIAS
-                    if texto1PertenceTexto2('personagens',textoMenu):
+                    if texto1PertenceTexto2('personagem',textoMenu):
                         print(f'Menu escolha de personagem...')
                         return MENU_ESCOLHA_PERSONAGEM
                     if texto1PertenceTexto2('artesanato',textoMenu):
