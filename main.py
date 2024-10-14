@@ -125,7 +125,7 @@ class Aplicacao:
                 'Conectando',
                 'Você precisa de mais experiência de produção para iniciar este pedido',
                 'Você recebeu um novo presenteDessgja ir à Loja Milagrosa paraconferir',
-                'Todos os espaços de fabricaçãoestão ocupados',
+                'Todos os espaços de artesanato estão ocupados',
                 'Tem certeza de que deseja concluir aprodução',
                 'Estamos fazendo de tudo paraconcluíla o mais rápido possível',
                 'No momento esta conta está sendousada em outro dispositivo',
