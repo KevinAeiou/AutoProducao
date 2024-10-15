@@ -2420,9 +2420,9 @@ class Aplicacao:
             while True:
                 limpaTela()
                 personagem = personagens[int(opcaoPersonagem) - 1]
-                print(f'{('NOME').ljust(40)} | {('PROFISSÃO').ljust(22)} | {('NÍVEL').ljust(5)} | {('ESTADO').ljust(10)} | {('LICENÇA').ljust(31)} | RECORRÊNCIA')
-                trabalhoDao = TrabalhoProducaoDaoSqlite(personagem)
-                trabalhos = trabalhoDao.pegaTrabalhosProducao()
+                print(f'{('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('NÍVEL').ljust(5)} | {('ESTADO').ljust(10)} | {('LICENÇA').ljust(31)} | RECORRÊNCIA')
+                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                trabalhos = trabalhoProducaoDao.pegaTrabalhosProducao()
                 if not variavelExiste(trabalhos):
                     print(f'Erro ao buscar trabalhos em produção: {trabalhoProducaoDao.pegaErro()}')
                     input(f'Clique para continuar...')
@@ -2467,7 +2467,18 @@ class Aplicacao:
                 licenca = licencas[int(opcaoLicenca) - 1]
                 opcaoRecorrencia = input(f'Trabalho recorrente? (S/N)')
                 recorrencia = True if (opcaoRecorrencia).lower() == 's' else False
-                novoTrabalhoProducao = TrabalhoProducao(str(uuid.uuid4()), trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), recorrencia, licenca, CODIGO_PARA_PRODUZIR)
+                novoTrabalhoProducao = TrabalhoProducao()
+                novoTrabalhoProducao.setTrabalhoId(trabalho.pegaId())
+                novoTrabalhoProducao.setNome(trabalho.pegaNome())
+                novoTrabalhoProducao.setNomeProducao(trabalho.pegaNomeProducao())
+                novoTrabalhoProducao.setExperiencia(trabalho.pegaExperiencia())
+                novoTrabalhoProducao.setNivel(trabalho.pegaNivel())
+                novoTrabalhoProducao.setProfissao(trabalho.pegaProfissao())
+                novoTrabalhoProducao.setRaridade(trabalho.pegaRaridade())
+                novoTrabalhoProducao.setTrabalhoNecessario(trabalho.pegaTrabalhoNecessario())
+                novoTrabalhoProducao.setRecorrencia(recorrencia)
+                novoTrabalhoProducao.setLicenca(licenca)
+                novoTrabalhoProducao.setEstado(CODIGO_PARA_PRODUZIR)
                 trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
                 if trabalhoProducaoDao.insereTrabalhoProducao(novoTrabalhoProducao):
                     print(f'{novoTrabalhoProducao.pegaNome()} inserido com sucesso!')

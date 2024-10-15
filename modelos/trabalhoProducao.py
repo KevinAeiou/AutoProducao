@@ -1,19 +1,20 @@
 from constantes import *
+from uuid import uuid4
 
 class TrabalhoProducao:
-    def __init__(self, id, trabalhoId, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario, recorrencia, tipoLicenca, estado):
-        self.id = id
-        self.trabalhoId = trabalhoId
-        self.nome = nome
-        self.nomeProducao = nomeProducao
-        self.experiencia = experiencia
-        self.nivel = nivel
-        self.profissao = profissao
-        self.raridade = raridade
-        self.trabalhoNecessario = trabalhoNecessario
-        self.recorrencia = recorrencia
-        self.tipo_licenca = tipoLicenca
-        self.estado = estado
+    def __init__(self):
+        self.id = str(uuid4())
+        self.trabalhoId = None
+        self.nome = None
+        self.nomeProducao = None
+        self.experiencia = 0
+        self.nivel = 0
+        self.profissao = None
+        self.raridade = None
+        self.trabalhoNecessario = None
+        self.recorrencia = None
+        self.tipo_licenca = None
+        self.estado = None
 
     def pegaId(self):
         return self.id
@@ -53,6 +54,26 @@ class TrabalhoProducao:
     
     def setId(self, id):
         self.id = id
+
+    def setNome(self, nome):
+        self.nome = nome
+
+    def setExperiencia(self, experiencia):
+        experiencia = int(experiencia)
+        self.experiencia = experiencia
+
+    def setNivel(self, nivel):
+        nivel = int(nivel)
+        self.nivel = nivel
+
+    def setProfissao(self, profissao):
+        self.profissao = profissao
+
+    def setRaridade(self, raridade):
+        self.raridade = raridade
+
+    def setTrabalhoNecessario(self, trabalhoNecessario):
+        self.trabalhoNecessario = trabalhoNecessario
 
     def setEstado(self, estado):
         self.estado = estado
