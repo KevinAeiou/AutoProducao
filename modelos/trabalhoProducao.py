@@ -103,4 +103,4 @@ class TrabalhoProducao:
     def __str__(self) -> str:
         estado = 'Produzir' if self.estado == 0 else 'Produzindo' if self.estado == 1 else 'Feito'
         recorrencia = 'Recorrente' if self.recorrencia else 'Único'
-        return f'{self.nome.ljust(42)} | {self.profissao.ljust(22)} | {str(self.nivel).ljust(5)} | {estado.ljust(10)} | {self.tipo_licenca.ljust(34)} | {recorrencia}'
+        return f'{self.nome.ljust(44)} | {self.profissao.ljust(22)} | {str(self.nivel).ljust(5)} | {estado.ljust(10)} | {self.tipo_licenca.ljust(34)} | {recorrencia}'

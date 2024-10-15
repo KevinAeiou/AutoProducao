@@ -20,14 +20,16 @@ class TrabalhoProducaoDaoSqlite:
     def pegaTodosTrabalhosProducao(self):
         trabalhosProducao = []
         sql = """
-            SELECT * 
-            FROM Lista_desejo;"""
+            SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado
+            FROM Lista_desejo
+            INNER JOIN trabalhos
+            ON Lista_desejo.idTrabalho == trabalhos.id;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql)
             for linha in cursor.fetchall():
-                recorrencia = True if linha[10] == 1 else False
-                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
+                recorrencia = True if linha[9] == 1 else False
+                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], recorrencia, linha[10], linha[11]))
             self.__meuBanco.desconecta()
             return trabalhosProducao
         except Exception as e:
@@ -37,13 +39,18 @@ class TrabalhoProducaoDaoSqlite:
     
     def pegaTrabalhosProducao(self):
         trabalhosProducao = []
-        sql = """SELECT * FROM Lista_desejo WHERE idPersonagem == ?;"""
+        sql = """
+            SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado
+            FROM Lista_desejo
+            INNER JOIN trabalhos
+            ON Lista_desejo.idTrabalho == trabalhos.id
+            WHERE idPersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
-                recorrencia = True if linha[10] == 1 else False
-                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
+                recorrencia = True if linha[9] == 1 else False
+                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], recorrencia, linha[10], linha[11]))
             self.__meuBanco.desconecta()
             return trabalhosProducao
         except Exception as e:
@@ -53,13 +60,18 @@ class TrabalhoProducaoDaoSqlite:
     
     def pegaTrabalhosProducaoParaProduzirProduzindo(self):
         trabalhosProducao = []
-        sql = """SELECT * FROM Lista_desejo WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);"""
+        sql = """
+            SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado
+            FROM Lista_desejo
+            INNER JOIN trabalhos
+            ON Lista_desejo.idTrabalho == trabalhos.id
+            WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[10] == 1 else False
-                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], linha[9], recorrencia, linha[11], linha[12]))
+                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], recorrencia, linha[10], linha[11]))
             self.__meuBanco.desconecta()
             return trabalhosProducao
         except Exception as e:
