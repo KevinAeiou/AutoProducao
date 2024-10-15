@@ -8,6 +8,8 @@ __pycache__/
 # Ignora a pasta de credenciais
 credenciais/
 
+autoProducao.db
+
 # C extensions
 *.so
 
