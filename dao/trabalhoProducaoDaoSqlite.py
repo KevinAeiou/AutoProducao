@@ -29,7 +29,20 @@ class TrabalhoProducaoDaoSqlite:
             cursor.execute(sql)
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
-                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], recorrencia, linha[10], linha[11]))
+                trabalhoProducao = TrabalhoProducao()
+                trabalhoProducao.setId(linha[0])
+                trabalhoProducao.setTrabalhoId([1])
+                trabalhoProducao.setNome(linha[2])
+                trabalhoProducao.setNomeProducao(linha[3])
+                trabalhoProducao.setExperiencia(linha[4])
+                trabalhoProducao.setNivel(linha[5])
+                trabalhoProducao.setProfissao(linha[6])
+                trabalhoProducao.setRaridade(linha[7])
+                trabalhoProducao.setTrabalhoNecessario(linha[8])
+                trabalhoProducao.setRecorrencia(recorrencia)
+                trabalhoProducao.setLicenca(linha[10])
+                trabalhoProducao.setEstado(linha[11])
+                trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
             return trabalhosProducao
         except Exception as e:
@@ -50,7 +63,20 @@ class TrabalhoProducaoDaoSqlite:
             cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
-                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], recorrencia, linha[10], linha[11]))
+                trabalhoProducao = TrabalhoProducao()
+                trabalhoProducao.setId(linha[0])
+                trabalhoProducao.setTrabalhoId(linha[1])
+                trabalhoProducao.setNome(linha[2])
+                trabalhoProducao.setNomeProducao(linha[3])
+                trabalhoProducao.setExperiencia(linha[4])
+                trabalhoProducao.setNivel(linha[5])
+                trabalhoProducao.setProfissao(linha[6])
+                trabalhoProducao.setRaridade(linha[7])
+                trabalhoProducao.setTrabalhoNecessario(linha[8])
+                trabalhoProducao.setRecorrencia(recorrencia)
+                trabalhoProducao.setLicenca(linha[10])
+                trabalhoProducao.setEstado(linha[11])
+                trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
             return trabalhosProducao
         except Exception as e:
@@ -70,8 +96,21 @@ class TrabalhoProducaoDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
-                recorrencia = True if linha[10] == 1 else False
-                trabalhosProducao.append(TrabalhoProducao(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7], linha[8], recorrencia, linha[10], linha[11]))
+                recorrencia = True if linha[9] == 1 else False
+                trabalhoProducao = TrabalhoProducao()
+                trabalhoProducao.setId(linha[0])
+                trabalhoProducao.setTrabalhoId([1])
+                trabalhoProducao.setNome(linha[2])
+                trabalhoProducao.setNomeProducao(linha[3])
+                trabalhoProducao.setExperiencia(linha[4])
+                trabalhoProducao.setNivel(linha[5])
+                trabalhoProducao.setProfissao(linha[6])
+                trabalhoProducao.setRaridade(linha[7])
+                trabalhoProducao.setTrabalhoNecessario(linha[8])
+                trabalhoProducao.setRecorrencia(recorrencia)
+                trabalhoProducao.setLicenca(linha[10])
+                trabalhoProducao.setEstado(linha[11])
+                trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
             return trabalhosProducao
         except Exception as e:
@@ -81,10 +120,13 @@ class TrabalhoProducaoDaoSqlite:
     
     def insereTrabalhoProducao(self, trabalhoProducao):
         recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
-        sql = """INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario, recorrencia, tipoLicenca, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
+        sql = """
+            INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, recorrencia, tipoLicenca, estado) 
+            VALUES (?, ?, ?, ?, ?, ?);
+            """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.pegaId(), trabalhoProducao.pegaTrabalhoId(), self.__personagem.pegaId(), trabalhoProducao.pegaNome(), trabalhoProducao.pegaNomeProducao(), trabalhoProducao.pegaExperiencia(), trabalhoProducao.pegaNivel(), trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaRaridade(), trabalhoProducao.pegaTrabalhoNecessario(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado()))
+            cursor.execute(sql, (trabalhoProducao.pegaId(), trabalhoProducao.pegaTrabalhoId(), self.__personagem.pegaId(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado()))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao):
@@ -120,11 +162,11 @@ class TrabalhoProducaoDaoSqlite:
         recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
         sql = """
             UPDATE Lista_desejo 
-            SET idTrabalho = ?, nome = ?, nomeProducao = ?, experiencia = ?, nivel = ?, profissao = ?, raridade = ?, trabalhoNecessario = ?, recorrencia = ?, tipoLicenca = ?, estado = ? 
+            SET idTrabalho = ?, recorrencia = ?, tipoLicenca = ?, estado = ? 
             WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.pegaTrabalhoId(), trabalhoProducao.pegaNome(), trabalhoProducao.pegaNomeProducao(), trabalhoProducao.pegaExperiencia(), trabalhoProducao.pegaNivel(), trabalhoProducao.pegaProfissao(), trabalhoProducao.pegaRaridade(), trabalhoProducao.pegaTrabalhoNecessario(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado(), trabalhoProducao.pegaId()))
+            cursor.execute(sql, (trabalhoProducao.pegaTrabalhoId(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado(), trabalhoProducao.pegaId()))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducao):
