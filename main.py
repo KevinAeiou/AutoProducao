@@ -550,20 +550,62 @@ class Aplicacao:
         trabalhoEstoque = None
         if trabalhoEhProducaoRecursos(trabalhoProducaoConcluido):
             if trabalhoEhProducaoLicenca(trabalhoProducaoConcluido):
-                trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), CHAVE_LICENCA_APRENDIZ, '', 0, 2, 'Recurso', trabalhoProducaoConcluido.pegaTrabalhoId())
+                trabalhoEstoque = TrabalhoEstoque()
+                trabalhoEstoque.setNome(CHAVE_LICENCA_APRENDIZ)
+                trabalhoEstoque.setProfissao('')
+                trabalhoEstoque.setNivel(0)
+                trabalhoEstoque.setQuantidade(2)
+                trabalhoEstoque.setRaridade('Recurso')
+                trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
             else:
                 if trabalhoEhMelhoriaEssenciaComum(trabalhoProducaoConcluido):
-                    trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), 'Essência composta', '', 0, 5, 'Recurso', trabalhoProducaoConcluido.pegaTrabalhoId())
+                    trabalhoEstoque = TrabalhoEstoque()
+                    trabalhoEstoque.setNome('Essência composta')
+                    trabalhoEstoque.setProfissao('')
+                    trabalhoEstoque.setNivel(0)
+                    trabalhoEstoque.setQuantidade(5)
+                    trabalhoEstoque.setRaridade('Recurso')
+                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
                 elif trabalhoEhMelhoriaEssenciaComposta(trabalhoProducaoConcluido):
-                    trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), 'Essência de energia', '', 0, 1, 'Recurso', trabalhoProducaoConcluido.pegaTrabalhoId())
+                    trabalhoEstoque = TrabalhoEstoque()
+                    trabalhoEstoque.setNome('Essência de energia')
+                    trabalhoEstoque.setProfissao('')
+                    trabalhoEstoque.setNivel(0)
+                    trabalhoEstoque.setQuantidade(1)
+                    trabalhoEstoque.setRaridade('Recurso')
+                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
                 elif trabalhoEhMelhoriaSubstanciaComum(trabalhoProducaoConcluido):
-                    trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), 'Substância composta', '', 0, 5, 'Recurso', trabalhoProducaoConcluido.pegaTrabalhoId())
+                    trabalhoEstoque = TrabalhoEstoque()
+                    trabalhoEstoque.setNome('Substância composta')
+                    trabalhoEstoque.setProfissao('')
+                    trabalhoEstoque.setNivel(0)
+                    trabalhoEstoque.setQuantidade(5)
+                    trabalhoEstoque.setRaridade('Recurso')
+                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
                 elif trabalhoEhMelhoriaSubstanciaComposta(trabalhoProducaoConcluido):
-                    trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), 'Substância energética', '', 0, 1, 'Recurso', trabalhoProducaoConcluido.pegaTrabalhoId())
+                    trabalhoEstoque = TrabalhoEstoque()
+                    trabalhoEstoque.setNome('Substância energética')
+                    trabalhoEstoque.setProfissao('')
+                    trabalhoEstoque.setNivel(0)
+                    trabalhoEstoque.setQuantidade(1)
+                    trabalhoEstoque.setRaridade('Recurso')
+                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
                 elif trabalhoEhMelhoriaCatalisadorComum(trabalhoProducaoConcluido):
-                    trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), 'Catalisador amplificado', '', 0, 5, 'Recurso', trabalhoProducaoConcluido.pegaTrabalhoId())
+                    trabalhoEstoque = TrabalhoEstoque()
+                    trabalhoEstoque.setNome('Catalisador amplificado')
+                    trabalhoEstoque.setProfissao('')
+                    trabalhoEstoque.setNivel(0)
+                    trabalhoEstoque.setQuantidade(5)
+                    trabalhoEstoque.setRaridade('Recurso')
+                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
                 elif trabalhoEhMelhoriaCatalisadorComposto(trabalhoProducaoConcluido):
-                    trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), 'Catalisador de energia', '', 0, 1, 'Recurso', trabalhoProducaoConcluido.pegaTrabalhoId())
+                    trabalhoEstoque = TrabalhoEstoque()
+                    trabalhoEstoque.setNome('Catalisador de energia')
+                    trabalhoEstoque.setProfissao('')
+                    trabalhoEstoque.setNivel(0)
+                    trabalhoEstoque.setQuantidade('')
+                    trabalhoEstoque.setRaridade('Recurso')
+                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
                 if variavelExiste(trabalhoEstoque):
                     if textoEhIgual(trabalhoProducaoConcluido.pegaLicenca(), CHAVE_LICENCA_APRENDIZ):
                         trabalhoEstoque.setQuantidade(trabalhoEstoque.pegaQuantidade() * 2)
@@ -583,7 +625,13 @@ class Aplicacao:
                     for trabalho in trabalhos:
                         condicoes = textoEhIgual(trabalho.pegaProfissao(), trabalhoProducaoConcluido.pegaProfissao()) and trabalho.pegaNivel() == nivelColecao and textoEhIgual(trabalho.pegaRaridade(), CHAVE_RARIDADE_COMUM)
                         if condicoes:
-                            trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), trabalho.pegaNome(),trabalho.pegaProfissao(), trabalho.pegaNivel(), 1, trabalho.pegaRaridade(), trabalho.pegaId())
+                            trabalhoEstoque = TrabalhoEstoque()
+                            trabalhoEstoque.setNome(trabalho.pegaNome())
+                            trabalhoEstoque.setProfissao(trabalho.pegaProfissao())
+                            trabalhoEstoque.setNivel(trabalho.pegaNivel())
+                            trabalhoEstoque.setQuantidade(1)
+                            trabalhoEstoque.setRaridade(trabalho.pegaRaridade())
+                            trabalhoEstoque.setIdTrabalho(trabalho.pegaId())
                             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     for trabalhoEstoque in listaTrabalhoEstoqueConcluido:
                         tipoRecurso = retornaChaveTipoRecurso(trabalhoEstoque)
@@ -601,7 +649,13 @@ class Aplicacao:
                         else:
                             print(f'Tipo de recurso não encontrado!')
             if tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
-                    trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), trabalhoProducaoConcluido.pegaNome(), trabalhoProducaoConcluido.pegaProfissao(), trabalhoProducaoConcluido.pegaNivel(), 0, trabalhoProducaoConcluido.pegaRaridade(), trabalhoProducaoConcluido.pegaTrabalhoId())
+                    trabalhoEstoque = TrabalhoEstoque()
+                    trabalhoEstoque.setNome(trabalhoProducaoConcluido.pegaNome())
+                    trabalhoEstoque.setProfissao(trabalhoProducaoConcluido.pegaProfissao())
+                    trabalhoEstoque.setNivel(trabalhoProducaoConcluido.pegaNivel())
+                    trabalhoEstoque.setQuantidade(0)
+                    trabalhoEstoque.setRaridade(trabalhoProducaoConcluido.pegaRaridade())
+                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
                     tipoRecurso = retornaChaveTipoRecurso(trabalhoEstoque)
                     if variavelExiste(tipoRecurso):
                         if tipoRecurso == CHAVE_RCS or tipoRecurso == CHAVE_RCT:
@@ -614,7 +668,13 @@ class Aplicacao:
                     else:
                         print(f'Tipo de recurso não encontrado!')
         else:
-            trabalhoEstoque = TrabalhoEstoque(str(uuid.uuid4()), trabalhoProducaoConcluido.pegaNome(), trabalhoProducaoConcluido.pegaProfissao(), trabalhoProducaoConcluido.pegaNivel(), 1, trabalhoProducaoConcluido.pegaRaridade(), trabalhoProducaoConcluido.pegaTrabalhoId())
+            trabalhoEstoque = TrabalhoEstoque()
+            trabalhoEstoque.setNome(trabalhoProducaoConcluido.pegaNome())
+            trabalhoEstoque.setProfissao(trabalhoProducaoConcluido.pegaProfissao())
+            trabalhoEstoque.setNivel(trabalhoProducaoConcluido.pegaNivel())
+            trabalhoEstoque.setQuantidade(1)
+            trabalhoEstoque.setRaridade(trabalhoProducaoConcluido.pegaRaridade())
+            trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.pegaTrabalhoId())
             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
         print(f'Lista de dicionários trabalhos concluídos:')
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
@@ -2719,7 +2779,14 @@ class Aplicacao:
                 trabalho = trabalhos[int(opcaoTrabalho) - 1]
                 quantidadeTrabalho = input(f'Quantidade trabalho: ')
                 trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
-                if trabalhoEstoqueDao.insereTrabalhoEstoque(TrabalhoEstoque(str(uuid.uuid4()), trabalho.pegaNome(), trabalho.pegaProfissao(), trabalho.pegaNivel(), quantidadeTrabalho, trabalho.pegaRaridade(), trabalho.pegaId())):
+                trabalhoEstoque = TrabalhoEstoque()
+                trabalhoEstoque.setNome(trabalho.pegaNome())
+                trabalhoEstoque.setProfissao(trabalho.pegaProfissao())
+                trabalhoEstoque.setNivel(trabalho.pegaNivel())
+                trabalhoEstoque.setQuantidade(quantidadeTrabalho)
+                trabalhoEstoque.setRaridade(trabalho.pegaRaridade())
+                trabalhoEstoque.setIdTrabalho(trabalho.pegaId())
+                if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoque):
                     print(f'Trabalho {trabalho.pegaNome()} inserido no estoque com sucesso!')
                     input(f'Clique para continuar...')
                     continue

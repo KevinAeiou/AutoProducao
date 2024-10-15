@@ -20,14 +20,24 @@ class EstoqueDaoSqlite:
     def pegaEstoque(self):
         estoque = []
         sql = """
-            SELECT * 
-            FROM Lista_estoque 
+            SELECT Lista_estoque.id, trabalhos.nome, trabalhos.profissao, trabalhos.nivel, Lista_estoque.quantidade, trabalhos.raridade, Lista_estoque.idTrabalho
+            FROM Lista_estoque
+            INNER JOIN trabalhos
+            ON Lista_estoque.idTrabalho == trabalhos.id
             WHERE idPersonagem = ?;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
-                estoque.append(TrabalhoEstoque(linha[0], linha[3], linha[4], linha[5], linha[6], linha[7], linha[2]))
+                trabalhoEstoque = TrabalhoEstoque()
+                trabalhoEstoque.setId(linha[0])
+                trabalhoEstoque.setNome(linha[1])
+                trabalhoEstoque.setProfissao(linha[2])
+                trabalhoEstoque.setNivel(linha[3])
+                trabalhoEstoque.setQuantidade(linha[4])
+                trabalhoEstoque.setRaridade(linha[5])
+                trabalhoEstoque.setIdTrabalho(linha[6])
+                estoque.append(trabalhoEstoque)
             self.__meuBanco.desconecta()
             return estoque
         except Exception as e:
@@ -38,13 +48,23 @@ class EstoqueDaoSqlite:
     def pegaTodosTrabalhosEstoque(self):
         estoque = []
         sql = """
-            SELECT * 
-            FROM Lista_estoque"""
+            SELECT Lista_estoque.id, trabalhos.nome, trabalhos.profissao, trabalhos.nivel, Lista_estoque.quantidade, trabalhos.raridade, Lista_estoque.idTrabalho
+            FROM Lista_estoque
+            INNER JOIN trabalhos
+            ON Lista_estoque.idTrabalho == trabalhos.id;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql)
             for linha in cursor.fetchall():
-                estoque.append(TrabalhoEstoque(linha[0], linha[3], linha[4], linha[5], linha[6], linha[7], linha[2]))
+                trabalhoEstoque = TrabalhoEstoque()
+                trabalhoEstoque.setId(linha[0])
+                trabalhoEstoque.setNome(linha[1])
+                trabalhoEstoque.setProfissao(linha[2])
+                trabalhoEstoque.setNivel(linha[3])
+                trabalhoEstoque.setQuantidade(linha[4])
+                trabalhoEstoque.setRaridade(linha[5])
+                trabalhoEstoque.setIdTrabalho(linha[6])
+                estoque.append(trabalhoEstoque)
             self.__meuBanco.desconecta()
             return estoque
         except Exception as e:
@@ -54,11 +74,11 @@ class EstoqueDaoSqlite:
     
     def insereTrabalhoEstoque(self, trabalhoEstoque):
         sql = """
-            INSERT INTO Lista_estoque (id, idPersonagem, idTrabalho, nome, profissao, nivel, quantidade, raridade)
-            VALUES (?,?,?,?,?,?,?,?)"""
+            INSERT INTO Lista_estoque (id, idPersonagem, idTrabalho, quantidade)
+            VALUES (?,?,?,?)"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoEstoque.pegaId(), self.__personagem.pegaId(), trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaNome(), trabalhoEstoque.pegaProfissao(), trabalhoEstoque.pegaNivel(), trabalhoEstoque.pegaQuantidade(), trabalhoEstoque.pegaRaridade()))
+            cursor.execute(sql, (trabalhoEstoque.pegaId(), self.__personagem.pegaId(), trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaQuantidade()))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioEstoque.insereTrabalhoEstoque(trabalhoEstoque):
@@ -71,15 +91,14 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return False
 
-    def modificaTrabalhoEstoque(self, trabalhoEstoque, idPersonagemNovo = None):
-        idPersonagem = idPersonagemNovo if idPersonagemNovo != None else self.__personagem.pegaId()
+    def modificaTrabalhoEstoque(self, trabalhoEstoque):
         sql = """
             UPDATE Lista_estoque 
-            SET idPersonagem = ?, idTrabalho = ?, nome = ?, profissao = ?, nivel = ?, quantidade = ?, raridade = ?
+            SET idTrabalho = ?, quantidade = ?
             WHERE id == ?"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (idPersonagem, trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaNome(), trabalhoEstoque.pegaProfissao(), trabalhoEstoque.pegaNivel(), trabalhoEstoque.pegaQuantidade(), trabalhoEstoque.pegaRaridade(), trabalhoEstoque.pegaId()))
+            cursor.execute(sql, (trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaQuantidade(), trabalhoEstoque.pegaId()))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque):

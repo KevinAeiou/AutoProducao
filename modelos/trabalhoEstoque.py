@@ -1,12 +1,14 @@
+from uuid import uuid4
+
 class TrabalhoEstoque:
-    def __init__(self, id, nome, profissao, nivel, quantidade, raridade, trabalhoId) -> None:
-        self.id = id
-        self.nome = nome
-        self.profissao = profissao
-        self.nivel = int(nivel)
-        self.quantidade = int(quantidade)
-        self.raridade = raridade
-        self.trabalhoId = trabalhoId
+    def __init__(self,):
+        self.id = str(uuid4())
+        self.nome = None
+        self.profissao = None
+        self.nivel = 0
+        self.quantidade = 0
+        self.raridade = None
+        self.trabalhoId = None
 
     def pegaId(self):
         return self.id
@@ -31,6 +33,25 @@ class TrabalhoEstoque:
     
     def setId(self, id):
         self.id = id
+
+    def setNome(self, nome):
+        self.nome = nome
+
+    def setProfissao(self, profissao):
+        self.profissao = profissao
+
+    def setNivel(self, nivel):
+        self.nivel = int(nivel)
+
+    def setQuantidade(self, quantidade):
+        quantidade = 1 if int(quantidade) < 0 else int(quantidade)
+        self.quantidade = quantidade
+
+    def setRaridade(self, raridade):
+        self.raridade = raridade
+
+    def setIdTrabalho(self, idTrabalho):
+        self.trabalhoId = idTrabalho
     
     def setQuantidade(self, quantidade):
         quantidade = 0 if int(quantidade) < 0 else int(quantidade)
