@@ -1,15 +1,24 @@
+from uuid import uuid4
+
 class Profissao:
-    def __init__(self, id, nome, experiencia, prioridade):
-        self.id = id
-        self.nome = nome
-        self.experiencia = experiencia
-        self.prioridade = prioridade
+    def __init__(self):
+        self.id = str(uuid4())
+        self.idPersonagem = None
+        self.nome = None
+        self.experiencia = None
+        self.prioridade = None
     
     def pegaId(self):
         return self.id
     
     def setId(self, id):
         self.id = id
+
+    def pegaIdPersonagem(self):
+        return self.idPersonagem
+    
+    def setIdPersonagem(self, idPersonagem):
+        self.idPersonagem = idPersonagem
 
     def pegaNome(self):
         return self.nome
@@ -47,4 +56,4 @@ class Profissao:
 
     def __str__(self) -> str:
         prioridade = 'Verdadeiro' if self.pegaPrioridade() else 'Falso'
-        return f'{(self.id).ljust(40)} | {(self.nome).ljust(22)} | {str(self.experiencia).ljust(6)} | {prioridade}'
+        return f'{(self.id).ljust(40)} | {(self.idPersonagem).ljust(40)} | {(self.nome).ljust(22)} | {str(self.experiencia).ljust(6)} | {prioridade}'

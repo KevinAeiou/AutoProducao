@@ -38,6 +38,31 @@ class ProfissaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
+    def pegaTodasProfissoes(self):
+        profissoes = []
+        sql = f"""
+            SELECT * FROM profissoes;
+            """
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql)
+            for linha in cursor.fetchall():
+                prioridade = True if linha[4] == 1 else False
+                profissao = Profissao()
+                profissao.setId(linha[0])
+                profissao.setIdPersonagem(linha[1])
+                profissao.setNome(linha[2])
+                profissao.setExperiencia(linha[3])
+                profissao.setPrioridade(prioridade)
+                profissoes.append(profissao)
+            profissoes = sorted(profissoes, key=lambda profissao:(profissao.pegaIdPersonagem(), profissao.pegaExperiencia()), reverse=True)
+            self.__meuBanco.desconecta()
+            return profissoes
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
     def modificaProfissao(self, profissao):
         prioridade = 1 if profissao.pegaPrioridade() else 0
         sql = """

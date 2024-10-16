@@ -24,6 +24,7 @@ from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 
 from repositorio.repositorioPersonagem import RepositorioPersonagem
 from repositorio.repositorioTrabalho import RepositorioTrabalho
+from repositorio.repositorioProfissao import RepositorioProfissao
 
 class Aplicacao:
     def __init__(self) -> None:
@@ -2203,14 +2204,33 @@ class Aplicacao:
                     else:
                         print(f'Erro ao modificar o idPersonagem do trabalho em vendas: {vendaDAO.pegaErro()}')
                         input(f'Clique para continuar...')
-
                     continue
                 print(f'Erro ao modificar o id do personagem {personagemEncontrado.pegaId()}: {personagemDao.pegaErro()}')
                 input(f'Clique para continuar...')
 
+    def sincronizaListaProfissoes(self):
+        limpaTela()
+        print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+        personagemDao = PersonagemDaoSqlite()
+        personagens = personagemDao.pegaPersonagens()
+        if not variavelExiste(personagens):
+            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
+        for personagem in personagens:
+            print(personagem)
+            repositorioProfissao = RepositorioProfissao(personagem)
+            profissoes = repositorioProfissao.pegaTodasProfissoes()
+            if not variavelExiste(profissoes):
+                print(f'Erro ao buscar profissões no servidor: {repositorioProfissao.pegaErro()}')
+                continue
+            for profissao in profissoes:
+                print(profissao)
+        input(f'Clique para continuar...')
+
     def sincronizaDados(self):
-        self.sincronizaListaTrabalhos()
-        self.sincronizaListaPersonagens()
+        # self.sincronizaListaTrabalhos()
+        # self.sincronizaListaPersonagens()
+        self.sincronizaListaProfissoes()
         # 86c0b57c-8c2e-4eb4-8fe7-305c435a214d | Mrninguem         | 10     | Verdadeiro | Verdadeiro | Falso
         # 63b2f589-109a-4aba-b481-866cd2beb684 | Joezinho          | 10     | Verdadeiro | Verdadeiro | Falso
         # 729b1481-d806-4253-80dd-8acd8cff665d | Provisorioatecair | 6      | Verdadeiro | Falso      | Falso
@@ -3085,6 +3105,17 @@ class Aplicacao:
                 print(f'Erro ao modificar trabalho vendido: {trabalhoVendidoDao.pegaErro()}')
                 input(f'Clique para continuar...')
 
+    def pegaTodasProfissoes(self):
+        limpaTela()
+        profissaoDao = ProfissaoDaoSqlite()
+        profissoes = profissaoDao.pegaTodasProfissoes()
+        if not variavelExiste(profissoes):
+            print(f'Erro ao buscar todas as profissões: {profissaoDao.pegaErro()}')
+            input(f'Clique para continuar...')
+        for profissao in profissoes:
+            print(profissao)
+        input(f'Clique para continuar...')
+
     def teste(self):
         while True:
             limpaTela()
@@ -3110,6 +3141,7 @@ class Aplicacao:
             print(f'19 - Pega todos trabalhos vendidos')
             print(f'20 - Pega todos trabalhos producao')
             print(f'21 - Sincroniza dados')
+            print(f'22 - Pega todas profissões')
             print(f'0 - Sair')
             try:
                 opcaoMenu = input(f'Opção escolhida: ')
@@ -3183,6 +3215,10 @@ class Aplicacao:
                 if int(opcaoMenu) == 21:
                     # pega todos trabalhos vendidos
                     self.sincronizaDados()
+                    continue
+                if int(opcaoMenu) == 22:
+                    # pega todos trabalhos vendidos
+                    self.pegaTodasProfissoes()
                     continue
             except Exception as erro:
                 logger = logging.getLogger(__name__)
