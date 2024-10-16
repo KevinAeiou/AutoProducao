@@ -12,7 +12,6 @@ class MeuBanco:
         if banco == self.__SQLITE:
             nomeConexao = 'autoProducao.db'
             try:
-                print(f'Banco conectado!')
                 self.conexao = sqlite3.connect(nomeConexao)
             except Exception as e:
                 self.__erroConexao = str(e)
@@ -20,7 +19,6 @@ class MeuBanco:
 
     def desconecta(self):
         try:
-            print(f'Banco desconectado!')
             self.conexao.close()
         except AttributeError:
             pass
