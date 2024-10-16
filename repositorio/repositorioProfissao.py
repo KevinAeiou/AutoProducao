@@ -15,12 +15,11 @@ class RepositorioProfissao:
             todasProfissoes = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).get()
             if todasProfissoes.pyres != None:
                 for profissaoEncontrado in todasProfissoes.each():
-                    profisao = Profissao(
-                        profissaoEncontrado.key(),
-                        profissaoEncontrado.val()[CHAVE_NOME],
-                        profissaoEncontrado.val()[CHAVE_EXPERIENCIA],
-                        profissaoEncontrado.val()[CHAVE_PRIORIDADE])
-                    profissoes.append(profisao)
+                    profissao = Profissao()
+                    profissao.dicionarioParaObjeto(profissaoEncontrado.val())
+                    profissao.setId(profissaoEncontrado.key())
+                    profissao.setIdPersonagem(self.__personagem.pegaId())
+                    profissoes.append(profissao)
                 profissoes = sorted(profissoes, key = lambda profissao: profissao.pegaExperiencia(), reverse = True)
                 return profissoes
         except Exception as e:

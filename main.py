@@ -2209,8 +2209,9 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
     def sincronizaListaProfissoes(self):
+        logger = logging.getLogger('profissaoDao')
         limpaTela()
-        print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+        print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
         personagemDao = PersonagemDaoSqlite()
         personagens = personagemDao.pegaPersonagens()
         if not variavelExiste(personagens):
@@ -2225,6 +2226,19 @@ class Aplicacao:
                 continue
             for profissao in profissoes:
                 print(profissao)
+                profissaoDao = ProfissaoDaoSqlite(personagem)
+                profissaoEncontrada = profissaoDao.pegaProfissaoPorId(profissao)
+                if not variavelExiste(profissaoEncontrada):
+                    logger.error(f'Erro ao buscar profissão ({profissao}): {profissaoDao.pegaErro()}')
+                    continue
+                if variavelExiste(profissaoEncontrada.pegaNome()):
+                    logger.info(f'Profissão ({profissao}) já existe no banco!')
+                    continue
+                profissaoDao = ProfissaoDaoSqlite(personagem)
+                if profissaoDao.insereProfissao(profissao):
+                    logger.info(f'Profissão: ({profissao}) inserida com sucesso no banco!')
+                    continue
+                logger.error(f'Erro ao inserir profissão ({profissao}) no banco: {profissaoDao.pegaErro()}')
         input(f'Clique para continuar...')
 
     def sincronizaDados(self):
@@ -3113,6 +3127,7 @@ class Aplicacao:
             print(f'Erro ao buscar todas as profissões: {profissaoDao.pegaErro()}')
             input(f'Clique para continuar...')
         for profissao in profissoes:
+            
             print(profissao)
         input(f'Clique para continuar...')
 

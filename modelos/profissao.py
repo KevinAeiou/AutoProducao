@@ -5,8 +5,8 @@ class Profissao:
         self.id = str(uuid4())
         self.idPersonagem = None
         self.nome = None
-        self.experiencia = None
-        self.prioridade = None
+        self.experiencia = 0
+        self.prioridade = False
     
     def pegaId(self):
         return self.id
@@ -53,6 +53,10 @@ class Profissao:
                 if experiencia > self.pegaExperiencia():
                     return listaXPMaximo.index(experiencia)
         return 0
+    
+    def dicionarioParaObjeto(self, dicionario):
+        for chave in dicionario:
+            setattr(self, chave, dicionario[chave])
 
     def __str__(self) -> str:
         prioridade = 'Verdadeiro' if self.pegaPrioridade() else 'Falso'

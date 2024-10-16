@@ -18,6 +18,29 @@ class ProfissaoDaoSqlite:
             self.__repositorioProfissao = RepositorioProfissao(personagem)
         except Exception as e:
             self.__erro = str(e)
+
+    def pegaProfissaoPorId(self, profissao):
+        sql = f"""
+            SELECT * FROM profissoes
+            WHERE id == ?;
+            """
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [profissao.pegaId()])
+            for linha in cursor.fetchall():
+                prioridade = True if linha[4] == 1 else False
+                profissao = Profissao()
+                profissao.setId(linha[0])
+                profissao.setIdPersonagem(linha[1])
+                profissao.setNome(linha[2])
+                profissao.setExperiencia(linha[3])
+                profissao.setPrioridade(prioridade)
+            self.__meuBanco.desconecta()
+            return profissao
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
     
     def pegaProfissoes(self):
         profissoes = []
@@ -29,7 +52,13 @@ class ProfissaoDaoSqlite:
             cursor.execute(sql, [self.__personagem.pegaId()])
             for linha in cursor.fetchall():
                 prioridade = True if linha[4] == 1 else False
-                profissoes.append(Profissao(linha[0], linha[2], linha[3], prioridade))
+                profissao = Profissao()
+                profissao.setId(linha[0])
+                profissao.setIdPersonagem(linha[1])
+                profissao.setNome(linha[2])
+                profissao.setExperiencia(linha[3])
+                profissao.setPrioridade(prioridade)
+                profissoes.append(profissao)
             profissoes = sorted(profissoes, key=lambda profissao:(profissao.pegaExperiencia()), reverse=True)
             self.__meuBanco.desconecta()
             return profissoes
@@ -86,10 +115,13 @@ class ProfissaoDaoSqlite:
     
     def insereListaProfissoes(self):
         profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
-        for profissao in profissoes:
+        for nomeProfissao in profissoes:
             self.__conexao = self.__meuBanco.pegaConexao(1)
-            if self.insereProfissao(Profissao(str(profissoes.index(profissao)) + str(uuid4()), profissao, 0, False)):
-                print(f'Profissão {profissao} inserida com sucesso!')
+            profissao = Profissao()
+            profissao.setNome(nomeProfissao)
+            profissao.setIdPersonagem(self.__personagem.pegaId())
+            if self.insereProfissao(profissao):
+                print(f'Profissão {nomeProfissao} inserida com sucesso!')
                 continue
             print(f'Erro ao inserir profissão: {self.pegaErro()}')
             return False
