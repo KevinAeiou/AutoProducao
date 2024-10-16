@@ -118,6 +118,7 @@ class ProfissaoDaoSqlite:
         for nomeProfissao in profissoes:
             self.__conexao = self.__meuBanco.pegaConexao(1)
             profissao = Profissao()
+            profissao.setId(str(profissoes.index(nomeProfissao))+str(uuid4()))
             profissao.setNome(nomeProfissao)
             profissao.setIdPersonagem(self.__personagem.pegaId())
             if self.insereProfissao(profissao):

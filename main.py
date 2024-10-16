@@ -2102,17 +2102,19 @@ class Aplicacao:
             self.__repositorioTrabalho.limpaLista()
         
     def sincronizaListaTrabalhos(self):
+        loggerTrabalho = logging.getLogger('trabalhoDAO')
+        loggerEstoque = logging.getLogger('estoqueDAO')
+        loggerProducao = logging.getLogger('trabalhoProducaoDAO')
+        loggerVenda = logging.getLogger('vendaDAO')
         repositorioTrabalho = RepositorioTrabalho()        
         trabalhosServidor = repositorioTrabalho.pegaTodosTrabalhos()
         if not variavelExiste(trabalhosServidor):
             print(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
-            input(f'Clique para continuar...')
             return
         trabalhoDao = TrabalhoDaoSqlite()
         trabalhosBanco = trabalhoDao.pegaTrabalhos()
         if not variavelExiste(trabalhosBanco):
             print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-            input(f'Clique para continuar...')
             return
         for trabalhoServidor in trabalhosServidor:
             trabalhoDao = TrabalhoDaoSqlite()
@@ -2122,36 +2124,31 @@ class Aplicacao:
                     print(f'Sincronizando ids...')
                     trabalhoDao = TrabalhoDaoSqlite()
                     if trabalhoDao.modificaTrabalhoPorNomeProfissaoRaridade(trabalhoServidor):
-                        print(f'ID do trabalho: {trabalhoServidor.pegaNome()} modificado de: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
+                        loggerTrabalho.info(f'ID do trabalho modificado de: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
                         trabalhoEstoqueDAO = EstoqueDaoSqlite()
                         if trabalhoEstoqueDAO.modificaIdTrabalhoEstoque(trabalhoServidor.pegaId(), trabalhoEncontradoBanco.pegaId()):
-                            print(f'Id do trabalho em estoque modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
+                            loggerEstoque.info(f'Id do trabalho em estoque modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
                         else:
-                            print(f'Erro ao modificar o id do trabalho no estoque: {trabalhoEstoqueDAO.pegaErro()}')
-                            input(f'Clique para continuar...')
+                            loggerEstoque.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoEstoqueDAO.pegaErro()}')
                         trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
                         if trabalhoProducaoDAO.modificaIdTrabalhoEmProducao(trabalhoServidor.pegaId(), trabalhoEncontradoBanco.pegaId()):
-                            print(f'Id do trabalho em produção modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
+                            loggerProducao.info(f'Id do trabalho em produção modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
                         else:
-                            print(f'Erro ao modificar o id do trabalho em produção: {trabalhoProducaoDAO.pegaErro()}')
-                            input(f'Clique para continuar...')
+                            loggerProducao.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoProducaoDAO.pegaErro()}')
                         vendaDAO = VendaDaoSqlite()
                         if vendaDAO.modificaIdTrabalhoVendido(trabalhoServidor.pegaId(), trabalhoEncontradoBanco.pegaId()):
-                            print(f'Id do trabalho em vendas modificado: {trabalhoEncontradoBanco.pegaId()} -> {trabalhoServidor.pegaId()}')
+                            loggerVenda.info(f'Id do trabalho em vendas modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
                         else:
-                            print(f'Erro ao modificar o id do trabalho em vendas: {vendaDAO.pegaErro()}')
-                            input(f'Clique para continuar...')
+                            loggerVenda.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {vendaDAO.pegaErro()}')
                         continue
                     else:
-                        print(f'Erro ao modificar o id do trabalho {trabalhoEncontradoBanco.pegaId()}: {trabalhoDao.pegaErro()}')
-                        input(f'Clique para continuar...')
+                        loggerTrabalho.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoDao.pegaErro()}')
                 continue
             trabalhoDao = TrabalhoDaoSqlite()
             if trabalhoDao.insereTrabalho(trabalhoServidor):
-                print(f'{trabalhoServidor.pegaNome()} inserido no banco!')
+                loggerTrabalho.info(f'({trabalhoServidor}) inserido no banco!')
                 continue
-            print(f'Erro ao inserir trabalho no banco: {trabalhoDao.pegaErro()}')
-            input(f'Clique para continuar...')
+            loggerTrabalho.error(f'Erro ao inserir trabalho ({trabalhoServidor}) no banco: {trabalhoDao.pegaErro()}')
 
     def sincronizaListaPersonagens(self):
         repositorioPersonagem = RepositorioPersonagem()
@@ -2171,7 +2168,6 @@ class Aplicacao:
             personagemEncontrado = personagemDao.pegaPersonagemEspecificoPorNome(personagemServidor)
             if not variavelExiste(personagemEncontrado):
                 print(f'Erro ao buscar trabalho especifico no banco: {personagemDao.pegaErro()}')
-                input(f'Clique para continuar...')
                 continue
             if personagemEncontrado.pegaNome() == None:
                 personagemDao = PersonagemDaoSqlite()
@@ -2179,7 +2175,6 @@ class Aplicacao:
                     print(f'{personagemServidor.pegaNome()} inserido no banco com sucesso!')
                     continue
                 print(f'Erro ao inserir {personagemServidor.pegaNome()} no banco: {personagemDao.pegaErro()}')
-                input(f'Clique para continuar...')
                 continue
             if personagemServidor.pegaId() != personagemEncontrado.pegaId():
                 print(f'Sincronizando ids...')
@@ -2191,22 +2186,18 @@ class Aplicacao:
                         print(f'idPersonagem do trabalho em estoque modificado: {personagemEncontrado.pegaId()} -> {personagemServidor.pegaId()}')
                     else:
                         print(f'Erro ao modificar o idPersonagem do trabalho no estoque: {trabalhoEstoqueDAO.pegaErro()}')
-                        input(f'Clique para continuar...')
                     trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
                     if trabalhoProducaoDAO.modificaIdPersonagemTrabalhoEmProducao(personagemServidor.pegaId(), personagemEncontrado.pegaId()):
                         print(f'idPersonagem do trabalho em produção modificado: {personagemEncontrado.pegaId()} -> {personagemServidor.pegaId()}')
                     else:
                         print(f'Erro ao modificar o idPersonagem do trabalho em produção: {trabalhoProducaoDAO.pegaErro()}')
-                        input(f'Clique para continuar...')
                     vendaDAO = VendaDaoSqlite()
                     if vendaDAO.modificaIdPersonagemTrabalhoVendido(personagemServidor.pegaId(), personagemEncontrado.pegaId()):
                         print(f'idPersonagem do trabalho em vendas modificado: {personagemEncontrado.pegaId()} -> {personagemServidor.pegaId()}')
                     else:
                         print(f'Erro ao modificar o idPersonagem do trabalho em vendas: {vendaDAO.pegaErro()}')
-                        input(f'Clique para continuar...')
                     continue
                 print(f'Erro ao modificar o id do personagem {personagemEncontrado.pegaId()}: {personagemDao.pegaErro()}')
-                input(f'Clique para continuar...')
 
     def sincronizaListaProfissoes(self):
         logger = logging.getLogger('profissaoDao')
