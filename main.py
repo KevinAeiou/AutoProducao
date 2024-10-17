@@ -2223,13 +2223,11 @@ class Aplicacao:
                     logger.error(f'Erro ao buscar profissão ({profissao}): {profissaoDao.pegaErro()}')
                     continue
                 if variavelExiste(profissaoEncontrada.pegaNome()):
-                    logger.info(f'Profissão ({profissao}) já existe no banco!')
-                    continue
-                profissaoDao = ProfissaoDaoSqlite(personagem)
-                if profissaoDao.insereProfissao(profissao):
-                    logger.info(f'Profissão: ({profissao}) inserida com sucesso no banco!')
-                    continue
-                logger.error(f'Erro ao inserir profissão ({profissao}) no banco: {profissaoDao.pegaErro()}')
+                    profissaoDao = ProfissaoDaoSqlite(personagem)
+                    if profissaoDao.modificaProfissao(profissao):
+                        logger.info(f'({profissao}) modificado com sucesso!')
+                        continue
+                    logger.error(f'Erro ao modificar ({profissao}): {profissaoDao.pegaErro()}')
         input(f'Clique para continuar...')
 
     def sincronizaDados(self):
@@ -3122,6 +3120,24 @@ class Aplicacao:
             print(profissao)
         input(f'Clique para continuar...')
 
+    def redefineListaDeProfissoes(self):
+        while True:
+            limpaTela()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if not variavelExiste(personagens):
+                print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                break
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            for personagem in personagens:
+                print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1])
+            profissaoDao.limpaListaProfissoes()
+
     def teste(self):
         while True:
             limpaTela()
@@ -3148,6 +3164,7 @@ class Aplicacao:
             print(f'20 - Pega todos trabalhos producao')
             print(f'21 - Sincroniza dados')
             print(f'22 - Pega todas profissões')
+            print(f'23 - Redefine profissões')
             print(f'0 - Sair')
             try:
                 opcaoMenu = input(f'Opção escolhida: ')
@@ -3225,6 +3242,10 @@ class Aplicacao:
                 if int(opcaoMenu) == 22:
                     # pega todos trabalhos vendidos
                     self.pegaTodasProfissoes()
+                    continue
+                if int(opcaoMenu) == 23:
+                    # pega todos trabalhos vendidos
+                    self.redefineListaDeProfissoes()
                     continue
             except Exception as erro:
                 logger = logging.getLogger(__name__)
