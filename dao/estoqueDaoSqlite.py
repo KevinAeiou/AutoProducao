@@ -27,16 +27,16 @@ class EstoqueDaoSqlite:
             WHERE idPersonagem = ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [self.__personagem.pegaId()])
+            cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
                 trabalhoEstoque = TrabalhoEstoque()
-                trabalhoEstoque.setId(linha[0])
-                trabalhoEstoque.setNome(linha[1])
-                trabalhoEstoque.setProfissao(linha[2])
-                trabalhoEstoque.setNivel(linha[3])
-                trabalhoEstoque.setQuantidade(linha[4])
-                trabalhoEstoque.setRaridade(linha[5])
-                trabalhoEstoque.setIdTrabalho(linha[6])
+                trabalhoEstoque.id = linha[0]
+                trabalhoEstoque.nome = linha[1]
+                trabalhoEstoque.profissao = linha[2]
+                trabalhoEstoque.nivel = linha[3]
+                trabalhoEstoque.quantidade = linha[4]
+                trabalhoEstoque.raridade = linha[5]
+                trabalhoEstoque.trabalhoId = linha[6]
                 estoque.append(trabalhoEstoque)
             self.__meuBanco.desconecta()
             return estoque
@@ -57,13 +57,13 @@ class EstoqueDaoSqlite:
             cursor.execute(sql)
             for linha in cursor.fetchall():
                 trabalhoEstoque = TrabalhoEstoque()
-                trabalhoEstoque.setId(linha[0])
-                trabalhoEstoque.setNome(linha[1])
-                trabalhoEstoque.setProfissao(linha[2])
-                trabalhoEstoque.setNivel(linha[3])
-                trabalhoEstoque.setQuantidade(linha[4])
-                trabalhoEstoque.setRaridade(linha[5])
-                trabalhoEstoque.setIdTrabalho(linha[6])
+                trabalhoEstoque.id = linha[0]
+                trabalhoEstoque.nome = linha[1]
+                trabalhoEstoque.profissao = linha[2]
+                trabalhoEstoque.nivel = linha[3]
+                trabalhoEstoque.quantidade = linha[4]
+                trabalhoEstoque.raridade = linha[5]
+                trabalhoEstoque.trabalhoId = linha[6]
                 estoque.append(trabalhoEstoque)
             self.__meuBanco.desconecta()
             return estoque
@@ -78,11 +78,11 @@ class EstoqueDaoSqlite:
             VALUES (?,?,?,?)"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoEstoque.pegaId(), self.__personagem.pegaId(), trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaQuantidade()))
+            cursor.execute(sql, (trabalhoEstoque.id, self.__personagem.id, trabalhoEstoque.trabalhoId, trabalhoEstoque.quantidade))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioEstoque.insereTrabalhoEstoque(trabalhoEstoque):
-                print(f'{trabalhoEstoque.pegaNome()} inserido com sucesso no servidor!')
+                print(f'{trabalhoEstoque.nome} inserido com sucesso no servidor!')
             else:
                 print(f'Erro ao inserir trabalho no estoque!')
             return True
@@ -98,11 +98,11 @@ class EstoqueDaoSqlite:
             WHERE id == ?"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoEstoque.pegaTrabalhoId(), trabalhoEstoque.pegaQuantidade(), trabalhoEstoque.pegaId()))
+            cursor.execute(sql, (trabalhoEstoque.trabalhoId, trabalhoEstoque.quantidade, trabalhoEstoque.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque):
-                print(f'{trabalhoEstoque.pegaNome()} modificado com sucesso no servidor!')
+                print(f'{trabalhoEstoque.nome} modificado com sucesso no servidor!')
             else:
                 print(f'Erro ao modificar estoque no servidor: {self.__repositorioEstoque.pegaErro()}')
             return True
@@ -150,11 +150,11 @@ class EstoqueDaoSqlite:
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoEstoque.pegaId()])
+            cursor.execute(sql, [trabalhoEstoque.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioEstoque.removeTrabalho(trabalhoEstoque):
-                print(f'{trabalhoEstoque.pegaNome()} removido com sucesso do servidor!')
+                print(f'{trabalhoEstoque.nome} removido com sucesso do servidor!')
             else:
                 print(f'Erro ao remover trabalho do estoque no servidor: {self.__repositorioEstoque.pegaErro()}')
             return True

@@ -56,7 +56,7 @@ class TrabalhoProducao:
         return self.raridade == CHAVE_RARIDADE_COMUM
     
     def ehRecorrente(self):
-        return self.recorrencia()
+        return self.recorrencia
     
     def alternaRecorrencia(self):
         self.recorrencia = not self.recorrencia

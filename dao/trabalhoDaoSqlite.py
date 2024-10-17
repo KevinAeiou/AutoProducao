@@ -19,22 +19,32 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
 
     def pegaTrabalhos(self):
-        todosTrabalhos = []
+        trabalhos = []
         sql = """SELECT * FROM trabalhos;"""
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql)
                 for linha in cursor.fetchall():
-                    todosTrabalhos.append(Trabalho(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7]))
-                todosTrabalhos = sorted(todosTrabalhos, key= lambda trabalho: (trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaNivel()))
+                    trabalho = Trabalho()
+                    trabalho.id = linha[0]
+                    trabalho.nome = linha[1]
+                    trabalho.nomeProducao = linha[2]
+                    trabalho.experiencia = linha[3]
+                    trabalho.nivel = linha[4]
+                    trabalho.profissao = linha[5]
+                    trabalho.raridade = linha[6]
+                    trabalho.trabalhoNecessario = linha[7]
+                    trabalhos.append(trabalho)
+                trabalhos = sorted(trabalhos, key= lambda trabalho: (trabalho.profissao, trabalho.raridade, trabalho.nivel))
                 self.__meuBanco.desconecta()
-                return todosTrabalhos            
+                return trabalhos            
         except Exception as e:
             self.__erro = str(e)
         return None
 
     def pegaTrabalhoEspecificoPorId(self, trabalho):
+        trabalho = Trabalho()
         sql = """
             SELECT * 
             FROM trabalhos
@@ -42,16 +52,24 @@ class TrabalhoDaoSqlite():
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, [trabalho.pegaId()])
+                cursor.execute(sql, [trabalho.id])
                 for linha in cursor.fetchall():
-                    trabalhoEncontrado = Trabalho(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7])
+                    trabalho.id = linha[0]
+                    trabalho.nome = linha[1]
+                    trabalho.nomeProducao = linha[2]
+                    trabalho.experiencia = linha[3]
+                    trabalho.nivel = linha[4]
+                    trabalho.profissao = linha[5]
+                    trabalho.raridade = linha[6]
+                    trabalho.trabalhoNecessario = linha[7]
                 self.__meuBanco.desconecta()
-                return trabalhoEncontrado            
+                return trabalho            
         except Exception as e:
             self.__erro = str(e)
         return None
 
     def pegaTrabalhoEspecificoPorNomeProfissao(self, trabalho):
+        trabalho = Trabalho()
         sql = """
             SELECT * 
             FROM trabalhos
@@ -59,25 +77,32 @@ class TrabalhoDaoSqlite():
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, (trabalho.pegaNome(), trabalho.pegaProfissao(), trabalho.pegaRaridade()))
+                cursor.execute(sql, (trabalho.nome, trabalho.profissao, trabalho.raridade))
                 for linha in cursor.fetchall():
-                    trabalhoEncontrado = Trabalho(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7])
+                    trabalho.id = linha[0]
+                    trabalho.nome = linha[1]
+                    trabalho.nomeProducao = linha[2]
+                    trabalho.experiencia = linha[3]
+                    trabalho.nivel = linha[4]
+                    trabalho.profissao = linha[5]
+                    trabalho.raridade = linha[6]
+                    trabalho.trabalhoNecessario = linha[7]
                 self.__meuBanco.desconecta()
-                return trabalhoEncontrado            
+                return trabalho            
         except Exception as e:
             self.__erro = str(e)
         return None
     
     def insereTrabalho(self, trabalho):
         sql = """INSERT INTO trabalhos (id, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario)
-        VALUES (?,?,?,?,?,?,?,?)"""
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario()))
+            cursor.execute(sql, (trabalho.id, trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioTrabalho.insereTrabalho(trabalho):
-                print(f'{trabalho.pegaNome()} inserido no servidor com sucesso!')
+                print(f'{trabalho.nome} inserido no servidor com sucesso!')
             else:
                 print(f'Erro ao inserir trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
@@ -92,11 +117,11 @@ class TrabalhoDaoSqlite():
             WHERE id = ?"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), trabalho.pegaId()))
+            cursor.execute(sql, (trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario, trabalho.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioTrabalho.modificaTrabalho(trabalho):
-                print(f'{trabalho.pegaNome()} modificado no servidor com sucesso!')
+                print(f'{trabalho.nome} modificado no servidor com sucesso!')
             else:
                 print(f'Erro ao modificar trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
@@ -111,7 +136,7 @@ class TrabalhoDaoSqlite():
             WHERE nome = ? AND profissao = ? AND raridade = ?"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), trabalho.pegaNome(), trabalho.pegaProfissao(), trabalho.pegaRaridade()))
+            cursor.execute(sql, (trabalho.id, trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario, trabalho.nome, trabalho.profissao, trabalho.raridade))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             return True
@@ -124,11 +149,11 @@ class TrabalhoDaoSqlite():
         sql = """DELETE FROM trabalhos WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalho.pegaId()])
+            cursor.execute(sql, [trabalho.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioTrabalho.removeTrabalho(trabalho):
-                print(f'{trabalho.pegaNome()} removido do servidor com sucesso!')
+                print(f'{trabalho.nome} removido do servidor com sucesso!')
             else:
                 print(f'Erro ao remover trabalho do servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True

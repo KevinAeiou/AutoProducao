@@ -1,12 +1,16 @@
+__author__ = 'Kevin Amazonas'
+
+from uuid import uuid4
+
 class TrabalhoVendido:
-    def __init__(self, id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto):
-        self.id = id
-        self.nomeProduto = nomeProduto
-        self.dataVenda = dataVenda
-        self.nomePersonagem = nomePersonagem
-        self.quantidadeProduto = int(quantidadeProduto)
-        self.trabalhoId = trabalhoId
-        self.valorProduto = int(valorProduto)
+    def __init__(self):
+        self.id = str(uuid4())
+        self.nomeProduto = None
+        self.dataVenda = None
+        self.nomePersonagem = None
+        self.quantidadeProduto = 0
+        self.trabalhoId = None
+        self.valorProduto = None
 
     def pegaId(self):
         return self.id

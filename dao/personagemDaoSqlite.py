@@ -30,14 +30,14 @@ class PersonagemDaoSqlite():
                     uso = True if linha[6] else False
                     autoProducao = True if linha[7] else False
                     personagem = Personagem()
-                    personagem.setId(linha[0])
-                    personagem.setNome(linha[1])
-                    personagem.setEmail(linha[2])
-                    personagem.setSenha(linha[3])
-                    personagem.setEspacoProducao(linha[4])
-                    personagem.setEstado(estado)
-                    personagem.setUso(uso)
-                    personagem.setAutoProducao(autoProducao)
+                    personagem.id = linha[0]
+                    personagem.nome = linha[1]
+                    personagem.email = linha[2]
+                    personagem.senha = linha[3]
+                    personagem.espacoProducao = linha[4]
+                    personagem.estado = estado
+                    personagem.uso = uso
+                    personagem.autoProducao = autoProducao
                     personagens.append(personagem)
                 self.__meuBanco.desconecta()
                 return personagens
@@ -55,19 +55,19 @@ class PersonagemDaoSqlite():
             personagemEncontrado = Personagem()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, [personagem.pegaId()])
+                cursor.execute(sql, [personagem.id])
                 for linha in cursor.fetchall():
                     estado = True if linha[5] else False
                     uso = True if linha[6] else False
                     autoProducao = True if linha[7] else False
-                    personagemEncontrado.setId(linha[0])
-                    personagemEncontrado.setNome(linha[1])
-                    personagemEncontrado.setEmail(linha[2])
-                    personagemEncontrado.setSenha(linha[3])
-                    personagemEncontrado.setEspacoProducao(linha[4])
-                    personagemEncontrado.setEstado(estado)
-                    personagemEncontrado.setUso(uso)
-                    personagemEncontrado.setAutoProducao(autoProducao)
+                    personagemEncontrado.id = linha[0]
+                    personagemEncontrado.nome = linha[1]
+                    personagemEncontrado.email = linha[2]
+                    personagemEncontrado.senha = linha[3]
+                    personagemEncontrado.espacoProducao = linha[4]
+                    personagemEncontrado.estado = estado
+                    personagemEncontrado.uso = uso
+                    personagemEncontrado.autoProducao = autoProducao
                 self.__meuBanco.desconecta()
                 return personagemEncontrado            
         except Exception as e:
@@ -83,43 +83,40 @@ class PersonagemDaoSqlite():
             personagemEncontrado = Personagem()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, [personagem.pegaNome()])
+                cursor.execute(sql, [personagem.nome])
                 for linha in cursor.fetchall():
                     estado = True if linha[5] else False
                     uso = True if linha[6] else False
                     autoProducao = True if linha[7] else False
-                    personagemEncontrado.setId(linha[0])
-                    personagemEncontrado.setNome(linha[1])
-                    personagemEncontrado.setEmail(linha[2])
-                    personagemEncontrado.setSenha(linha[3])
-                    personagemEncontrado.setEspacoProducao(linha[4])
-                    personagemEncontrado.setEstado(estado)
-                    personagemEncontrado.setUso(uso)
-                    personagemEncontrado.setAutoProducao(autoProducao)
+                    personagemEncontrado.id = linha[0]
+                    personagemEncontrado.nome = linha[1]
+                    personagemEncontrado.email = linha[2]
+                    personagemEncontrado.senha = linha[3]
+                    personagemEncontrado.espacoProducao = linha[4]
+                    personagemEncontrado.estado = estado
+                    personagemEncontrado.uso = uso
+                    personagemEncontrado.autoProducao = autoProducao
                 self.__meuBanco.desconecta()
                 return personagemEncontrado            
         except Exception as e:
             self.__erro = str(e)
         return None
     
-    def modificaPersonagem(self, personagem, idAntigo = None):
-        idModificado = idAntigo
-        if idAntigo == None:
-            idModificado = personagem.pegaId()
-        estado = 1 if personagem.pegaEstado() else 0
-        uso = 1 if personagem.pegaUso() else 0
-        autoProducao = 1 if personagem.pegaAutoProducao() else 0
+    def modificaPersonagem(self, personagem):
+        estado = 1 if personagem.estado else 0
+        uso = 1 if personagem.uso else 0
+        autoProducao = 1 if personagem.autoProducao else 0
         sql = """
             UPDATE personagens SET id = ?, nome = ?, email = ?, senha = ?, espacoProducao = ?, estado = ?, uso = ?, autoProducao = ?
             WHERE id == ?"""
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, (personagem.pegaId(), personagem.pegaNome(), personagem.pegaEmail(), personagem.pegaSenha(), personagem.pegaEspacoProducao(), estado, uso, autoProducao, idModificado))
+                cursor.execute(sql, (personagem.id, personagem.nome, personagem.email, personagem.senha, personagem.espacoProducao, estado, uso, autoProducao, personagem.id))
                 self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioPersonagem.modificaPersonagem(personagem):
-                print(f'{personagem.pegaNome()} modificado com sucesso no servidor!')
+                print(f'{personagem.nome} modificado com sucesso no servidor!')
             else:
                 print(f'Erro ao modificar personagem no servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
@@ -129,16 +126,16 @@ class PersonagemDaoSqlite():
         return False
     
     def modificaPersonagemPorNome(self, personagem):
-        estado = 1 if personagem.pegaEstado() else 0
-        uso = 1 if personagem.pegaUso() else 0
-        autoProducao = 1 if personagem.pegaAutoProducao() else 0
+        estado = 1 if personagem.estado else 0
+        uso = 1 if personagem.uso else 0
+        autoProducao = 1 if personagem.autoProducao else 0
         sql = """
             UPDATE personagens SET id = ?, nome = ?, email = ?, senha = ?, espacoProducao = ?, estado = ?, uso = ?, autoProducao = ?
             WHERE nome == ?"""
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, (personagem.pegaId(), personagem.pegaNome(), personagem.pegaEmail(), personagem.pegaSenha(), personagem.pegaEspacoProducao(), estado, uso, autoProducao, personagem.pegaNome()))
+                cursor.execute(sql, (personagem.id, personagem.nome, personagem.email, personagem.senha, personagem.espacoProducao, estado, uso, autoProducao, personagem.nome))
                 self.__conexao.commit()
             self.__meuBanco.desconecta()
             return True
@@ -148,20 +145,20 @@ class PersonagemDaoSqlite():
         return False
     
     def inserePersonagem(self, personagem):
-        estado = 1 if personagem.pegaEstado() else 0
-        uso = 1 if personagem.pegaUso() else 0
-        autoProducao = 1 if personagem.pegaAutoProducao() else 0
+        estado = 1 if personagem.estado else 0
+        uso = 1 if personagem.uso else 0
+        autoProducao = 1 if personagem.autoProducao else 0
         sql = """
             INSERT INTO personagens (id, nome, email, senha, espacoProducao, estado, uso, autoProducao)
             VALUES (?,?,?,?,?,?,?,?)
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (personagem.pegaId(), personagem.pegaNome(), personagem.pegaEmail(), personagem.pegaSenha(), personagem.pegaEspacoProducao(), estado, uso, autoProducao))
+            cursor.execute(sql, (personagem.id, personagem.nome, personagem.email, personagem.senha, personagem.espacoProducao, estado, uso, autoProducao))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioPersonagem.inserePersonagem(personagem):
-                print(f'{personagem.pegaNome()} inserido com sucesso no servidor!')
+                print(f'{personagem.nome} inserido com sucesso no servidor!')
             else:
                 print(f'Erro ao inserir trabalho no servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
@@ -174,11 +171,11 @@ class PersonagemDaoSqlite():
         sql = """DELETE FROM personagens WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [personagem.pegaId()])
+            cursor.execute(sql, [personagem.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioPersonagem.removePersonagem(personagem):
-                print(f'{personagem.pegaNome()} removido com sucesso no servidor!')
+                print(f'{personagem.nome} removido com sucesso no servidor!')
             else:
                 print(f'Erro ao remover personagem do servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True

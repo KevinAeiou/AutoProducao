@@ -29,15 +29,15 @@ class ProfissaoDaoSqlite:
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [profissao.pegaId()])
+            cursor.execute(sql, [profissao.id])
             for linha in cursor.fetchall():
                 prioridade = True if linha[4] == 1 else False
                 profissao = Profissao()
-                profissao.setId(linha[0])
-                profissao.setIdPersonagem(linha[1])
-                profissao.setNome(linha[2])
-                profissao.setExperiencia(linha[3])
-                profissao.setPrioridade(prioridade)
+                profissao.id = linha[0]
+                profissao.idPersonagem = linha[1]
+                profissao.nome = linha[2]
+                profissao.experiencia = linha[3]
+                profissao.prioridade = prioridade
             self.__meuBanco.desconecta()
             return profissao
         except Exception as e:
@@ -52,17 +52,17 @@ class ProfissaoDaoSqlite:
         WHERE idPersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [self.__personagem.pegaId()])
+            cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
                 prioridade = True if linha[4] == 1 else False
                 profissao = Profissao()
-                profissao.setId(linha[0])
-                profissao.setIdPersonagem(linha[1])
-                profissao.setNome(linha[2])
-                profissao.setExperiencia(linha[3])
-                profissao.setPrioridade(prioridade)
+                profissao.id = linha[0]
+                profissao.idPersonagem = linha[1]
+                profissao.nome = linha[2]
+                profissao.experiencia = linha[3]
+                profissao.prioridade = prioridade
                 profissoes.append(profissao)
-            profissoes = sorted(profissoes, key=lambda profissao:(profissao.pegaExperiencia()), reverse=True)
+            profissoes = sorted(profissoes, key=lambda profissao:(profissao.experiencia), reverse=True)
             self.__meuBanco.desconecta()
             return profissoes
         except Exception as e:
@@ -81,13 +81,13 @@ class ProfissaoDaoSqlite:
             for linha in cursor.fetchall():
                 prioridade = True if linha[4] == 1 else False
                 profissao = Profissao()
-                profissao.setId(linha[0])
-                profissao.setIdPersonagem(linha[1])
-                profissao.setNome(linha[2])
-                profissao.setExperiencia(linha[3])
-                profissao.setPrioridade(prioridade)
+                profissao.id = linha[0]
+                profissao.idPersonagem = linha[1]
+                profissao.nome = linha[2]
+                profissao.experiencia = linha[3]
+                profissao.prioridade = prioridade
                 profissoes.append(profissao)
-            profissoes = sorted(profissoes, key=lambda profissao:(profissao.pegaIdPersonagem(), profissao.pegaExperiencia()), reverse=True)
+            profissoes = sorted(profissoes, key=lambda profissao:(profissao.idPersonagem, profissao.experiencia), reverse=True)
             self.__meuBanco.desconecta()
             return profissoes
         except Exception as e:
@@ -96,14 +96,14 @@ class ProfissaoDaoSqlite:
         return None
     
     def modificaProfissao(self, profissao, modificaProfissao = False):
-        prioridade = 1 if profissao.pegaPrioridade() else 0
+        prioridade = 1 if profissao.prioridade else 0
         sql = """
             UPDATE profissoes 
             SET nome = ?, experiencia = ?, prioridade = ?
             WHERE id = ?"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (profissao.pegaNome(), profissao.pegaExperiencia(), prioridade, profissao.pegaId()))
+            cursor.execute(sql, (profissao.nome, profissao.experiencia, prioridade, profissao.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaProfissao:
@@ -122,9 +122,9 @@ class ProfissaoDaoSqlite:
         for nomeProfissao in profissoes:
             self.__conexao = self.__meuBanco.pegaConexao(1)
             profissao = Profissao()
-            profissao.setId(str(profissoes.index(nomeProfissao))+str(uuid4()))
-            profissao.setNome(nomeProfissao)
-            profissao.setIdPersonagem(self.__personagem.pegaId())
+            profissao.id = str(profissoes.index(nomeProfissao))+str(uuid4())
+            profissao.nome = nomeProfissao
+            profissao.idPersonagem = self.__personagem.id
             if self.insereProfissao(profissao, True):
                 print(f'Profissão {nomeProfissao} inserida com sucesso!')
                 continue
@@ -133,13 +133,13 @@ class ProfissaoDaoSqlite:
         return True
     
     def insereProfissao(self, profissao, modificaServidor = False):
-        prioridade = 1 if profissao.pegaPrioridade() else 0
+        prioridade = 1 if profissao.prioridade else 0
         sql = """
             INSERT INTO profissoes (id, idPersonagem, nome, experiencia, prioridade)
             VALUES (?, ?, ?, ?, ?)"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (profissao.pegaId(), self.__personagem.pegaId(), profissao.pegaNome(), profissao.pegaExperiencia(), prioridade))
+            cursor.execute(sql, (profissao.id, self.__personagem.id, profissao.nome, profissao.experiencia, prioridade))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
@@ -157,7 +157,7 @@ class ProfissaoDaoSqlite:
         sql = """DELETE FROM profissoes WHERE idPersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [self.__personagem.pegaId()])
+            cursor.execute(sql, [self.__personagem.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:

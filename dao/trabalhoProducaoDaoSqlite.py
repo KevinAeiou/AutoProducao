@@ -60,7 +60,7 @@ class TrabalhoProducaoDaoSqlite:
             WHERE idPersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [self.__personagem.pegaId()])
+            cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao = TrabalhoProducao()
@@ -94,7 +94,7 @@ class TrabalhoProducaoDaoSqlite:
             WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [self.__personagem.pegaId()])
+            cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao = TrabalhoProducao()
@@ -128,7 +128,7 @@ class TrabalhoProducaoDaoSqlite:
             WHERE Lista_desejo.id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoProducao.pegaId()])
+            cursor.execute(sql, [trabalhoProducao.id])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao.id = linha[0]
@@ -150,20 +150,20 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = False):
-        recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
+    def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
+        recorrencia = 1 if trabalhoProducao.recorrencia else 0
         sql = """
             INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, recorrencia, tipoLicenca, estado) 
             VALUES (?, ?, ?, ?, ?, ?);
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.pegaId(), trabalhoProducao.pegaTrabalhoId(), self.__personagem.pegaId(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado()))
+            cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.trabalhoId, self.__personagem.id, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao):
-                    print(f'{trabalhoProducao.pegaNome()} inserido com sucesso no servidor!')
+                    print(f'{trabalhoProducao.nome} inserido com sucesso no servidor!')
                 else:
                     print(f'Erro ao inserir trabalho produção no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
@@ -172,39 +172,40 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return False
         
-    def removeTrabalhoProducao(self, trabalhoProducao):
+    def removeTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
         sql = """
             DELETE FROM Lista_desejo
             WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoProducao.pegaId()])
+            cursor.execute(sql, [trabalhoProducao.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducao):
-                print(f'{trabalhoProducao.pegaNome()} removido com sucesso no servidor!')
-            else:
-                print(f'Erro ao remover trabalho produção no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducao):
+                    print(f'{trabalhoProducao.nome} removido com sucesso no servidor!')
+                else:
+                    print(f'Erro ao remover trabalho produção no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return False
         
-    def modificaTrabalhoProducao(self, trabalhoProducao, modificaServidor = False):
-        recorrencia = 1 if trabalhoProducao.pegaRecorrencia() else 0
+    def modificaTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
+        recorrencia = 1 if trabalhoProducao.recorrencia else 0
         sql = """
             UPDATE Lista_desejo 
             SET idTrabalho = ?, recorrencia = ?, tipoLicenca = ?, estado = ? 
             WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.pegaTrabalhoId(), recorrencia, trabalhoProducao.pegaLicenca(), trabalhoProducao.pegaEstado(), trabalhoProducao.pegaId()))
+            cursor.execute(sql, (trabalhoProducao.trabalhoId, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado, trabalhoProducao.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducao):
-                    print(f'{trabalhoProducao.pegaNome()} modificado com sucesso no servidor!')
+                    print(f'{trabalhoProducao.nome} modificado com sucesso no servidor!')
                 else:
                     print(f'Erro ao modificar trabalho produção no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True

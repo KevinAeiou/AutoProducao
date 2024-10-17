@@ -25,10 +25,18 @@ class VendaDaoSqlite:
             WHERE nomePersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [self.__personagem.pegaId()])
+            cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
-                vendas.append(TrabalhoVendido(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6]))
-            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.pegaDataVenda(), trabalhoVendido.pegaNome()))
+                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido.id = linha[0]
+                trabalhoVendido.nomeProduto = linha[1]
+                trabalhoVendido.dataVenda = linha[2]
+                trabalhoVendido.nomePersonagem = linha[3]
+                trabalhoVendido.quantidadeProduto = linha[4]
+                trabalhoVendido.trabalhoId = linha[5]
+                trabalhoVendido.valorProduto = linha[6]
+                vendas.append(trabalhoVendido)
+            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.dataVenda, trabalhoVendido.nomeProduto))
             self.__meuBanco.desconecta()
             return vendas
         except Exception as e:
@@ -36,56 +44,59 @@ class VendaDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoVendido(self, trabalhoVendido):
+    def insereTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
         sql = """
             INSERT INTO vendas (id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto)
             VALUES (?, ?, ?, ?, ?, ?, ?);"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoVendido.pegaId(), trabalhoVendido.pegaNome(), trabalhoVendido.pegaDataVenda(), trabalhoVendido.pegaNomePersonagem(), trabalhoVendido.pegaQuantidadeProduto(), trabalhoVendido.pegaTrabalhoId(), trabalhoVendido.pegaValorProduto()))
+            cursor.execute(sql, (trabalhoVendido.id, trabalhoVendido.nomeProduto, trabalhoVendido.dataVenda, trabalhoVendido.nomePersonagem, trabalhoVendido.quantidadeProduto, trabalhoVendido.trabalhoId, trabalhoVendido.valorProduto))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioVendas.insereTrabalhoVendido(trabalhoVendido):
-                print(f'Nova venda inserida com sucesso no servidor!')
-            else:
-                print(f'Erro ao inserir nova venda no servidor: {self.__repositorioVendas.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioVendas.insereTrabalhoVendido(trabalhoVendido):
+                    print(f'Nova venda inserida com sucesso no servidor!')
+                else:
+                    print(f'Erro ao inserir nova venda no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         return False
     
-    def removeTrabalhoVendido(self, trabalhoVendido):
+    def removeTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
         sql = """
             DELETE FROM vendas
             WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoVendido.pegaId()])
+            cursor.execute(sql, [trabalhoVendido.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioVendas.removeVenda(trabalhoVendido):
-                print(f'Trabalho vendido removido com sucesso do servidor!')
-            else:
-                print(f'Erro ao remover trabalho vendido do servidor: {self.__repositorioVendas.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioVendas.removeVenda(trabalhoVendido):
+                    print(f'Trabalho vendido removido com sucesso do servidor!')
+                else:
+                    print(f'Erro ao remover trabalho vendido do servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         return False
     
-    def modificaTrabalhoVendido(self, trabalhoVendido):
+    def modificaTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
         sql = """
             UPDATE vendas
             SET nomeProduto = ?, dataVenda = ?, quantidadeProduto = ?, trabalhoId = ?, valorProduto = ?
             WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoVendido.pegaNome(), trabalhoVendido.pegaDataVenda(), trabalhoVendido.pegaQuantidadeProduto(), trabalhoVendido.pegaTrabalhoId(), trabalhoVendido.pegaValorProduto(), trabalhoVendido.pegaId()))
+            cursor.execute(sql, (trabalhoVendido.nomeProduto, trabalhoVendido.dataVenda, trabalhoVendido.quantidadeProduto, trabalhoVendido.trabalhoId, trabalhoVendido.valorProduto, trabalhoVendido.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioVendas.modificaVenda(trabalhoVendido):
-                print(f'Trabalho vendido modificado com sucesso no servidor!')
-            else:
-                print(f'Erro ao modificar trabalho vendido no servidor: {self.__repositorioVendas.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioVendas.modificaVenda(trabalhoVendido):
+                    print(f'Trabalho vendido modificado com sucesso no servidor!')
+                else:
+                    print(f'Erro ao modificar trabalho vendido no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -133,7 +144,15 @@ class VendaDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql)
             for linha in cursor.fetchall():
-                vendas.append(TrabalhoVendido(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6]))
+                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido.id = linha[0]
+                trabalhoVendido.nomeProduto = linha[1]
+                trabalhoVendido.dataVenda = linha[2]
+                trabalhoVendido.nomePersonagem = linha[3]
+                trabalhoVendido.quantidadeProduto = linha[4]
+                trabalhoVendido.trabalhoId = linha[5]
+                trabalhoVendido.valorProduto = linha[6]
+                vendas.append(trabalhoVendido)
             return vendas
         except Exception as e:
             self.__erro = str(e)

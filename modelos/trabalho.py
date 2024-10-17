@@ -1,13 +1,15 @@
+from uuid import uuid4
+
 class Trabalho:
-    def __init__(self, id = None, nome = None, nomeProducao = None, experiencia = None, nivel = None, profissao = None, raridade = None, trabalhoNecessario = ''):
-        self.id = id
-        self.nome = nome
-        self.nomeProducao = nomeProducao
-        self.experiencia : int = experiencia
-        self.nivel : int = nivel
-        self.profissao = profissao
-        self.raridade = raridade
-        self.trabalhoNecessario = trabalhoNecessario
+    def __init__(self):
+        self.id = str(uuid4())
+        self.nome = None
+        self.nomeProducao = None
+        self.experiencia : int = 0
+        self.nivel : int = 0
+        self.profissao = None
+        self.raridade = None
+        self.trabalhoNecessario = None
 
     def pegaId(self):
         return self.id
