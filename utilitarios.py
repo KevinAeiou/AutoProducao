@@ -153,38 +153,38 @@ def trabalhoEhProducaoRecursos(trabalhoProducao):
             'recebendofibradebronze','recebendoprata','recebendoinsígniadeestudante',
             'recebendofibradeplatina','recebendoâmbar','recebendodistintivodeaprendiz']
         for recurso in listaProducaoRecurso:
-            if textoEhIgual(recurso, trabalhoProducao.pegaNomeProducao()):
+            if textoEhIgual(recurso, trabalhoProducao.nomeProducao):
                 print(f'Trabalho produção é recurso')
                 return True
     print(f'Trabalho produção não é recurso')
     return False
 
-def trabalhoEhColecaoRecursosAvancados(dicionarioTrabalho):
-    return textoEhIgual(dicionarioTrabalho.pegaNome(), 'grandecoleçãoderecursosavançados') or textoEhIgual(dicionarioTrabalho.pegaNome(), 'coletaemmassaderecursosavançados')
+def trabalhoEhColecaoRecursosAvancados(trabalhoProducao):
+    return textoEhIgual(trabalhoProducao.nome, 'grandecoleçãoderecursosavançados') or textoEhIgual(trabalhoProducao.nome, 'coletaemmassaderecursosavançados')
 
 def trabalhoEhColecaoRecursosComuns(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.pegaNome(), 'grandecoleçãoderecursoscomuns')
+    return textoEhIgual(trabalhoProducao.nome, 'grandecoleçãoderecursoscomuns')
 
 def trabalhoEhMelhoriaCatalisadorComposto(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.pegaNome(), 'melhoriadocatalizadoramplificado')
+    return textoEhIgual(trabalhoProducao.nome, 'melhoriadocatalizadoramplificado')
 
 def trabalhoEhMelhoriaCatalisadorComum(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.pegaNome(), 'melhoriadocatalizadorcomum')
+    return textoEhIgual(trabalhoProducao.nome, 'melhoriadocatalizadorcomum')
 
 def trabalhoEhMelhoriaSubstanciaComposta(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.pegaNome(), 'melhoriadasubstânciacomposta')
+    return textoEhIgual(trabalhoProducao.nome, 'melhoriadasubstânciacomposta')
 
 def trabalhoEhMelhoriaSubstanciaComum(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.pegaNome(), 'melhoriadasubstânciacomum')
+    return textoEhIgual(trabalhoProducao.nome, 'melhoriadasubstânciacomum')
 
 def trabalhoEhMelhoriaEssenciaComposta(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.pegaNome(), 'melhoriadaessênciacomposta')
+    return textoEhIgual(trabalhoProducao.nome, 'melhoriadaessênciacomposta')
 
 def trabalhoEhProducaoLicenca(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.pegaNome(),'melhorarlicençacomum') or textoEhIgual(trabalhoProducao.pegaNome(),'licençadeproduçãodoaprendiz')
+    return textoEhIgual(trabalhoProducao.nome,'melhorarlicençacomum') or textoEhIgual(trabalhoProducao.nome,'licençadeproduçãodoaprendiz')
 
 def trabalhoEhMelhoriaEssenciaComum(dicionarioTrabalho):
-    return textoEhIgual(dicionarioTrabalho.pegaNome(), 'melhoriadaessênciacomum')
+    return textoEhIgual(dicionarioTrabalho.nome, 'melhoriadaessênciacomum')
 
 def naoFizerQuatroVerificacoes(dicionarioTrabalho):
     return dicionarioTrabalho[CHAVE_POSICAO] < 4
@@ -237,23 +237,23 @@ def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
     return listaDicionarioProfissaoRecursos
 
 def retornaChaveTipoRecurso(trabalhoEstoque):
-    listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(trabalhoEstoque.pegaNivel())
-    chaveProfissao = limpaRuidoTexto(trabalhoEstoque.pegaProfissao())
+    listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(trabalhoEstoque.nivel)
+    chaveProfissao = limpaRuidoTexto(trabalhoEstoque.profissao)
     for dicionarioProfissaoRecursos in listaDicionarioProfissaoRecursos:
         if chaveProfissao in dicionarioProfissaoRecursos:
             for x in range(len(dicionarioProfissaoRecursos[chaveProfissao])):
-                if textoEhIgual(dicionarioProfissaoRecursos[chaveProfissao][x], trabalhoEstoque.pegaNome()):
-                    if x == 0 and trabalhoEstoque.pegaNivel() == 1:
+                if textoEhIgual(dicionarioProfissaoRecursos[chaveProfissao][x], trabalhoEstoque.nome):
+                    if x == 0 and trabalhoEstoque.nivel == 1:
                         return CHAVE_RCP
-                    elif x == 0 and trabalhoEstoque.pegaNivel() == 8:
+                    elif x == 0 and trabalhoEstoque.nivel == 8:
                         return CHAVE_RAP
-                    elif x == 1 and trabalhoEstoque.pegaNivel() == 1:
+                    elif x == 1 and trabalhoEstoque.nivel == 1:
                         return CHAVE_RCS
-                    elif x == 1 and trabalhoEstoque.pegaNivel() == 8:
+                    elif x == 1 and trabalhoEstoque.nivel == 8:
                         return CHAVE_RAS
-                    elif x == 2 and trabalhoEstoque.pegaNivel() == 1:
+                    elif x == 2 and trabalhoEstoque.nivel == 1:
                         return CHAVE_RCT
-                    elif x == 2 and trabalhoEstoque.pegaNivel() == 8:
+                    elif x == 2 and trabalhoEstoque.nivel == 8:
                         return CHAVE_RAT
                     break
     return None
