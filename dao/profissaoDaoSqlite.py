@@ -148,6 +148,23 @@ class ProfissaoDaoSqlite:
         self.__meuBanco.desconecta()
         return False
     
+    def limpaListaProfissoes(self):
+        sql = """DELETE FROM profissoes WHERE idPersonagem == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [self.__personagem.pegaId()])
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
+            if self.__repositorioProfissao.limpaProfissoes():
+                print(f'removido do servidor com sucesso!')
+            else:
+                print(f'Erro ao remover trabalho do servidor: {self.__repositorioProfissao.pegaErro()}')
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
+    
     def deletaTabelaProfissoes(self):
         sql = """
             DROP TABLE profissoes;            
