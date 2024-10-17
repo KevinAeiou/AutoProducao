@@ -414,7 +414,7 @@ class Aplicacao:
         for trabalhoEstoque in estoque:
             if textoEhIgual(trabalhoEstoque.trabalhoId, venda.trabalhoId):
                 novaQuantidade = trabalhoEstoque.quantidade - venda.pegaQuantidadeProduto()
-                trabalhoEstoque.setQuantidade(novaQuantidade)
+                trabalhoEstoque.quantidade = novaQuantidade
                 estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                 if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
@@ -465,7 +465,7 @@ class Aplicacao:
             print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
             return listaPossiveisDicionariosTrabalhos
         for trabalho in trabalhos:
-            if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
+            if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.nomeProducao):
                 listaPossiveisDicionariosTrabalhos.append(trabalho)
         return listaPossiveisDicionariosTrabalhos
 
@@ -485,7 +485,7 @@ class Aplicacao:
                     if condicoes:
                         trabalhoProduzirProduzindo.estado = CODIGO_CONCLUIDO
                         trabalhoProduzirProduzindo.setTrabalhoId(possivelTrabalho.id)
-                        trabalhoProduzirProduzindo.setNomeProducao(possivelTrabalho.pegaNomeProducao())
+                        trabalhoProduzirProduzindo.setNomeProducao(possivelTrabalho.nomeProducao)
                         return trabalhoProduzirProduzindo
             else:
                 print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].nome}) não encontrado na lista produzindo...')
@@ -558,63 +558,63 @@ class Aplicacao:
             if trabalhoEhProducaoLicenca(trabalhoProducaoConcluido):
                 trabalhoEstoque = TrabalhoEstoque()
                 trabalhoEstoque.nome = CHAVE_LICENCA_APRENDIZ
-                trabalhoEstoque.setProfissao('')
-                trabalhoEstoque.setNivel(0)
-                trabalhoEstoque.setQuantidade(2)
-                trabalhoEstoque.setRaridade('Recurso')
-                trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+                trabalhoEstoque.profissao = ''
+                trabalhoEstoque.nivel = 0
+                trabalhoEstoque.quantidade = 2
+                trabalhoEstoque.raridade = 'Recurso'
+                trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
             else:
                 if trabalhoEhMelhoriaEssenciaComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Essência composta'
-                    trabalhoEstoque.setProfissao('')
-                    trabalhoEstoque.setNivel(0)
-                    trabalhoEstoque.setQuantidade(5)
-                    trabalhoEstoque.setRaridade('Recurso')
-                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+                    trabalhoEstoque.profissao = ''
+                    trabalhoEstoque.nivel = 0
+                    trabalhoEstoque.quantidade = 5
+                    trabalhoEstoque.raridade = 'Recurso'
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
                 elif trabalhoEhMelhoriaEssenciaComposta(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Essência de energia'
-                    trabalhoEstoque.setProfissao('')
-                    trabalhoEstoque.setNivel(0)
-                    trabalhoEstoque.setQuantidade(1)
-                    trabalhoEstoque.setRaridade('Recurso')
-                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+                    trabalhoEstoque.profissao = ''
+                    trabalhoEstoque.nivel = 0
+                    trabalhoEstoque.quantidade = 1
+                    trabalhoEstoque.raridade = 'Recurso'
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
                 elif trabalhoEhMelhoriaSubstanciaComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Substância composta'
-                    trabalhoEstoque.setProfissao('')
-                    trabalhoEstoque.setNivel(0)
-                    trabalhoEstoque.setQuantidade(5)
-                    trabalhoEstoque.setRaridade('Recurso')
-                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+                    trabalhoEstoque.profissao = ''
+                    trabalhoEstoque.nivel = 0
+                    trabalhoEstoque.quantidade = 5
+                    trabalhoEstoque.raridade = 'Recurso'
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
                 elif trabalhoEhMelhoriaSubstanciaComposta(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Substância energética'
-                    trabalhoEstoque.setProfissao('')
-                    trabalhoEstoque.setNivel(0)
-                    trabalhoEstoque.setQuantidade(1)
-                    trabalhoEstoque.setRaridade('Recurso')
-                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+                    trabalhoEstoque.profissao = ''
+                    trabalhoEstoque.nivel = 0
+                    trabalhoEstoque.quantidade = 1
+                    trabalhoEstoque.raridade = 'Recurso'
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
                 elif trabalhoEhMelhoriaCatalisadorComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Catalisador amplificado'
-                    trabalhoEstoque.setProfissao('')
-                    trabalhoEstoque.setNivel(0)
-                    trabalhoEstoque.setQuantidade(5)
-                    trabalhoEstoque.setRaridade('Recurso')
-                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+                    trabalhoEstoque.profissao = ''
+                    trabalhoEstoque.nivel = 0
+                    trabalhoEstoque.quantidade = 5
+                    trabalhoEstoque.raridade = 'Recurso'
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
                 elif trabalhoEhMelhoriaCatalisadorComposto(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Catalisador de energia'
-                    trabalhoEstoque.setProfissao('')
-                    trabalhoEstoque.setNivel(0)
-                    trabalhoEstoque.setQuantidade('')
-                    trabalhoEstoque.setRaridade('Recurso')
-                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+                    trabalhoEstoque.profissao = ''
+                    trabalhoEstoque.nivel = 0
+                    trabalhoEstoque.quantidade = 1
+                    trabalhoEstoque.raridade = 'Recurso'
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
                 if variavelExiste(trabalhoEstoque):
                     if textoEhIgual(trabalhoProducaoConcluido.tipo_licenca, CHAVE_LICENCA_APRENDIZ):
-                        trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade * 2)
+                        trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
             if variavelExiste(trabalhoEstoque):
                 listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
             if trabalhoEhColecaoRecursosComuns(trabalhoProducaoConcluido) or trabalhoEhColecaoRecursosAvancados(trabalhoProducaoConcluido):
@@ -633,54 +633,54 @@ class Aplicacao:
                         if condicoes:
                             trabalhoEstoque = TrabalhoEstoque()
                             trabalhoEstoque.nome = trabalho.nome
-                            trabalhoEstoque.setProfissao(trabalho.profissao)
-                            trabalhoEstoque.setNivel(trabalho.nivel)
-                            trabalhoEstoque.setQuantidade(1)
-                            trabalhoEstoque.setRaridade(trabalho.raridade)
-                            trabalhoEstoque.setIdTrabalho(trabalho.id)
+                            trabalhoEstoque.profissao = trabalho.profissao
+                            trabalhoEstoque.nivel = trabalho.nivel
+                            trabalhoEstoque.quantidade = 1
+                            trabalhoEstoque.raridade = trabalho.raridade
+                            trabalhoEstoque.trabalhoId = trabalho.id
                             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     for trabalhoEstoque in listaTrabalhoEstoqueConcluido:
                         tipoRecurso = retornaChaveTipoRecurso(trabalhoEstoque)
                         if variavelExiste(tipoRecurso):
                             if tipoRecurso == CHAVE_RCT:
-                                trabalhoEstoque.setQuantidade(2)
+                                trabalhoEstoque.quantidade = 2
                             if tipoRecurso == CHAVE_RAT or tipoRecurso == CHAVE_RCS:
-                                trabalhoEstoque.setQuantidade(3)
+                                trabalhoEstoque.quantidade = 3
                             elif tipoRecurso == CHAVE_RAS or tipoRecurso == CHAVE_RCP:
-                                trabalhoEstoque.setQuantidade(4)
+                                trabalhoEstoque.quantidade = 4
                             elif tipoRecurso == CHAVE_RAP:
-                                trabalhoEstoque.setQuantidade(5)
+                                trabalhoEstoque.quantidade = 5
                             if textoEhIgual(trabalhoProducaoConcluido.tipo_licenca, CHAVE_LICENCA_APRENDIZ):
-                                trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade * 2)
+                                trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         else:
                             print(f'Tipo de recurso não encontrado!')
             if tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = trabalhoProducaoConcluido.nome
-                    trabalhoEstoque.setProfissao(trabalhoProducaoConcluido.profissao)
-                    trabalhoEstoque.setNivel(trabalhoProducaoConcluido.nivel)
-                    trabalhoEstoque.setQuantidade(0)
-                    trabalhoEstoque.setRaridade(trabalhoProducaoConcluido.raridade)
-                    trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+                    trabalhoEstoque.profissao = trabalhoProducaoConcluido.profissao
+                    trabalhoEstoque.nivel = trabalhoProducaoConcluido.nivel
+                    trabalhoEstoque.quantidade = 0
+                    trabalhoEstoque.raridade = trabalhoProducaoConcluido.raridade
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
                     tipoRecurso = retornaChaveTipoRecurso(trabalhoEstoque)
                     if variavelExiste(tipoRecurso):
                         if tipoRecurso == CHAVE_RCS or tipoRecurso == CHAVE_RCT:
-                            trabalhoEstoque.setQuantidade(1)
+                            trabalhoEstoque.quantidade = 1
                         elif tipoRecurso == CHAVE_RCP or tipoRecurso == CHAVE_RAP or tipoRecurso == CHAVE_RAS or tipoRecurso == CHAVE_RAT:
-                            trabalhoEstoque.setQuantidade(2)
+                            trabalhoEstoque.quantidade = 2
                         if textoEhIgual(trabalhoProducaoConcluido[CHAVE_TIPO_LICENCA], CHAVE_LICENCA_APRENDIZ):
-                            trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade * 2)
+                            trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     else:
                         print(f'Tipo de recurso não encontrado!')
         else:
             trabalhoEstoque = TrabalhoEstoque()
             trabalhoEstoque.nome = trabalhoProducaoConcluido.nome
-            trabalhoEstoque.setProfissao(trabalhoProducaoConcluido.profissao)
-            trabalhoEstoque.setNivel(trabalhoProducaoConcluido.nivel)
-            trabalhoEstoque.setQuantidade(1)
-            trabalhoEstoque.setRaridade(trabalhoProducaoConcluido.raridade)
-            trabalhoEstoque.setIdTrabalho(trabalhoProducaoConcluido.trabalhoId)
+            trabalhoEstoque.profissao = trabalhoProducaoConcluido.profissao
+            trabalhoEstoque.nivel = trabalhoProducaoConcluido.nivel
+            trabalhoEstoque.quantidade = 1
+            trabalhoEstoque.raridade = trabalhoProducaoConcluido.raridade
+            trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
         print(f'Lista de dicionários trabalhos concluídos:')
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
@@ -692,7 +692,7 @@ class Aplicacao:
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
             if textoEhIgual(trabalhoEstoqueConcluido.nome, trabalhoEstoque.nome):
                 novaQuantidade = trabalhoEstoque.quantidade + trabalhoEstoqueConcluido.quantidade
-                trabalhoEstoque.setQuantidade(novaQuantidade)
+                trabalhoEstoque.quantidade = novaQuantidade
                 print(trabalhoEstoque)
                 estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                 if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
@@ -795,7 +795,7 @@ class Aplicacao:
                         and textoEhIgual(trabalho.raridade, CHAVE_RARIDADE_RARO)
                         and trabalho.nivel == trabalhoProducaoConcluido.nivel)
                     if condicoes:    
-                        if textoEhIgual(trabalho.pegaTrabalhoNecessario(), trabalhoProducaoConcluido.nome):
+                        if textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome):
                             experiencia = trabalho.experiencia * 1.5
                             trabalhoProducaoRaro = TrabalhoProducao()
                             trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
@@ -1037,7 +1037,7 @@ class Aplicacao:
                 continue
             for trabalhoRaroVendidoOrdenado in listaTrabalhosRarosVendidosOrdenada:
                 if textoEhIgual(trabalhoRaroVendidoOrdenado.nome, trabalhosRarosVendidos.nome):
-                    trabalhoRaroVendidoOrdenado.setQuantidade(trabalhoRaroVendidoOrdenado.quantidade + 1)
+                    trabalhoRaroVendidoOrdenado.quantidade = trabalhoRaroVendidoOrdenado.quantidade + 1
                     break
             else:
                 listaTrabalhosRarosVendidosOrdenada.append(trabalhosRarosVendidos)
@@ -1203,7 +1203,7 @@ class Aplicacao:
                     self.__listaProfissoesNecessarias.append(profissao)
                     break
         else:
-            self.__listaProfissoesNecessarias = sorted(self.__listaProfissoesNecessarias,key=lambda profissao:profissao.pegaPrioridade(),reverse=True)
+            self.__listaProfissoesNecessarias = sorted(self.__listaProfissoesNecessarias,key=lambda profissao:profissao.prioridade,reverse=True)
             for profissaoNecessaria in self.__listaProfissoesNecessarias:
                 print(f'{profissaoNecessaria}')
 
@@ -1250,11 +1250,11 @@ class Aplicacao:
 
     def verificaEspacoProducao(self):
         quantidadeEspacoProducao = self.retornaQuantidadeEspacosDeProducao()
-        if self.__personagemEmUso.pegaEspacoProducao() != quantidadeEspacoProducao:
+        if self.__personagemEmUso.espacoProducao != quantidadeEspacoProducao:
             self.__personagemEmUso.setEspacoProducao(quantidadeEspacoProducao)
             personagemDao = PersonagemDaoSqlite()
             if personagemDao.modificaPersonagem(self.__personagemEmUso):
-                print(f'{self.__personagemEmUso.nome}: Espaço de produção modificado para {self.__personagemEmUso.pegaEspacoProducao()} com sucesso!')
+                print(f'{self.__personagemEmUso.nome}: Espaço de produção modificado para {self.__personagemEmUso.espacoProducao} com sucesso!')
                 return
             logger = logging.getLogger('personagemDao')
             logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
@@ -1305,12 +1305,12 @@ class Aplicacao:
             if len(nomeTrabalhoReconhecido) >= 30:
                 nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:29]
             for trabalhoProducaoPriorizada in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
-                if trabalhoProducaoPriorizada.pegaNomeProducao():
+                if trabalhoProducaoPriorizada.nomeProducao:
                     nomeTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.nome.replace('-','')
-                    nomeProducaoTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.pegaNomeProducao().replace('-','')
+                    nomeProducaoTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.nomeProducao.replace('-','')
                     if len(trabalhoProducaoPriorizada.nome) >= 30:
                         nomeTrabalhoProducaoDesejado = nomeTrabalhoProducaoDesejado[:29]
-                    if len(trabalhoProducaoPriorizada.pegaNomeProducao()) >= 30:
+                    if len(trabalhoProducaoPriorizada.nomeProducao) >= 30:
                         nomeProducaoTrabalhoProducaoDesejado = nomeProducaoTrabalhoProducaoDesejado[:29]
                     if trabalhoEhProducaoRecursos(trabalhoProducaoPriorizada):
                         if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalhoProducaoDesejado):
@@ -1363,7 +1363,7 @@ class Aplicacao:
                 print(f'Trabalho reconhecido: {nomeTrabalhoReconhecido}')
                 for trabalhoProducao in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
                     print(f'Trabalho na lista: {trabalhoProducao.nome}')
-                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducao.pegaNomeProducao()):
+                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducao.nomeProducao):
                         clickEspecifico(1, 'enter')
                         dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
@@ -1523,7 +1523,7 @@ class Aplicacao:
                         if textoEhIgual(trabalhoEstoque.nome, recursoBuscado[0]):
                             novaQuantidade = trabalhoEstoque.quantidade - recursoBuscado[1]
                             print(f'Quantidade de {trabalhoEstoque.nome} atualizada de {trabalhoEstoque.quantidade} para {novaQuantidade}.')
-                            trabalhoEstoque.setQuantidade(novaQuantidade)
+                            trabalhoEstoque.quantidade = novaQuantidade
                             estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                             if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                                 print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
@@ -1534,7 +1534,7 @@ class Aplicacao:
                     if textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipo_licenca):
                         novaQuantidade = trabalhoEstoque.quantidade - 1
                         print(f'Quantidade de {trabalhoEstoque.nome} atualizada de {trabalhoEstoque.quantidade} para {novaQuantidade}.')
-                        trabalhoEstoque.setQuantidade(novaQuantidade)
+                        trabalhoEstoque.quantidade = novaQuantidade
                         estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                         if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                             print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
@@ -1556,7 +1556,7 @@ class Aplicacao:
                         novaQuantidade = trabalhoEstoque.quantidade - 1
                     if variavelExiste(novaQuantidade):
                         print(f'Quantidade de {trabalhoEstoque.nome} atualizada para {novaQuantidade}.')
-                        trabalhoEstoque.setQuantidade(novaQuantidade)
+                        trabalhoEstoque.quantidade = novaQuantidade
                         estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                         if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                             print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
@@ -1566,12 +1566,12 @@ class Aplicacao:
                         print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
         elif trabalhoProducao.ehMelhorado() or trabalhoProducao.ehRaro():
             if not trabalhoEhProducaoRecursos(trabalhoProducao):
-                listaTrabalhosNecessarios = trabalhoProducao.pegaTrabalhoNecessario().split(',')
+                listaTrabalhosNecessarios = trabalhoProducao.trabalhoNecessario.split(',')
                 for trabalhoNecessario in listaTrabalhosNecessarios:
                     for trabalhoEstoque in estoque:
                         if textoEhIgual(trabalhoNecessario, trabalhoEstoque.nome):
                             novaQuantidade = trabalhoEstoque.quantidade - 1
-                            trabalhoEstoque.setQuantidade(novaQuantidade)
+                            trabalhoEstoque.quantidade = novaQuantidade
                             estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                             if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
                                 print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
@@ -1736,7 +1736,7 @@ class Aplicacao:
             print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
             return listaPossiveisTrabalhos
         for trabalho in trabalhos:
-            if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
+            if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.nomeProducao):
                 trabalhoEncontrado = TrabalhoProducao()
                 trabalhoEncontrado.dicionarioParaObjeto(trabalho.__dict__)
                 trabalhoEncontrado.id = str(uuid.uuid4())
@@ -1769,7 +1769,7 @@ class Aplicacao:
 
     
     def existeEspacoProducao(self):
-        espacoProducao = self.__personagemEmUso.pegaEspacoProducao()
+        espacoProducao = self.__personagemEmUso.espacoProducao
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
         trabalhosProducao = trabalhoProducaoDao.pegaTrabalhosProducao()
         if not variavelExiste(trabalhosProducao):
@@ -1833,7 +1833,7 @@ class Aplicacao:
                                 nomeTrabalhoReconhecido = self.retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(dicionarioTrabalho)
                                 print(f'Trabalho {trabalhoProducaoPriorizado.raridade} reconhecido: {nomeTrabalhoReconhecido}.')
                                 if variavelExiste(nomeTrabalhoReconhecido):
-                                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducaoPriorizado.pegaNomeProducao()):
+                                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducaoPriorizado.nomeProducao):
                                         erro = self.verificaErro()
                                         if erroEncontrado(erro):
                                             if ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
@@ -2451,7 +2451,7 @@ class Aplicacao:
                 novoNome = trabalhoEscolhido.nome
             novoNomeProducao = input(f'Novo nome de produção: ')
             if tamanhoIgualZero(novoNomeProducao):
-                novoNomeProducao = trabalhoEscolhido.pegaNomeProducao()
+                novoNomeProducao = trabalhoEscolhido.nomeProducao
             novaExperiencia = input(f'Nova experiência: ')
             if tamanhoIgualZero(novaExperiencia):
                 novaExperiencia = trabalhoEscolhido.experiencia
@@ -2466,13 +2466,13 @@ class Aplicacao:
                 novaRaridade = trabalhoEscolhido.raridade
             novoTrabalhoNecessario = input(f'Novo trabalho necessário: ')
             if tamanhoIgualZero(novoTrabalhoNecessario):
-                novoTrabalhoNecessario = trabalhoEscolhido.pegaTrabalhoNecessario()
+                novoTrabalhoNecessario = trabalhoEscolhido.trabalhoNecessario
             trabalhoEscolhido.nome = novoNome
             trabalhoEscolhido.setNomeProducao(novoNomeProducao)
             trabalhoEscolhido.setExperiencia(novaExperiencia)
-            trabalhoEscolhido.setNivel(novoNivel)
-            trabalhoEscolhido.setProfissao(novaProfissao)
-            trabalhoEscolhido.setRaridade(novaRaridade)
+            trabalhoEscolhido.nivel = novoNivel
+            trabalhoEscolhido.profissao = novaProfissao
+            trabalhoEscolhido.raridade = novaRaridade
             trabalhoEscolhido.setTrabalhoNecessario(novoTrabalhoNecessario)
             trabalhoDao = TrabalhoDaoSqlite()
             if trabalhoDao.modificaTrabalhoPorId(trabalhoEscolhido):
@@ -2588,7 +2588,7 @@ class Aplicacao:
             personagem.nome = novoNome
             novoEspaco = input(f'Nova quantidade de produção: ')
             if tamanhoIgualZero(novoEspaco):
-                novoEspaco = personagem.pegaEspacoProducao()
+                novoEspaco = personagem.espacoProducao
             personagem.setEspacoProducao(novoEspaco)
             novoEstado = input(f'Modificar estado? (S/N) ')
             if novoEstado.lower() == 's':
@@ -2868,11 +2868,11 @@ class Aplicacao:
                 trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
                 trabalhoEstoque = TrabalhoEstoque()
                 trabalhoEstoque.nome = trabalho.nome
-                trabalhoEstoque.setProfissao(trabalho.profissao)
-                trabalhoEstoque.setNivel(trabalho.nivel)
-                trabalhoEstoque.setQuantidade(quantidadeTrabalho)
-                trabalhoEstoque.setRaridade(trabalho.raridade)
-                trabalhoEstoque.setIdTrabalho(trabalho.id)
+                trabalhoEstoque.profissao = trabalho.profissao
+                trabalhoEstoque.nivel = trabalho.nivel
+                trabalhoEstoque.quantidade = quantidadeTrabalho
+                trabalhoEstoque.raridade = trabalho.raridade
+                trabalhoEstoque.trabalhoId = trabalho.id
                 if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoque):
                     print(f'Trabalho {trabalho.nome} inserido no estoque com sucesso!')
                     input(f'Clique para continuar...')
@@ -2917,7 +2917,7 @@ class Aplicacao:
                 quantidadeTrabalho = input(f'Quantidade trabalho: ')
                 if tamanhoIgualZero(quantidadeTrabalho):
                     quantidadeTrabalho = trabalho.quantidade
-                trabalho.setQuantidade(quantidadeTrabalho)
+                trabalho.quantidade = quantidadeTrabalho
                 trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
                 if trabalhoEstoqueDao.modificaTrabalhoEstoque(trabalho):
                     print(f'Trabalho {trabalho.nome} modificado no estoque com sucesso!')
@@ -3149,7 +3149,7 @@ class Aplicacao:
                     valor = trabalhoVendidoModificado.pegaValorProduto()
                 trabalhoVendidoModificado.nome = nome
                 trabalhoVendidoModificado.setData(data)
-                trabalhoVendidoModificado.setQuantidade(quantidade)
+                trabalhoVendidoModificado.quantidade = quantidade
                 trabalhoVendidoModificado.setValor(valor)
                 trabalhoVendidoDao = VendaDaoSqlite(personagem)
                 if trabalhoVendidoDao.modificaTrabalhoVendido(trabalhoVendidoModificado):
