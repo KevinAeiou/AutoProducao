@@ -35,13 +35,13 @@ class TrabalhoProducao:
         self.nivel = nivel
 
     def ehParaProduzir(self):
-        return self.estado() == CODIGO_PARA_PRODUZIR
+        return self.estado == CODIGO_PARA_PRODUZIR
     
     def ehProduzindo(self):
-        return self.estado() == CODIGO_PRODUZINDO
+        return self.estado == CODIGO_PRODUZINDO
     
     def ehConcluido(self):
-        return self.estado() == CODIGO_CONCLUIDO
+        return self.estado == CODIGO_CONCLUIDO
 
     def ehEspecial(self):
         return self.raridade == CHAVE_RARIDADE_ESPECIAL
