@@ -11,7 +11,7 @@ class TrabalhoProducao:
         self.nivel = 0
         self.profissao = None
         self.raridade = None
-        self.trabalhoNecessario = None
+        self.trabalhoNecessario = ''
         self.recorrencia = None
         self.tipo_licenca = None
         self.estado = None

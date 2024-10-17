@@ -25,6 +25,7 @@ from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 from repositorio.repositorioPersonagem import RepositorioPersonagem
 from repositorio.repositorioTrabalho import RepositorioTrabalho
 from repositorio.repositorioProfissao import RepositorioProfissao
+from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
 
 class Aplicacao:
     def __init__(self) -> None:
@@ -2230,10 +2231,49 @@ class Aplicacao:
                     logger.error(f'Erro ao modificar ({profissao}): {profissaoDao.pegaErro()}')
         input(f'Clique para continuar...')
 
+    def sincronizaTrabalhosProducao(self):
+        loggerTrabalhoProducaoDAO = logging.getLogger('trabalhoProducaoDao')
+        loggerRepositorioTrabalhoProducao = logging.getLogger('repositorioTrabalhoProducao')
+        limpaTela()
+        print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+        personagemDao = PersonagemDaoSqlite()
+        personagens = personagemDao.pegaPersonagens()
+        if not variavelExiste(personagens):
+            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
+        for personagem in personagens:
+            print(personagem)
+            repositorioTrabalhoProducao = RepositorioTrabalhoProducao(personagem)
+            trabalhosProducao = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
+            if not variavelExiste(trabalhosProducao):
+                loggerRepositorioTrabalhoProducao.error(f'Erro ao buscar trabalhos em produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+                continue
+            for trabalhoProducao in trabalhosProducao:
+                print(trabalhoProducao)
+                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                trabalhoProducaoEncontrada = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
+                if not variavelExiste(trabalhoProducaoEncontrada):
+                    loggerTrabalhoProducaoDAO.error(f'Erro ao buscar profissão ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+                    continue
+                if variavelExiste(trabalhoProducaoEncontrada.pegaNome()):
+                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                    if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao):
+                        loggerTrabalhoProducaoDAO.info(f'({trabalhoProducao}) modificado no banco com sucesso!')
+                        continue
+                    loggerTrabalhoProducaoDAO.error(f'Erro ao modificar ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+                    continue
+                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
+                    loggerTrabalhoProducaoDAO.info(f'({trabalhoProducao}) inserido no banco com sucesso!')
+                    continue
+                loggerTrabalhoProducaoDAO.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+        input(f'Clique para continuar...')
+
     def sincronizaDados(self):
         # self.sincronizaListaTrabalhos()
         # self.sincronizaListaPersonagens()
-        self.sincronizaListaProfissoes()
+        # self.sincronizaListaProfissoes()
+        self.sincronizaTrabalhosProducao()
         # 86c0b57c-8c2e-4eb4-8fe7-305c435a214d | Mrninguem         | 10     | Verdadeiro | Verdadeiro | Falso
         # 63b2f589-109a-4aba-b481-866cd2beb684 | Joezinho          | 10     | Verdadeiro | Verdadeiro | Falso
         # 729b1481-d806-4253-80dd-8acd8cff665d | Provisorioatecair | 6      | Verdadeiro | Falso      | Falso
@@ -2503,7 +2543,7 @@ class Aplicacao:
                 novoTrabalhoProducao.setLicenca(licenca)
                 novoTrabalhoProducao.setEstado(CODIGO_PARA_PRODUZIR)
                 trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                if trabalhoProducaoDao.insereTrabalhoProducao(novoTrabalhoProducao):
+                if trabalhoProducaoDao.insereTrabalhoProducao(novoTrabalhoProducao, True):
                     print(f'{novoTrabalhoProducao.pegaNome()} inserido com sucesso!')
                     input(f'Clique para continuar...')
                     continue
