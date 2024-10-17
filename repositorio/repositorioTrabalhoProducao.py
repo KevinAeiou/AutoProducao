@@ -22,7 +22,7 @@ class RepositorioTrabalhoProducao:
                 for trabalhoProducaoEncontrado in todosTrabalhosProducao.each():
                     trabalhoProducao = TrabalhoProducao()
                     trabalhoProducao.dicionarioParaObjeto(trabalhoProducaoEncontrado.val())
-                    trabalhoProducao.setId(trabalhoProducaoEncontrado.key())
+                    trabalhoProducao.id = trabalhoProducaoEncontrado.key()
                     trabalhosProducao.append(trabalhoProducao)
             trabalhosProducao = sorted(trabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.pegaEstado(), reverse=True)
 

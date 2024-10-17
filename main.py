@@ -489,7 +489,11 @@ class Aplicacao:
                         return trabalhoProduzirProduzindo
             else:
                 print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].pegaNome()}) não encontrado na lista produzindo...')
-                trabalhoProducaoConcluido = TrabalhoProducao(str(uuid.uuid4()), listaPossiveisTrabalhos[0].pegaId(), listaPossiveisTrabalhos[0].pegaNome(), listaPossiveisTrabalhos[0].pegaNomeProducao(), listaPossiveisTrabalhos[0].pegaExperiencia(), listaPossiveisTrabalhos[0].pegaNivel(), listaPossiveisTrabalhos[0].pegaProfissao(), listaPossiveisTrabalhos[0].pegaRaridade(), listaPossiveisTrabalhos[0].pegaTrabalhoNecessario(), False, CHAVE_LICENCA_NOVATO, CODIGO_CONCLUIDO)
+                trabalhoProducaoConcluido = TrabalhoProducao()
+                trabalhoProducaoConcluido.dicionarioParaObjeto(listaPossiveisTrabalhos[0].__dict__)
+                trabalhoProducaoConcluido.setRecorrencia(False)
+                trabalhoProducaoConcluido.setLicenca(CHAVE_LICENCA_NOVATO)
+                trabalhoProducaoConcluido.setEstado(CODIGO_CONCLUIDO)
                 trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                 if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoConcluido):
                     print(f'{trabalhoProducaoConcluido.pegaNome()} adicionado com sucesso!')
@@ -793,12 +797,17 @@ class Aplicacao:
                     if condicoes:    
                         if textoEhIgual(trabalho.pegaTrabalhoNecessario(), trabalhoProducaoConcluido.pegaNome()):
                             experiencia = trabalho.pegaExperiencia() * 1.5
-                            trabalhoProducaoRaro = TrabalhoProducao('', trabalho.pegaTrabalhoId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), experiencia, trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, licencaProducaoIdeal, trabalho.pegaEstado())
+                            trabalhoProducaoRaro = TrabalhoProducao()
+                            trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
+                            trabalhoProducaoRaro.experiencia = experiencia
+                            trabalhoProducaoRaro.recorrencia = False
+                            trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
+                            trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
                             break
         if variavelExiste(trabalhoProducaoRaro):
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoRaro):
-                print(f'{trabalhoProducaoRaro.pegaNome()} adicionado com sucesso!')
+                print(f'{trabalhoProducaoRaro.nome} adicionado com sucesso!')
                 return 
             logger = logging.getLogger('trabalhoProducaoDao')
             logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
@@ -1381,12 +1390,16 @@ class Aplicacao:
                     contadorParaBaixo += 1
         return dicionarioTrabalho
 
-    def defineCloneDicionarioTrabalhoDesejado(self, trabalhoProducaoEncontrado):
-        return TrabalhoProducao(str(uuid.uuid4()), trabalhoProducaoEncontrado.pegaTrabalhoId(),trabalhoProducaoEncontrado.pegaNome(), trabalhoProducaoEncontrado.pegaNomeProducao(), trabalhoProducaoEncontrado.pegaExperiencia(), trabalhoProducaoEncontrado.pegaNivel(), trabalhoProducaoEncontrado.pegaProfissao(), trabalhoProducaoEncontrado.pegaRaridade(), trabalhoProducaoEncontrado.pegaTrabalhoNecessario(), trabalhoProducaoEncontrado.pegaRecorrencia(), trabalhoProducaoEncontrado.pegaLicenca(), trabalhoProducaoEncontrado.pegaEstado())
+    def defineCloneTrabalhoProducao(self, trabalhoProducaoEncontrado):
+        cloneTrabalhoProducao = TrabalhoProducao()
+        cloneTrabalhoProducao.dicionarioParaObjeto(trabalhoProducaoEncontrado.__dict__)
+        cloneTrabalhoProducao.id = str(uuid.uuid4())
+        return cloneTrabalhoProducao
+    
 
     def clonaTrabalhoProducaoEncontrado(self, dicionarioTrabalho, trabalhoProducaoEncontrado):
         print(f'Recorrencia está ligada.')
-        cloneTrabalhoProducaoEncontrado = self.defineCloneDicionarioTrabalhoDesejado(trabalhoProducaoEncontrado)
+        cloneTrabalhoProducaoEncontrado = self.defineCloneTrabalhoProducao(trabalhoProducaoEncontrado)
         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = cloneTrabalhoProducaoEncontrado
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
         if trabalhoProducaoDao.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado):
@@ -1724,7 +1737,13 @@ class Aplicacao:
             return listaPossiveisTrabalhos
         for trabalho in trabalhos:
             if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.pegaNomeProducao()):
-                trabalhoEncontrado = TrabalhoProducao('', trabalho.pegaId(), trabalho.pegaNome(), trabalho.pegaNomeProducao(), trabalho.pegaExperiencia(), trabalho.pegaNivel(), trabalho.pegaProfissao(), trabalho.pegaRaridade(), trabalho.pegaTrabalhoNecessario(), False, CHAVE_LICENCA_NOVATO, CODIGO_CONCLUIDO)
+                trabalhoEncontrado = TrabalhoProducao()
+                trabalhoEncontrado.dicionarioParaObjeto(trabalho.__dict__)
+                trabalhoEncontrado.id = str(uuid.uuid4())
+                trabalhoEncontrado.trabalhoId = trabalho.id
+                trabalhoEncontrado.recorrencia = False
+                trabalhoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
+                trabalhoEncontrado.estado = CODIGO_CONCLUIDO
                 listaPossiveisTrabalhos.append(trabalhoEncontrado)
         return listaPossiveisTrabalhos
 
@@ -2531,17 +2550,11 @@ class Aplicacao:
                 opcaoRecorrencia = input(f'Trabalho recorrente? (S/N)')
                 recorrencia = True if (opcaoRecorrencia).lower() == 's' else False
                 novoTrabalhoProducao = TrabalhoProducao()
-                novoTrabalhoProducao.setTrabalhoId(trabalho.pegaId())
-                novoTrabalhoProducao.setNome(trabalho.pegaNome())
-                novoTrabalhoProducao.setNomeProducao(trabalho.pegaNomeProducao())
-                novoTrabalhoProducao.setExperiencia(trabalho.pegaExperiencia())
-                novoTrabalhoProducao.setNivel(trabalho.pegaNivel())
-                novoTrabalhoProducao.setProfissao(trabalho.pegaProfissao())
-                novoTrabalhoProducao.setRaridade(trabalho.pegaRaridade())
-                novoTrabalhoProducao.setTrabalhoNecessario(trabalho.pegaTrabalhoNecessario())
-                novoTrabalhoProducao.setRecorrencia(recorrencia)
-                novoTrabalhoProducao.setLicenca(licenca)
-                novoTrabalhoProducao.setEstado(CODIGO_PARA_PRODUZIR)
+                novoTrabalhoProducao.dicionarioParaObjeto(trabalho.__dict__)
+                novoTrabalhoProducao.trabalhoId = trabalho.id
+                novoTrabalhoProducao.recorrencia = recorrencia
+                novoTrabalhoProducao.tipo_licenca = licenca
+                novoTrabalhoProducao.estado = CODIGO_PARA_PRODUZIR
                 trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
                 if trabalhoProducaoDao.insereTrabalhoProducao(novoTrabalhoProducao, True):
                     print(f'{novoTrabalhoProducao.pegaNome()} inserido com sucesso!')

@@ -30,18 +30,18 @@ class TrabalhoProducaoDaoSqlite:
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao = TrabalhoProducao()
-                trabalhoProducao.setId(linha[0])
-                trabalhoProducao.setTrabalhoId([1])
-                trabalhoProducao.setNome(linha[2])
-                trabalhoProducao.setNomeProducao(linha[3])
-                trabalhoProducao.setExperiencia(linha[4])
-                trabalhoProducao.setNivel(linha[5])
-                trabalhoProducao.setProfissao(linha[6])
-                trabalhoProducao.setRaridade(linha[7])
-                trabalhoProducao.setTrabalhoNecessario(linha[8])
-                trabalhoProducao.setRecorrencia(recorrencia)
-                trabalhoProducao.setLicenca(linha[10])
-                trabalhoProducao.setEstado(linha[11])
+                trabalhoProducao.id = linha[0]
+                trabalhoProducao.trabalhoId = linha[1]
+                trabalhoProducao.nome = linha[2]
+                trabalhoProducao.nomeProducao = linha[3]
+                trabalhoProducao.experiencia = linha[4]
+                trabalhoProducao.nivel = linha[5]
+                trabalhoProducao.profissao = linha[6]
+                trabalhoProducao.raridade = linha[7]
+                trabalhoProducao.trabalhoNecessario = linha[8]
+                trabalhoProducao.recorrencia = recorrencia
+                trabalhoProducao.tipo_licenca = linha[10]
+                trabalhoProducao.estado = linha[11]
                 trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
             return trabalhosProducao
@@ -64,18 +64,18 @@ class TrabalhoProducaoDaoSqlite:
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao = TrabalhoProducao()
-                trabalhoProducao.setId(linha[0])
-                trabalhoProducao.setTrabalhoId(linha[1])
-                trabalhoProducao.setNome(linha[2])
-                trabalhoProducao.setNomeProducao(linha[3])
-                trabalhoProducao.setExperiencia(linha[4])
-                trabalhoProducao.setNivel(linha[5])
-                trabalhoProducao.setProfissao(linha[6])
-                trabalhoProducao.setRaridade(linha[7])
-                trabalhoProducao.setTrabalhoNecessario(linha[8])
-                trabalhoProducao.setRecorrencia(recorrencia)
-                trabalhoProducao.setLicenca(linha[10])
-                trabalhoProducao.setEstado(linha[11])
+                trabalhoProducao.id = linha[0]
+                trabalhoProducao.trabalhoId = linha[1]
+                trabalhoProducao.nome = linha[2]
+                trabalhoProducao.nomeProducao = linha[3]
+                trabalhoProducao.experiencia = linha[4]
+                trabalhoProducao.nivel = linha[5]
+                trabalhoProducao.profissao = linha[6]
+                trabalhoProducao.raridade = linha[7]
+                trabalhoProducao.trabalhoNecessario = linha[8]
+                trabalhoProducao.recorrencia = recorrencia
+                trabalhoProducao.tipo_licenca = linha[10]
+                trabalhoProducao.estado = linha[11]
                 trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
             return trabalhosProducao
@@ -98,18 +98,18 @@ class TrabalhoProducaoDaoSqlite:
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao = TrabalhoProducao()
-                trabalhoProducao.setId(linha[0])
-                trabalhoProducao.setTrabalhoId([1])
-                trabalhoProducao.setNome(linha[2])
-                trabalhoProducao.setNomeProducao(linha[3])
-                trabalhoProducao.setExperiencia(linha[4])
-                trabalhoProducao.setNivel(linha[5])
-                trabalhoProducao.setProfissao(linha[6])
-                trabalhoProducao.setRaridade(linha[7])
-                trabalhoProducao.setTrabalhoNecessario(linha[8])
-                trabalhoProducao.setRecorrencia(recorrencia)
-                trabalhoProducao.setLicenca(linha[10])
-                trabalhoProducao.setEstado(linha[11])
+                trabalhoProducao.id = linha[0]
+                trabalhoProducao.trabalhoId = linha[1]
+                trabalhoProducao.nome = linha[2]
+                trabalhoProducao.nomeProducao = linha[3]
+                trabalhoProducao.experiencia = linha[4]
+                trabalhoProducao.nivel = linha[5]
+                trabalhoProducao.profissao = linha[6]
+                trabalhoProducao.raridade = linha[7]
+                trabalhoProducao.trabalhoNecessario = linha[8]
+                trabalhoProducao.recorrencia = recorrencia
+                trabalhoProducao.tipo_licenca = linha[10]
+                trabalhoProducao.estado = linha[11]
                 trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
             return trabalhosProducao
@@ -131,18 +131,18 @@ class TrabalhoProducaoDaoSqlite:
             cursor.execute(sql, [trabalhoProducao.pegaId()])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
-                trabalhoProducao.setId(linha[0])
-                trabalhoProducao.setTrabalhoId(linha[1])
-                trabalhoProducao.setNome(linha[2])
-                trabalhoProducao.setNomeProducao(linha[3])
-                trabalhoProducao.setExperiencia(linha[4])
-                trabalhoProducao.setNivel(linha[5])
-                trabalhoProducao.setProfissao(linha[6])
-                trabalhoProducao.setRaridade(linha[7])
-                trabalhoProducao.setTrabalhoNecessario(linha[8])
-                trabalhoProducao.setRecorrencia(recorrencia)
-                trabalhoProducao.setLicenca(linha[10])
-                trabalhoProducao.setEstado(linha[11])
+                trabalhoProducao.id = linha[0]
+                trabalhoProducao.trabalhoId = linha[1]
+                trabalhoProducao.nome = linha[2]
+                trabalhoProducao.nomeProducao = linha[3]
+                trabalhoProducao.experiencia = linha[4]
+                trabalhoProducao.nivel = linha[5]
+                trabalhoProducao.profissao = linha[6]
+                trabalhoProducao.raridade = linha[7]
+                trabalhoProducao.trabalhoNecessario = linha[8]
+                trabalhoProducao.recorrencia = recorrencia
+                trabalhoProducao.tipo_licenca = linha[10]
+                trabalhoProducao.estado = linha[11]
             self.__meuBanco.desconecta()
             return trabalhoProducao
         except Exception as e:
