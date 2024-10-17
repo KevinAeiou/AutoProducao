@@ -535,7 +535,7 @@ class Aplicacao:
                 experiencia = profissao.pegaExperiencia() + trabalhoProducao.pegaExperiencia()
                 profissao.setExperiencia(experiencia)
                 profissaoDao = ProfissaoDaoSqlite(self.__personagemEmUso)
-                if profissaoDao.modificaProfissao(profissao):
+                if profissaoDao.modificaProfissao(profissao, True):
                     print(f'Experiência de {profissao.pegaNome()} atualizada para {experiencia}  com sucesso!')
                     return
                 logger = logging.getLogger('profissaoDao')
@@ -2307,7 +2307,7 @@ class Aplicacao:
                 if alternaPrioridade.lower() == 's':
                     profissaoModificado.alternaPrioridade()
                 profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem)-1])
-                if profissaoDao.modificaProfissao(profissaoModificado):
+                if profissaoDao.modificaProfissao(profissaoModificado, True):
                     print(f'{profissaoModificado.pegaNome()} modificado com sucesso!')
                     input(f'Clique para continuar...')
                     continue
@@ -3136,7 +3136,7 @@ class Aplicacao:
             if int(opcaoPersonagem) == 0:
                 break
             profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1])
-            profissaoDao.limpaListaProfissoes()
+            profissaoDao.limpaListaProfissoes(True)
 
     def teste(self):
         while True:

@@ -3,10 +3,13 @@ __author__ = 'Kevin Amazonas'
 from modelos.profissao import Profissao
 from db.db import MeuBanco
 from uuid import uuid4
+import logging
 from repositorio.repositorioProfissao import RepositorioProfissao
 from constantes import CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES
 
 class ProfissaoDaoSqlite:
+    logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
+    logger = logging.getLogger('repositorioProfissao')
     def __init__(self, personagem = None):
         self.__conexao = None
         self.__erro = None
@@ -92,7 +95,7 @@ class ProfissaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def modificaProfissao(self, profissao):
+    def modificaProfissao(self, profissao, modificaProfissao = False):
         prioridade = 1 if profissao.pegaPrioridade() else 0
         sql = """
             UPDATE profissoes 
@@ -103,10 +106,11 @@ class ProfissaoDaoSqlite:
             cursor.execute(sql, (profissao.pegaNome(), profissao.pegaExperiencia(), prioridade, profissao.pegaId()))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioProfissao.modificaProfissao(profissao):
-                print(f'{profissao.pegaNome()} modificada com sucesso no servidor!')
-            else:
-                print(f'Erro ao modificar profissão no servidor: {self.__repositorioProfissao.pegaErro()}')
+            if modificaProfissao:
+                if self.__repositorioProfissao.modificaProfissao(profissao):
+                    self.logger.info(f'{profissao} modificada no servidor com sucesso!')
+                else:
+                    self.logger.error(f'Erro ao modificar ({profissao}) no servidor: {self.__repositorioProfissao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -121,14 +125,14 @@ class ProfissaoDaoSqlite:
             profissao.setId(str(profissoes.index(nomeProfissao))+str(uuid4()))
             profissao.setNome(nomeProfissao)
             profissao.setIdPersonagem(self.__personagem.pegaId())
-            if self.insereProfissao(profissao):
+            if self.insereProfissao(profissao, True):
                 print(f'Profissão {nomeProfissao} inserida com sucesso!')
                 continue
             print(f'Erro ao inserir profissão: {self.pegaErro()}')
             return False
         return True
     
-    def insereProfissao(self, profissao):
+    def insereProfissao(self, profissao, modificaServidor = False):
         prioridade = 1 if profissao.pegaPrioridade() else 0
         sql = """
             INSERT INTO profissoes (id, idPersonagem, nome, experiencia, prioridade)
@@ -138,27 +142,29 @@ class ProfissaoDaoSqlite:
             cursor.execute(sql, (profissao.pegaId(), self.__personagem.pegaId(), profissao.pegaNome(), profissao.pegaExperiencia(), prioridade))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioProfissao.insereProfissao(profissao):
-                print(f'{profissao.pegaNome()} inserido com sucesso no servidor!')
-            else:
-                print(f'Erro ao inserir profissão no servidor: {self.__repositorioProfissao.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioProfissao.insereProfissao(profissao):
+                    self.logger.info(f'{profissao} inserido no servidor com sucesso!')
+                else:
+                    self.logger.error(f'Erro ao inserir ({profissao}) no servidor: {self.__repositorioProfissao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return False
     
-    def limpaListaProfissoes(self):
+    def limpaListaProfissoes(self, modificaServidor = False):
         sql = """DELETE FROM profissoes WHERE idPersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.pegaId()])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioProfissao.limpaProfissoes():
-                print(f'removido do servidor com sucesso!')
-            else:
-                print(f'Erro ao remover trabalho do servidor: {self.__repositorioProfissao.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioProfissao.limpaProfissoes():
+                    self.logger.info(f'Lista de profissões ({self.__personagem}) limpa no servidor com sucesso!')
+                else:
+                    self.logger.error(f'Erro ao limpar lista de profissões no servidor: {self.__repositorioProfissao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
