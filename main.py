@@ -860,10 +860,12 @@ class Aplicacao:
             if ehMenuInicial(menu):
                 encerraSecao()
                 break
-            elif ehMenuJogar(menu):
+            if ehMenuJogar(menu):
                 break
-            else:
-                clickMouseEsquerdo(1, 2, 35)
+            if ehMenuEscolhaPersonagem(menu):
+                clickEspecifico(1, 'f1')
+                break
+            clickMouseEsquerdo(1, 2, 35)
             menu = self.retornaMenu()
 
     def entraPersonagem(self, listaPersonagemPresenteRecuperado):
