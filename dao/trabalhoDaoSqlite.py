@@ -93,7 +93,7 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
         return None
     
-    def insereTrabalho(self, trabalho):
+    def insereTrabalho(self, trabalho, modificaServidor = True):
         sql = """INSERT INTO trabalhos (id, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
         try:
@@ -101,17 +101,18 @@ class TrabalhoDaoSqlite():
             cursor.execute(sql, (trabalho.id, trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioTrabalho.insereTrabalho(trabalho):
-                print(f'{trabalho.nome} inserido no servidor com sucesso!')
-            else:
-                print(f'Erro ao inserir trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioTrabalho.insereTrabalho(trabalho):
+                    print(f'{trabalho.nome} inserido no servidor com sucesso!')
+                else:
+                    print(f'Erro ao inserir trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return False
 
-    def modificaTrabalhoPorId(self, trabalho):
+    def modificaTrabalhoPorId(self, trabalho, modificaServidor = True):
         sql = """
             UPDATE trabalhos SET nome = ?, nomeProducao = ?, experiencia = ?, nivel = ?, profissao = ?, raridade = ?, trabalhoNecessario = ?
             WHERE id = ?"""
@@ -120,10 +121,11 @@ class TrabalhoDaoSqlite():
             cursor.execute(sql, (trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario, trabalho.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioTrabalho.modificaTrabalho(trabalho):
-                print(f'{trabalho.nome} modificado no servidor com sucesso!')
-            else:
-                print(f'Erro ao modificar trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioTrabalho.modificaTrabalho(trabalho):
+                    print(f'{trabalho.nome} modificado no servidor com sucesso!')
+                else:
+                    print(f'Erro ao modificar trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -145,17 +147,18 @@ class TrabalhoDaoSqlite():
         self.__meuBanco.desconecta()
         return False
         
-    def removeTrabalho(self, trabalho):
+    def removeTrabalho(self, trabalho, modificaServidor = True):
         sql = """DELETE FROM trabalhos WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [trabalho.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioTrabalho.removeTrabalho(trabalho):
-                print(f'{trabalho.nome} removido do servidor com sucesso!')
-            else:
-                print(f'Erro ao remover trabalho do servidor: {self.__repositorioTrabalho.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioTrabalho.removeTrabalho(trabalho):
+                    print(f'{trabalho.nome} removido do servidor com sucesso!')
+                else:
+                    print(f'Erro ao remover trabalho do servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)

@@ -102,7 +102,7 @@ class PersonagemDaoSqlite():
             self.__erro = str(e)
         return None
     
-    def modificaPersonagem(self, personagem):
+    def modificaPersonagem(self, personagem, modificaServidor = True):
         estado = 1 if personagem.estado else 0
         uso = 1 if personagem.uso else 0
         autoProducao = 1 if personagem.autoProducao else 0
@@ -115,10 +115,11 @@ class PersonagemDaoSqlite():
                 cursor.execute(sql, (personagem.id, personagem.nome, personagem.email, personagem.senha, personagem.espacoProducao, estado, uso, autoProducao, personagem.id))
                 self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioPersonagem.modificaPersonagem(personagem):
-                print(f'{personagem.nome} modificado com sucesso no servidor!')
-            else:
-                print(f'Erro ao modificar personagem no servidor: {self.__repositorioPersonagem.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioPersonagem.modificaPersonagem(personagem):
+                    print(f'{personagem.nome} modificado com sucesso no servidor!')
+                else:
+                    print(f'Erro ao modificar personagem no servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -144,7 +145,7 @@ class PersonagemDaoSqlite():
         self.__meuBanco.desconecta()
         return False
     
-    def inserePersonagem(self, personagem):
+    def inserePersonagem(self, personagem, modificaServidor = True):
         estado = 1 if personagem.estado else 0
         uso = 1 if personagem.uso else 0
         autoProducao = 1 if personagem.autoProducao else 0
@@ -157,27 +158,29 @@ class PersonagemDaoSqlite():
             cursor.execute(sql, (personagem.id, personagem.nome, personagem.email, personagem.senha, personagem.espacoProducao, estado, uso, autoProducao))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioPersonagem.inserePersonagem(personagem):
-                print(f'{personagem.nome} inserido com sucesso no servidor!')
-            else:
-                print(f'Erro ao inserir trabalho no servidor: {self.__repositorioPersonagem.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioPersonagem.inserePersonagem(personagem):
+                    print(f'{personagem.nome} inserido com sucesso no servidor!')
+                else:
+                    print(f'Erro ao inserir trabalho no servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return False
     
-    def removePersonagem(self, personagem):
+    def removePersonagem(self, personagem, modificaServidor = True):
         sql = """DELETE FROM personagens WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [personagem.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioPersonagem.removePersonagem(personagem):
-                print(f'{personagem.nome} removido com sucesso no servidor!')
-            else:
-                print(f'Erro ao remover personagem do servidor: {self.__repositorioPersonagem.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioPersonagem.removePersonagem(personagem):
+                    print(f'{personagem.nome} removido com sucesso no servidor!')
+                else:
+                    print(f'Erro ao remover personagem do servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)

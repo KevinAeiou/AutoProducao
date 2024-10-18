@@ -12,36 +12,31 @@ class RepositorioVendas:
     def pegaTodasVendas(self):
         listaVendas = []
         try:
-            todasVendas = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).get()
-            if todasVendas.pyres != None:
-                for vendaEncontrada in todasVendas.each():
-                    if CHAVE_TRABALHO_ID in vendaEncontrada.val():
-                        trabalhoVendido = TrabalhoVendido(
-                            vendaEncontrada.key(),
-                            vendaEncontrada.val()[CHAVE_NOME_PRODUTO],
-                            vendaEncontrada.val()[CHAVE_DATA_VENDA],
-                            vendaEncontrada.val()[CHAVE_NOME_PERSONAGEM],
-                            vendaEncontrada.val()[CHAVE_QUANTIDADE_PRODUTO],
-                            vendaEncontrada.val()[CHAVE_TRABALHO_ID],
-                            vendaEncontrada.val()[CHAVE_VALOR_PRODUTO]
-                        )
-                        listaVendas.append(trabalhoVendido)
+            todasVendas = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).get()
+            if todasVendas.pyres == None:
                 return listaVendas
+            for vendaEncontrada in todasVendas.each():
+                if CHAVE_TRABALHO_ID in vendaEncontrada.val():
+                    trabalhoVendido = TrabalhoVendido()
+                    trabalhoVendido.dicionarioParaObjeto(vendaEncontrada.val())
+                    trabalhoVendido.id = vendaEncontrada.key()
+                    listaVendas.append(trabalhoVendido)
+            return listaVendas
         except Exception as e:
             self.__erro = str(e)
         return None
     
     def insereTrabalhoVendido(self, trabalhoVendido):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(trabalhoVendido.pegaId()).set(trabalhoVendido.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(trabalhoVendido.id).set(trabalhoVendido.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
         return False
 
-    def modificaVenda(self, venda):
+    def modificaVenda(self, trabalhoVendido):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(venda.pegaId()).update(venda.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(trabalhoVendido.id).update(trabalhoVendido.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -49,7 +44,7 @@ class RepositorioVendas:
         
     def removeVenda(self, venda):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).child(venda.pegaId()).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(venda.id).remove()
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -57,7 +52,7 @@ class RepositorioVendas:
         
     def limpaListaVenda(self):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_VENDAS).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).remove()
             return True
         except Exception as e:
             self.__erro = str(e)

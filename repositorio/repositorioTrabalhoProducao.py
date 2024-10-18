@@ -10,21 +10,21 @@ class RepositorioTrabalhoProducao:
 
     def limpaListaProducao(self):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).remove()
         except:
             print(f'Erro')
 
     def pegaTodosTrabalhosProducao(self):
         trabalhosProducao = []
         try:
-            todosTrabalhosProducao = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).get()
+            todosTrabalhosProducao = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).get()
             if todosTrabalhosProducao.pyres != None:
                 for trabalhoProducaoEncontrado in todosTrabalhosProducao.each():
                     trabalhoProducao = TrabalhoProducao()
                     trabalhoProducao.dicionarioParaObjeto(trabalhoProducaoEncontrado.val())
                     trabalhoProducao.id = trabalhoProducaoEncontrado.key()
                     trabalhosProducao.append(trabalhoProducao)
-            trabalhosProducao = sorted(trabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.pegaEstado(), reverse=True)
+            trabalhosProducao = sorted(trabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.estado, reverse=True)
 
             return trabalhosProducao
         except Exception as e:
@@ -34,7 +34,7 @@ class RepositorioTrabalhoProducao:
     
     def removeTrabalhoProducao(self, trabalhoProducao):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.pegaId()).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.id).remove()
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -42,7 +42,7 @@ class RepositorioTrabalhoProducao:
     
     def insereTrabalhoProducao(self, trabalhoProducao):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.pegaId()).set(trabalhoProducao.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.id).set(trabalhoProducao.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -50,7 +50,7 @@ class RepositorioTrabalhoProducao:
 
     def modificaTrabalhoProducao(self, trabalhoProducao):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.pegaId()).update(trabalhoProducao.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.id).update(trabalhoProducao.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)

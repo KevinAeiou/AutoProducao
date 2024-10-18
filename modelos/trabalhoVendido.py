@@ -50,5 +50,9 @@ class TrabalhoVendido:
         valor = 0 if int(valor) < 0 else int(valor)
         self.valorProduto = valor
 
+    def dicionarioParaObjeto(self, dicionario):
+        for chave in dicionario:
+            setattr(self, chave, dicionario[chave])
+            
     def __str__(self) -> str:
         return f'{(self.nomeProduto).ljust(113)} | {(self.dataVenda).ljust(10)} | {(self.trabalhoId).ljust(36)} | {str(self.valorProduto).ljust(5)} | {self.quantidadeProduto}'

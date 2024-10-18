@@ -95,7 +95,7 @@ class ProfissaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def modificaProfissao(self, profissao, modificaProfissao = False):
+    def modificaProfissao(self, profissao, modificaProfissao = True):
         prioridade = 1 if profissao.prioridade else 0
         sql = """
             UPDATE profissoes 
@@ -125,14 +125,14 @@ class ProfissaoDaoSqlite:
             profissao.id = str(profissoes.index(nomeProfissao))+str(uuid4())
             profissao.nome = nomeProfissao
             profissao.idPersonagem = self.__personagem.id
-            if self.insereProfissao(profissao, True):
+            if self.insereProfissao(profissao):
                 print(f'Profissão {nomeProfissao} inserida com sucesso!')
                 continue
             print(f'Erro ao inserir profissão: {self.pegaErro()}')
             return False
         return True
     
-    def insereProfissao(self, profissao, modificaServidor = False):
+    def insereProfissao(self, profissao, modificaServidor = True):
         prioridade = 1 if profissao.prioridade else 0
         sql = """
             INSERT INTO profissoes (id, idPersonagem, nome, experiencia, prioridade)
@@ -153,7 +153,7 @@ class ProfissaoDaoSqlite:
         self.__meuBanco.desconecta()
         return False
     
-    def limpaListaProfissoes(self, modificaServidor = False):
+    def limpaListaProfissoes(self, modificaServidor = True):
         sql = """DELETE FROM profissoes WHERE idPersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()

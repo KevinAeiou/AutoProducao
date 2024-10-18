@@ -67,21 +67,10 @@ class RepositorioTrabalho:
         try:
             todosTrabalhos = self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).get()
             for trabalhoEncontrado in todosTrabalhos.each():
-                if CHAVE_EXPERIENCIA in trabalhoEncontrado.val():
-                    if not CHAVE_TRABALHO_NECESSARIO in trabalhoEncontrado.val():
-                        trabalhoNecessario = ''
-                    else:
-                        trabalhoNecessario = trabalhoEncontrado.val()[CHAVE_TRABALHO_NECESSARIO]
-                    trabalho = Trabalho(
-                        trabalhoEncontrado.key(),
-                        trabalhoEncontrado.val()[CHAVE_NOME],
-                        trabalhoEncontrado.val()[CHAVE_NOME_PRODUCAO],
-                        trabalhoEncontrado.val()[CHAVE_EXPERIENCIA],
-                        trabalhoEncontrado.val()[CHAVE_NIVEL],
-                        trabalhoEncontrado.val()[CHAVE_PROFISSAO],
-                        trabalhoEncontrado.val()[CHAVE_RARIDADE],
-                        trabalhoNecessario)
-                    trabalhos.append(trabalho)
+                trabalho = Trabalho()
+                trabalho.dicionarioParaObjeto(trabalhoEncontrado.val())
+                trabalho.id = trabalhoEncontrado.key()
+                trabalhos.append(trabalho)
             return trabalhos
         except Exception as e:
             self.__erro = str(e)
@@ -89,7 +78,7 @@ class RepositorioTrabalho:
     
     def insereTrabalho(self, trabalho):
         try:
-            self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.pegaId()).set(trabalho.__dict__)
+            self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.id).set(trabalho.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -97,7 +86,7 @@ class RepositorioTrabalho:
     
     def modificaTrabalho(self, trabalho):
         try:
-            self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.pegaId()).update(trabalho.__dict__)
+            self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.id).update(trabalho.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -105,7 +94,7 @@ class RepositorioTrabalho:
     
     def removeTrabalho(self, trabalho):
         try:
-            self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.pegaId()).remove()
+            self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.id).remove()
             return True
         except Exception as e:
             self.__erro = str(e)
