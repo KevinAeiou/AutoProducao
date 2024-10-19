@@ -1219,7 +1219,7 @@ class Aplicacao:
             print(f'Erro ao buscar profissões: {profissaoDao.pegaErro()}')
             return
         for profissao in profissoes:
-            if profissao.nivel >= nivel:
+            if profissao.pegaNivel() >= nivel:
                 contadorNivel += 1
         else:
             print(f'Contador de profissões nível {nivel} ou superior: {contadorNivel}.')

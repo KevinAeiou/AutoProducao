@@ -12,15 +12,15 @@ class RepositorioProfissao:
     def pegaTodasProfissoes(self):
         profissoes = []
         try:
-            todasProfissoes = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).get()
+            todasProfissoes = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_PROFISSAO).get()
             if todasProfissoes.pyres != None:
                 for profissaoEncontrado in todasProfissoes.each():
                     profissao = Profissao()
                     profissao.dicionarioParaObjeto(profissaoEncontrado.val())
-                    profissao.setId(profissaoEncontrado.key())
-                    profissao.setIdPersonagem(self.__personagem.pegaId())
+                    profissao.id = profissaoEncontrado.key()
+                    profissao.idPersonagem = self.__personagem.id
                     profissoes.append(profissao)
-                profissoes = sorted(profissoes, key = lambda profissao: profissao.pegaExperiencia(), reverse = True)
+                profissoes = sorted(profissoes, key = lambda profissao: profissao.experiencia, reverse = True)
                 return profissoes
         except Exception as e:
             self.__erro = str(e)
@@ -28,7 +28,7 @@ class RepositorioProfissao:
     
     def insereProfissao(self, profissao):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).child(profissao.pegaId()).set(profissao.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_PROFISSAO).child(profissao.id).set(profissao.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -36,7 +36,7 @@ class RepositorioProfissao:
 
     def modificaProfissao(self, profissao):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).child(profissao.pegaId()).update(profissao.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_PROFISSAO).child(profissao.id).update(profissao.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -44,7 +44,7 @@ class RepositorioProfissao:
     
     def removeProfissao(self, profissao):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).child(profissao.pegaId()).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_PROFISSAO).child(profissao.id).remove()
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -52,7 +52,7 @@ class RepositorioProfissao:
     
     def limpaProfissoes(self):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.pegaId()).child(CHAVE_LISTA_PROFISSAO).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_PROFISSAO).remove()
             return True
         except Exception as e:
             self.__erro = str(e)
