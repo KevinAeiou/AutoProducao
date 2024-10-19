@@ -490,8 +490,8 @@ class Aplicacao:
                     condicoes = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalho.nome)
                     if condicoes:
                         trabalhoProduzirProduzindo.estado = CODIGO_CONCLUIDO
-                        trabalhoProduzirProduzindo.setTrabalhoId(possivelTrabalho.id)
-                        trabalhoProduzirProduzindo.setNomeProducao(possivelTrabalho.nomeProducao)
+                        trabalhoProduzirProduzindo.trabalhoId = possivelTrabalho.id
+                        trabalhoProduzirProduzindo.nomeProducao = possivelTrabalho.nomeProducao
                         return trabalhoProduzirProduzindo
             else:
                 print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].nome}) não encontrado na lista produzindo...')
