@@ -1310,16 +1310,16 @@ class Aplicacao:
         else:
             nomeTrabalhoReconhecido = self._imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho)
         if variavelExiste(nomeTrabalhoReconhecido) and CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionarioTrabalho:
-            if len(nomeTrabalhoReconhecido) >= 30:
-                nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:29]
+            if len(nomeTrabalhoReconhecido) >= 29:
+                nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:28]
             for trabalhoProducaoPriorizada in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
                 if trabalhoProducaoPriorizada.nomeProducao:
                     nomeTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.nome.replace('-','')
                     nomeProducaoTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.nomeProducao.replace('-','')
-                    if len(trabalhoProducaoPriorizada.nome) >= 30:
-                        nomeTrabalhoProducaoDesejado = nomeTrabalhoProducaoDesejado[:29]
-                    if len(trabalhoProducaoPriorizada.nomeProducao) >= 30:
-                        nomeProducaoTrabalhoProducaoDesejado = nomeProducaoTrabalhoProducaoDesejado[:29]
+                    if len(trabalhoProducaoPriorizada.nome) >= 29:
+                        nomeTrabalhoProducaoDesejado = nomeTrabalhoProducaoDesejado[:28]
+                    if len(trabalhoProducaoPriorizada.nomeProducao) >= 29:
+                        nomeProducaoTrabalhoProducaoDesejado = nomeProducaoTrabalhoProducaoDesejado[:28]
                     if trabalhoEhProducaoRecursos(trabalhoProducaoPriorizada):
                         if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalhoProducaoDesejado):
                             dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizada
@@ -3322,5 +3322,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().teste()
+    Aplicacao().preparaPersonagem()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))
