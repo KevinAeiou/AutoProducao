@@ -54,7 +54,7 @@ def encerraSecao():
     clickEspecifico(1,'f2')
 
 def entraProfissaoEspecifica(profissao, posicao):
-    print(f'Entrando na profissão {profissao.pegaNome()}...')
+    print(f'Entrando na profissão {profissao.nome}...')
     sleep(1)
     for x in range(posicao):
         tecla.hotkey('down')

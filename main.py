@@ -48,7 +48,7 @@ class Aplicacao:
                 print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
                 return listaDicionarioPersonagemMesmoEmail
             for personagem in personagens:
-                if textoEhIgual(personagem.pegaEmail(), self.__personagemEmUso.pegaEmail()):
+                if textoEhIgual(personagem.email, self.__personagemEmUso.email):
                     listaDicionarioPersonagemMesmoEmail.append(personagem)
         return listaDicionarioPersonagemMesmoEmail
 
@@ -64,11 +64,11 @@ class Aplicacao:
         for personagem in personagens:
             for personagemMesmoEmail in listaPersonagemMesmoEmail:
                 if textoEhIgual(personagem.id, personagemMesmoEmail.id):
-                    if not personagem.pegaUso():
+                    if not personagem.uso:
                         personagem.alternaUso()
                         personagemDao = PersonagemDaoSqlite()
                         if personagemDao.modificaPersonagem(personagem):
-                            uso = 'verdadeiro' if personagem.pegaUso() else 'falso'
+                            uso = 'verdadeiro' if personagem.uso else 'falso'
                             print(f'{personagem.nome}: Uso modificado para {uso} com sucesso!')
                             break
                         logger = logging.getLogger('personagemDao')
@@ -76,11 +76,11 @@ class Aplicacao:
                         print(f'Erro: {personagemDao.pegaErro()}')
                     break
             else:
-                if personagem.pegaUso():
+                if personagem.uso:
                     personagem.alternaUso()
                     personagemDao = PersonagemDaoSqlite()
                     if personagemDao.modificaPersonagem(personagem):
-                        uso = personagem.pegaUso()
+                        uso = personagem.uso
                         print(f'{personagem.nome}: Uso modificado para {uso} com sucesso!')
                         continue
                     logger = logging.getLogger('personagemDao')
@@ -132,7 +132,7 @@ class Aplicacao:
                 self.__listaPersonagemAtivo.append(personagem)
 
     def inicializaChavesPersonagem(self):
-        self._autoProducaoTrabalho = self.__personagemEmUso.pegaAutoProducao()
+        self._autoProducaoTrabalho = self.__personagemEmUso.autoProducao
         self._unicaConexao = True
         self._espacoBolsa = True
         self.__confirmacao = True
@@ -413,7 +413,7 @@ class Aplicacao:
             return
         for trabalhoEstoque in estoque:
             if textoEhIgual(trabalhoEstoque.trabalhoId, venda.trabalhoId):
-                novaQuantidade = trabalhoEstoque.quantidade - venda.pegaQuantidadeProduto()
+                novaQuantidade = trabalhoEstoque.quantidade - venda.quantidadeProduto
                 trabalhoEstoque.quantidade = novaQuantidade
                 estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                 if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
@@ -1165,7 +1165,7 @@ class Aplicacao:
                 raridadeEhRaroIdPersonagemEhPersonagemEmUsoTrabalhoNaoEhProducaoDeRecursos = (
                     textoEhIgual(trabalho.raridade, CHAVE_RARIDADE_RARO)
                     and texto1PertenceTexto2(trabalho.nome, trabalhoVendido.nome)
-                    and textoEhIgual(trabalhoVendido.pegaNomePersonagem(), self.__personagemEmUso.id)
+                    and textoEhIgual(trabalhoVendido.nomePersonagem, self.__personagemEmUso.id)
                     and not trabalhoEhProducaoRecursos(trabalho))
                 if raridadeEhRaroIdPersonagemEhPersonagemEmUsoTrabalhoNaoEhProducaoDeRecursos:
                     print(trabalhoVendido)
@@ -1940,8 +1940,8 @@ class Aplicacao:
 
     def logaContaPersonagem(self):
         confirmacao=False
-        email=self.__listaPersonagemAtivo[0].pegaEmail()
-        senha=self.__listaPersonagemAtivo[0].pegaSenha()
+        email=self.__listaPersonagemAtivo[0].email
+        senha=self.__listaPersonagemAtivo[0].senha
         print(f'Tentando logar conta personagem...')
         preencheCamposLogin(email,senha)
         tentativas=1
@@ -2079,7 +2079,7 @@ class Aplicacao:
                 if self.configuraLoginPersonagem():
                     self.entraPersonagemAtivo()
                 continue
-            if textoEhIgual(self.__listaPersonagemJaVerificado[-1].pegaEmail(), self.__listaPersonagemAtivo[0].pegaEmail()):
+            if textoEhIgual(self.__listaPersonagemJaVerificado[-1].email, self.__listaPersonagemAtivo[0].senha):
                 self.entraPersonagemAtivo()
                 continue
             if self.configuraLoginPersonagem():
@@ -3142,13 +3142,13 @@ class Aplicacao:
                     nome = trabalhoVendidoModificado.nome
                 data = input(f'Data da venda: ')
                 if tamanhoIgualZero(data):
-                    data = trabalhoVendidoModificado.pegaDataVenda()
+                    data = trabalhoVendidoModificado.dataVenda
                 quantidade = input(f'Quantidade vendida: ')
                 if tamanhoIgualZero(quantidade):
-                    quantidade = trabalhoVendidoModificado.pegaQuantidadeProduto()
+                    quantidade = trabalhoVendidoModificado.quantidadeProduto
                 valor = input(f'Valor da venda: ')
                 if tamanhoIgualZero(valor):
-                    valor = trabalhoVendidoModificado.pegaValorProduto()
+                    valor = trabalhoVendidoModificado.valorProduto
                 trabalhoVendidoModificado.nome = nome
                 trabalhoVendidoModificado.setData(data)
                 trabalhoVendidoModificado.quantidade = quantidade
