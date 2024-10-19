@@ -378,7 +378,13 @@ class Aplicacao:
             if trabalhoFoiVendido:
                 print(f'Produto vendido')
                 textoCarta = re.sub("Item vendido", "", textoCarta).strip()
-                trabalhoVendido = TrabalhoVendido(str(uuid.uuid4()), textoCarta, str(datetime.date.today()), self.__personagemEmUso.id, self.retornaQuantidadeTrabalhoVendido(textoCarta), self.retornaChaveIdTrabalho(textoCarta), self.retornaValorTrabalhoVendido(textoCarta))
+                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido.nome = textoCarta
+                trabalhoVendido.dataVenda = str(datetime.date.today())
+                trabalhoVendido.nomePersonagem = self.__personagemEmUso.id
+                trabalhoVendido.quantidadeProduto = self.retornaQuantidadeTrabalhoVendido(textoCarta)
+                trabalhoVendido.trabalhoId = self.retornaChaveIdTrabalho(textoCarta)
+                trabalhoVendido.valorProduto = self.retornaValorTrabalhoVendido(textoCarta)
                 vendaDAO = VendaDaoSqlite(self.__personagemEmUso)
                 if vendaDAO.insereTrabalhoVendido(trabalhoVendido):
                     print(f'Nova venda {trabalhoVendido.nome} inserida com sucesso!')
@@ -3057,7 +3063,14 @@ class Aplicacao:
                 quantidade = input(f'Quantidade trabalho vendido: ')
                 valor = input(f'Valor do trabalho vendido: ')
                 trabalhoVendidoDao = VendaDaoSqlite(personagem)
-                if trabalhoVendidoDao.insereTrabalhoVendido(TrabalhoVendido(str(uuid.uuid4()), trabalho.nome, data, personagem.id, quantidade, trabalho.id, valor)):
+                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido.nome = trabalho.nome
+                trabalhoVendido.dataVenda = data
+                trabalhoVendido.nomePersonagem = personagem.id
+                trabalhoVendido.quantidadeProduto = quantidade
+                trabalhoVendido.trabalhoId = trabalho.id
+                trabalhoVendido.valorProduto = valor
+                if trabalhoVendidoDao.insereTrabalhoVendido(trabalhoVendido):
                     print(f'Nova venda inserida com sucesso!')
                     input(f'Clique para continuar...')
                     continue
