@@ -1,4 +1,5 @@
 from uuid import uuid4
+from constantes import CHAVE_RARIDADE_RARO
 
 class Trabalho:
     def __init__(self):
@@ -60,6 +61,9 @@ class Trabalho:
     def setTrabalhoNecessario(self, trabalhoNecessario):
         self.trabalhoNecessario = trabalhoNecessario
 
+    def ehRaro(self):
+        return self.raridade == CHAVE_RARIDADE_RARO
+    
     def dicionarioParaObjeto(self, dicionario):
         if dicionario is None:
             return

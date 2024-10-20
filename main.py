@@ -787,33 +787,28 @@ class Aplicacao:
         trabalhoProducaoRaro = None
         profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoProducaoConcluido)
         if variavelExiste(profissao):
-            _, _, xpMaximo = self.retornaNivelXpMinimoMaximo(profissao)
-            licencaProducaoIdeal = CHAVE_LICENCA_INICIANTE
-            if xpMaximo >= 830000:
-                licencaProducaoIdeal = CHAVE_LICENCA_NOVATO
-            if textoEhIgual(trabalhoProducaoConcluido.raridade, CHAVE_RARIDADE_MELHORADO):
+            if trabalhoProducaoConcluido.ehMelhorado():
                 print(f'Trabalhos MELHORADO. Profissão {trabalhoProducaoConcluido.profissao}. Nível {trabalhoProducaoConcluido.nivel}.')
                 trabalhoDao = TrabalhoDaoSqlite()
                 trabalhos = trabalhoDao.pegaTrabalhos()
-                if not variavelExiste(trabalhos):
-                    logger = logging.getLogger('trabalhoDao')
-                    logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-                    print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-                    return
-                for trabalho in trabalhos:
-                    condicoes = (textoEhIgual(trabalho.profissao, trabalhoProducaoConcluido.profissao)
-                        and textoEhIgual(trabalho.raridade, CHAVE_RARIDADE_RARO)
-                        and trabalho.nivel == trabalhoProducaoConcluido.nivel)
-                    if condicoes:    
-                        if textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome):
-                            experiencia = trabalho.experiencia * 1.5
-                            trabalhoProducaoRaro = TrabalhoProducao()
-                            trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
-                            trabalhoProducaoRaro.experiencia = experiencia
-                            trabalhoProducaoRaro.recorrencia = False
-                            trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
-                            trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
-                            return trabalhoProducaoRaro
+                if variavelExiste(trabalhos):
+                    for trabalho in trabalhos:
+                        profissaoENivelEhIgualAoTrabalhoConcluidoERaridadeEhIgualRaro = textoEhIgual(trabalho.profissao, trabalhoProducaoConcluido.profissao) and trabalho.ehRaro() and trabalho.nivel == trabalhoProducaoConcluido.nivel
+                        if profissaoENivelEhIgualAoTrabalhoConcluidoERaridadeEhIgualRaro:    
+                            trabalhoMelhoradoConcluidoEhNecessarioParaProducaoDeTrabalhoRaro = textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome)
+                            if trabalhoMelhoradoConcluidoEhNecessarioParaProducaoDeTrabalhoRaro:
+                                _, _, xpMaximo = self.retornaNivelXpMinimoMaximo(profissao)
+                                licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if xpMaximo >= 830000 else CHAVE_LICENCA_INICIANTE
+                                trabalhoProducaoRaro = TrabalhoProducao()
+                                trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
+                                trabalhoProducaoRaro.experiencia = trabalho.experiencia * 1.5
+                                trabalhoProducaoRaro.recorrencia = False
+                                trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
+                                trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
+                                return trabalhoProducaoRaro
+                logger = logging.getLogger('trabalhoDao')
+                logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+                return None
         return None
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado):
@@ -1882,7 +1877,8 @@ class Aplicacao:
                                     trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
                                     self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
                                     self.atualizaEstoquePersonagem(trabalhoProducaoConcluido)
-                                    self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
+                                    trabalhoProducaoRaro = self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
+                                    self.insereTrabalhoProducao(trabalhoProducaoRaro)
                                 else:
                                     print(f'Dicionário trabalho concluido não reconhecido.')
                             else:
@@ -2094,7 +2090,7 @@ class Aplicacao:
                     if trabalho.nome is not None:
                         print(f'Deve inserir novo trabalho no banco!')
                         trabalhoDao = TrabalhoDaoSqlite()
-                        if trabalhoDao.insereTrabalho(trabalho):
+                        if trabalhoDao.insereTrabalho(trabalho, False):
                             print(f'{trabalho.nome} inserido com sucesso!')
                             continue
                         logger = logging.getLogger('trabalhoDao')
@@ -2104,7 +2100,7 @@ class Aplicacao:
                 if trabalho.nome is None:
                     print(f'Deve remover trabalho do banco!')
                     trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.removeTrabalho(trabalho):
+                    if trabalhoDao.removeTrabalho(trabalho, False):
                         print(f'Trabalho removido com sucesso!')
                         continue
                     logger = logging.getLogger('trabalhoDao')
@@ -2113,7 +2109,7 @@ class Aplicacao:
                     continue
                 print(f'Deve modificar trabalho no banco!')
                 trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.modificaTrabalhoPorId(trabalho):
+                if trabalhoDao.modificaTrabalhoPorId(trabalho, False):
                     print(f'{trabalho.nome} modificado com sucesso!')
                     continue
                 logger = logging.getLogger('trabalhoDao')
