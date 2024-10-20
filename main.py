@@ -474,6 +474,16 @@ class Aplicacao:
             if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.nomeProducao):
                 listaPossiveisDicionariosTrabalhos.append(trabalho)
         return listaPossiveisDicionariosTrabalhos
+    
+    def insereTrabalhoProducao(self, trabalhoProducao):
+        if variavelExiste(trabalhoProducao):
+            logger = logging.getLogger('trabalhoProducaoDao')
+            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
+                logger.info(f'{trabalhoProducao.nome} adicionado com sucesso!')
+                return True
+            logger.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+            return False
 
     def retornaTrabalhoConcluido(self, nomeTrabalhoConcluido):
         listaPossiveisTrabalhos = self.retornaListaPossiveisTrabalhoRecuperado(nomeTrabalhoConcluido)
@@ -500,13 +510,7 @@ class Aplicacao:
                 trabalhoProducaoConcluido.recorrencia = False
                 trabalhoProducaoConcluido.tipo_licenca = CHAVE_LICENCA_NOVATO
                 trabalhoProducaoConcluido.estado = CODIGO_CONCLUIDO
-                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-                if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoConcluido):
-                    print(f'{trabalhoProducaoConcluido.nome} adicionado com sucesso!')
-                    return trabalhoProducaoConcluido
-                logger = logging.getLogger('trabalhoProducaoDao')
-                logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-                print(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                self.insereTrabalhoProducao(trabalhoProducaoConcluido)
                 return trabalhoProducaoConcluido
         return None
 
@@ -781,9 +785,9 @@ class Aplicacao:
 
     def verificaProducaoTrabalhoRaro(self, trabalhoProducaoConcluido):
         trabalhoProducaoRaro = None
-        dicionarioProfissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoProducaoConcluido)
-        if variavelExiste(dicionarioProfissao):
-            _, _, xpMaximo = self.retornaNivelXpMinimoMaximo(dicionarioProfissao)
+        profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoProducaoConcluido)
+        if variavelExiste(profissao):
+            _, _, xpMaximo = self.retornaNivelXpMinimoMaximo(profissao)
             licencaProducaoIdeal = CHAVE_LICENCA_INICIANTE
             if xpMaximo >= 830000:
                 licencaProducaoIdeal = CHAVE_LICENCA_NOVATO
@@ -809,15 +813,8 @@ class Aplicacao:
                             trabalhoProducaoRaro.recorrencia = False
                             trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
                             trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
-                            break
-        if variavelExiste(trabalhoProducaoRaro):
-            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoRaro):
-                print(f'{trabalhoProducaoRaro.nome} adicionado com sucesso!')
-                return 
-            logger = logging.getLogger('trabalhoProducaoDao')
-            logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-            print(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                            return trabalhoProducaoRaro
+        return None
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado):
         if tamanhoIgualZero(listaPersonagemPresenteRecuperado):
@@ -957,7 +954,8 @@ class Aplicacao:
                         trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
                         self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
                         self.atualizaEstoquePersonagem(trabalhoProducaoConcluido)
-                        self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
+                        trabalhoProducaoRaro = self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
+                        self.insereTrabalhoProducao(trabalhoProducaoRaro)
                     else:
                         print(f'Trabalho produção concluido não reconhecido.')
                 else:
@@ -1409,13 +1407,7 @@ class Aplicacao:
         print(f'Recorrencia está ligada.')
         cloneTrabalhoProducaoEncontrado = self.defineCloneTrabalhoProducao(trabalhoProducaoEncontrado)
         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = cloneTrabalhoProducaoEncontrado
-        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-        if trabalhoProducaoDao.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado):
-            print(f'{trabalhoProducaoEncontrado.nome} adicionado com sucesso!')
-            return
-        logger = logging.getLogger('trabalhoProducaoDao')
-        logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-        print(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+        self.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado)
 
     def retornaChaveTipoRecurso(self, dicionarioRecurso):
         listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(dicionarioRecurso[CHAVE_NIVEL])
@@ -2289,11 +2281,7 @@ class Aplicacao:
                         continue
                     loggerTrabalhoProducaoDAO.error(f'Erro ao modificar ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
                     continue
-                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
-                    loggerTrabalhoProducaoDAO.info(f'({trabalhoProducao}) inserido no banco com sucesso!')
-                    continue
-                loggerTrabalhoProducaoDAO.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+                self.insereTrabalhoProducao(trabalhoProducaoEncontrada)
         input(f'Clique para continuar...')
 
     def sincronizaDados(self):
@@ -2564,13 +2552,7 @@ class Aplicacao:
                 novoTrabalhoProducao.tipo_licenca = licenca
                 novoTrabalhoProducao.estado = CODIGO_PARA_PRODUZIR
                 trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                if trabalhoProducaoDao.insereTrabalhoProducao(novoTrabalhoProducao, True):
-                    print(f'{novoTrabalhoProducao.nome} inserido com sucesso!')
-                    input(f'Clique para continuar...')
-                    continue
-                logger = logging.getLogger('trabalhoProducaoDao')
-                logger.error(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-                print(f'Erro ao inserir trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                self.insereTrabalhoProducao(trabalhoProducao)
                 input(f'Clique para continuar...')
                 
     def modificaPersonagem(self):
