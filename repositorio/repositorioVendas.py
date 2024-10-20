@@ -16,11 +16,10 @@ class RepositorioVendas:
             if todasVendas.pyres == None:
                 return listaVendas
             for vendaEncontrada in todasVendas.each():
-                if CHAVE_TRABALHO_ID in vendaEncontrada.val():
-                    trabalhoVendido = TrabalhoVendido()
-                    trabalhoVendido.dicionarioParaObjeto(vendaEncontrada.val())
-                    trabalhoVendido.id = vendaEncontrada.key()
-                    listaVendas.append(trabalhoVendido)
+                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido.dicionarioParaObjeto(vendaEncontrada.val())
+                trabalhoVendido.id = vendaEncontrada.key()
+                listaVendas.append(trabalhoVendido)
             return listaVendas
         except Exception as e:
             self.__erro = str(e)
