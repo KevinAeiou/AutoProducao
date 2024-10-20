@@ -807,9 +807,9 @@ class Aplicacao:
                                 trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
                                 trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
                                 return trabalhoProducaoRaro
+                    return None
                 logger = logging.getLogger('trabalhoDao')
                 logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-                return None
         return None
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado):
