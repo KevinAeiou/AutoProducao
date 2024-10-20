@@ -43,6 +43,30 @@ class VendaDaoSqlite:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return None
+
+    def pegaTrabalhoVendidoPorId(self, trabalhoVendidoBuscado):
+        trabalhoVendido = TrabalhoVendido()
+        sql = """
+            SELECT * 
+            FROM vendas 
+            WHERE id == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [trabalhoVendidoBuscado.id])
+            for linha in cursor.fetchall():
+                trabalhoVendido.id = linha[0]
+                trabalhoVendido.nomeProduto = linha[1]
+                trabalhoVendido.dataVenda = linha[2]
+                trabalhoVendido.nomePersonagem = linha[3]
+                trabalhoVendido.quantidadeProduto = linha[4]
+                trabalhoVendido.trabalhoId = linha[5]
+                trabalhoVendido.valorProduto = linha[6]
+            self.__meuBanco.desconecta()
+            return trabalhoVendido
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
     
     def insereTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
         sql = """

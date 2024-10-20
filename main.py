@@ -26,6 +26,7 @@ from repositorio.repositorioPersonagem import RepositorioPersonagem
 from repositorio.repositorioTrabalho import RepositorioTrabalho
 from repositorio.repositorioProfissao import RepositorioProfissao
 from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
+from repositorio.repositorioVendas import RepositorioVendas
 
 class Aplicacao:
     def __init__(self) -> None:
@@ -379,15 +380,15 @@ class Aplicacao:
                 print(f'Produto vendido')
                 textoCarta = re.sub("Item vendido", "", textoCarta).strip()
                 trabalhoVendido = TrabalhoVendido()
-                trabalhoVendido.nome = textoCarta
+                trabalhoVendido.nomeProduto = textoCarta
                 trabalhoVendido.dataVenda = str(datetime.date.today())
                 trabalhoVendido.nomePersonagem = self.__personagemEmUso.id
-                trabalhoVendido.quantidadeProduto = self.retornaQuantidadeTrabalhoVendido(textoCarta)
+                trabalhoVendido.pegaTrabalhoVendidoPorId(self.retornaQuantidadeTrabalhoVendido(textoCarta))
                 trabalhoVendido.trabalhoId = self.retornaChaveIdTrabalho(textoCarta)
-                trabalhoVendido.valorProduto = self.retornaValorTrabalhoVendido(textoCarta)
+                trabalhoVendido.setValor(self.retornaValorTrabalhoVendido(textoCarta))
                 vendaDAO = VendaDaoSqlite(self.__personagemEmUso)
                 if vendaDAO.insereTrabalhoVendido(trabalhoVendido):
-                    print(f'Nova venda {trabalhoVendido.nome} inserida com sucesso!')
+                    print(f'Nova venda {trabalhoVendido.nomeProduto} inserida com sucesso!')
                     return trabalhoVendido
                 logger = logging.getLogger('vendaDao')
                 logger.error(f'Erro ao inserir nova venda: {vendaDAO.pegaErro()}')
@@ -1144,34 +1145,29 @@ class Aplicacao:
 
     def retornaListaTrabalhosRarosVendidos(self):
         print(f'Definindo lista produtos raros vendidos...')
-        listaTrabalhosRarosVendidos = []
+        trabalhosRarosVendidos = []
         trabalhoVendidoDao = VendaDaoSqlite(self.__personagemEmUso)
         vendas = trabalhoVendidoDao.pegaVendas()
-        if not variavelExiste(vendas):
-            logger = logging.getLogger('vendasDao')
-            logger.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
-            print(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
-            return
-        for trabalhoVendido in vendas:
-            trabalhoDao = TrabalhoDaoSqlite()
-            trabalhos = trabalhoDao.pegaTrabalhos()
-            if not variavelExiste(trabalhos):
+        if variavelExiste(vendas):
+            for trabalhoVendido in vendas:
+                trabalhoDao = TrabalhoDaoSqlite()
+                trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalhoVendido.trabalhoId)
                 logger = logging.getLogger('trabalhoDao')
-                logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-                print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-                return listaTrabalhosRarosVendidos
-            for trabalho in trabalhos:
-                raridadeEhRaroIdPersonagemEhPersonagemEmUsoTrabalhoNaoEhProducaoDeRecursos = (
-                    textoEhIgual(trabalho.raridade, CHAVE_RARIDADE_RARO)
-                    and texto1PertenceTexto2(trabalho.nome, trabalhoVendido.nome)
-                    and textoEhIgual(trabalhoVendido.nomePersonagem, self.__personagemEmUso.id)
-                    and not trabalhoEhProducaoRecursos(trabalho))
-                if raridadeEhRaroIdPersonagemEhPersonagemEmUsoTrabalhoNaoEhProducaoDeRecursos:
-                    print(trabalhoVendido)
-                    listaTrabalhosRarosVendidos.append(trabalhoVendido)
-                    break
-        listaTrabalhosRarosVendidosOrdenados = sorted(listaTrabalhosRarosVendidos, key = lambda trabalho: (trabalho.profissao, trabalho.nivel, trabalho.nome))
-        return listaTrabalhosRarosVendidosOrdenados
+                if variavelExiste(trabalhoEncontrado):
+                    if variavelExiste(trabalhoEncontrado.nome):
+                        trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos = trabalhoEncontrado.ehRaro() and not trabalhoEhProducaoRecursos(trabalhoEncontrado)
+                        if trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos:
+                            trabalhosRarosVendidos.append(trabalhoVendido)
+                            continue
+                    logger.warning(f'Trabalho ({trabalhoVendido}) não foi encontrado na lista de trabalhos!')
+                    continue
+                logger.error(f'Erro ao buscar trabalho especifico ({trabalhoVendido}) no banco: {trabalhoDao.pegaErro()}')
+                return trabalhosRarosVendidosOrdenados
+            trabalhosRarosVendidosOrdenados = sorted(trabalhosRarosVendidos, key = lambda trabalho: (trabalho.profissao, trabalho.nivel, trabalho.nome))
+            return trabalhosRarosVendidosOrdenados
+        logger = logging.getLogger('vendasDao')
+        logger.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
+        return trabalhosRarosVendidosOrdenados
 
     def verificaProdutosRarosMaisVendidos(self):
         listaTrabalhosRarosVendidos = self.retornaListaTrabalhosRarosVendidos()
@@ -2134,37 +2130,37 @@ class Aplicacao:
             return
         for trabalhoServidor in trabalhosServidor:
             trabalhoDao = TrabalhoDaoSqlite()
-            trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoEspecificoPorNomeProfissao(trabalhoServidor)
+            trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoEspecificoPorNomeProfissaoRaridade(trabalhoServidor)
             if variavelExiste(trabalhoEncontradoBanco):
-                if trabalhoServidor.id != trabalhoEncontradoBanco.id:
-                    print(f'Sincronizando ids...')
-                    trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.modificaTrabalhoPorNomeProfissaoRaridade(trabalhoServidor):
-                        loggerTrabalho.info(f'ID do trabalho modificado de: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                        trabalhoEstoqueDAO = EstoqueDaoSqlite()
-                        if trabalhoEstoqueDAO.modificaIdTrabalhoEstoque(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                            loggerEstoque.info(f'Id do trabalho em estoque modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                        else:
-                            loggerEstoque.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoEstoqueDAO.pegaErro()}')
-                        trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
-                        if trabalhoProducaoDAO.modificaIdTrabalhoEmProducao(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                            loggerProducao.info(f'Id do trabalho em produção modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                        else:
-                            loggerProducao.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoProducaoDAO.pegaErro()}')
-                        vendaDAO = VendaDaoSqlite()
-                        if vendaDAO.modificaIdTrabalhoVendido(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                            loggerVenda.info(f'Id do trabalho em vendas modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                        else:
-                            loggerVenda.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {vendaDAO.pegaErro()}')
-                        continue
-                    else:
+                if variavelExiste(trabalhoEncontradoBanco.nome):
+                    if trabalhoServidor.id != trabalhoEncontradoBanco.id:
+                        print(f'Sincronizando ids...')
+                        trabalhoDao = TrabalhoDaoSqlite()
+                        if trabalhoDao.modificaTrabalhoPorNomeProfissaoRaridade(trabalhoServidor):
+                            loggerTrabalho.info(f'ID do trabalho modificado de: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
+                            trabalhoEstoqueDAO = EstoqueDaoSqlite()
+                            if trabalhoEstoqueDAO.modificaIdTrabalhoEstoque(trabalhoServidor.id, trabalhoEncontradoBanco.id):
+                                loggerEstoque.info(f'Id do trabalho em estoque modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
+                            else:
+                                loggerEstoque.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoEstoqueDAO.pegaErro()}')
+                            trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
+                            if trabalhoProducaoDAO.modificaIdTrabalhoEmProducao(trabalhoServidor.id, trabalhoEncontradoBanco.id):
+                                loggerProducao.info(f'Id do trabalho em produção modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
+                            else:
+                                loggerProducao.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoProducaoDAO.pegaErro()}')
+                            vendaDAO = VendaDaoSqlite()
+                            if vendaDAO.modificaIdTrabalhoVendido(trabalhoServidor.id, trabalhoEncontradoBanco.id):
+                                loggerVenda.info(f'Id do trabalho em vendas modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
+                            else:
+                                loggerVenda.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {vendaDAO.pegaErro()}')
+                            continue
                         loggerTrabalho.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoDao.pegaErro()}')
-                continue
-            trabalhoDao = TrabalhoDaoSqlite()
-            if trabalhoDao.insereTrabalho(trabalhoServidor):
-                loggerTrabalho.info(f'({trabalhoServidor}) inserido no banco!')
-                continue
-            loggerTrabalho.error(f'Erro ao inserir trabalho ({trabalhoServidor}) no banco: {trabalhoDao.pegaErro()}')
+                    continue
+                trabalhoDao = TrabalhoDaoSqlite()
+                if trabalhoDao.insereTrabalho(trabalhoServidor, False):
+                    loggerTrabalho.info(f'({trabalhoServidor}) inserido no banco!')
+                    continue
+                loggerTrabalho.error(f'Erro ao inserir trabalho ({trabalhoServidor}) no banco: {trabalhoDao.pegaErro()}')
 
     def sincronizaListaPersonagens(self):
         repositorioPersonagem = RepositorioPersonagem()
@@ -2280,11 +2276,52 @@ class Aplicacao:
                 self.insereTrabalhoProducao(trabalhoProducaoEncontrada)
         input(f'Clique para continuar...')
 
+    def sincronizaTrabalhosVendidos(self):
+        loggerTrabalhoVendidoDAO = logging.getLogger('trabalhoVendidoDao')
+        loggerRepositorioVendas = logging.getLogger('repositorioVendas')
+        limpaTela()
+        print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+        personagemDao = PersonagemDaoSqlite()
+        personagens = personagemDao.pegaPersonagens()
+        if variavelExiste(personagens):
+            for personagem in personagens:
+                print(personagem)
+                repositorioVendas = RepositorioVendas(personagem)
+                trabalhosVendidos = repositorioVendas.pegaTodasVendas()
+                if variavelExiste(trabalhosVendidos):
+                    for trabalhoVendido in trabalhosVendidos:
+                        print(trabalhoVendido)
+                        vendasDao = VendaDaoSqlite(personagem)
+                        trabalhoVendidoEncontrado = vendasDao.pegaTrabalhoVendidoPorId(trabalhoVendido)
+                        if variavelExiste(trabalhoVendidoEncontrado):
+                            if variavelExiste(trabalhoVendidoEncontrado.nomeProduto):
+                                vendasDao = VendaDaoSqlite(personagem)
+                                if vendasDao.modificaTrabalhoVendido(trabalhoVendido, False):
+                                    loggerTrabalhoVendidoDAO.info(f'({trabalhoVendido}) modificado no banco com sucesso!')
+                                    continue
+                                loggerTrabalhoVendidoDAO.error(f'Erro ao modificar ({trabalhoVendido}): {vendasDao.pegaErro()}')
+                                continue
+                            vendasDao = VendaDaoSqlite(personagem)
+                            if vendasDao.insereTrabalhoVendido(trabalhoVendido, False):
+                                loggerTrabalhoVendidoDAO.info(f'({trabalhoVendido}) inserido no banco com sucesso!')
+                                continue
+                            loggerTrabalhoVendidoDAO.error(f'Erro ao inserir ({trabalhoVendido}): {vendasDao.pegaErro()}')
+                            continue
+                        loggerTrabalhoVendidoDAO.error(f'Erro ao buscar trabalho vendido específico ({trabalhoVendido}): {vendasDao.pegaErro()}')
+                        continue
+                    continue
+                loggerRepositorioVendas.error(f'Erro ao buscar lista de vendas no servidor: {repositorioVendas.pegaErro()}')
+                return
+            input(f'Clique para continuar...')
+            return
+        print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+
     def sincronizaDados(self):
         # self.sincronizaListaTrabalhos()
         # self.sincronizaListaPersonagens()
         # self.sincronizaListaProfissoes()
-        self.sincronizaTrabalhosProducao()
+        # self.sincronizaTrabalhosProducao()
+        self.sincronizaTrabalhosVendidos()
         # 86c0b57c-8c2e-4eb4-8fe7-305c435a214d | Mrninguem         | 10     | Verdadeiro | Verdadeiro | Falso
         # 63b2f589-109a-4aba-b481-866cd2beb684 | Joezinho          | 10     | Verdadeiro | Verdadeiro | Falso
         # 729b1481-d806-4253-80dd-8acd8cff665d | Provisorioatecair | 6      | Verdadeiro | Falso      | Falso
@@ -2734,7 +2771,7 @@ class Aplicacao:
             while True:
                 limpaTela()
                 personagem = personagens[int(opcaoPersonagem) - 1]
-                trabalhoVendidoDao = VendaDaoSqlite(self.__personagemEmUso)
+                trabalhoVendidoDao = VendaDaoSqlite(personagem)
                 vendas = trabalhoVendidoDao.pegaVendas()
                 if not variavelExiste(vendas):
                     logger = logging.getLogger('vendasDao')
@@ -3300,5 +3337,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().preparaPersonagem()
+    Aplicacao().teste()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))
