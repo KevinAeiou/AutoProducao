@@ -77,21 +77,8 @@ class RepositorioPersonagem:
             if todosPersonagens.pyres != None:
                 for personagemEncontrado in todosPersonagens.each():
                     personagem = Personagem()
-                    personagem.setId(personagemEncontrado.key())
-                    personagem.setNome(personagemEncontrado.val()[CHAVE_NOME])
-                    personagem.setEmail(personagemEncontrado.val()[CHAVE_EMAIL])
-                    personagem.setSenha(personagemEncontrado.val()[CHAVE_SENHA])
-                    personagem.setEspacoProducao(personagemEncontrado.val()[CHAVE_ESPACO_PRODUCAO])
-                    personagem.setEstado(personagemEncontrado.val()[CHAVE_ESTADO])
-                    personagem.setUso(personagemEncontrado.val()[CHAVE_USO])
-                    if CHAVE_AUTO_PRODUCAO in personagemEncontrado.val():
-                        personagem.setAutoProducao(personagemEncontrado.val()[CHAVE_AUTO_PRODUCAO])
-                    else:
-                        personagem.setAutoProducao(False)
-                        if self.modificaPersonagem(personagem):
-                            print(f'CHAVE autoProducao inserida com sucesso!')
-                        else:
-                            print(f'Erro ao inserir chave autoProducao: {self.pegaErro()}')
+                    personagem.dicionarioParaObjeto(personagemEncontrado.val())
+                    personagem.id = personagemEncontrado.key()
                     personagens.append(personagem)
                 return personagens
         except Exception as e:
@@ -100,7 +87,7 @@ class RepositorioPersonagem:
     
     def inserePersonagem(self, personagem):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.pegaId()).set(personagem.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.id).set(personagem.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -108,7 +95,7 @@ class RepositorioPersonagem:
     
     def modificaPersonagem(self, personagem):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.pegaId()).update(personagem.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.id).update(personagem.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -116,7 +103,7 @@ class RepositorioPersonagem:
     
     def removePersonagem(self, personagem):
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.pegaId()).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.id).remove()
             return True
         except Exception as e:
             self.__erro = str(e)
