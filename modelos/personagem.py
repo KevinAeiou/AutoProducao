@@ -15,7 +15,10 @@ class Personagem:
         estado = 'Verdadeiro' if self.estado else 'Falso'
         uso = 'Verdadeiro' if self.uso else 'Falso'
         autoProducao = 'Verdadeiro' if self.autoProducao else 'Falso'
-        return f'{(self.id).ljust(36)} | {(self.nome).ljust(17)} | {str(self.espacoProducao).ljust(6)} | {(estado).ljust(10)} | {uso.ljust(10)} | {autoProducao}'
+        id = 'Indefinido' if self.id == None else self.id
+        nome = 'Indefinido' if self.nome == None else self.nome
+        espaco = 'Indefinido' if self.espacoProducao == None else self.espacoProducao
+        return f'{(id).ljust(36)} | {(nome).ljust(17)} | {str(espaco).ljust(6)} | {(estado).ljust(10)} | {uso.ljust(10)} | {autoProducao}'
     
     def pegaId(self):
         return self.id

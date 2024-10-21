@@ -10,7 +10,7 @@ class Trabalho:
         self.nivel : int = 0
         self.profissao = None
         self.raridade = None
-        self.trabalhoNecessario = None
+        self.trabalhoNecessario = ''
 
     def pegaId(self):
         return self.id
