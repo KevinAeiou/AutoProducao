@@ -16,6 +16,7 @@ def variavelExiste(variavel):
     return variavel != None
 
 def limpaRuidoTexto(texto):
+    texto = '' if texto == None else texto
     return unidecode(texto).replace(' ','').replace('-','').lower()
 
 def retiraDigitos(texto):
