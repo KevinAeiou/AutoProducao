@@ -2315,20 +2315,11 @@ class Aplicacao:
         print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
 
     def sincronizaDados(self):
-        # self.sincronizaListaTrabalhos()
+        self.sincronizaListaTrabalhos()
         self.sincronizaListaPersonagens()
-        # self.sincronizaListaProfissoes()
-        # self.sincronizaTrabalhosProducao()
-        # self.sincronizaTrabalhosVendidos()
-        # 86c0b57c-8c2e-4eb4-8fe7-305c435a214d | Mrninguem         | 10     | Verdadeiro | Verdadeiro | Falso
-        # 63b2f589-109a-4aba-b481-866cd2beb684 | Joezinho          | 10     | Verdadeiro | Verdadeiro | Falso
-        # 729b1481-d806-4253-80dd-8acd8cff665d | Provisorioatecair | 6      | Verdadeiro | Falso      | Falso
-        # 14b59fe7-5914-418e-997c-e49bf349725c | Tobrabo           | 9      | Verdadeiro | Falso      | Falso
-        # 46afa7e3-eb05-498f-8b99-be57791bdd52 | Deryo             | 6      | Verdadeiro | Falso      | Falso
-        # 10f2a943-d125-4eec-97e4-ccdc631a0c13 | Cleofe            | 6      | Verdadeiro | Falso      | Falso
-        # 5c551e2a-2494-4955-b62f-d2e979d66d9f | Raulssauro        | 1      | Falso      | Falso      | Falso
-        # 770b93a1-2837-4a3c-96e1-0351efbf7063
-
+        self.sincronizaListaProfissoes()
+        self.sincronizaTrabalhosProducao()
+        self.sincronizaTrabalhosVendidos()
 
     def preparaPersonagem(self):
         if self.__repositorioTrabalho.abreStream():
