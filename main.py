@@ -411,25 +411,23 @@ class Aplicacao:
         return ''
 
     def atualizaQuantidadeTrabalhoEstoque(self, venda):
+        logger = logging.getLogger('estoqueDao')
         estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
         estoque = estoqueDao.pegaEstoque()
-        if not variavelExiste(estoque):
-            logger = logging.getLogger('estoqueDao')
-            logger.error(f'Erro ao pegar trabalhos no estoque: {estoqueDao.pegaErro()}')
-            print(f'Erro ao pegar trabalhos no estoque: {estoqueDao.pegaErro()}')
-            return
-        for trabalhoEstoque in estoque:
-            if textoEhIgual(trabalhoEstoque.trabalhoId, venda.trabalhoId):
-                novaQuantidade = trabalhoEstoque.quantidade - venda.quantidadeProduto
-                trabalhoEstoque.quantidade = novaQuantidade
-                estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-                if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
-                    print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
+        if variavelExiste(estoque):
+            for trabalhoEstoque in estoque:
+                if textoEhIgual(trabalhoEstoque.trabalhoId, venda.trabalhoId):
+                    novaQuantidade = trabalhoEstoque.quantidade - venda.quantidadeProduto
+                    trabalhoEstoque.quantidade = novaQuantidade
+                    estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                    if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
+                        logger.info(f'Quantidade de ({trabalhoEstoque}) atualizada para {novaQuantidade}.')
+                        return
+                    logger.error(f'Erro ao modificar ({trabalhoEstoque}) no estoque: {estoqueDao.pegaErro()}')
                     return
-                logger = logging.getLogger('estoqueDao')
-                logger.error(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
-                print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
-        print(f'Trabalho ({venda.nome}) não encontrado no estoque.')
+            logger.warning(f'Trabalho ({venda}) não encontrado no estoque.')
+            return
+        logger.error(f'Erro ao pegar trabalhos no estoque: {estoqueDao.pegaErro()}')
 
     def recuperaCorrespondencia(self, ):
         while self._imagem.existeCorrespondencia():
