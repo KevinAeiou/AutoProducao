@@ -383,7 +383,7 @@ class Aplicacao:
                 trabalhoVendido.nomeProduto = textoCarta
                 trabalhoVendido.dataVenda = str(datetime.date.today())
                 trabalhoVendido.nomePersonagem = self.__personagemEmUso.id
-                trabalhoVendido.pegaTrabalhoVendidoPorId(self.retornaQuantidadeTrabalhoVendido(textoCarta))
+                trabalhoVendido.setQuantidade(self.retornaQuantidadeTrabalhoVendido(textoCarta))
                 trabalhoVendido.trabalhoId = self.retornaChaveIdTrabalho(textoCarta)
                 trabalhoVendido.setValor(self.retornaValorTrabalhoVendido(textoCarta))
                 vendaDAO = VendaDaoSqlite(self.__personagemEmUso)
@@ -3351,5 +3351,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().teste()
+    Aplicacao().preparaPersonagem()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))
