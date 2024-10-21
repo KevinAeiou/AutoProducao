@@ -75,6 +75,7 @@ class PersonagemDaoSqlite():
         return None
     
     def pegaPersonagemEspecificoPorNome(self, personagem):
+        nome = '' if personagem.nome == None else personagem.nome
         sql = """
             SELECT * 
             FROM personagens
@@ -83,7 +84,7 @@ class PersonagemDaoSqlite():
             personagemEncontrado = Personagem()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, [personagem.nome])
+                cursor.execute(sql, [nome])
                 for linha in cursor.fetchall():
                     estado = True if linha[5] else False
                     uso = True if linha[6] else False
