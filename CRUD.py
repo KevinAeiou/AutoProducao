@@ -13,6 +13,7 @@ from repositorio.repositorioTrabalho import RepositorioTrabalho
 
 from modelos.trabalho import Trabalho
 from modelos.trabalhoProducao import TrabalhoProducao
+from modelos.personagem import Personagem
 
 class CRUD:
     def __init__(self):
@@ -35,62 +36,264 @@ class CRUD:
             limpaTela()
             trabalhoDao = TrabalhoDaoSqlite()
             trabalhos = trabalhoDao.pegaTrabalhos()
-            if not variavelExiste(trabalhos):
-                print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-                break
-            print(f'{"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
-            for trabalho in trabalhos:
-                print(f'{trabalho} | {trabalho.trabalhoNecessario}')
-            opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')
-            try:
-                if opcaoTrabalho.lower() == 'n':
-                    break
-                limpaTela()
-                raridades = ['Comum', 'Melhorado', 'Raro', 'Especial']
-                for raridade in raridades:
-                    print(f'{raridades.index(raridade) + 1} - {raridade}')
-                opcaoRaridade = input(f'Opção raridade: ')
+            if variavelExiste(trabalhos):
+                if tamanhoIgualZero(trabalhos):
+                    print('Lista de trabalhos está vazia!')
+                else:
+                    print(f'{"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
+                    for trabalho in trabalhos:
+                        print(f'{trabalho} | {trabalho.trabalhoNecessario}')
+                opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')
                 try:
-                    if int(opcaoRaridade) == 0:
-                        continue
+                    if opcaoTrabalho.lower() == 'n':
+                        break
                     limpaTela()
-                    raridade = raridades[int(opcaoRaridade) - 1]
-                    profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
-                    for profissao in profissoes:
-                        print(f'{profissoes.index(profissao) + 1} - {profissao}')
-                    opcaoProfissao = input(f'Opção de profissao: ')
-                    if int(opcaoProfissao) == 0:
-                        continue
-                    limpaTela()
-                    profissao = profissoes[int(opcaoProfissao) - 1]
-                    nome = input(f'Nome: ')
-                    nomeProducao = input(f'Nome produção: ')
-                    experiencia = input(f'Experiência: ')
-                    nivel = input(f'Nível: ')
-                    trabalhoNecessario = input(f'Trabalhos necessarios: ')
-                    novoTrabalho = Trabalho()
-                    novoTrabalho.nome = nome
-                    novoTrabalho.nomeProducao = nomeProducao
-                    novoTrabalho.experiencia = int(experiencia)
-                    novoTrabalho.nivel = int(nivel)
-                    novoTrabalho.profissao = profissao
-                    novoTrabalho.raridade = raridade
-                    novoTrabalho.trabalhoNecessario = trabalhoNecessario
-                    trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.insereTrabalho(novoTrabalho):
-                        print(f'{novoTrabalho.nome} inserido com sucesso!')
+                    raridades = ['Comum', 'Melhorado', 'Raro', 'Especial']
+                    for raridade in raridades:
+                        print(f'{raridades.index(raridade) + 1} - {raridade}')
+                    opcaoRaridade = input(f'Opção raridade: ')
+                    try:
+                        if int(opcaoRaridade) == 0:
+                            continue
+                        limpaTela()
+                        raridade = raridades[int(opcaoRaridade) - 1]
+                        profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
+                        for profissao in profissoes:
+                            print(f'{profissoes.index(profissao) + 1} - {profissao}')
+                        opcaoProfissao = input(f'Opção de profissao: ')
+                        if int(opcaoProfissao) == 0:
+                            continue
+                        limpaTela()
+                        profissao = profissoes[int(opcaoProfissao) - 1]
+                        nome = input(f'Nome: ')
+                        nomeProducao = input(f'Nome produção: ')
+                        experiencia = input(f'Experiência: ')
+                        nivel = input(f'Nível: ')
+                        trabalhoNecessario = input(f'Trabalhos necessarios: ')
+                        novoTrabalho = Trabalho()
+                        novoTrabalho.nome = nome
+                        novoTrabalho.nomeProducao = nomeProducao
+                        novoTrabalho.experiencia = int(experiencia)
+                        novoTrabalho.nivel = int(nivel)
+                        novoTrabalho.profissao = profissao
+                        novoTrabalho.raridade = raridade
+                        novoTrabalho.trabalhoNecessario = trabalhoNecessario
+                        trabalhoDao = TrabalhoDaoSqlite()
+                        logger = logging.getLogger('trabalhoDao')
+                        if trabalhoDao.insereTrabalho(novoTrabalho):
+                            logger.info(f'({novoTrabalho}) inserido com sucesso!')
+                            continue
+                        logger.error(f'Erro ao inserir ({novoTrabalho}): {trabalhoDao.pegaErro()}')
+                    except Exception as erro:
+                        print(f'Opção inválida!')
                         input(f'Clique para continuar...')
-                        continue
-                    logger = logging.getLogger('trabalhoDao')
-                    logger.error(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
-                    print(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
-                    input(f'Clique para continuar...')
                 except Exception as erro:
                     print(f'Opção inválida!')
                     input(f'Clique para continuar...')
-            except Exception as erro:
-                print(f'Opção inválida!')
+                continue
+            print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+            break
+
+    def modificaTrabalho(self):
+        logger = logging.getLogger('trabalhoDao')
+        while True:
+            limpaTela()
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhos = trabalhoDao.pegaTrabalhos()
+            if variavelExiste(trabalhos):
+                if tamanhoIgualZero(trabalhos):
+                    print('Lista de trabalhos está vazia!')
+                else:
+                    print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+                    for trabalho in trabalhos:
+                        print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
+                opcaoTrabalho = input(f'Opção trabalho: ')    
+                if int(opcaoTrabalho) == 0:
+                    break
+                trabalhoEscolhido = trabalhos[int(opcaoTrabalho) - 1]
+                novoNome = input(f'Novo nome: ')
+                if tamanhoIgualZero(novoNome):
+                    novoNome = trabalhoEscolhido.nome
+                novoNomeProducao = input(f'Novo nome de produção: ')
+                if tamanhoIgualZero(novoNomeProducao):
+                    novoNomeProducao = trabalhoEscolhido.nomeProducao
+                novaExperiencia = input(f'Nova experiência: ')
+                if tamanhoIgualZero(novaExperiencia):
+                    novaExperiencia = trabalhoEscolhido.experiencia
+                novoNivel = input(f'Novo nível: ')
+                if tamanhoIgualZero(novoNivel):
+                    novoNivel = trabalhoEscolhido.nivel
+                novaProfissao = input(f'Nova profissão: ')
+                if tamanhoIgualZero(novaProfissao):
+                    novaProfissao = trabalhoEscolhido.profissao
+                novaRaridade = input(f'Nova raridade: ')
+                if tamanhoIgualZero(novaRaridade):
+                    novaRaridade = trabalhoEscolhido.raridade
+                novoTrabalhoNecessario = input(f'Novo trabalho necessário: ')
+                if tamanhoIgualZero(novoTrabalhoNecessario):
+                    novoTrabalhoNecessario = trabalhoEscolhido.trabalhoNecessario
+                trabalhoEscolhido.nome = novoNome
+                trabalhoEscolhido.nomeProducao = novoNomeProducao
+                trabalhoEscolhido.setExperiencia(novaExperiencia)
+                trabalhoEscolhido.setNivel(novoNivel)
+                trabalhoEscolhido.profissao = novaProfissao
+                trabalhoEscolhido.raridade = novaRaridade
+                trabalhoEscolhido.trabalhoNecessario = novoTrabalhoNecessario
+                trabalhoDao = TrabalhoDaoSqlite()
+                if trabalhoDao.modificaTrabalhoPorId(trabalhoEscolhido):
+                    logger.info(f'({trabalhoEscolhido}) modificado com sucesso!')
+                    continue
+                logger.error(f'Erro ao modificar ({trabalhoEscolhido}): {trabalhoDao.pegaErro()}')
                 input(f'Clique para continuar...')
+                continue
+            logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            break
+
+    def removeTrabalho(self):
+        logger = logging.getLogger('trabalhoDao')
+        while True:
+            limpaTela()
+            print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhos = trabalhoDao.pegaTrabalhos()
+            if variavelExiste(trabalhos):
+                if tamanhoIgualZero(trabalhos):
+                    print('Lista de trabalhos está vazia!')
+                else:
+                    for trabalho in trabalhos:
+                        print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
+                opcaoTrabalho = input(f'Opção trabalho: ')    
+                if int(opcaoTrabalho) == 0:
+                    break
+                trabalhoEscolhido = trabalhos[int(opcaoTrabalho) - 1]
+                trabalhoDao = TrabalhoDaoSqlite()
+                if trabalhoDao.removeTrabalho(trabalhoEscolhido):
+                    logger.info(f'({trabalhoEscolhido}) removido com sucesso!')
+                    continue
+                logger.error(f'Erro ao remover ({trabalhoEscolhido}): {trabalhoDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                continue
+            logger.error(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            break
+    
+    def inserePersonagem(self):
+        logger = logging.getLogger('personagemDao')
+        while True:
+            limpaTela()
+            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if variavelExiste(personagens):
+                if tamanhoIgualZero(personagens):
+                    print('Lista de personagens está vazia!')
+                else:
+                    for personagem in personagens:
+                        print(personagem)
+                opcaoPersonagem = input(f'Inserir novo personagem? (S/N) ')
+                if opcaoPersonagem.lower() == 'n':
+                    break
+                nome = input(f'Nome: ')
+                email = input(f'Email: ')
+                senha = input(f'Senha: ')
+                novoPersonagem = Personagem()
+                novoPersonagem.nome = nome
+                novoPersonagem.email = email
+                novoPersonagem.senha = senha
+                personagemDao = PersonagemDaoSqlite()
+                if personagemDao.inserePersonagem(novoPersonagem):
+                    logger.info(f'({novoPersonagem}) inserido com sucesso!')
+                    continue
+                logger.error(f'Erro ao inserir ({novoPersonagem}): {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                continue
+            logger.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            break
+
+    def modificaPersonagem(self):
+        logger = logging.getLogger('personagemDao')
+        while True:
+            limpaTela()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if variavelExiste(personagens):
+                if tamanhoIgualZero(personagens):
+                    print('Lista de personagens está vazia!')
+                else:
+                    print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+                    for personagem in personagens:
+                        print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+                opcaoPersonagem = input(f'Opção:')
+                if int(opcaoPersonagem) == 0:
+                    break
+                limpaTela()
+                personagem = personagens[int(opcaoPersonagem) - 1]
+                novoNome = input(f'Novo nome: ')
+                if tamanhoIgualZero(novoNome):
+                    novoNome = personagem.nome
+                novoEmail = input(f'Novo email: ')
+                if tamanhoIgualZero(novoEmail):
+                    novoEmail = personagem.email
+                novasenha = input(f'Nova senha: ')
+                if tamanhoIgualZero(novasenha):
+                    novasenha = personagem.senha
+                novoEspaco = input(f'Nova quantidade de produção: ')
+                if tamanhoIgualZero(novoEspaco):
+                    novoEspaco = personagem.espacoProducao
+                novoEstado = input(f'Modificar estado? (S/N) ')
+                if novoEstado.lower() == 's':
+                    personagem.alternaEstado()
+                novoUso = input(f'Modificar uso? (S/N) ')
+                if novoUso.lower() == 's':
+                    personagem.alternaUso()
+                novoAutoProducao = input(f'Modificar autoProducao? (S/N) ')
+                if novoAutoProducao.lower() == 's':
+                    personagem.alternaAutoProducao()
+                personagem.nome = novoNome
+                personagem.email = novoEmail
+                personagem.senha = novasenha
+                personagem.setEspacoProducao(novoEspaco)
+                personagemDao = PersonagemDaoSqlite()
+                if personagemDao.modificaPersonagem(personagem):
+                    logger.info(f'({personagem}) modificado com sucesso!')
+                    continue
+                logger.error(f'Erro ao modificar ({personagem}): {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                continue
+            logger.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            break
+    
+    def removePersonagem(self):
+        logger = logging.getLogger('personagemDao')
+        while True:
+            limpaTela()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if variavelExiste(personagens):
+                if tamanhoIgualZero(personagens):
+                    print('Lista de personagens está vazia!')
+                else:
+                    print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+                    for personagem in personagens:
+                        print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+                print(f'{'0'.ljust(6)} | Voltar')
+                opcaoPersonagem = input(f'Opção:')
+                if int(opcaoPersonagem) == 0:
+                    break
+                personagem = personagens[int(opcaoPersonagem) - 1]
+                personagemDao = PersonagemDaoSqlite()
+                if personagemDao.removePersonagem(personagem):
+                    logger.info(f'({personagem}) removido com sucesso!')
+                    continue
+                logger.error(f'Erro ao remover ({personagem}): {personagemDao.pegaErro()}')
+                input(f'Clique para continuar...')
+                continue
+            logger.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            break
 
     def insereNovoTrabalhoProducao(self):
         while True:
@@ -169,51 +372,6 @@ class CRUD:
             input(f'Clique para continuar...')
             break
 
-    def modificaPersonagem(self):
-        while True:
-            limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
-            personagemDao = PersonagemDaoSqlite()
-            personagens = personagemDao.pegaPersonagens()
-            if variavelExiste(personagens):
-                for personagem in personagens:
-                    print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
-                opcaoPersonagem = input(f'Opção:')
-                if int(opcaoPersonagem) == 0:
-                    break
-                limpaTela()
-                personagem = personagens[int(opcaoPersonagem) - 1]
-                novoNome = input(f'Novo nome: ')
-                if tamanhoIgualZero(novoNome):
-                    novoNome = personagem.nome
-                personagem.nome = novoNome
-                novoEspaco = input(f'Nova quantidade de produção: ')
-                if tamanhoIgualZero(novoEspaco):
-                    novoEspaco = personagem.espacoProducao
-                personagem.setEspacoProducao(novoEspaco)
-                novoEstado = input(f'Modificar estado? (S/N) ')
-                if novoEstado.lower() == 's':
-                    personagem.alternaEstado()
-                novoUso = input(f'Modificar uso? (S/N) ')
-                if novoUso.lower() == 's':
-                    personagem.alternaUso()
-                novoAutoProducao = input(f'Modificar autoProducao? (S/N) ')
-                if novoAutoProducao.lower() == 's':
-                    personagem.alternaAutoProducao()
-                personagemDao = PersonagemDaoSqlite()
-                if personagemDao.modificaPersonagem(personagem):
-                    print(f'{personagem.nome} modificado com sucesso!')
-                    input(f'Clique para continuar...')
-                    continue
-                logger = logging.getLogger('personagemDao')
-                logger.error(f'Erro ao modificar persoangem: {personagemDao.pegaErro()}')
-                print(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
-                input(f'Clique para continuar...')
-                continue
-            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
-            break
-
     def sincronizaListaTrabalhos(self):
         loggerTrabalho = logging.getLogger('trabalhoDAO')
         loggerEstoque = logging.getLogger('estoqueDAO')
@@ -275,16 +433,16 @@ class CRUD:
             limpaTela()
             print(f'MENU')
             print(f'01 - Adiciona trabalho')
-            print(f'02 - Adiciona trabalho produção')
-            print(f'03 - Modifica personagem')
-            print(f'04 - Modifica profissao')
-            print(f'05 - Remove trabalho')
-            print(f'06 - Modifica trabalho produção')
+            print(f'02 - Modifica trabalho')
+            print(f'03 - Remove trabalho')
+            print(f'04 - Insere personagem')
+            print(f'05 - Modifica personagem')
+            print(f'06 - Remove personagem')
+            print(f'09 - Adiciona trabalho produção')
+            print(f'11 - Modifica profissao')
+            print(f'10 - Modifica trabalho produção')
             print(f'07 - Remove trabalho produção')
             print(f'08 - Mostra vendas')
-            print(f'09 - Modifica trabalho')
-            print(f'10 - Remove personagem')
-            print(f'11 - Insere personagem')
             print(f'12 - Insere trabalho no estoque')
             print(f'13 - Modifica trabalho no estoque')
             print(f'14 - Remove trabalho no estoque')
@@ -307,18 +465,27 @@ class CRUD:
                     self.insereNovoTrabalho()
                     continue
                 if int(opcaoMenu) == 2:
-                    self.insereNovoTrabalhoProducao()
+                    self.modificaTrabalho()
                     continue
                 if int(opcaoMenu) == 3:
+                    self.removeTrabalho()
+                    continue
+                if int(opcaoMenu) == 4:
+                    self.inserePersonagem()
+                    continue
+                if int(opcaoMenu) == 5:
                     self.modificaPersonagem()
                     continue
+                if int(opcaoMenu) == 6:
+                    self.removePersonagem()
+                    continue
+                # if int(opcaoMenu) == 11:
+                #     self.insereNovoTrabalhoProducao()
+                #     continue
                 # if int(opcaoMenu) == 4:
                 #     self.modificaProfissao()
                 #     continue
-                # if int(opcaoMenu) == 5:
-                #     self.removeTrabalho()
-                #     continue
-                # if int(opcaoMenu) == 6:
+                # if int(opcaoMenu) == 10:
                 #     self.modificaTrabalhoProducao()
                 #     continue
                 # if int(opcaoMenu) == 7:
@@ -326,15 +493,6 @@ class CRUD:
                 #     continue
                 # if int(opcaoMenu) == 8:
                 #     self.mostraVendas()
-                #     continue
-                # if int(opcaoMenu) == 9:
-                #     self.modificaTrabalho()
-                #     continue
-                # if int(opcaoMenu) == 10:
-                #     self.removePersonagem()
-                #     continue
-                # if int(opcaoMenu) == 11:
-                #     self.inserePersonagem()
                 #     continue
                 # if int(opcaoMenu) == 12:
                 #     self.insereTrabalhoEstoque()
