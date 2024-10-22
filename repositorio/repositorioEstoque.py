@@ -1,6 +1,7 @@
 from constantes import *
 from modelos.trabalhoEstoque import TrabalhoEstoque
 from repositorio.firebaseDatabase import FirebaseDatabase
+from credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
 
 class RepositorioEstoque:
     def __init__(self, personagem):
