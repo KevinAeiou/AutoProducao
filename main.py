@@ -1539,18 +1539,16 @@ class Aplicacao:
                         novaQuantidade = trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeSecundario()
                     elif textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.pegaTerciario()):
                         novaQuantidade = trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeTerciario()
-                    elif textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.tipo_licenca):
+                    elif textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipo_licenca):
                         novaQuantidade = trabalhoEstoque.quantidade - 1
                     if variavelExiste(novaQuantidade):
-                        print(f'Quantidade de {trabalhoEstoque.nome} atualizada para {novaQuantidade}.')
+                        logger = logging.getLogger('estoqueDao')
                         trabalhoEstoque.quantidade = novaQuantidade
                         estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                         if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
-                            print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
+                            logger.info(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada para {novaQuantidade}.')
                             continue
-                        logger = logging.getLogger('estoqueDao')
-                        logger.error(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
-                        print(f'Erro ao modificar trabalho no estoque: {estoqueDao.pegaErro()}')
+                        logger.error(f'Erro ao modificar trabalho ({trabalhoEstoque}) no estoque: {estoqueDao.pegaErro()}')
         elif trabalhoProducao.ehMelhorado() or trabalhoProducao.ehRaro():
             if not trabalhoEhProducaoRecursos(trabalhoProducao):
                 listaTrabalhosNecessarios = trabalhoProducao.trabalhoNecessario.split(',')
@@ -1575,6 +1573,7 @@ class Aplicacao:
             menu = self.retornaMenu()
             if menuTrabalhosAtuaisReconhecido(menu):
                 if variavelExiste(trabalhoProducaoEncontrado):
+                    logger = logging.getLogger('trabalhoProducaoDao')
                     if trabalhoProducaoEncontrado.ehRecorrente():
                         self.clonaTrabalhoProducaoEncontrado(dicionarioTrabalho, trabalhoProducaoEncontrado)
                         self.verificaNovamente = True
@@ -1582,11 +1581,9 @@ class Aplicacao:
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoEncontrado):
                         estado = 'produzir' if trabalhoProducaoEncontrado.estado  == 0 else 'produzindo' if trabalhoProducaoEncontrado.estado  == 1 else 'concluido'
-                        print(f'Trabalho ({trabalhoProducaoEncontrado.nome}) modificado para {estado}.')
+                        logger.info(f'Trabalho ({trabalhoProducaoEncontrado}) modificado para {estado}.')
                     else:
-                        logger = logging.getLogger('trabalhoProducaoDao')
-                        logger.error(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-                        print(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                        logger.error(f'Erro ao modificar trabalho ({trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
                     self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
                     clickContinuo(12,'up')
                     self.verificaNovamente = True
