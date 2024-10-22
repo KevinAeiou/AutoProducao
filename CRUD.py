@@ -154,7 +154,7 @@ class CRUD:
                             novoTrabalhoProducao.recorrencia = recorrencia
                             novoTrabalhoProducao.tipo_licenca = licenca
                             novoTrabalhoProducao.estado = CODIGO_PARA_PRODUZIR
-                            self.insereTrabalhoProducao(trabalhoProducao)
+                            self.insereTrabalhoProducao(novoTrabalhoProducao)
                             continue
                         print(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
                         input(f'Clique para continuar...')
