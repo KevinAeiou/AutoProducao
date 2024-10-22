@@ -1,4 +1,5 @@
 import logging
+from uuid import uuid4
 from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero
 from constantes import CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_APRENDIZ, CHAVE_LICENCA_MESTRE, CHAVE_LICENCA_INICIANTE, CODIGO_PARA_PRODUZIR
 
@@ -150,6 +151,7 @@ class CRUD:
                             recorrencia = True if (opcaoRecorrencia).lower() == 's' else False
                             novoTrabalhoProducao = TrabalhoProducao()
                             novoTrabalhoProducao.dicionarioParaObjeto(trabalho.__dict__)
+                            novoTrabalhoProducao.id = str(uuid4())
                             novoTrabalhoProducao.trabalhoId = trabalho.id
                             novoTrabalhoProducao.recorrencia = recorrencia
                             novoTrabalhoProducao.tipo_licenca = licenca
@@ -162,6 +164,7 @@ class CRUD:
                     print(f'Erro ao buscar trabalhos em produção: {trabalhoProducaoDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
+                continue
             print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
             input(f'Clique para continuar...')
             break
