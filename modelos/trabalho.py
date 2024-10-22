@@ -11,55 +11,12 @@ class Trabalho:
         self.profissao = None
         self.raridade = None
         self.trabalhoNecessario = ''
-
-    def pegaId(self):
-        return self.id
-    
-    def setId(self, id):
-        self.id = id
-    
-    def pegaNome(self):
-        return self.nome
-    
-    def setNome(self, nome):
-        self.nome = nome
-    
-    def pegaNomeProducao(self):
-        return self.nomeProducao
-    
-    def setNomeProducao(self, nomeProducao):
-        self.nomeProducao = nomeProducao
-    
-    def pegaExperiencia(self):
-        return self.experiencia
     
     def setExperiencia(self, experiencia):
         self.experiencia = int(experiencia)
 
-    
-    def pegaNivel(self):
-        return self.nivel
-    
     def setNivel(self, nivel):
         self.nivel = int(nivel)
-    
-    def pegaProfissao(self):
-        return self.profissao
-
-    def setProfissao(self, profissao):
-        self.profissao = profissao
-
-    def pegaRaridade(self):
-        return self.raridade
-    
-    def setRaridade(self, raridade):
-        self.raridade = raridade
-    
-    def pegaTrabalhoNecessario(self):
-        return self.trabalhoNecessario
-    
-    def setTrabalhoNecessario(self, trabalhoNecessario):
-        self.trabalhoNecessario = trabalhoNecessario
 
     def ehRaro(self):
         return self.raridade == CHAVE_RARIDADE_RARO

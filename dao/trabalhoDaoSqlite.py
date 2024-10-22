@@ -3,12 +3,14 @@ __author__ = 'Kevin Amazonas'
 from modelos.trabalho import Trabalho
 from db.db import MeuBanco
 from repositorio.repositorioTrabalho import RepositorioTrabalho
+import logging
 
 class TrabalhoDaoSqlite():
     def __init__(self):
         self.__conexao = None
         self.__erro = None
         self.__fabrica = None
+        self.__logger = logging.getLogger('trabalhoDao')
         try:
             self.__meuBanco = MeuBanco()
             self.__conexao = self.__meuBanco.pegaConexao(1)
@@ -103,9 +105,9 @@ class TrabalhoDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalho.insereTrabalho(trabalho):
-                    print(f'{trabalho.nome} inserido no servidor com sucesso!')
+                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
                 else:
-                    print(f'Erro ao inserir trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -123,9 +125,9 @@ class TrabalhoDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalho.modificaTrabalho(trabalho):
-                    print(f'{trabalho.nome} modificado no servidor com sucesso!')
+                    self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
                 else:
-                    print(f'Erro ao modificar trabalho no servidor: {self.__repositorioTrabalho.pegaErro()}')
+                    self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -156,9 +158,9 @@ class TrabalhoDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalho.removeTrabalho(trabalho):
-                    print(f'{trabalho.nome} removido do servidor com sucesso!')
+                    self.__logger.info(f'({trabalho}) removido do servidor com sucesso!')
                 else:
-                    print(f'Erro ao remover trabalho do servidor: {self.__repositorioTrabalho.pegaErro()}')
+                    self.__logger.error(f'Erro ao remover ({trabalho}) do servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)

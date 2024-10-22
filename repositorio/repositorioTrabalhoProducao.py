@@ -1,4 +1,5 @@
 from repositorio.firebaseDatabase import FirebaseDatabase
+from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
 from modelos.trabalhoProducao import TrabalhoProducao
 from constantes import *
 

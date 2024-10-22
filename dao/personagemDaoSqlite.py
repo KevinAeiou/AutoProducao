@@ -3,12 +3,14 @@ __author__ = 'Kevin Amazonas'
 from modelos.personagem import Personagem
 from db.db import MeuBanco
 from repositorio.repositorioPersonagem import RepositorioPersonagem
+import logging
 
 class PersonagemDaoSqlite():
     def __init__(self):
         self.__conexao = None
         self.__erro = None
         self.__fabrica = None
+        self.__logger = logging.getLogger('personagemDao')
         try:
             self.__meuBanco = MeuBanco()
             self.__conexao = self.__meuBanco.pegaConexao(1)
@@ -118,9 +120,9 @@ class PersonagemDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioPersonagem.modificaPersonagem(personagem):
-                    print(f'{personagem.nome} modificado com sucesso no servidor!')
+                    self.__logger.info(f'({personagem}) modificado no servidor com sucesso!')
                 else:
-                    print(f'Erro ao modificar personagem no servidor: {self.__repositorioPersonagem.pegaErro()}')
+                    self.__logger.error(f'Erro ao modificar ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -161,9 +163,9 @@ class PersonagemDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioPersonagem.inserePersonagem(personagem):
-                    print(f'{personagem.nome} inserido com sucesso no servidor!')
+                    self.__logger.info(f'({personagem}) inserido com sucesso no servidor!')
                 else:
-                    print(f'Erro ao inserir trabalho no servidor: {self.__repositorioPersonagem.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -179,9 +181,9 @@ class PersonagemDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioPersonagem.removePersonagem(personagem):
-                    print(f'{personagem.nome} removido com sucesso no servidor!')
+                    self.__logger.info(f'({personagem}) removido do servidor com sucesso!')
                 else:
-                    print(f'Erro ao remover personagem do servidor: {self.__repositorioPersonagem.pegaErro()}')
+                    self.__logger.error(f'Erro ao remover ({personagem}) do servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)

@@ -1,5 +1,3 @@
-LINK_DATABASE = 'https://bootwarspear-default-rtdb.firebaseio.com/'
-CHAVE_ID_USUARIO = 'eEDku1Rvy7f7vbwJiVW7YMsgkIF2'
 CHAVE_USUARIOS = 'Usuarios'
 CHAVE_LISTA_PERSONAGEM = 'Lista_personagem'
 CHAVE_LISTA_PROFISSAO = 'Lista_profissoes'

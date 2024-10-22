@@ -714,36 +714,33 @@ class Aplicacao:
         return listaTrabalhoEstoqueConcluidoModificado, trabalhoEstoque
 
     def atualizaEstoquePersonagem(self, trabalhoEstoqueConcluido):
+        loggerEstoque = logging.getLogger('estoqueDao')
         listaTrabalhoEstoqueConcluido = self.retornaListaTrabalhoProduzido(trabalhoEstoqueConcluido)
-        if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
-            estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-            estoque = estoqueDao.pegaEstoque()
-            if not variavelExiste(estoque):
-                logger = logging.getLogger('estoqueDao')
-                logger.error(f'Erro ao pegar trabalhos no estoque: {estoqueDao.pegaErro()}')
-                print(f'Erro ao pegar trabalhos no estoque: {estoqueDao.pegaErro()}')
-                return
+        if tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
+            return
+        estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+        estoque = estoqueDao.pegaEstoque()
+        if variavelExiste(estoque):
             if tamanhoIgualZero(estoque):
                 for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
                     trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
                     if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
-                        print(f'{trabalhoEstoqueConcluido.nome} adicionado com sucesso!')
+                        loggerEstoque.info(f'({trabalhoEstoqueConcluido}) inserido com sucesso!')
                         continue
-                    logger = logging.getLogger('estoqueDao')
-                    logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
-                    print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                    loggerEstoque.error(f'Erro ao inserir trabalho ({trabalhoEstoqueConcluido}): {trabalhoEstoqueDao.pegaErro()}')
                 return
             for trabalhoEstoque in estoque:
                 listaTrabalhoEstoqueConcluido, trabalhoEstoque = self.modificaQuantidadeTrabalhoEstoque(listaTrabalhoEstoqueConcluido, trabalhoEstoque)
-            if not tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
-                for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-                    trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-                    if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
-                        print(f'{trabalhoEstoqueConcluido.nome} adicionado com sucesso!')
-                        continue
-                    logger = logging.getLogger('estoqueDao')
-                    logger.error(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
-                    print(f'Erro ao inserir trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+            if tamanhoIgualZero(listaTrabalhoEstoqueConcluido):
+                return
+            for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
+                trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoqueConcluido):
+                    loggerEstoque.info(f'({trabalhoEstoqueConcluido}) inserido com sucesso!')
+                    continue
+                loggerEstoque.error(f'Erro ao inserir trabalho ({trabalhoEstoqueConcluido}): {trabalhoEstoqueDao.pegaErro()}')
+            return
+        loggerEstoque.error(f'Erro ao pegar trabalhos no estoque: {estoqueDao.pegaErro()}')
 
     def retornaProfissaoTrabalhoProducaoConcluido(self, trabalhoProducaoConcluido):
         profissaoDao = ProfissaoDaoSqlite(self.__personagemEmUso)
