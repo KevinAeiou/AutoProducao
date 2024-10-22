@@ -144,7 +144,7 @@ class Aplicacao:
         if variavelExiste(textoErroEncontrado):
             textoErroEncontrado = limpaRuidoTexto(textoErroEncontrado)
             textoErroEncontrado = retiraDigitos(textoErroEncontrado)
-            tipoErro = ['Você precisa de uma licença defabricação para iniciar este pedido',
+            tipoErro = ['Você precisa de uma licença de artesanato para iniciar este pedido',
                 'Falha ao se conectar ao servidor',
                 'Você precisa de mais recursos parainiciar este pedido',
                 'Selecione um item para iniciar umpedido de artesanato',
