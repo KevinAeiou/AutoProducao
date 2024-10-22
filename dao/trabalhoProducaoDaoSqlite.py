@@ -2,6 +2,7 @@ __author__ = 'Kevin Amazonas'
 
 from modelos.trabalhoProducao import TrabalhoProducao
 from db.db import MeuBanco
+import logging
 from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
 
 class TrabalhoProducaoDaoSqlite:
@@ -9,6 +10,7 @@ class TrabalhoProducaoDaoSqlite:
         self.__conexao = None
         self.__erro = None
         self.__personagem = personagem
+        self.__logger = logging.getLogger('trabalhoProducaoDao')
         try:
             self.__meuBanco = MeuBanco()
             self.__conexao = self.__meuBanco.pegaConexao(1)
@@ -163,9 +165,9 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao):
-                    print(f'{trabalhoProducao.nome} inserido com sucesso no servidor!')
+                    self.__logger.info(f'({trabalhoProducao}) inserido no servidor com sucesso!')
                 else:
-                    print(f'Erro ao inserir trabalho produção no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({trabalhoProducao}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -183,9 +185,9 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducao):
-                    print(f'{trabalhoProducao.nome} removido com sucesso no servidor!')
+                    self.__logger.info(f'({trabalhoProducao}) removido do servidor com sucesso!')
                 else:
-                    print(f'Erro ao remover trabalho produção no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                    self.__logger.error(f'Erro ao remover ({trabalhoProducao}) do servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -205,9 +207,9 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducao):
-                    print(f'{trabalhoProducao.nome} modificado com sucesso no servidor!')
+                    self.__logger.info(f'({trabalhoProducao}) modificado no servidor com sucesso!')
                 else:
-                    print(f'Erro ao modificar trabalho produção no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                    self.__logger.error(f'Erro ao modificar ({trabalhoProducao}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
