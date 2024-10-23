@@ -57,3 +57,38 @@ class TesteProfissao:
         esperado = 0
         recebido = profissaoTeste.pegaNivel()
         assert esperado == recebido
+
+    def testDeveRetornarExperienciaMaxima20QuandoExperienciaAtualEh0(self):
+        profissaoTeste = Profissao()
+        profissaoTeste.experiencia = 0
+        esperado = 20
+        recebido = profissaoTeste.pegaExperienciaMaximaPorNivel()
+        assert esperado == recebido
+
+    def testDeveRetornarExperienciaMaxima20QuandoExperienciaAtualEh19(self):
+        profissaoTeste = Profissao()
+        profissaoTeste.experiencia = 19
+        esperado = 20
+        recebido = profissaoTeste.pegaExperienciaMaximaPorNivel()
+        assert esperado == recebido
+
+    def testDeveRetornarExperienciaMaxima200QuandoExperienciaAtualEh20(self):
+        profissaoTeste = Profissao()
+        profissaoTeste.experiencia = 20
+        esperado = 200
+        recebido = profissaoTeste.pegaExperienciaMaximaPorNivel()
+        assert esperado == recebido
+
+    def testDeveRetornarExperienciaMaxima830000QuandoExperienciaAtualEh830000(self):
+        profissao = Profissao()
+        profissao.experiencia = 830000
+        esperado = 830000
+        recebido = profissao.pegaExperienciaMaximaPorNivel()
+        assert esperado == recebido
+
+    def testDeveRetornarExperienciaMaxima830000QuandoExperienciaAtualEh706825(self):
+        profissao = Profissao()
+        profissao.experiencia = 706825
+        esperado = 830000
+        recebido = profissao.pegaExperienciaMaximaPorNivel()
+        assert esperado == recebido
