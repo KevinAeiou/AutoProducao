@@ -755,30 +755,6 @@ class Aplicacao:
         logger.error(f'Erro ao buscar profissões ({self.__personagemEmUso}): {profissaoDao.pegaErro()}')
         return None
 
-    def retornaNivelXpMinimoMaximo(self, profissao):
-        listaXPMaximo = [
-            20, 200, 540, 1250, 2550, 4700, 7990, 12770
-            ,19440, 28440, 40270, 55450, 74570, 98250, 127180, 156110
-            ,185040, 215000, 245000, 300000, 375000, 470000, 585000, 706825
-            ,830000, 830000]
-        xpAtual = profissao.experiencia
-        nivelProfissao = 1
-        xpMinimo = 0
-        xpMaximo = 0
-        for posicao in range(0,len(listaXPMaximo)):
-            if listaXPMaximo[posicao] == 20:
-                if xpAtual < listaXPMaximo[posicao]:
-                    xpMinimo = 0
-                    xpMaximo = listaXPMaximo[posicao]
-                    break
-            else:
-                if xpAtual < listaXPMaximo[posicao] and xpAtual >= listaXPMaximo[posicao-1]:
-                    nivelProfissao = posicao + 1
-                    xpMinimo = listaXPMaximo[posicao-1]
-                    xpMaximo = listaXPMaximo[posicao]
-                    break
-        return nivelProfissao, xpMinimo, xpMaximo
-
     def verificaProducaoTrabalhoRaro(self, trabalhoProducaoConcluido):
         profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoProducaoConcluido)
         if variavelExiste(profissao):
@@ -789,8 +765,7 @@ class Aplicacao:
                     for trabalho in trabalhos:
                         trabalhoNecessarioEhIgualNomeTrabalhoConcluido = textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome)
                         if trabalhoNecessarioEhIgualNomeTrabalhoConcluido:
-                            _, _, xpMaximo = self.retornaNivelXpMinimoMaximo(profissao)
-                            licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if xpMaximo >= 830000 else CHAVE_LICENCA_INICIANTE
+                            licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel() >= profissao.pegaExperienciaMaxima() else CHAVE_LICENCA_INICIANTE
                             trabalhoProducaoRaro = TrabalhoProducao()
                             trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
                             trabalhoProducaoRaro.id = str(uuid.uuid4())
@@ -1228,7 +1203,7 @@ class Aplicacao:
             print(f'Erro ao buscar profissões: {profissaoDao.pegaErro()}')
             return quantidadeEspacosProducao
         for profissao in profissoes:
-            nivel, _ , _= self.retornaNivelXpMinimoMaximo(profissao)
+            nivel = profissao.pegaNivel()
             if nivel >= 5:
                 quantidadeEspacosProducao += 1
                 break
