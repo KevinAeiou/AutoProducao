@@ -3,6 +3,7 @@ __author__ = 'Kevin Amazonas'
 from modelos.trabalhoEstoque import TrabalhoEstoque
 from db.db import MeuBanco
 from repositorio.repositorioEstoque import RepositorioEstoque
+import logging
 
 class EstoqueDaoSqlite:
     def __init__(self, personagem = None):
@@ -10,6 +11,7 @@ class EstoqueDaoSqlite:
         self.__erro = None
         self.__personagem = personagem
         self.__repositorioEstoque = RepositorioEstoque(personagem)
+        self.__logger = logging.getLogger('estoqueDao')
         try:
             self.__meuBanco = MeuBanco()
             self.__conexao = self.__meuBanco.pegaConexao(1)
@@ -82,9 +84,9 @@ class EstoqueDaoSqlite:
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioEstoque.insereTrabalhoEstoque(trabalhoEstoque):
-                print(f'{trabalhoEstoque.nome} inserido com sucesso no servidor!')
+                self.__logger.info(f'({trabalhoEstoque}) inserido no servidor com sucesso!')
             else:
-                print(f'Erro ao inserir trabalho no estoque!')
+                self.__logger.error(f'Erro ao inserir ({trabalhoEstoque}) no servidor!')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -102,9 +104,9 @@ class EstoqueDaoSqlite:
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque):
-                print(f'{trabalhoEstoque.nome} modificado com sucesso no servidor!')
+                self.__logger.info(f'({trabalhoEstoque}) modificado no servidor com sucesso!')
             else:
-                print(f'Erro ao modificar estoque no servidor: {self.__repositorioEstoque.pegaErro()}')
+                self.__logger.error(f'Erro ao modificar ({trabalhoEstoque}) no servidor: {self.__repositorioEstoque.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -154,9 +156,9 @@ class EstoqueDaoSqlite:
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if self.__repositorioEstoque.removeTrabalho(trabalhoEstoque):
-                print(f'{trabalhoEstoque.nome} removido com sucesso do servidor!')
+                self.__logger.info(f'({trabalhoEstoque}) removido do servidor com sucesso!')
             else:
-                print(f'Erro ao remover trabalho do estoque no servidor: {self.__repositorioEstoque.pegaErro()}')
+                self.__logger.error(f'Erro ao remover ({trabalhoEstoque}) do servidor: {self.__repositorioEstoque.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
