@@ -1,4 +1,5 @@
 from uuid import uuid4
+from constantes import LISTA_EXPERIENCIAS_NIVEL
 
 class Profissao:
     def __init__(self):
@@ -7,24 +8,37 @@ class Profissao:
         self.nome = None
         self.experiencia = 0
         self.prioridade = False
+
+    def pegaExperienciaMaxima(self):
+        return LISTA_EXPERIENCIAS_NIVEL[-1]
     
     def setExperiencia(self, experiencia):
-        experiencia = 830000 if experiencia > 830000 else int(experiencia)
+        experiencia = self.pegaExperienciaMaxima() if experiencia > self.pegaExperienciaMaxima() else int(experiencia)
         self.experiencia = experiencia
 
     def alternaPrioridade(self):
         self.prioridade = not self.prioridade
 
     def pegaNivel(self):
-        listaXPMaximo = [0, 20, 200, 540, 1250, 2550, 4700, 7990, 12770, 19440, 28440, 40270, 55450, 74570, 98250, 127180, 156110, 185040, 215000, 245000, 300000, 375000, 470000, 585000, 706825, 830000]
-        for experiencia in listaXPMaximo:
+        for experiencia in LISTA_EXPERIENCIAS_NIVEL:
             if experiencia >= self.experiencia:
                 if self.experiencia == experiencia:
-                    return listaXPMaximo.index(experiencia) + 1
+                    return LISTA_EXPERIENCIAS_NIVEL.index(experiencia) + 2
                 if experiencia > self.experiencia:
-                    return listaXPMaximo.index(experiencia)
+                    return LISTA_EXPERIENCIAS_NIVEL.index(experiencia) + 1
         return 0
     
+    def pegaExperienciaMaximaPorNivel(self):
+        for experiencia in LISTA_EXPERIENCIAS_NIVEL:
+            if experiencia >= self.experiencia:
+                if self.experiencia == experiencia:
+                    if experiencia == self.pegaExperienciaMaxima():
+                        return LISTA_EXPERIENCIAS_NIVEL[LISTA_EXPERIENCIAS_NIVEL.index(experiencia)]
+                    return LISTA_EXPERIENCIAS_NIVEL[LISTA_EXPERIENCIAS_NIVEL.index(experiencia) + 1]
+                if experiencia > self.experiencia:
+                    return LISTA_EXPERIENCIAS_NIVEL[LISTA_EXPERIENCIAS_NIVEL.index(experiencia)]
+        return 0
+
     def dicionarioParaObjeto(self, dicionario):
         for chave in dicionario:
             setattr(self, chave, dicionario[chave])
