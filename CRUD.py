@@ -547,7 +547,15 @@ class CRUD:
         self.sincronizaListaProfissoes()
         self.sincronizaTrabalhosProducao()
         self.sincronizaTrabalhosVendidos()
-    
+
+    def testeFuncao(self):
+        from modelos.profissao import Profissao
+        profissaoTeste = Profissao()
+        profissaoTeste.experiencia = 20
+        esperado = 20
+        recebido = profissaoTeste.pegaNivel()
+        pass
+
     def menu(self):
         while True:
             limpaTela()
@@ -657,10 +665,10 @@ class CRUD:
                 #     # pega todos trabalhos vendidos
                 #     self.redefineListaDeProfissoes()
                 #     continue
-                # if int(opcaoMenu) == 24:
-                #     # pega todos trabalhos vendidos
-                #     self.testeFuncao()
-                #     continue
+                if int(opcaoMenu) == 24:
+                    # pega todos trabalhos vendidos
+                    self.testeFuncao()
+                    continue
             except Exception as erro:
                 print(f'Opção inválida! Erro: {erro}')
                 input(f'Clique para continuar...')
