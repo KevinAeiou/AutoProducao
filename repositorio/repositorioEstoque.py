@@ -12,7 +12,7 @@ class RepositorioEstoque:
     def pegaTodosTrabalhosEstoque(self):
         listaEstoque = []
         try:
-            todosTrabalhosEstoque = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_ESTOQUE).get()
+            todosTrabalhosEstoque = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_ESTOQUE).get()
             if todosTrabalhosEstoque.pyres != None:
                 for trabalhoEstoqueEncontrado in todosTrabalhosEstoque.each():
                     if CHAVE_PROFISSAO in trabalhoEstoqueEncontrado.val():
@@ -34,7 +34,7 @@ class RepositorioEstoque:
     
     def insereTrabalhoEstoque(self, trabalho):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_ESTOQUE).child(trabalho.pegaId()).set(trabalho.__dict__)
+            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_ESTOQUE).child(trabalho.id).set(trabalho.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -42,7 +42,7 @@ class RepositorioEstoque:
 
     def modificaTrabalhoEstoque(self, trabalho):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_ESTOQUE).child(trabalho.pegaId()).update(trabalho.__dict__)
+            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_ESTOQUE).child(trabalho.id).update(trabalho.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -50,7 +50,7 @@ class RepositorioEstoque:
     
     def removeTrabalho(self, trabalho):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.pegaId()).child(CHAVE_LISTA_ESTOQUE).child(trabalho.pegaId()).remove()
+            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_ESTOQUE).child(trabalho.id).remove()
             return True
         except Exception as e:
             self.__erro = str(e)
