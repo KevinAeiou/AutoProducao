@@ -1789,7 +1789,7 @@ class Aplicacao:
                                 nomeTrabalhoReconhecido = self.retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(dicionarioTrabalho)
                                 print(f'Trabalho {trabalhoProducaoPriorizado.raridade} reconhecido: {nomeTrabalhoReconhecido}.')
                                 if variavelExiste(nomeTrabalhoReconhecido):
-                                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducaoPriorizado.nomeProducao):
+                                    if texto1PertenceTexto2(nomeTrabalhoReconhecido[:-1], trabalhoProducaoPriorizado.nomeProducao):
                                         erro = self.verificaErro()
                                         if erroEncontrado(erro):
                                             if ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
