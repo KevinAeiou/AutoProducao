@@ -13,7 +13,7 @@ class Profissao:
         return LISTA_EXPERIENCIAS_NIVEL[-1]
     
     def setExperiencia(self, experiencia):
-        experiencia = self.pegaExperienciaMaxima() if experiencia > self.pegaExperienciaMaxima() else int(experiencia)
+        experiencia = self.pegaExperienciaMaxima() if int(experiencia) > self.pegaExperienciaMaxima() else int(experiencia)
         self.experiencia = experiencia
 
     def alternaPrioridade(self):

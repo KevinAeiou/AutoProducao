@@ -108,7 +108,7 @@ class ProfissaoDaoSqlite:
             self.__meuBanco.desconecta()
             if modificaProfissao:
                 if self.__repositorioProfissao.modificaProfissao(profissao):
-                    self.logger.info(f'{profissao} modificada no servidor com sucesso!')
+                    self.logger.info(f'({profissao}) modificada no servidor com sucesso!')
                 else:
                     self.logger.error(f'Erro ao modificar ({profissao}) no servidor: {self.__repositorioProfissao.pegaErro()}')
             return True
@@ -126,7 +126,7 @@ class ProfissaoDaoSqlite:
             profissao.nome = nomeProfissao
             profissao.idPersonagem = self.__personagem.id
             if self.insereProfissao(profissao):
-                print(f'Profissão {nomeProfissao} inserida com sucesso!')
+                print(f'({nomeProfissao}) inserida com sucesso!')
                 continue
             print(f'Erro ao inserir profissão: {self.pegaErro()}')
             return False
@@ -144,7 +144,7 @@ class ProfissaoDaoSqlite:
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioProfissao.insereProfissao(profissao):
-                    self.logger.info(f'{profissao} inserido no servidor com sucesso!')
+                    self.logger.info(f'({profissao}) inserido no servidor com sucesso!')
                 else:
                     self.logger.error(f'Erro ao inserir ({profissao}) no servidor: {self.__repositorioProfissao.pegaErro()}')
             return True

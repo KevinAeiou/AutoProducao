@@ -8,6 +8,7 @@ from dao.personagemDaoSqlite import PersonagemDaoSqlite
 from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 from dao.estoqueDaoSqlite import EstoqueDaoSqlite
 from dao.vendaDaoSqlite import VendaDaoSqlite
+from dao.profissaoDaoSqlite import ProfissaoDaoSqlite
 
 from repositorio.repositorioTrabalho import RepositorioTrabalho
 
@@ -540,6 +541,69 @@ class CRUD:
             print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
             return
         print(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
+    
+    def modificaProfissao(self):
+        logger = logging.getLogger('profissaoDao')
+        while True:
+            limpaTela()
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if variavelExiste(personagens):
+                if tamanhoIgualZero(personagens):
+                    print(f'Lista de personagens está vazia!')
+                else:
+                    print(f'{('ÍNDICE').ljust(6)} - {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+                    for personagem in personagens:
+                        print(f'{str(personagens.index(personagem) + 1).ljust(6)} - {personagem}')
+                print(f'{'0'.ljust(6)} - Voltar')
+                opcaoPersonagem = input(f'Opção:')
+                if int(opcaoPersonagem) == 0:
+                    break
+                while True:
+                    limpaTela()
+                    profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1])
+                    profissoes = profissaoDao.pegaProfissoes()
+                    if variavelExiste(profissoes):
+                        if len(profissoes) == 0:
+                            profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1])
+                            if profissaoDao.insereListaProfissoes():
+                                logger.info(f'Profissões inseridas com sucesso!')
+                            else:
+                                logger.error(f'Erro ao inserir profissões: {profissaoDao.pegaErro()}')
+                                input(f'Clique para continuar...')
+                                break
+                            continue
+                        print(f'{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'ID PERSONAGEM'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE')
+                        for profissao in profissoes:
+                            print(f'{str(profissoes.index(profissao) + 1).ljust(6)} - {profissao}')
+                        print(f'{'0'.ljust(6)} - Voltar')
+                        opcaoProfissao = input(f'Opção: ')
+                        if int(opcaoProfissao) == 0:
+                            break
+                        profissaoModificado = profissoes[int(opcaoProfissao)-1]
+                        novoNome = input(f'Novo nome: ')
+                        novaExperiencia = input(f'Nova experiência: ')
+                        alternaPrioridade = input(f'Alternar prioridade? (S/N) ')
+                        novoNome = profissaoModificado.nome if tamanhoIgualZero(novoNome) else novoNome
+                        novaExperiencia = profissaoModificado.experiencia if tamanhoIgualZero(novaExperiencia) else novaExperiencia
+                        profissaoModificado.nome = novoNome
+                        profissaoModificado.setExperiencia(novaExperiencia)
+                        if alternaPrioridade.lower() == 's':
+                            profissaoModificado.alternaPrioridade()
+                        profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem)-1])
+                        if profissaoDao.modificaProfissao(profissaoModificado):
+                            logger.info(f'({profissaoModificado}) modificado com sucesso!')
+                            continue
+                        logger.error(f'Erro ao modificar ({profissaoModificado}): {profissaoDao.pegaErro()}')
+                        input(f'Clique para continuar...')
+                        continue
+                    print(f'Erro ao buscar profissões: {profissaoDao.pegaErro()}')
+                    input(f'Clique para continuar...')
+                    break
+                continue
+            logger.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            break
 
     def sincronizaDados(self):
         self.sincronizaListaTrabalhos()
@@ -569,7 +633,7 @@ class CRUD:
             print(f'07 - Adiciona trabalho produção')
             print(f'08 - Modifica trabalho produção')
             print(f'09 - Remove trabalho produção')
-            print(f'11 - Modifica profissao')
+            print(f'10 - Modifica profissao')
             print(f'08 - Mostra vendas')
             print(f'12 - Insere trabalho no estoque')
             print(f'13 - Modifica trabalho no estoque')
@@ -616,9 +680,9 @@ class CRUD:
                 if int(opcaoMenu) == 9:
                     self.removeTrabalhoProducao()
                     continue
-                # if int(opcaoMenu) == 4:
-                #     self.modificaProfissao()
-                #     continue
+                if int(opcaoMenu) == 10:
+                    self.modificaProfissao()
+                    continue
                 # if int(opcaoMenu) == 8:
                 #     self.mostraVendas()
                 #     continue
