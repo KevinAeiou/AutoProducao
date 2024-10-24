@@ -1219,7 +1219,7 @@ class Aplicacao:
             logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
             print(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
 
-    def retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(self, dicionarioTrabalho, raridade):
+    def retornaListaTrabalhosProducaoRaridadeEspecifica(self, dicionarioTrabalho, raridade):
         listaTrabalhosProducaoRaridadeEspecifica = []
         print(f'Buscando trabalho {raridade} na lista...')
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
@@ -1851,22 +1851,11 @@ class Aplicacao:
 
     def retornaListaDeListasTrabalhosProducao(self, dicionarioTrabalho):
         listaDeListaTrabalhos = []
-        listaTrabalhoProducaoEspecial = self.retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_ESPECIAL)
-        if not tamanhoIgualZero(listaTrabalhoProducaoEspecial):
-            listaTrabalhoProducaoEspecial = sorted(listaTrabalhoProducaoEspecial,key=lambda dicionario:dicionario[CHAVE_NOME])
-            listaDeListaTrabalhos.append(listaTrabalhoProducaoEspecial)
-        listaTrabalhosProducaoRaros = self.retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_RARO)
-        if not tamanhoIgualZero(listaTrabalhosProducaoRaros):
-            listaTrabalhosProducaoRaros = sorted(listaTrabalhosProducaoRaros,key=lambda trabalhoProducao:trabalhoProducao.nome)
-            listaDeListaTrabalhos.append(listaTrabalhosProducaoRaros)
-        listaTrabalhosProducaoMelhorados = self.retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_MELHORADO)
-        if not tamanhoIgualZero(listaTrabalhosProducaoMelhorados):
-            listaTrabalhosProducaoMelhorados = sorted(listaTrabalhosProducaoMelhorados,key=lambda trabalhoProducao:trabalhoProducao.nome)
-            listaDeListaTrabalhos.append(listaTrabalhosProducaoMelhorados)
-        listaTrabalhosProducaoComuns = self.retornaListaDicionariosTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade = CHAVE_RARIDADE_COMUM)
-        if not tamanhoIgualZero(listaTrabalhosProducaoComuns):
-            listaTrabalhosProducaoComuns = sorted(listaTrabalhosProducaoComuns,key=lambda trabalhoProducao:trabalhoProducao.nome)
-            listaDeListaTrabalhos.append(listaTrabalhosProducaoComuns)
+        for raridade in LISTA_RARIDADES:
+            listaTrabalhosProducao = self.retornaListaTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade)
+            if tamanhoIgualZero(listaTrabalhosProducao):
+                continue
+            listaDeListaTrabalhos.append(listaTrabalhosProducao)
         return listaDeListaTrabalhos
 
     def retiraPersonagemJaVerificadoListaAtivo(self):
