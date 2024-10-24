@@ -15,6 +15,7 @@ from repositorio.repositorioTrabalho import RepositorioTrabalho
 from modelos.trabalho import Trabalho
 from modelos.trabalhoProducao import TrabalhoProducao
 from modelos.personagem import Personagem
+from modelos.trabalhoEstoque import TrabalhoEstoque
 
 class CRUD:
     def __init__(self):
@@ -605,6 +606,76 @@ class CRUD:
             input(f'Clique para continuar...')
             break
 
+    def insereTrabalhoEstoque(self):
+        logger = logging.getLogger('estoqueDao')
+        while True:
+            limpaTela()
+            print(f'{('ÍNDICE').ljust(6)} - {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if variavelExiste(personagens):
+                if tamanhoIgualZero(personagens):
+                    print('Lista de personagens está vazia!')
+                else:
+                    for personagem in personagens:
+                        print(f'{str(personagens.index(personagem) + 1).ljust(6)} - {personagem}')
+                print(f'{'0'.ljust(6)} - Voltar')
+                opcaoPersonagem = input(f'Opção:')
+                if int(opcaoPersonagem) == 0:
+                    break
+                personagem = personagens[int(opcaoPersonagem) - 1]
+                while True:
+                    limpaTela()
+                    print(f'{('NOME').ljust(40)} | {('PROFISSÃO').ljust(25)} | {('QNT').ljust(3)} | {('NÍVEL').ljust(5)} | {('RARIDADE').ljust(10)} | {'ID TRABALHO'}')
+                    trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
+                    estoque = trabalhoEstoqueDao.pegaEstoque()
+                    if variavelExiste(estoque):
+                        if tamanhoIgualZero(estoque):
+                            print('Estoque está vazio!')
+                        else:
+                            for trabalhoEstoque in estoque:
+                                print(trabalhoEstoque)
+                        opcaoTrabalho = input(f'Inserir novo trabalho ao estoque? (S/N) ')
+                        if opcaoTrabalho.lower() == 'n':
+                            break
+                        trabalhoDao = TrabalhoDaoSqlite()
+                        trabalhos = trabalhoDao.pegaTrabalhos()
+                        if variavelExiste(trabalhos):
+                            if tamanhoIgualZero(trabalhos):
+                                print('Lista de trabalhos está vazia!')
+                            else:
+                                print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+                                for trabalho in trabalhos:
+                                    print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
+                            print(f'{'0'.ljust(6)} - Voltar')
+                            opcaoTrabalho = input(f'Opção trabalho: ')    
+                            if int(opcaoTrabalho) == 0:
+                                break
+                            trabalho = trabalhos[int(opcaoTrabalho) - 1]
+                            quantidadeTrabalho = input(f'Quantidade trabalho: ')
+                            trabalhoEstoque = TrabalhoEstoque()
+                            trabalhoEstoque.dicionarioParaObjeto(trabalho.__dict__)
+                            trabalhoEstoque.id = str(uuid4())
+                            trabalhoEstoque.trabalhoId = trabalho.id
+                            trabalhoEstoque.setQuantidade(quantidadeTrabalho)
+                            trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
+                            if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoque):
+                                logger.info(f'({trabalhoEstoque}) inserido com sucesso!')
+                                continue
+                            print(f'Erro ao inserir ({trabalhoEstoque}): {trabalhoEstoqueDao.pegaErro()}')
+                            input(f'Clique para continuar...')
+                            continue
+                        print(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
+                        input(f'Clique para continuar...')
+                        break
+                    print(f'Erro ao buscar trabalhos no estoque: {trabalhoEstoqueDao.pegaErro()}')
+                    input(f'Clique para continuar...')
+                    break
+                continue
+            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+            input(f'Clique para continuar...')
+            break
+
     def sincronizaDados(self):
         self.sincronizaListaTrabalhos()
         self.sincronizaListaPersonagens()
@@ -683,17 +754,17 @@ class CRUD:
                 if int(opcaoMenu) == 10:
                     self.modificaProfissao()
                     continue
-                # if int(opcaoMenu) == 8:
-                #     self.mostraVendas()
-                #     continue
-                # if int(opcaoMenu) == 12:
-                #     self.insereTrabalhoEstoque()
-                #     continue
+                if int(opcaoMenu) == 11:
+                    self.insereTrabalhoEstoque()
+                    continue
                 # if int(opcaoMenu) == 13:
                 #     self.modificaTrabalhoEstoque()
                 #     continue
                 # if int(opcaoMenu) == 14:
                 #     self.removeTrabalhoEstoque()
+                #     continue
+                # if int(opcaoMenu) == 8:
+                #     self.mostraVendas()
                 #     continue
                 # if int(opcaoMenu) == 15:
                 #     self.pegaTodosTrabalhosEstoque()
