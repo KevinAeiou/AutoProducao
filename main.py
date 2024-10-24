@@ -1224,22 +1224,21 @@ class Aplicacao:
         print(f'Buscando trabalho {raridade} na lista...')
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
         trabalhosProducao = trabalhoProducaoDao.pegaTrabalhosProducaoParaProduzirProduzindo()
-        if not variavelExiste(trabalhosProducao):
-            logger = logging.getLogger('trabalhoProducaoDao')
-            logger.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-            print(f'Erro ao buscar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+        if variavelExiste(trabalhosProducao):
+            for trabalhoProducao in trabalhosProducao:
+                raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, dicionarioTrabalho[CHAVE_PROFISSAO]) and trabalhoProducao.ehParaProduzir()
+                if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
+                    for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
+                        if textoEhIgual(trabalhoProducaoRaridadeEspecifica.nome, trabalhoProducao.nome):
+                            break
+                    else:
+                        print(f'Trabalho {raridade} encontado: {trabalhoProducao.nome}')
+                        listaTrabalhosProducaoRaridadeEspecifica.append(trabalhoProducao)
+            if tamanhoIgualZero(listaTrabalhosProducaoRaridadeEspecifica):
+                print(f'Nem um trabalho {raridade} na lista!')
             return listaTrabalhosProducaoRaridadeEspecifica
-        for trabalhoProducao in trabalhosProducao:
-            raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, dicionarioTrabalho[CHAVE_PROFISSAO]) and trabalhoProducao.ehParaProduzir()
-            if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
-                for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
-                    if textoEhIgual(trabalhoProducaoRaridadeEspecifica.nome, trabalhoProducao.nome):
-                        break
-                else:
-                    print(f'Trabalho {raridade} encontado: {trabalhoProducao.nome}')
-                    listaTrabalhosProducaoRaridadeEspecifica.append(trabalhoProducao)
-        if tamanhoIgualZero(listaTrabalhosProducaoRaridadeEspecifica):
-            print(f'Nem um trabaho {raridade} na lista!')
+        logger = logging.getLogger('trabalhoProducaoDao')
+        logger.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
         return listaTrabalhosProducaoRaridadeEspecifica
 
     def retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(self, dicionarioTrabalho):
