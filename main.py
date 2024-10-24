@@ -475,7 +475,7 @@ class Aplicacao:
             logger = logging.getLogger('trabalhoProducaoDao')
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
-                logger.info(f'({trabalhoProducao}) adicionado com sucesso!')
+                logger.info(f'({trabalhoProducao}) inserido com sucesso!')
                 return True
             logger.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
             return False
@@ -511,26 +511,23 @@ class Aplicacao:
             return trabalhoProducaoConcluido
 
     def modificaTrabalhoConcluidoListaProduzirProduzindo(self, trabalhoProducaoConcluido):
+        logger = logging.getLogger('trabalhoProducaoDao')
         if trabalhoEhProducaoRecursos(trabalhoProducaoConcluido):
             trabalhoProducaoConcluido.recorrencia = True
         if trabalhoProducaoConcluido.recorrencia:
             print(f'Trabalho recorrente.')
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoConcluido):
-                print(f'Trabalho ({trabalhoProducaoConcluido.nome}) removido com sucesso!')
+                logger.info(f'({trabalhoProducaoConcluido}) removido com sucesso!')
                 return trabalhoProducaoConcluido
-            logger = logging.getLogger('trabalhoProducaoDao')
-            logger.error(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-            print(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+            logger.error(f'Erro ao remover ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
             return trabalhoProducaoConcluido
         print(f'Trabalho sem recorrencia.')
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoConcluido):
-            print(f'Trabalho ({trabalhoProducaoConcluido.nome}) modificado para concluído.')
+            logger.info(f'({trabalhoProducaoConcluido}) modificado com sucesso!.')
             return trabalhoProducaoConcluido
-        logger = logging.getLogger('trabalhoProducaoDao')
-        logger.error(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-        print(f'Erro ao modificar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+        logger.error(f'Erro ao modificar ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
         return trabalhoProducaoConcluido
 
     def modificaExperienciaProfissao(self, trabalhoProducao):
@@ -1550,9 +1547,9 @@ class Aplicacao:
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoEncontrado):
                         estado = 'produzir' if trabalhoProducaoEncontrado.estado  == 0 else 'produzindo' if trabalhoProducaoEncontrado.estado  == 1 else 'concluido'
-                        logger.info(f'Trabalho ({trabalhoProducaoEncontrado}) modificado para {estado}.')
+                        logger.info(f'({trabalhoProducaoEncontrado}) modificado para {estado} com sucesso!.')
                     else:
-                        logger.error(f'Erro ao modificar trabalho ({trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
+                        logger.error(f'Erro ao modificar ({trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
                     self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
                     clickContinuo(12,'up')
                     self.verificaNovamente = True
@@ -1649,17 +1646,16 @@ class Aplicacao:
             print(f'Tratando possíveis erros...')
             tentativas = 1
             erro = self.verificaErro()
+            logger = logging.getLogger('trabalhoProducaoDao')
             while erroEncontrado(erro):
                 if ehErroRecursosInsuficiente(erro):
                     self.__confirmacao = False
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoEncontrado):
-                        print(f'Trabalho ({trabalhoProducaoEncontrado.nome}) removido com sucesso!')
+                        logger.info(f'({trabalhoProducaoEncontrado}) removido com sucesso!')
                         erro = self.verificaErro()
                         continue
-                    logger = logging.getLogger('trabalhoProducaoDao')
-                    logger.error(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-                    print(f'Erro ao remover trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                    logger.error(f'Erro ao remover ({trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
                     erro = self.verificaErro()
                     continue
                 if ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
@@ -1708,7 +1704,6 @@ class Aplicacao:
             if not variavelExiste(trabalhosProducao):
                 logger = logging.getLogger('trabalhoProducaoDao')
                 logger.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-                print(f'Erro ao buscar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                 return listaPossiveisTrabalhosProducao[0]
             for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
                 for trabalhoProduzirProduzindo in trabalhosProducao:
@@ -1728,7 +1723,6 @@ class Aplicacao:
         if not variavelExiste(trabalhosProducao):
             logger = logging.getLogger('trabalhoProducaoDao')
             logger.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-            print(f'Erro ao buscar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
             return False
         for trabalhoProducao in trabalhosProducao:
             if trabalhoProducao.ehProduzindo():
@@ -2005,7 +1999,6 @@ class Aplicacao:
                     if not variavelExiste(trabalhosProducao):
                         logger = logging.getLogger('trabalhoProducaoDao')
                         logger.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
-                        print(f'Erro ao buscar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                         continue
                     if tamanhoIgualZero(trabalhosProducao):
                         print(f'Lista de trabalhos desejados vazia.')
