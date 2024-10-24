@@ -3,13 +3,16 @@ __author__ = 'Kevin Amazonas'
 from modelos.trabalhoVendido import TrabalhoVendido
 from db.db import MeuBanco
 from repositorio.repositorioVendas import RepositorioVendas
+import logging
 
 class VendaDaoSqlite:
+    logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
     def __init__(self, personagem = None):
         self.__conexao = None
         self.__erro = None
         self.__personagem = personagem
         self.__repositorioVendas = RepositorioVendas(personagem)
+        self.__logger = logging.getLogger('vendaDao')
         try:
             self.__meuBanco = MeuBanco()
             self.__conexao = self.__meuBanco.pegaConexao(1)
@@ -79,9 +82,9 @@ class VendaDaoSqlite:
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioVendas.insereTrabalhoVendido(trabalhoVendido):
-                    print(f'Nova venda inserida com sucesso no servidor!')
+                    self.__logger.info(f'({trabalhoVendido}) inserido no servidor com sucesso!')
                 else:
-                    print(f'Erro ao inserir nova venda no servidor: {self.__repositorioVendas.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({trabalhoVendido}) no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -98,9 +101,9 @@ class VendaDaoSqlite:
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioVendas.removeVenda(trabalhoVendido):
-                    print(f'Trabalho vendido removido com sucesso do servidor!')
+                    self.__logger.info(f'({trabalhoVendido}) removido do servidor com sucesso!')
                 else:
-                    print(f'Erro ao remover trabalho vendido do servidor: {self.__repositorioVendas.pegaErro()}')
+                    self.__logger.error(f'Erro ao remover ({trabalhoVendido}) do servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -118,9 +121,9 @@ class VendaDaoSqlite:
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioVendas.modificaVenda(trabalhoVendido):
-                    print(f'Trabalho vendido modificado com sucesso no servidor!')
+                    self.__logger.info(f'({trabalhoVendido}) modificado no servidor com sucesso!')
                 else:
-                    print(f'Erro ao modificar trabalho vendido no servidor: {self.__repositorioVendas.pegaErro()}')
+                    self.__logger.error(f'Erro ao modificar ({trabalhoVendido}) no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)

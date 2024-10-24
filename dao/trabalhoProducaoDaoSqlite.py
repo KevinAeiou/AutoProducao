@@ -6,6 +6,7 @@ import logging
 from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
 
 class TrabalhoProducaoDaoSqlite:
+    logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
     def __init__(self, personagem = None):
         self.__conexao = None
         self.__erro = None
