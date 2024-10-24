@@ -34,7 +34,7 @@ class TesteAplicacao:
 
     def testDeveRetornarMesmoObjetoTrabalhoProducaoComNomeIdQuandoMetodoDefineCloneDicionarioTrabalhoDesejadoEhChamado(self):
         trabalhoTeste = TrabalhoProducao()
-        trabalhoTeste.trabalhoId = '123'
+        trabalhoTeste.idTrabalho = '123'
         trabalhoTeste.nome = 'Nome teste'
         trabalhoTeste.nomeProducao = 'Nome teste'
         trabalhoTeste.setExperiencia = 0

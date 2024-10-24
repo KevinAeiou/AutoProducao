@@ -34,7 +34,7 @@ class TrabalhoProducaoDaoSqlite:
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao = TrabalhoProducao()
                 trabalhoProducao.id = linha[0]
-                trabalhoProducao.trabalhoId = linha[1]
+                trabalhoProducao.idTrabalho = linha[1]
                 trabalhoProducao.nome = linha[2]
                 trabalhoProducao.nomeProducao = linha[3]
                 trabalhoProducao.experiencia = linha[4]
@@ -68,7 +68,7 @@ class TrabalhoProducaoDaoSqlite:
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao = TrabalhoProducao()
                 trabalhoProducao.id = linha[0]
-                trabalhoProducao.trabalhoId = linha[1]
+                trabalhoProducao.idTrabalho = linha[1]
                 trabalhoProducao.nome = linha[2]
                 trabalhoProducao.nomeProducao = linha[3]
                 trabalhoProducao.experiencia = linha[4]
@@ -102,7 +102,7 @@ class TrabalhoProducaoDaoSqlite:
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao = TrabalhoProducao()
                 trabalhoProducao.id = linha[0]
-                trabalhoProducao.trabalhoId = linha[1]
+                trabalhoProducao.idTrabalho = linha[1]
                 trabalhoProducao.nome = linha[2]
                 trabalhoProducao.nomeProducao = linha[3]
                 trabalhoProducao.experiencia = linha[4]
@@ -121,7 +121,7 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaTrabalhoProducaoPorId(self, trabalhoProducao):
+    def pegaTrabalhoProducaoPorId(self, trabalhoProducaoBuscado):
         trabalhoProducao = TrabalhoProducao()
         sql = """
             SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado
@@ -131,11 +131,11 @@ class TrabalhoProducaoDaoSqlite:
             WHERE Lista_desejo.id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoProducao.id])
+            cursor.execute(sql, [trabalhoProducaoBuscado.id])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
                 trabalhoProducao.id = linha[0]
-                trabalhoProducao.trabalhoId = linha[1]
+                trabalhoProducao.idTrabalho = linha[1]
                 trabalhoProducao.nome = linha[2]
                 trabalhoProducao.nomeProducao = linha[3]
                 trabalhoProducao.experiencia = linha[4]
@@ -161,7 +161,7 @@ class TrabalhoProducaoDaoSqlite:
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.trabalhoId, self.__personagem.id, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado))
+            cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.idTrabalho, self.__personagem.id, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
@@ -203,7 +203,7 @@ class TrabalhoProducaoDaoSqlite:
             WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.trabalhoId, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado, trabalhoProducao.id))
+            cursor.execute(sql, (trabalhoProducao.idTrabalho, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado, trabalhoProducao.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:

@@ -4,7 +4,7 @@ from uuid import uuid4
 class TrabalhoProducao:
     def __init__(self):
         self.id = str(uuid4())
-        self.trabalhoId = None
+        self.idTrabalho = None
         self.nome = None
         self.nomeProducao = None
         self.experiencia = 0
@@ -66,6 +66,10 @@ class TrabalhoProducao:
             setattr(self, chave, dicionario[chave])
     
     def __str__(self) -> str:
+        nome = 'Indefinido' if self.nome == None else self.nome
+        profissao = 'Indefinido' if self.profissao == None else self.profissao
+        nivel = 'Indefinido' if self.nivel == None else str(self.nivel)
         estado = 'Produzir' if self.estado == 0 else 'Produzindo' if self.estado == 1 else 'Feito'
+        licenca = 'Indefinido' if self.tipo_licenca == None else self.tipo_licenca
         recorrencia = 'Recorrente' if self.recorrencia else 'Único'
-        return f'{self.nome.ljust(44)} | {self.profissao.ljust(22)} | {str(self.nivel).ljust(5)} | {estado.ljust(10)} | {self.tipo_licenca.ljust(34)} | {recorrencia}'
+        return f'{nome.ljust(44)} | {profissao.ljust(22)} | {nivel.ljust(5)} | {estado.ljust(10)} | {licenca.ljust(34)} | {recorrencia}'

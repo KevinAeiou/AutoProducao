@@ -503,7 +503,7 @@ class Aplicacao:
             print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].nome}) não encontrado na lista produzindo...')
             trabalhoProducaoConcluido = TrabalhoProducao()
             trabalhoProducaoConcluido.dicionarioParaObjeto(listaPossiveisTrabalhos[0].__dict__)
-            trabalhoProducaoConcluido.trabalhoId = listaPossiveisTrabalhos[0].id
+            trabalhoProducaoConcluido.idTrabalho = listaPossiveisTrabalhos[0].id
             trabalhoProducaoConcluido.recorrencia = False
             trabalhoProducaoConcluido.tipo_licenca = CHAVE_LICENCA_NOVATO
             trabalhoProducaoConcluido.estado = CODIGO_CONCLUIDO
@@ -763,7 +763,7 @@ class Aplicacao:
                             trabalhoProducaoRaro = TrabalhoProducao()
                             trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
                             trabalhoProducaoRaro.id = str(uuid.uuid4())
-                            trabalhoProducaoRaro.trabalhoId = trabalho.id
+                            trabalhoProducaoRaro.idTrabalho = trabalho.id
                             trabalhoProducaoRaro.experiencia = trabalho.experiencia * 1.5
                             trabalhoProducaoRaro.recorrencia = False
                             trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
@@ -1689,7 +1689,7 @@ class Aplicacao:
                 trabalhoEncontrado = TrabalhoProducao()
                 trabalhoEncontrado.dicionarioParaObjeto(trabalho.__dict__)
                 trabalhoEncontrado.id = str(uuid.uuid4())
-                trabalhoEncontrado.trabalhoId = trabalho.id
+                trabalhoEncontrado.idTrabalho = trabalho.id
                 trabalhoEncontrado.recorrencia = False
                 trabalhoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
                 trabalhoEncontrado.estado = CODIGO_CONCLUIDO
@@ -2526,7 +2526,7 @@ class Aplicacao:
                 recorrencia = True if (opcaoRecorrencia).lower() == 's' else False
                 novoTrabalhoProducao = TrabalhoProducao()
                 novoTrabalhoProducao.dicionarioParaObjeto(trabalho.__dict__)
-                novoTrabalhoProducao.trabalhoId = trabalho.id
+                novoTrabalhoProducao.idTrabalho = trabalho.id
                 novoTrabalhoProducao.recorrencia = recorrencia
                 novoTrabalhoProducao.tipo_licenca = licenca
                 novoTrabalhoProducao.estado = CODIGO_PARA_PRODUZIR
