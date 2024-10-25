@@ -45,7 +45,7 @@ class RepositorioTrabalho:
             if message['data'] is None:
                 # Algum trabalho foi removido do servidor
                 idTrabalhoDeletado = message['path'].replace('/','').strip()
-                trabalho.setId(idTrabalhoDeletado)
+                trabalho.id = idTrabalhoDeletado
                 self.__dadosModificados.append(trabalho)
                 return
             # Algum trabalho foi modificado/inserido no servidor
