@@ -28,4 +28,8 @@ class Trabalho:
             setattr(self, chave, dicionario[chave])
 
     def __str__(self) -> str:
-        return f'{(self.nome).ljust(44)} | {(self.profissao).ljust(22)} | {(self.raridade).ljust(9)} | {self.nivel}'
+        nome = 'Indefinido' if self.nome == None else self.nome
+        profissao = 'Indefinido' if self.profissao == None else self.profissao
+        raridade = 'Indefinido' if self.raridade == None else self.raridade
+        nivel = 'Indefinido' if self.nivel == None else str(self.nivel)
+        return f'{nome.ljust(44)} | {profissao.ljust(22)} | {raridade.ljust(9)} | {nivel}'
