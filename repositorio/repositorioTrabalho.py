@@ -1,19 +1,21 @@
 from repositorio.firebaseDatabase import FirebaseDatabase
 from modelos.trabalho import Trabalho
 from constantes import *
-import time
+from time import time
+import logging
 
 class RepositorioTrabalho:
     def __init__(self) -> None:
+        logging.basicConfig(level = logging.debug, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
+        self.__logger = logging.getLogger('repositorioTrabalho')
         self.__erro = None
-        self.__tempo = None
         self.__meuBanco = FirebaseDatabase().pegaDataBase()
         self.__dadosModificados: list[Trabalho] = []
 
     def abreStream(self):
         try:
-            self.__inicio = time.time()
-            self.__streamPronta = False
+            self.__inicio = time()
+            self.__logger.info(f'Tempo de inicio da stream: {self.__inicio}')
             self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).stream(self.stream_handler)
             return True
         except Exception as e:
@@ -31,25 +33,13 @@ class RepositorioTrabalho:
     def pegaDadosModificados(self):
         return self.__dadosModificados
     
-    def pegaTempoFinal(self):
-        return self.__tempo
-    
-    def pegaTempo(self):
-        return time.time() - self.__inicio
-    
-    def streamPronta(self):
-        return self.__streamPronta
-    
     def limpaLista(self):
         self.__dadosModificados.clear()
     
     def stream_handler(self, message):
-        print("Lista de trabalhos foi modificada...")
         if message["event"] in ("put", "patch"):
             if message["path"] == "/":
-                self.__fim = time.time()
-                self.__tempo = self.__fim - self.__inicio
-                self.__streamPronta = True
+                self.__logger.info(f'Tempo final da stream pronta: {time() - self.__inicio}')
                 return
             trabalho = Trabalho()
             if message['data'] is None:
