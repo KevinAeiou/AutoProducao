@@ -694,36 +694,29 @@ class CRUD:
         if self.__repositorioTrabalho.estaPronto:
             for trabalho in self.__repositorioTrabalho.pegaDadosModificados():
                 trabalhoDao = TrabalhoDaoSqlite()
+                if trabalho.nome is None:
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.removeTrabalho(trabalho, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalho}) removido com sucesso!')
+                        continue
+                    self.__loggerTrabalhoDao.error(f'Erro ao remover ({trabalho}): {trabalhoDao.pegaErro()}')
+                    continue
                 trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalho)
                 if trabalhoEncontrado is None:
                     self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalho por id: {trabalhoDao.pegaErro()}')
                     continue
-                    print(f'Trabalho não encontrado no banco!')
-                    if trabalho.nome is not None:
-                        print(f'Deve inserir novo trabalho no banco!')
-                        trabalhoDao = TrabalhoDaoSqlite()
-                        if trabalhoDao.insereTrabalho(trabalho, False):
-                            print(f'{trabalho.nome} inserido com sucesso!')
-                            continue
-                        logger.error(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
-                        print(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
-                    continue
                 if trabalhoEncontrado.nome is None:
-                    
-                    pass
-                if trabalho.nome is None:
-                    print(f'Deve remover trabalho do banco!')
                     trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.removeTrabalho(trabalho, False):
-                        self.__loggerTrabalhoDao.info(f'Trabalho removido com sucesso!')
+                    if trabalhoDao.insereTrabalho(trabalho, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalho}) inserido com sucesso!')
                         continue
-                    self.__loggerTrabalhoDao.error(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
+                    self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalho}): {trabalhoDao.pegaErro()}')
                     continue
                 trabalhoDao = TrabalhoDaoSqlite()
                 if trabalhoDao.modificaTrabalhoPorId(trabalho, False):
                     self.__loggerTrabalhoDao.info(f'({trabalho}) modificado com sucesso!')
                     continue
-                self.__loggerTrabalhoDao.error(f'Erro ao modificar ({trabalho}): {trabalhoDao.pegaErro()}')
+                self.__loggerTrabalhoDao.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
             self.__repositorioTrabalho.limpaLista()
 
     def testeFuncao(self):
@@ -731,13 +724,13 @@ class CRUD:
             self.__loggerRepositorioTrabalho.info(f'Stream repositório trabalhos iniciada com sucesso!')
         else:
             self.__loggerRepositorioTrabalho.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
-        if self.__repositorioPersonagem.abreStream():
-            self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada com sucesso!')
-        else:
-            self.__loggerRepositorioPersonagem.info(f'Erro ao inicar stream: {self.__repositorioPersonagem.pegaErro()}')
+        # if self.__repositorioPersonagem.abreStream():
+        #     self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada com sucesso!')
+        # else:
+        #     self.__loggerRepositorioPersonagem.info(f'Erro ao inicar stream: {self.__repositorioPersonagem.pegaErro()}')
         while True:
-            # self.verificaAlteracaoListaTrabalhos()
-            self.verificaAlteracaoPersonagem()
+            self.verificaAlteracaoListaTrabalhos()
+            # self.verificaAlteracaoPersonagem()
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:

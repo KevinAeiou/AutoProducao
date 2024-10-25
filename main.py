@@ -35,6 +35,7 @@ class Aplicacao:
         self.__loggerRepositorioPersonagem = logging.getLogger('repositorioPersonagem')
         self.__loggerPersonagemDao = logging.getLogger('personagemDao')
         self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
+        self.__loggerTrabalhoDao = logging.getLogger('trabalhoDao')
         self._imagem = ManipulaImagem()
         self.__listaPersonagemJaVerificado = []
         self.__listaPersonagemAtivo = []
@@ -2037,45 +2038,31 @@ class Aplicacao:
 
     def verificaAlteracaoListaTrabalhos(self):
         if self.__repositorioTrabalho.estaPronto:
-            print(f'Lista de trabalhos foi alterada!')
             for trabalho in self.__repositorioTrabalho.pegaDadosModificados():
                 trabalhoDao = TrabalhoDaoSqlite()
+                if trabalho.nome is None:
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.removeTrabalho(trabalho, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalho}) removido com sucesso!')
+                        continue
+                    self.__loggerTrabalhoDao.error(f'Erro ao remover ({trabalho}): {trabalhoDao.pegaErro()}')
+                    continue
                 trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalho)
                 if trabalhoEncontrado is None:
                     self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalho por id: {trabalhoDao.pegaErro()}')
                     continue
-                    print(f'Trabalho não encontrado no banco!')
-                    if trabalho.nome is not None:
-                        print(f'Deve inserir novo trabalho no banco!')
-                        trabalhoDao = TrabalhoDaoSqlite()
-                        if trabalhoDao.insereTrabalho(trabalho, False):
-                            print(f'{trabalho.nome} inserido com sucesso!')
-                            continue
-                        logger = logging.getLogger('trabalhoDao')
-                        logger.error(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
-                        print(f'Erro ao inserir trabalho: {trabalhoDao.pegaErro()}')
-                    continue
                 if trabalhoEncontrado.nome is None:
-                    
-                    pass
-                if trabalho.nome is None:
-                    print(f'Deve remover trabalho do banco!')
                     trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.removeTrabalho(trabalho, False):
-                        print(f'Trabalho removido com sucesso!')
+                    if trabalhoDao.insereTrabalho(trabalho, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalho}) inserido com sucesso!')
                         continue
-                    logger = logging.getLogger('trabalhoDao')
-                    logger.error(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
-                    print(f'Erro ao remover trabalho: {trabalhoDao.pegaErro()}')
+                    self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalho}): {trabalhoDao.pegaErro()}')
                     continue
-                print(f'Deve modificar trabalho no banco!')
                 trabalhoDao = TrabalhoDaoSqlite()
                 if trabalhoDao.modificaTrabalhoPorId(trabalho, False):
-                    print(f'{trabalho.nome} modificado com sucesso!')
+                    self.__loggerTrabalhoDao.info(f'({trabalho}) modificado com sucesso!')
                     continue
-                logger = logging.getLogger('trabalhoDao')
-                logger.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
-                print(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+                self.__loggerTrabalhoDao.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
             self.__repositorioTrabalho.limpaLista()
     
     def modificaPersonagemStream(self, personagemEncontrado):
@@ -2105,7 +2092,7 @@ class Aplicacao:
             self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
             return
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
-        
+
     def modificaTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao, False):
