@@ -33,6 +33,8 @@ class Aplicacao:
         logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
         self.__loggerRepositorioTrabalho = logging.getLogger('repositorioTrabalho')
         self.__loggerRepositorioPersonagem = logging.getLogger('repositorioPersonagem')
+        self.__loggerPersonagemDao = logging.getLogger('personagemDao')
+        self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
         self._imagem = ManipulaImagem()
         self.__listaPersonagemJaVerificado = []
         self.__listaPersonagemAtivo = []
@@ -2075,6 +2077,81 @@ class Aplicacao:
                 logger.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
                 print(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
             self.__repositorioTrabalho.limpaLista()
+    
+    def modificaPersonagemStream(self, personagemEncontrado):
+        personagemDao = PersonagemDaoSqlite()
+        if personagemDao.modificaPersonagem(personagemEncontrado, False):
+            self.__loggerPersonagemDao.info(f'({personagemEncontrado}) modificado com sucesso!')
+            return
+        self.__loggerPersonagemDao.error(f'Erro ao modificar ({personagemEncontrado}): {personagemDao.pegaErro()}')
+
+    def inserePersonagemStream(self, personagemModificado):
+        personagemDao = PersonagemDaoSqlite()
+        if personagemDao.inserePersonagem(personagemModificado, False):
+            self.__loggerPersonagemDao.info(f'({personagemModificado}) inserido com sucesso!')
+            return
+        self.__loggerPersonagemDao.error(f'Erro ao inserir ({personagemModificado}): {personagemDao.pegaErro()}')
+
+    def removeTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
+        if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducao, False):
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) removido com sucesso!')
+            return
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+
+    def insereTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
+        if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, False):
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
+            return
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+        
+    def modificaTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
+        if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao, False):
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) modificado com sucesso!')
+            return
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+
+    def verificaAlteracaoPersonagem(self):
+        if self.__repositorioPersonagem.estaPronto:
+            dicionarios = self.__repositorioPersonagem.pegaDadosModificados()
+            for dicionario in dicionarios:
+                personagemModificado = Personagem()
+                personagemModificado.id = dicionario['id']
+                if 'Lista_desejo' in dicionario:
+                    trabalhoProducao = TrabalhoProducao()
+                    if dicionario['Lista_desejo'] == None:
+                        trabalhoProducao.id = dicionario['idTrabalhoProducao']
+                        self.removeTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                        continue
+                    trabalhoProducao.dicionarioParaObjeto(dicionario['Lista_desejo'])
+                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
+                    trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
+                    if trabalhoProducaoEncontrado == None:
+                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho em produção por id: {trabalhoProducaoDao.pegaErro()}')
+                        continue
+                    if trabalhoProducaoEncontrado.nome == None:
+                        self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                        continue
+                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                    continue
+                if dicionario['novoPersonagem'] == None:
+                    persoangemDao = PersonagemDaoSqlite()
+                    personagemEncontrado = persoangemDao.pegaPersonagemEspecificoPorId(personagemModificado)
+                    if personagemEncontrado == None:
+                        self.__loggerPersonagemDao.error(f'Erro ao buscar personagem por id: {persoangemDao.pegaErro()}')
+                        continue
+                    if personagemEncontrado.nome == None:
+                        self.__loggerPersonagemDao.info(f'({personagemModificado}) não encontrado no banco!')
+                        continue
+                    personagemEncontrado.dicionarioParaObjeto(dicionario)
+                    self.modificaPersonagemStream(personagemEncontrado)
+                    continue
+                personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
+                self.inserePersonagemStream(personagemModificado)
+                continue
+            self.__repositorioPersonagem.limpaLista()
         
     def sincronizaListaTrabalhos(self):
         loggerTrabalho = logging.getLogger('trabalhoDAO')
