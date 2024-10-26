@@ -1974,6 +1974,7 @@ class Aplicacao:
     def iniciaProcessoBusca(self):
         while True:
             self.verificaAlteracaoListaTrabalhos()
+            self.verificaAlteracaoPersonagem()
             self.retiraPersonagemJaVerificadoListaAtivo()
             listaPersonagensAtivosEstaVazia = tamanhoIgualZero(self.__listaPersonagemAtivo)
             if listaPersonagensAtivosEstaVazia:
@@ -2102,6 +2103,7 @@ class Aplicacao:
                         continue
                     trabalhoProducao.dicionarioParaObjeto(dicionario['Lista_desejo'])
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
+                    trabalhoProducao.id = dicionario['idTrabalhoProducao']
                     trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
                     if trabalhoProducaoEncontrado == None:
                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho em produção por id: {trabalhoProducaoDao.pegaErro()}')

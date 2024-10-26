@@ -30,6 +30,14 @@ class CRUD:
         self.__loggerPersonagemDao = logging.getLogger('personagemDao')
         self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
         self.__loggerRepositorioTrabalho = logging.getLogger('repositorioTrabalho')
+        if self.__repositorioPersonagem.abreStream():
+            self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada com sucesso!')
+        else:
+            self.__loggerRepositorioPersonagem.info(f'Erro ao inicar stream: {self.__repositorioPersonagem.pegaErro()}')
+        if self.__repositorioTrabalho.abreStream():
+            self.__loggerRepositorioTrabalho.info(f'Stream repositório trabalhos iniciada com sucesso!')
+        else:
+            self.__loggerRepositorioTrabalho.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
         self.menu()
     
     def insereTrabalhoProducao(self, trabalhoProducao):
@@ -791,17 +799,9 @@ class CRUD:
             self.__repositorioTrabalho.limpaLista()
 
     def testeFuncao(self):
-        if self.__repositorioTrabalho.abreStream():
-            self.__loggerRepositorioTrabalho.info(f'Stream repositório trabalhos iniciada com sucesso!')
-        else:
-            self.__loggerRepositorioTrabalho.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
-        # if self.__repositorioPersonagem.abreStream():
-        #     self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada com sucesso!')
-        # else:
-        #     self.__loggerRepositorioPersonagem.info(f'Erro ao inicar stream: {self.__repositorioPersonagem.pegaErro()}')
         while True:
             self.verificaAlteracaoListaTrabalhos()
-            # self.verificaAlteracaoPersonagem()
+            self.verificaAlteracaoPersonagem()
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:
@@ -816,6 +816,7 @@ class CRUD:
                         self.removeTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
                     trabalhoProducao.dicionarioParaObjeto(dicionario['Lista_desejo'])
+                    trabalhoProducao.id = dicionario['idTrabalhoProducao']
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
                     trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
                     if trabalhoProducaoEncontrado == None:
@@ -880,6 +881,8 @@ class CRUD:
 
     def menu(self):
         while True:
+            self.verificaAlteracaoListaTrabalhos()
+            self.verificaAlteracaoPersonagem()
             limpaTela()
             print(f'MENU')
             print(f'01 - Adiciona trabalho')
