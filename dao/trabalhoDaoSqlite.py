@@ -45,6 +45,35 @@ class TrabalhoDaoSqlite():
         except Exception as e:
             self.__erro = str(e)
         return None
+    
+    def pegaTrabalhosPorProfissaoRaridade(self, trabalhoBuscado):
+        trabalhos = []
+        sql = """
+            SELECT * 
+            FROM trabalhos
+            WHERE profissao = ? AND raridade == ?;
+            """
+        try:
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, (trabalhoBuscado.profissao, trabalhoBuscado.raridade))
+                for linha in cursor.fetchall():
+                    trabalho = Trabalho()
+                    trabalho.id = linha[0]
+                    trabalho.nome = linha[1]
+                    trabalho.nomeProducao = linha[2]
+                    trabalho.experiencia = linha[3]
+                    trabalho.nivel = linha[4]
+                    trabalho.profissao = linha[5]
+                    trabalho.raridade = linha[6]
+                    trabalho.trabalhoNecessario = linha[7]
+                    trabalhos.append(trabalho)
+                trabalhos = sorted(trabalhos, key= lambda trabalho: (trabalho.profissao, trabalho.raridade, trabalho.nivel))
+                self.__meuBanco.desconecta()
+                return trabalhos            
+        except Exception as e:
+            self.__erro = str(e)
+        return None
 
     def pegaTrabalhoEspecificoPorId(self, trabalhoBuscado):
         trabalho = Trabalho()
