@@ -228,9 +228,7 @@ class ManipulaImagem:
         return self.reconheceNomeTrabalhoFrameProducao(self.retornaAtualizacaoTela())
     
     def desenhaRetangulo(self, imagem, contorno):
-        area = cv2.contourArea(contorno)
         x,y,l,a=cv2.boundingRect(contorno)
-        print(f'Area:{area}, x:{x}, y:{y}.')
         return cv2.rectangle(imagem,(x,y),(x+l,y+a),(0,255,0),2)
 
     def retonaImagemRedimensionada(self, imagem, porcentagem):
@@ -244,19 +242,26 @@ class ManipulaImagem:
         imagemCinza = self.retornaImagemCinza(frameTela)
         imagemDesfocada = cv2.GaussianBlur(imagemCinza,(1,1),1)
         imagemLimiarizada = cv2.Canny(imagemDesfocada,150,180)
-        kernel = np.ones((2,2),np.uint8)
-        imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel,1)
-        imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel,1)
-        contornos, h1 = cv2.findContours(imagemErodida,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
         for cnt in contornos:
             area = cv2.contourArea(cnt)
-            if area > 4500 and area < 5700:
-                x,y,l,a=cv2.boundingRect(cnt)
-                frameTela = self.desenhaRetangulo(frameTela, cnt)
+            if area == 258 or area == 4904.5:
+                x, y, l, a = cv2.boundingRect(cnt)
                 centroX = x+(l/2)
                 centroY = y+(a/2)
                 return [centroX, centroY]
         return None
+
+    def escreveTexto(self, frameTela, contorno):
+        area = cv2.contourArea(contorno)
+        texto = f'Area: {area}'
+        x,y,l,a=cv2.boundingRect(contorno)
+        posicao = (x, y)
+        fonte = cv2.FONT_HERSHEY_SIMPLEX
+        escala = 0.5
+        cor = (255, 255, 255)
+        thickness = 1
+        return cv2.putText(frameTela, texto, posicao, fonte, escala, cor, thickness, cv2.LINE_AA)
     
     def retornaReferenciaTeste(self):
         telaInteira = self.abreImagem('tests/imagemTeste/testeMenuEscolhaPersonagem.png')
