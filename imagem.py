@@ -264,28 +264,35 @@ class ManipulaImagem:
         return cv2.putText(frameTela, texto, posicao, fonte, escala, cor, thickness, cv2.LINE_AA)
     
     def retornaReferenciaTeste(self):
-        telaInteira = self.abreImagem('tests/imagemTeste/testeMenuEscolhaPersonagem.png')
+        telaInteira = self.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias.png')
         telaInteira = self.retonaImagemRedimensionada(telaInteira, 0.8)
         frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(frameTela)
         # self.mostraImagem(0, imagemCinza, 'TELA_CINZA')
+        imagemDesfocada = cv2.GaussianBlur(imagemCinza,(3,3), 4)
         # imagemDesfocada = cv2.GaussianBlur(imagemCinza, (3, 3), cv2.BORDER_DEFAULT)
         # self.mostraImagem(0, imagemDesfocada, 'TELA_DESFOCADA')
-        # kernel = np.ones((2,2),np.uint8)
-        imagemLimiarizada = cv2.Canny(imagemCinza,200,255)
-        self.mostraImagem(0, imagemLimiarizada, 'TELA_LIMIARIZADA')
-        # imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel,1)
+        kernel = np.ones((2,2),np.uint8)
+        imagemLimiarizada = cv2.Canny(imagemDesfocada,150,180)
+        # self.mostraImagem(0, imagemLimiarizada, 'TELA_LIMIARIZADA')
+        imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel, 2)
         # self.mostraImagem(0, imagemDilatada, 'TELA_DILATADA')
-        # imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel,1)
+        imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel, 2)
         # self.mostraImagem(0, imagemErodida, 'TELA_ERODIDA')
-        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        contornos, h1 = cv2.findContours(imagemErodida,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for contorno in contornos:
+            area = cv2.contourArea(contorno)
             epsilon = 0.02 * cv2.arcLength(contorno, True)
             aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
-            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4:
+            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area > 3000:
                 x, y, l, a = cv2.boundingRect(contorno)
                 frameTela = self.desenhaRetangulo(frameTela, contorno)
+                frameTela = self.escreveTexto(frameTela, contorno)
                 centroX = 330+x+(l/2)
                 centroY = y+(a/2)
                 print(f'Centro da forma: {centroX} - {centroY}')
         self.mostraImagem(0, frameTela, 'BORDAS_RECONHECIDAS')
+
+if __name__=='__main__':
+    imagem = ManipulaImagem()
+    imagem.retornaReferenciaTeste()
