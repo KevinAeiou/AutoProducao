@@ -340,7 +340,7 @@ class CRUD:
                         if tamanhoIgualZero(trabalhos):
                             print('Lista de trabalhos em produção está vazia!')
                         else:
-                            print(f"{'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'NÍVEL'.ljust(5)} | {'ESTADO'.ljust(10)} | {'LICENÇA'.ljust(31)} | RECORRÊNCIA")
+                            print(f"{'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'NÍVEL'.ljust(5)} | {'ESTADO'.ljust(10)} | {'LICENÇA'.ljust(34)} | RECORRÊNCIA")
                             for trabalhoProducao in trabalhos:
                                 print(trabalhoProducao)
                         opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N) ')    

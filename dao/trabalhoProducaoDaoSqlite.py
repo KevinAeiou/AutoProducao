@@ -81,6 +81,7 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.estado = linha[11]
                 trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
+            trabalhosProducao = sorted(trabalhosProducao, key = lambda trabalhoProducao: (trabalhoProducao.estado, trabalhoProducao.profissao, trabalhoProducao.nivel, trabalhoProducao.nome))
             return trabalhosProducao
         except Exception as e:
             self.__erro = str(e)
