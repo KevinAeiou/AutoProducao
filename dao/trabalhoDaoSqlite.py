@@ -68,7 +68,7 @@ class TrabalhoDaoSqlite():
                     trabalho.raridade = linha[6]
                     trabalho.trabalhoNecessario = linha[7]
                     trabalhos.append(trabalho)
-                trabalhos = sorted(trabalhos, key= lambda trabalho: (trabalho.profissao, trabalho.raridade, trabalho.nivel))
+                trabalhos = sorted(trabalhos, key= lambda trabalho: (trabalho.nivel, trabalho.nome))
                 self.__meuBanco.desconecta()
                 return trabalhos            
         except Exception as e:
