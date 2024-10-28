@@ -498,7 +498,7 @@ class Aplicacao:
                     nomeEhIgualEEhProduzindo = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalho.nome)
                     if nomeEhIgualEEhProduzindo:
                         trabalhoProduzirProduzindo.estado = CODIGO_CONCLUIDO
-                        trabalhoProduzirProduzindo.trabalhoId = possivelTrabalho.id
+                        trabalhoProduzirProduzindo.idTrabalho = possivelTrabalho.id
                         trabalhoProduzirProduzindo.nomeProducao = possivelTrabalho.nomeProducao
                         return trabalhoProduzirProduzindo
             else:
@@ -571,7 +571,7 @@ class Aplicacao:
                 trabalhoEstoque.nivel = 0
                 trabalhoEstoque.quantidade = 2
                 trabalhoEstoque.raridade = 'Recurso'
-                trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+                trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
             else:
                 if trabalhoEhMelhoriaEssenciaComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
@@ -580,7 +580,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaEssenciaComposta(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Essência de energia'
@@ -588,7 +588,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaSubstanciaComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Substância composta'
@@ -596,7 +596,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaSubstanciaComposta(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Substância energética'
@@ -604,7 +604,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaCatalisadorComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Catalisador amplificado'
@@ -612,7 +612,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaCatalisadorComposto(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Catalisador de energia'
@@ -620,7 +620,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
                 if variavelExiste(trabalhoEstoque):
                     if textoEhIgual(trabalhoProducaoConcluido.tipo_licenca, CHAVE_LICENCA_APRENDIZ):
                         trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
@@ -670,7 +670,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = trabalhoProducaoConcluido.nivel
                     trabalhoEstoque.quantidade = 0
                     trabalhoEstoque.raridade = trabalhoProducaoConcluido.raridade
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
                     tipoRecurso = retornaChaveTipoRecurso(trabalhoEstoque)
                     if variavelExiste(tipoRecurso):
                         if tipoRecurso == CHAVE_RCS or tipoRecurso == CHAVE_RCT:
@@ -689,7 +689,7 @@ class Aplicacao:
             trabalhoEstoque.nivel = trabalhoProducaoConcluido.nivel
             trabalhoEstoque.quantidade = 1
             trabalhoEstoque.raridade = trabalhoProducaoConcluido.raridade
-            trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.trabalhoId
+            trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
         print(f'Lista de dicionários trabalhos concluídos:')
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
