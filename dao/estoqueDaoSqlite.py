@@ -75,7 +75,7 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoEstoque(self, trabalhoEstoque):
+    def insereTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         sql = """
             INSERT INTO Lista_estoque (id, idPersonagem, idTrabalho, quantidade)
             VALUES (?,?,?,?)"""
@@ -84,17 +84,18 @@ class EstoqueDaoSqlite:
             cursor.execute(sql, (trabalhoEstoque.id, self.__personagem.id, trabalhoEstoque.trabalhoId, trabalhoEstoque.quantidade))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioEstoque.insereTrabalhoEstoque(trabalhoEstoque):
-                self.__logger.info(f'({trabalhoEstoque}) inserido no servidor com sucesso!')
-            else:
-                self.__logger.error(f'Erro ao inserir ({trabalhoEstoque}) no servidor!')
+            if modificaServidor:
+                if self.__repositorioEstoque.insereTrabalhoEstoque(trabalhoEstoque):
+                    self.__logger.info(f'({trabalhoEstoque}) inserido no servidor com sucesso!')
+                else:
+                    self.__logger.error(f'Erro ao inserir ({trabalhoEstoque}) no servidor!')
             return True
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return False
 
-    def modificaTrabalhoEstoque(self, trabalhoEstoque):
+    def modificaTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         sql = """
             UPDATE Lista_estoque 
             SET idTrabalho = ?, quantidade = ?
@@ -104,10 +105,11 @@ class EstoqueDaoSqlite:
             cursor.execute(sql, (trabalhoEstoque.trabalhoId, trabalhoEstoque.quantidade, trabalhoEstoque.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque):
-                self.__logger.info(f'({trabalhoEstoque}) modificado no servidor com sucesso!')
-            else:
-                self.__logger.error(f'Erro ao modificar ({trabalhoEstoque}) no servidor: {self.__repositorioEstoque.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque):
+                    self.__logger.info(f'({trabalhoEstoque}) modificado no servidor com sucesso!')
+                else:
+                    self.__logger.error(f'Erro ao modificar ({trabalhoEstoque}) no servidor: {self.__repositorioEstoque.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
