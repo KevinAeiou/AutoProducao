@@ -477,12 +477,11 @@ class Aplicacao:
     
     def insereTrabalhoProducao(self, trabalhoProducao):
         if variavelExiste(trabalhoProducao):
-            logger = logging.getLogger('trabalhoProducaoDao')
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
-                logger.info(f'({trabalhoProducao}) inserido com sucesso!')
+                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
                 return True
-            logger.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
             return False
 
     def retornaTrabalhoConcluido(self, nomeTrabalhoConcluido):
@@ -1355,6 +1354,7 @@ class Aplicacao:
         cloneTrabalhoProducao = TrabalhoProducao()
         cloneTrabalhoProducao.dicionarioParaObjeto(trabalhoProducaoEncontrado.__dict__)
         cloneTrabalhoProducao.id = str(uuid.uuid4())
+        cloneTrabalhoProducao.recorrencia = False
         return cloneTrabalhoProducao
     
 
