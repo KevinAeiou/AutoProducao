@@ -1083,7 +1083,7 @@ class CRUD:
                         continue
                     self.__loggerTrabalhoDao.error(f'Erro ao remover ({trabalho}): {trabalhoDao.pegaErro()}')
                     continue
-                trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalho)
+                trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalho.id)
                 if trabalhoEncontrado is None:
                     self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalho por id: {trabalhoDao.pegaErro()}')
                     continue
