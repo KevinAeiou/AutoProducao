@@ -18,6 +18,7 @@ from modelos.trabalho import Trabalho
 from modelos.trabalhoProducao import TrabalhoProducao
 from modelos.personagem import Personagem
 from modelos.trabalhoEstoque import TrabalhoEstoque
+from modelos.trabalhoVendido import TrabalhoVendido
 
 class CRUD:
     def __init__(self):
@@ -29,6 +30,7 @@ class CRUD:
         self.__loggerPersonagemDao = logging.getLogger('personagemDao')
         self.__loggerEstoqueDao = logging.getLogger('estoqueDao')
         self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
+        self.__loggerVendaDao = logging.getLogger('vendaDao')
         self.__loggerRepositorioPersonagem = logging.getLogger('repositorioPersonagem')
         self.__loggerRepositorioTrabalho = logging.getLogger('repositorioTrabalho')
         if self.__repositorioPersonagem.abreStream():
@@ -414,7 +416,7 @@ class CRUD:
                     input(f'Clique para continuar...')
                     break
                 continue
-            self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+            self.__loggerPersonagemDao.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
             input(f'Clique para continuar...')
             break
     
@@ -886,6 +888,105 @@ class CRUD:
             input(f'Clique para continuar...')
             break
 
+    def mostraListaPersonagens(self):
+        limpaTela()
+        personagemDao = PersonagemDaoSqlite()
+        personagens = personagemDao.pegaPersonagens()
+        if variavelExiste(personagens):
+            if tamanhoIgualZero(personagens):
+                print('Lista de personagens está vazia!')
+            else:
+                print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
+                for personagem in personagens:
+                    print(f'{str(personagens.index(personagem) + 1).ljust(6)} - {personagem}')
+            print(f'{'0'.ljust(6)} - Voltar')
+            return personagens
+        self.__loggerPersonagemDao.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+        return None
+    
+    def definePersonagemEscolhido(self, personagens) -> Personagem:
+        opcaoPersonagem = input(f'Opção: ')
+        if int(opcaoPersonagem) == 0:
+            return None
+        return personagens[int(opcaoPersonagem) - 1]
+    
+    def mostraListaVendas(self, personagem):
+        limpaTela()
+        print(f'{'NOME'.ljust(44)} | {'DATA'.ljust(10)} | {'VALOR'.ljust(5)} | UND')
+        trabalhoVendidoDao = VendaDaoSqlite(personagem)
+        vendas = trabalhoVendidoDao.pegaVendas()
+        if variavelExiste(vendas):
+            if tamanhoIgualZero(vendas):
+                print('Lista de vendas está vazia!')
+            else:
+                for trabalhoVendido in vendas:
+                    print(trabalhoVendido)
+            return vendas
+        self.__loggerVendaDao.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
+        return None
+    
+    def mostraListaTrabalhos(self):
+        limpaTela()
+        trabalhoDao = TrabalhoDaoSqlite()
+        trabalhos = trabalhoDao.pegaTrabalhos()
+        if variavelExiste(trabalhos):
+            if tamanhoIgualZero(trabalhos):
+                print('Lista de trabalhos está vazia!')
+            else:
+                print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+                for trabalho in trabalhos:
+                    print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
+            return trabalhos
+        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
+        return None
+
+    def insereTrabalhoVendido(self):
+        while True:
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens):
+                personagem = self.definePersonagemEscolhido(personagens)
+                if variavelExiste(personagem):
+                    while True:
+                        vendas = self.mostraListaVendas(personagem)
+                        if variavelExiste(vendas):
+                            opcaoTrabalho = input(f'Inserir nova venda? (S/N) ')
+                            if opcaoTrabalho.lower() == 'n':
+                                break
+                            trabalhos = self.mostraListaTrabalhos()
+                            if variavelExiste(trabalhos):
+                                trabalho = self.defineTrabalhoEscolhido(trabalhos)
+                                if variavelExiste(trabalho):
+                                    descricao = input(f'Descrição da venda: ')
+                                    data = input(f'Data da venda: ')
+                                    quantidade = input(f'Quantidade trabalho vendido: ')
+                                    valor = input(f'Valor do trabalho vendido: ')
+                                    trabalhoVendidoDao = VendaDaoSqlite(personagem)
+                                    trabalhoVendido = TrabalhoVendido()
+                                    trabalhoVendido.trabalhoId = trabalho.id
+                                    trabalhoVendido.nomeProduto = descricao
+                                    trabalhoVendido.dataVenda = data
+                                    trabalhoVendido.quantidadeProduto = quantidade
+                                    trabalhoVendido.valorProduto = valor
+                                    if trabalhoVendidoDao.insereTrabalhoVendido(trabalhoVendido):
+                                        self.__loggerVendaDao.info(f'({trabalhoVendido}) inserido com sucesso!')
+                                        continue
+                                    self.__loggerVendaDao.error(f'Erro ao inserir ({trabalhoVendido}): {trabalhoVendidoDao.pegaErro()}')
+                                    continue
+                                break
+                            break
+                        break
+                    continue
+                break
+            break
+
+    def defineTrabalhoEscolhido(self, trabalhos):
+        print(f'{'0'.ljust(6)} - Voltar')
+        opcaoTrabalho = input(f'Opção trabalho: ')    
+        if int(opcaoTrabalho) == 0:
+            return None
+        trabalho = trabalhos[int(opcaoTrabalho) - 1]
+        return trabalho
+
     def sincronizaDados(self):
         self.sincronizaListaTrabalhos()
         self.sincronizaListaPersonagens()
@@ -1022,11 +1123,11 @@ class CRUD:
             print(f'11 - Insere trabalho no estoque')
             print(f'12 - Modifica trabalho no estoque')
             print(f'13 - Remove trabalho no estoque')
+            print(f'14 - Insere trabalho vendido')
+            print(f'15 - Modifica trabalho vendido')
+            print(f'16 - Remove trabalho vendido')
             print(f'08 - Mostra vendas')
             print(f'15 - Pega todos trabalhos no estoque')
-            print(f'16 - Insere trabalho vendido')
-            print(f'17 - Modifica trabalho vendido')
-            print(f'18 - Remove trabalho vendido')
             print(f'19 - Pega todos trabalhos vendidos')
             print(f'20 - Pega todos trabalhos producao')
             print(f'21 - Sincroniza dados')
@@ -1077,23 +1178,23 @@ class CRUD:
                 if int(opcaoMenu) == 13:
                     self.removeTrabalhoEstoque()
                     continue
+                if int(opcaoMenu) == 14:
+                    # insere trabalho vendido
+                    self.insereTrabalhoVendido()
+                    continue
+                if int(opcaoMenu) == 15:
+                    # modifica trabalho vendido
+                    self.modificaTrabalhoVendido()
+                    continue
+                if int(opcaoMenu) == 16:
+                    # remove trabalho vendido
+                    self.removeTrabalhoVendido()
+                    continue
                 # if int(opcaoMenu) == 8:
                 #     self.mostraVendas()
                 #     continue
                 # if int(opcaoMenu) == 15:
                 #     self.pegaTodosTrabalhosEstoque()
-                #     continue
-                # if int(opcaoMenu) == 16:
-                #     # insere trabalho vendido
-                #     self.insereTrabalhoVendido()
-                #     continue
-                # if int(opcaoMenu) == 17:
-                #     # modifica trabalho vendido
-                #     self.modificaTrabalhoVendido()
-                #     continue
-                # if int(opcaoMenu) == 18:
-                #     # remove trabalho vendido
-                #     self.removeTrabalhoVendido()
                 #     continue
                 # if int(opcaoMenu) == 19:
                 #     # pega todos trabalhos vendidos
