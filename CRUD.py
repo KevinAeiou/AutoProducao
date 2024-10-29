@@ -904,23 +904,24 @@ class CRUD:
         self.__loggerPersonagemDao.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
         return None
     
-    def definePersonagemEscolhido(self, personagens) -> Personagem:
+    def definePersonagemEscolhido(self, personagens) -> bool:
         opcaoPersonagem = input(f'Opção: ')
         if int(opcaoPersonagem) == 0:
-            return None
-        return personagens[int(opcaoPersonagem) - 1]
+            return False
+        self.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
+        return True
     
-    def mostraListaVendas(self, personagem):
+    def mostraListaVendas(self):
         limpaTela()
-        print(f'{'NOME'.ljust(44)} | {'DATA'.ljust(10)} | {'VALOR'.ljust(5)} | UND')
-        trabalhoVendidoDao = VendaDaoSqlite(personagem)
+        print(f'{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'DATA'.ljust(10)} | {'VALOR'.ljust(5)} | UND')
+        trabalhoVendidoDao = VendaDaoSqlite(self.__personagemEmUso)
         vendas = trabalhoVendidoDao.pegaVendas()
         if variavelExiste(vendas):
             if tamanhoIgualZero(vendas):
                 print('Lista de vendas está vazia!')
             else:
                 for trabalhoVendido in vendas:
-                    print(trabalhoVendido)
+                    print(f'{str(vendas.index(trabalhoVendido) + 1).ljust(6)} - {trabalhoVendido}')
             return vendas
         self.__loggerVendaDao.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
         return None
@@ -944,40 +945,117 @@ class CRUD:
         while True:
             personagens = self.mostraListaPersonagens()
             if variavelExiste(personagens):
-                personagem = self.definePersonagemEscolhido(personagens)
-                if variavelExiste(personagem):
+                if self.definePersonagemEscolhido(personagens):
                     while True:
-                        vendas = self.mostraListaVendas(personagem)
+                        vendas = self.mostraListaVendas()
                         if variavelExiste(vendas):
-                            opcaoTrabalho = input(f'Inserir nova venda? (S/N) ')
-                            if opcaoTrabalho.lower() == 'n':
-                                break
-                            trabalhos = self.mostraListaTrabalhos()
-                            if variavelExiste(trabalhos):
-                                trabalho = self.defineTrabalhoEscolhido(trabalhos)
-                                if variavelExiste(trabalho):
-                                    descricao = input(f'Descrição da venda: ')
-                                    data = input(f'Data da venda: ')
-                                    quantidade = input(f'Quantidade trabalho vendido: ')
-                                    valor = input(f'Valor do trabalho vendido: ')
-                                    trabalhoVendidoDao = VendaDaoSqlite(personagem)
-                                    trabalhoVendido = TrabalhoVendido()
-                                    trabalhoVendido.trabalhoId = trabalho.id
-                                    trabalhoVendido.nomeProduto = descricao
-                                    trabalhoVendido.dataVenda = data
-                                    trabalhoVendido.quantidadeProduto = quantidade
-                                    trabalhoVendido.valorProduto = valor
-                                    if trabalhoVendidoDao.insereTrabalhoVendido(trabalhoVendido):
-                                        self.__loggerVendaDao.info(f'({trabalhoVendido}) inserido com sucesso!')
-                                        continue
-                                    self.__loggerVendaDao.error(f'Erro ao inserir ({trabalhoVendido}): {trabalhoVendidoDao.pegaErro()}')
-                                    continue
-                                break
+                            print(f'{'0'.ljust(6)} - Voltar')
+                            trabalhoVendidoSelecionado = self.defineVendaEscolhida(vendas)
+                            if variavelExiste(trabalhoVendidoSelecionado):
+                                self.concluiModificaTrabalhoVendido(trabalhoVendidoSelecionado)
+                                continue
                             break
                         break
                     continue
                 break
             break
+
+    def concluiInsereTrabalhoVendido(self, trabalhoVendido):
+        trabalhoVendidoDao = VendaDaoSqlite(self.__personagemEmUso)
+        if trabalhoVendidoDao.insereTrabalhoVendido(trabalhoVendido):
+            self.__loggerVendaDao.info(f'({trabalhoVendido}) inserido com sucesso!')
+            return
+        self.__loggerVendaDao.error(f'Erro ao inserir ({trabalhoVendido}): {trabalhoVendidoDao.pegaErro()}')
+
+    def defineNovoTrabalhoVendido(self, trabalho):
+        descricao = input(f'Descrição da venda: ')
+        data = input(f'Data da venda: ')
+        quantidade = input(f'Quantidade trabalho vendido: ')
+        valor = input(f'Valor do trabalho vendido: ')
+        trabalhoVendido = TrabalhoVendido()
+        trabalhoVendido.trabalhoId = trabalho.id
+        trabalhoVendido.nomeProduto = descricao
+        trabalhoVendido.dataVenda = data
+        trabalhoVendido.quantidadeProduto = quantidade
+        trabalhoVendido.valorProduto = valor
+        return trabalhoVendido
+
+    def defineVendaEscolhida(self, vendas) -> TrabalhoVendido:
+        opcaoTrabalho = input(f'Opção trabalho: ')    
+        if int(opcaoTrabalho) == 0:
+            return None
+        return vendas[int(opcaoTrabalho) - 1]
+    
+    def modificaTrabalhoVendido(self):
+        while True:
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens):
+                if self.definePersonagemEscolhido(personagens):
+                    while True:
+                        vendas = self.mostraListaVendas()
+                        if variavelExiste(vendas):
+                            print(f'{'0'.ljust(6)} - Voltar')
+                            trabalhoVendidoModificado = self.defineVendaEscolhida(vendas)
+                            if variavelExiste(trabalhoVendidoModificado):
+                                trabalhoVendidoModificado = self.defineTrabalhoVendidoModificado(trabalhoVendidoModificado)
+                                self.concluiModificaTrabalhoVendido(trabalhoVendidoModificado)
+                                continue
+                            break
+                        break
+                break
+            break
+
+    def removeTrabalhoVendido(self):
+        while True:
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens):
+                if self.definePersonagemEscolhido(personagens):
+                    while True:
+                        vendas = self.mostraListaVendas()
+                        if variavelExiste(vendas):
+                            print(f'{'0'.ljust(6)} - Voltar')
+                            trabalhoVendidoSelecionado = self.defineVendaEscolhida(vendas)
+                            if variavelExiste(trabalhoVendidoSelecionado):
+                                self.concluiRemoveTrabalhoVendido(trabalhoVendidoSelecionado)
+                                continue
+                            break
+                        break
+                    continue
+                break
+            break
+
+    def concluiRemoveTrabalhoVendido(self, trabalhoVendidoSelecionado):
+        trabalhoVendidoDao = VendaDaoSqlite(self.__personagemEmUso)
+        if trabalhoVendidoDao.removeTrabalhoVendido(trabalhoVendidoSelecionado):
+            self.__loggerVendaDao.info(f'({trabalhoVendidoSelecionado}) removido com sucesso!')
+            return
+        self.__loggerVendaDao.error(f'Erro ao remover ({trabalhoVendidoSelecionado}): {trabalhoVendidoDao.pegaErro()}')
+
+    def concluiModificaTrabalhoVendido(self, trabalhoVendidoModificado):
+        trabalhoVendidoDao = VendaDaoSqlite(self.__personagemEmUso)
+        if trabalhoVendidoDao.modificaTrabalhoVendido(trabalhoVendidoModificado):
+            self.__loggerVendaDao.info(f'({trabalhoVendidoModificado}) modificado com sucesso!')
+            return
+        self.__loggerVendaDao.error(f'Erro ao modificar ({trabalhoVendidoModificado}): {trabalhoVendidoDao.pegaErro()}')
+
+    def defineTrabalhoVendidoModificado(self, trabalhoVendidoModificado):
+        descricao = input(f'Descrição do trabalho: ')
+        if tamanhoIgualZero(descricao):
+            descricao = trabalhoVendidoModificado.nomeProduto
+        data = input(f'Data da venda: ')
+        if tamanhoIgualZero(data):
+            data = trabalhoVendidoModificado.dataVenda
+        quantidade = input(f'Quantidade vendida: ')
+        if tamanhoIgualZero(quantidade):
+            quantidade = trabalhoVendidoModificado.quantidadeProduto
+        valor = input(f'Valor da venda: ')
+        if tamanhoIgualZero(valor):
+            valor = trabalhoVendidoModificado.valorProduto
+        trabalhoVendidoModificado.nomeProduto = descricao
+        trabalhoVendidoModificado.dataVenda = data
+        trabalhoVendidoModificado.setQuantidade(quantidade)
+        trabalhoVendidoModificado.setValor(valor)
+        return trabalhoVendidoModificado
 
     def defineTrabalhoEscolhido(self, trabalhos):
         print(f'{'0'.ljust(6)} - Voltar')
