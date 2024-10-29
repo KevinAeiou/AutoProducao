@@ -5,12 +5,17 @@ from uuid import uuid4
 class TrabalhoVendido:
     def __init__(self):
         self.id = str(uuid4())
+        self.trabalhoId = None
+        self.nome = None
+        self.nivel = None
+        self.profissao = None
+        self.raridade = None
+        self.trabalhoNecessario = None
         self.nomeProduto = None
         self.dataVenda = None
-        self.nomePersonagem = None
         self.quantidadeProduto = 0
-        self.trabalhoId = None
         self.valorProduto = None
+        self.nomePersonagem = None
 
     def setQuantidade(self, quantidade):
         quantidade = 0 if int(quantidade) < 0 else int(quantidade)
@@ -25,5 +30,8 @@ class TrabalhoVendido:
             setattr(self, chave, dicionario[chave])
             
     def __str__(self) -> str:
-        nome = '' if self.nomeProduto == None else self.nomeProduto
-        return f'{(nome).ljust(113)} | {(self.dataVenda).ljust(10)} | {(self.trabalhoId).ljust(36)} | {str(self.valorProduto).ljust(5)} | {self.quantidadeProduto}'
+        nome = 'Indefinido' if self.nome == None else self.nome
+        data = 'Indefinido' if self.dataVenda == None else self.dataVenda
+        valor = 'Indefinido' if self.valorProduto == None else str(self.valorProduto)
+        quantidade = '0' if self.quantidadeProduto == None else str(self.quantidadeProduto)
+        return f'{nome.ljust(44)} | {data.ljust(10)} | {valor.ljust(5)} | {quantidade}'
