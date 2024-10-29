@@ -26,7 +26,8 @@ class TrabalhoProducaoDaoSqlite:
             SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado
             FROM Lista_desejo
             INNER JOIN trabalhos
-            ON Lista_desejo.idTrabalho == trabalhos.id;"""
+            ON Lista_desejo.idTrabalho == trabalhos.id;
+            """
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql)
