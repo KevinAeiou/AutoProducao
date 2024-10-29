@@ -75,7 +75,7 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
         return None
 
-    def pegaTrabalhoEspecificoPorId(self, trabalhoBuscado):
+    def pegaTrabalhoEspecificoPorId(self, idBuscado):
         trabalho = Trabalho()
         sql = """
             SELECT * 
@@ -84,7 +84,7 @@ class TrabalhoDaoSqlite():
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, [trabalhoBuscado.id])
+                cursor.execute(sql, [idBuscado])
                 for linha in cursor.fetchall():
                     trabalho.id = linha[0]
                     trabalho.nome = linha[1]
