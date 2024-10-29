@@ -23,23 +23,30 @@ class VendaDaoSqlite:
     def pegaVendas(self):
         vendas = []
         sql = """
-            SELECT * 
-            FROM vendas 
-            WHERE nomePersonagem == ?;"""
+            SELECT vendas.id, trabalhos.id, trabalhos.nome, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, vendas.nomeProduto, vendas.dataVenda, vendas.quantidadeProduto, vendas.valorProduto
+            FROM vendas
+            INNER JOIN trabalhos
+            ON vendas.trabalhoId == trabalhos.id
+            WHERE nomePersonagem == ?;
+            """
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
                 trabalhoVendido = TrabalhoVendido()
                 trabalhoVendido.id = linha[0]
-                trabalhoVendido.nomeProduto = linha[1]
-                trabalhoVendido.dataVenda = linha[2]
-                trabalhoVendido.nomePersonagem = linha[3]
-                trabalhoVendido.quantidadeProduto = linha[4]
-                trabalhoVendido.trabalhoId = linha[5]
-                trabalhoVendido.valorProduto = linha[6]
+                trabalhoVendido.trabalhoId = linha[1]
+                trabalhoVendido.nome = linha[2]
+                trabalhoVendido.nivel = linha[3]
+                trabalhoVendido.profissao = linha[4]
+                trabalhoVendido.raridade = linha[5]
+                trabalhoVendido.trabalhoNecessario = linha[6]
+                trabalhoVendido.nomeProduto = linha[7]
+                trabalhoVendido.dataVenda = linha[8]
+                trabalhoVendido.quantidadeProduto = linha[9]
+                trabalhoVendido.valorProduto = linha[10]
                 vendas.append(trabalhoVendido)
-            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.dataVenda, trabalhoVendido.nomeProduto))
+            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.dataVenda, trabalhoVendido.nome))
             self.__meuBanco.desconecta()
             return vendas
         except Exception as e:
@@ -74,10 +81,11 @@ class VendaDaoSqlite:
     def insereTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
         sql = """
             INSERT INTO vendas (id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto)
-            VALUES (?, ?, ?, ?, ?, ?, ?);"""
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+            """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoVendido.id, trabalhoVendido.nomeProduto, trabalhoVendido.dataVenda, trabalhoVendido.nomePersonagem, trabalhoVendido.quantidadeProduto, trabalhoVendido.trabalhoId, trabalhoVendido.valorProduto))
+            cursor.execute(sql, (trabalhoVendido.id, trabalhoVendido.nomeProduto, trabalhoVendido.dataVenda, self.__personagem.id, trabalhoVendido.quantidadeProduto, trabalhoVendido.trabalhoId, trabalhoVendido.valorProduto))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
