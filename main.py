@@ -36,6 +36,7 @@ class Aplicacao:
         self.__loggerPersonagemDao = logging.getLogger('personagemDao')
         self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
         self.__loggerTrabalhoDao = logging.getLogger('trabalhoDao')
+        self.__loggerVendaDao = logging.getLogger('vendaDao')
         self._imagem = ManipulaImagem()
         self.__listaPersonagemJaVerificado = []
         self.__listaPersonagemAtivo = []
@@ -408,9 +409,7 @@ class Aplicacao:
                 if texto1PertenceTexto2(trabalho.nome, textoCarta):
                     return trabalho.id
             return ''
-        logger = logging.getLogger('trabalhoDao')
-        logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-        print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
         return ''
 
     def atualizaQuantidadeTrabalhoEstoque(self, venda):
@@ -1120,22 +1119,20 @@ class Aplicacao:
             for trabalhoVendido in vendas:
                 trabalhoDao = TrabalhoDaoSqlite()
                 trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalhoVendido.trabalhoId)
-                logger = logging.getLogger('trabalhoDao')
                 if variavelExiste(trabalhoEncontrado):
                     if variavelExiste(trabalhoEncontrado.nome):
                         trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos = trabalhoEncontrado.ehRaro() and not trabalhoEhProducaoRecursos(trabalhoEncontrado)
                         if trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos:
                             trabalhosRarosVendidos.append(trabalhoVendido)
                             continue
-                    logger.warning(f'Trabalho ({trabalhoVendido}) não foi encontrado na lista de trabalhos!')
+                    self.__loggerTrabalhoDao.warning(f'({trabalhoVendido}) não foi encontrado na lista de trabalhos!')
                     continue
-                logger.error(f'Erro ao buscar trabalho especifico ({trabalhoVendido}) no banco: {trabalhoDao.pegaErro()}')
-                return trabalhosRarosVendidosOrdenados
-            trabalhosRarosVendidosOrdenados = sorted(trabalhosRarosVendidos, key = lambda trabalho: (trabalho.profissao, trabalho.nivel, trabalho.nome))
-            return trabalhosRarosVendidosOrdenados
-        logger = logging.getLogger('vendasDao')
-        logger.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
-        return trabalhosRarosVendidosOrdenados
+                self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalho especifico ({trabalhoVendido}) no banco: {trabalhoDao.pegaErro()}')
+                return trabalhosRarosVendidos
+            trabalhosRarosVendidos = sorted(trabalhosRarosVendidos, key = lambda trabalho: (trabalho.dataVenda))
+            return trabalhosRarosVendidos
+        self.__loggerVendaDao.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
+        return trabalhosRarosVendidos
 
     def verificaProdutosRarosMaisVendidos(self):
         listaTrabalhosRarosVendidos = self.retornaListaTrabalhosRarosVendidos()
@@ -1992,8 +1989,7 @@ class Aplicacao:
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     trabalhosProducao = trabalhoProducaoDao.pegaTrabalhosProducaoParaProduzirProduzindo()
                     if not variavelExiste(trabalhosProducao):
-                        logger = logging.getLogger('trabalhoProducaoDao')
-                        logger.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                         continue
                     if tamanhoIgualZero(trabalhosProducao):
                         print(f'Lista de trabalhos desejados vazia.')
@@ -2003,8 +1999,7 @@ class Aplicacao:
                             estado = 'verdadeiro' if self.__personagemEmUso.estado  else 'falso'
                             print(f'{self.__personagemEmUso.nome}: Estado modificado para {estado} com sucesso!')
                             continue
-                        logger = logging.getLogger('personagemDao')
-                        logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+                        self.__loggerPersonagemDao.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
                         print(f'Erro modificar personagem: {personagemDao.pegaErro()}')
                         continue
                     if self._autoProducaoTrabalho:
@@ -2036,7 +2031,7 @@ class Aplicacao:
                         continue
                     self.__loggerTrabalhoDao.error(f'Erro ao remover ({trabalho}): {trabalhoDao.pegaErro()}')
                     continue
-                trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalho)
+                trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalho.id)
                 if trabalhoEncontrado is None:
                     self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalho por id: {trabalhoDao.pegaErro()}')
                     continue
@@ -3232,16 +3227,28 @@ class Aplicacao:
             profissaoDao.limpaListaProfissoes(True)
 
     def testeFuncao(self):
-        trabalhoTeste = 'Pulseiras da Inacessibilidade'
-        personagemTeste = Personagem()
-        personagemTeste.id = '266719b6-8b25-4dc9-8d7a-ea7ef395a136'
-        self.__personagemEmUso = personagemTeste
-        trabalhoProducaoConcluido = self.retornaTrabalhoConcluido(trabalhoTeste)
-        if variavelExiste(trabalhoProducaoConcluido):
-            trabalhoProducaoRaro = self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
-            pass
-        input(f'Clique para continuar')
-
+        while True:
+            limpaTela()
+            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            personagemDao = PersonagemDaoSqlite()
+            personagens = personagemDao.pegaPersonagens()
+            if variavelExiste(personagens):
+                if tamanhoIgualZero(personagens):
+                    print('Listade personagens está vazia!')
+                else:
+                    for personagem in personagens:
+                        print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
+                print(f'{'0'.ljust(6)} - Voltar')
+                opcaoPersonagem = input(f'Opção:')
+                if int(opcaoPersonagem) == 0:
+                    break
+                limpaTela()
+                self.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
+                self.verificaProdutosRarosMaisVendidos()
+                input('Clique para continuar')
+                continue
+            self.__loggerPersonagemDao.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
+        
     def teste(self):
         while True:
             limpaTela()
@@ -3363,5 +3370,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().preparaPersonagem()
+    Aplicacao().teste()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))
