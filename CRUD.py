@@ -1085,7 +1085,7 @@ class CRUD:
                     continue
                 trabalhoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalho.id)
                 if trabalhoEncontrado is None:
-                    self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalho por id: {trabalhoDao.pegaErro()}')
+                    self.__loggerRepositorioTrabalho.error(f'Erro ao buscar ({trabalho}) por id: {trabalhoDao.pegaErro()}')
                     continue
                 if trabalhoEncontrado.nome is None:
                     trabalhoDao = TrabalhoDaoSqlite()
