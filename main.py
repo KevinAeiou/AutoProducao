@@ -505,6 +505,7 @@ class Aplicacao:
             print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].nome}) não encontrado na lista produzindo...')
             trabalhoProducaoConcluido = TrabalhoProducao()
             trabalhoProducaoConcluido.dicionarioParaObjeto(listaPossiveisTrabalhos[0].__dict__)
+            trabalhoProducaoConcluido.id = str(uuid.uuid4())
             trabalhoProducaoConcluido.idTrabalho = listaPossiveisTrabalhos[0].id
             trabalhoProducaoConcluido.recorrencia = False
             trabalhoProducaoConcluido.tipo_licenca = CHAVE_LICENCA_NOVATO
@@ -513,23 +514,22 @@ class Aplicacao:
             return trabalhoProducaoConcluido
 
     def modificaTrabalhoConcluidoListaProduzirProduzindo(self, trabalhoProducaoConcluido):
-        logger = logging.getLogger('trabalhoProducaoDao')
         if trabalhoEhProducaoRecursos(trabalhoProducaoConcluido):
             trabalhoProducaoConcluido.recorrencia = True
         if trabalhoProducaoConcluido.recorrencia:
             print(f'Trabalho recorrente.')
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoConcluido):
-                logger.info(f'({trabalhoProducaoConcluido}) removido com sucesso!')
+                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido}) removido com sucesso!')
                 return trabalhoProducaoConcluido
-            logger.error(f'Erro ao remover ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
             return trabalhoProducaoConcluido
         print(f'Trabalho sem recorrencia.')
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoConcluido):
-            logger.info(f'({trabalhoProducaoConcluido}) modificado com sucesso!.')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido}) modificado com sucesso!.')
             return trabalhoProducaoConcluido
-        logger.error(f'Erro ao modificar ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
         return trabalhoProducaoConcluido
 
     def modificaExperienciaProfissao(self, trabalhoProducao):
@@ -3242,7 +3242,7 @@ class Aplicacao:
                     break
                 limpaTela()
                 self.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
-                trabalhoProducaoConcluido = self.retornaTrabalhoConcluido('nomeTrabalhoConcluido')
+                trabalhoProducaoConcluido = self.retornaTrabalhoConcluido('Clâmide aterrorizante do eclip')
                 if variavelExiste(trabalhoProducaoConcluido):
                     trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
                 else:
