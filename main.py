@@ -380,7 +380,6 @@ class Aplicacao:
         return 1
 
     def retornaConteudoCorrespondencia(self):
-        logger = logging.getLogger('vendaDao')
         textoCarta = self._imagem.retornaTextoCorrespondenciaReconhecido()
         if variavelExiste(textoCarta):
             trabalhoFoiVendido = texto1PertenceTexto2('Item vendido', textoCarta)
@@ -396,9 +395,9 @@ class Aplicacao:
                 trabalhoVendido.setValor(self.retornaValorTrabalhoVendido(textoCarta))
                 vendaDAO = VendaDaoSqlite(self.__personagemEmUso)
                 if vendaDAO.insereTrabalhoVendido(trabalhoVendido):
-                    logger.info(f'({trabalhoVendido}) inserido com sucesso!')
+                    self.__loggerVendaDao.info(f'({trabalhoVendido}) inserido com sucesso!')
                     return trabalhoVendido
-                logger.error(f'Erro ao inserir ({trabalhoVendido}): {vendaDAO.pegaErro()}')
+                self.__loggerVendaDao.error(f'Erro ao inserir ({trabalhoVendido}): {vendaDAO.pegaErro()}')
         return None
 
     def retornaChaveIdTrabalho(self, textoCarta):

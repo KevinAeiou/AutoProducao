@@ -23,7 +23,10 @@ class TrabalhoDaoSqlite():
 
     def pegaTrabalhos(self):
         trabalhos = []
-        sql = """SELECT * FROM trabalhos;"""
+        sql = """
+            SELECT *
+            FROM trabalhos;
+            """
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
