@@ -495,14 +495,12 @@ class Aplicacao:
                     nomeEhIgualEEstadoEhProduzindo = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalho.nome)
                     if nomeEhIgualEEstadoEhProduzindo:
                         trabalhoProduzirProduzindo.estado = CODIGO_CONCLUIDO
-                        # trabalhoProduzirProduzindo.idTrabalho = possivelTrabalho.id
-                        # trabalhoProduzirProduzindo.nomeProducao = possivelTrabalho.nomeProducao
                         return trabalhoProduzirProduzindo
             else:
                 self.__loggerTrabalhoDao.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                 continue
         else:
-            print(f'Trabalho concluído ({listaPossiveisTrabalhos[0].nome}) não encontrado na lista produzindo...')
+            self.__loggerTralhoDao.warning(f'({nomeTrabalhoConcluido}) concluido não encontrado na lista produzindo...')
             trabalhoProducaoConcluido = TrabalhoProducao()
             trabalhoProducaoConcluido.dicionarioParaObjeto(listaPossiveisTrabalhos[0].__dict__)
             trabalhoProducaoConcluido.id = str(uuid.uuid4())
@@ -3373,5 +3371,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().teste()
+    Aplicacao().preparaPersonagem()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))
