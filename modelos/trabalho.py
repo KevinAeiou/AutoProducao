@@ -6,11 +6,11 @@ class Trabalho:
         self.id = str(uuid4())
         self.nome = None
         self.nomeProducao = None
-        self.experiencia : int = 0
-        self.nivel : int = 0
+        self.experiencia = None
+        self.nivel = None
         self.profissao = None
         self.raridade = None
-        self.trabalhoNecessario = ''
+        self.trabalhoNecessario = None
     
     def setExperiencia(self, experiencia):
         self.experiencia = int(experiencia)
