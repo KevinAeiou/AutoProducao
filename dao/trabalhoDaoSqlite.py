@@ -25,7 +25,8 @@ class TrabalhoDaoSqlite():
         trabalhos = []
         sql = """
             SELECT *
-            FROM trabalhos;
+            FROM trabalhos
+            WHERE id IS NOT NULL AND nome IS NOT NULL AND nomeProducao IS NOT NULL AND experiencia IS NOT NULL AND nivel IS NOT NULL AND profissao IS NOT NULL AND raridade IS NOT NULL AND trabalhoNecessario IS NOT NULL;
             """
         try:
             if self.__fabrica == 1:
