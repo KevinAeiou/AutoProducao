@@ -783,13 +783,13 @@ class CRUD:
         opcaoProfissao = input('Opçao profissão: ')
         if int(opcaoProfissao) == 0:
             return None
-        return LISTA_PROFISSOES[opcaoProfissao - 1]
+        return LISTA_PROFISSOES[int(opcaoProfissao) - 1]
 
     def defineRaridadeSelecionada(self):
         opcaoRaridade = input('Opçao raridade: ')
         if int(opcaoRaridade) == 0:
             return None
-        return LISTA_RARIDADES[opcaoRaridade - 1]
+        return LISTA_RARIDADES[int(opcaoRaridade) - 1]
 
     def mostraListaProfissoes(self):
         limpaTela()
@@ -945,16 +945,50 @@ class CRUD:
                     while True:
                         vendas = self.mostraListaVendas()
                         if variavelExiste(vendas):
-                            print(f'{'0'.ljust(6)} - Voltar')
-                            trabalhoVendidoSelecionado = self.defineVendaEscolhida(vendas)
-                            if variavelExiste(trabalhoVendidoSelecionado):
-                                self.concluiModificaTrabalhoVendido(trabalhoVendidoSelecionado)
-                                continue
+                            inserir = input(f'Inserir novo trabalho ao estoque: (S/N) ')
+                            if inserir.lower() == 'n':
+                                break
+                            self.mostraListaProfissoes()
+                            profissaoSelecionada = self.defineProfissaoSelecionada()
+                            if variavelExiste(profissaoSelecionada):
+                                self.mostraListaRaridades()
+                                raridadeSelecionada = self.defineRaridadeSelecionada()
+                                if variavelExiste(raridadeSelecionada):
+                                    trabalhoBuscado = Trabalho()
+                                    trabalhoBuscado.profissao = profissaoSelecionada
+                                    trabalhoBuscado.raridade = raridadeSelecionada
+                                    trabalhos = self.mostraTrabalhosPorProfissaoRaridade(trabalhoBuscado)
+                                    if variavelExiste(trabalhos):
+                                        trabalhoSelecionado = self.defineTrabalhoEscolhido(trabalhos)
+                                        if variavelExiste(trabalhoSelecionado):
+                                            novoTrabalhoVendido = self.defineNovoTrabalhoVendido(trabalhoSelecionado)
+                                            if variavelExiste(novoTrabalhoVendido):
+                                                self.concluiInsereTrabalhoVendido(novoTrabalhoVendido)
+                                                continue
+                                            break
+                                        break
+                                    break
+                                break
                             break
                         break
                     continue
                 break
             break
+
+    def mostraTrabalhosPorProfissaoRaridade(self, trabalhoBuscado):
+        limpaTela()
+        trabalhoDao = TrabalhoDaoSqlite()
+        trabalhos = trabalhoDao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
+        if variavelExiste(trabalhos):
+            if tamanhoIgualZero(trabalhos):
+                print('Lista de trabalhos está vazia!')
+            else:
+                print(f'{'ÍNDICE'.ljust(6)} - {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
+                for trabalho in trabalhos:
+                    print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho} | {trabalho.trabalhoNecessario}')
+                return trabalhos
+        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos por profissão e raridade: {trabalhoDao.pegaErro()}')
+        return None
 
     def concluiInsereTrabalhoVendido(self, trabalhoVendido):
         trabalhoVendidoDao = VendaDaoSqlite(self.__personagemEmUso)
@@ -972,8 +1006,8 @@ class CRUD:
         trabalhoVendido.trabalhoId = trabalho.id
         trabalhoVendido.nomeProduto = descricao
         trabalhoVendido.dataVenda = data
-        trabalhoVendido.quantidadeProduto = quantidade
-        trabalhoVendido.valorProduto = valor
+        trabalhoVendido.setQuantidade(quantidade)
+        trabalhoVendido.setValor(valor)
         return trabalhoVendido
 
     def defineVendaEscolhida(self, vendas) -> TrabalhoVendido:
@@ -1030,12 +1064,18 @@ class CRUD:
 
     def concluiModificaTrabalhoVendido(self, trabalhoVendidoModificado):
         trabalhoVendidoDao = VendaDaoSqlite(self.__personagemEmUso)
+        trabalhoVendidoModificado.nome = None
+        trabalhoVendidoModificado.nivel = None
+        trabalhoVendidoModificado.profissao = None
+        trabalhoVendidoModificado.raridade = None
+        trabalhoVendidoModificado.trabalhoNecessario = None
         if trabalhoVendidoDao.modificaTrabalhoVendido(trabalhoVendidoModificado):
             self.__loggerVendaDao.info(f'({trabalhoVendidoModificado}) modificado com sucesso!')
             return
         self.__loggerVendaDao.error(f'Erro ao modificar ({trabalhoVendidoModificado}): {trabalhoVendidoDao.pegaErro()}')
 
     def defineTrabalhoVendidoModificado(self, trabalhoVendidoModificado):
+        limpaTela()
         descricao = input(f'Descrição do trabalho: ')
         if tamanhoIgualZero(descricao):
             descricao = trabalhoVendidoModificado.nomeProduto
@@ -1185,13 +1225,13 @@ class CRUD:
             self.verificaAlteracaoPersonagem()
             limpaTela()
             print(f'MENU')
-            print(f'01 - Adiciona trabalho')
+            print(f'01 - Insere trabalho')
             print(f'02 - Modifica trabalho')
             print(f'03 - Remove trabalho')
             print(f'04 - Insere personagem')
             print(f'05 - Modifica personagem')
             print(f'06 - Remove personagem')
-            print(f'07 - Adiciona trabalho produção')
+            print(f'07 - Insere trabalho produção')
             print(f'08 - Modifica trabalho produção')
             print(f'09 - Remove trabalho produção')
             print(f'10 - Modifica profissao')
@@ -1201,13 +1241,8 @@ class CRUD:
             print(f'14 - Insere trabalho vendido')
             print(f'15 - Modifica trabalho vendido')
             print(f'16 - Remove trabalho vendido')
-            print(f'08 - Mostra vendas')
-            print(f'15 - Pega todos trabalhos no estoque')
-            print(f'19 - Pega todos trabalhos vendidos')
             print(f'20 - Pega todos trabalhos producao')
             print(f'21 - Sincroniza dados')
-            print(f'22 - Pega todas profissões')
-            print(f'23 - Redefine profissões')
             print(f'24 - Teste de funções')
             print(f'0 - Sair')
             try:
@@ -1262,32 +1297,13 @@ class CRUD:
                 if int(opcaoMenu) == 16:
                     self.removeTrabalhoVendido()
                     continue
-                # if int(opcaoMenu) == 8:
-                #     self.mostraVendas()
-                #     continue
-                # if int(opcaoMenu) == 15:
-                #     self.pegaTodosTrabalhosEstoque()
-                #     continue
-                # if int(opcaoMenu) == 19:
-                #     # pega todos trabalhos vendidos
-                #     self.pegaTodosTrabalhosVendidos()
-                #     continue
                 if int(opcaoMenu) == 20:
                     self.pegaTodosTrabalhosProducao()
                     continue
                 if int(opcaoMenu) == 21:
                     self.sincronizaDados()
                     continue
-                # if int(opcaoMenu) == 22:
-                #     # pega todos trabalhos vendidos
-                #     self.pegaTodasProfissoes()
-                #     continue
-                # if int(opcaoMenu) == 23:
-                #     # pega todos trabalhos vendidos
-                #     self.redefineListaDeProfissoes()
-                #     continue
                 if int(opcaoMenu) == 24:
-                    # pega todos trabalhos vendidos
                     self.testeFuncao()
                     continue
             except Exception as erro:

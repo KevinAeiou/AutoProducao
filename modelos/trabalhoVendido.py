@@ -1,16 +1,12 @@
 __author__ = 'Kevin Amazonas'
 
 from uuid import uuid4
+from modelos.trabalho import Trabalho
 
-class TrabalhoVendido:
+class TrabalhoVendido(Trabalho):
     def __init__(self):
-        self.id = str(uuid4())
+        super().__init__()
         self.trabalhoId = None
-        self.nome = None
-        self.nivel = None
-        self.profissao = None
-        self.raridade = None
-        self.trabalhoNecessario = None
         self.nomeProduto = None
         self.dataVenda = None
         self.quantidadeProduto = 0
