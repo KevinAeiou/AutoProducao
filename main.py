@@ -447,7 +447,7 @@ class Aplicacao:
             nomeTrabalhoConcluido = self._imagem.retornaNomeTrabalhoFrameProducaoReconhecido()
             clickEspecifico(1, 'down')
             clickEspecifico(1, 'f2')
-            print(f'  Trabalho concluido reconhecido: {nomeTrabalhoConcluido}.')
+            self.__loggerTrabalhoProducaoDao.info(f'Trabalho concluido reconhecido: {nomeTrabalhoConcluido}')
             if variavelExiste(nomeTrabalhoConcluido):
                 erro = self.verificaErro()
                 if nenhumErroEncontrado(erro):
@@ -494,12 +494,13 @@ class Aplicacao:
                     nomeEhIgualEEstadoEhProduzindo = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalho.nome)
                     if nomeEhIgualEEstadoEhProduzindo:
                         trabalhoProduzirProduzindo.estado = CODIGO_CONCLUIDO
+                        self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProduzirProduzindo}) encontrado na lista de produção')
                         return trabalhoProduzirProduzindo
             else:
                 self.__loggerTrabalhoDao.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                 continue
         else:
-            self.__loggerTralhoDao.warning(f'({nomeTrabalhoConcluido}) concluido não encontrado na lista produzindo...')
+            self.__loggerTrabalhoProducaoDao.warning(f'({nomeTrabalhoConcluido}) concluido não encontrado na lista de produção...')
             trabalhoProducaoConcluido = TrabalhoProducao()
             trabalhoProducaoConcluido.dicionarioParaObjeto(listaPossiveisTrabalhos[0].__dict__)
             trabalhoProducaoConcluido.id = str(uuid.uuid4())
@@ -524,7 +525,7 @@ class Aplicacao:
         print(f'Trabalho sem recorrencia.')
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoConcluido):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido}) modificado com sucesso!.')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido}) modificado para concluído com sucesso!.')
             return trabalhoProducaoConcluido
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
         return trabalhoProducaoConcluido
@@ -1349,7 +1350,9 @@ class Aplicacao:
         cloneTrabalhoProducao = TrabalhoProducao()
         cloneTrabalhoProducao.dicionarioParaObjeto(trabalhoProducaoEncontrado.__dict__)
         cloneTrabalhoProducao.id = str(uuid.uuid4())
+        cloneTrabalhoProducao.idTrabalho = trabalhoProducaoEncontrado.idTrabalho
         cloneTrabalhoProducao.recorrencia = False
+        self.__loggerTrabalhoProducaoDao.info(f'({cloneTrabalhoProducao.id}|{cloneTrabalhoProducao.idTrabalho}|{cloneTrabalhoProducao.nome}|{cloneTrabalhoProducao.nomeProducao}|{cloneTrabalhoProducao.experiencia}|{cloneTrabalhoProducao.nivel}|{cloneTrabalhoProducao.profissao}|{cloneTrabalhoProducao.raridade}|{cloneTrabalhoProducao.trabalhoNecessario}|{cloneTrabalhoProducao.recorrencia}|{cloneTrabalhoProducao.tipo_licenca}|{cloneTrabalhoProducao.estado}) foi clonado')
         return cloneTrabalhoProducao
     
 
