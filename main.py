@@ -477,7 +477,7 @@ class Aplicacao:
         if variavelExiste(trabalhoProducao):
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
-                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
+                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) inserido com sucesso!')
                 return True
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
             return False
@@ -2095,8 +2095,8 @@ class Aplicacao:
                         self.removeTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
                     trabalhoProducao.dicionarioParaObjeto(dicionario['Lista_desejo'])
-                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
                     trabalhoProducao.id = dicionario['idTrabalhoProducao']
+                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
                     trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
                     if trabalhoProducaoEncontrado == None:
                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho em produção por id: {trabalhoProducaoDao.pegaErro()}')
