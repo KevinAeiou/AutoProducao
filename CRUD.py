@@ -20,10 +20,13 @@ from modelos.personagem import Personagem
 from modelos.trabalhoEstoque import TrabalhoEstoque
 from modelos.trabalhoVendido import TrabalhoVendido
 
+from main import Aplicacao
+
 class CRUD:
     def __init__(self):
         logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
         self.__personagemEmUso = None
+        self.__aplicacao = Aplicacao()
         self.__repositorioPersonagem = RepositorioPersonagem()
         self.__repositorioTrabalho = RepositorioTrabalho()
         self.__loggerTrabalhoDao = logging.getLogger('trabalhoDao')
@@ -904,6 +907,7 @@ class CRUD:
         opcaoPersonagem = input(f'Opção: ')
         if int(opcaoPersonagem) == 0:
             return False
+        self.__aplicacao.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
         self.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
         return True
     
@@ -1139,9 +1143,7 @@ class CRUD:
             self.__repositorioTrabalho.limpaLista()
 
     def testeFuncao(self):
-        while True:
-            self.verificaAlteracaoListaTrabalhos()
-            self.verificaAlteracaoPersonagem()
+        pass
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:
@@ -1165,7 +1167,7 @@ class CRUD:
                     if trabalhoProducaoEncontrado.nome == None:
                         self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
-                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducaoEncontrado)
                     continue
                 if dicionario['novoPersonagem'] == None:
                     persoangemDao = PersonagemDaoSqlite()

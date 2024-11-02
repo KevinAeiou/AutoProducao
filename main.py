@@ -1356,10 +1356,9 @@ class Aplicacao:
         return cloneTrabalhoProducao
     
 
-    def clonaTrabalhoProducaoEncontrado(self, dicionarioTrabalho, trabalhoProducaoEncontrado):
+    def clonaTrabalhoProducaoEncontrado(self, trabalhoProducaoEncontrado):
         print(f'Recorrencia está ligada.')
         cloneTrabalhoProducaoEncontrado = self.defineCloneTrabalhoProducao(trabalhoProducaoEncontrado)
-        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = cloneTrabalhoProducaoEncontrado
         self.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado)
 
     def retornaChaveTipoRecurso(self, dicionarioRecurso):
@@ -2104,7 +2103,7 @@ class Aplicacao:
                     if trabalhoProducaoEncontrado.nome == None:
                         self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
-                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducaoEncontrado)
                     continue
                 if dicionario['novoPersonagem'] == None:
                     persoangemDao = PersonagemDaoSqlite()
