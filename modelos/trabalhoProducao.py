@@ -1,38 +1,14 @@
 from constantes import CODIGO_PARA_PRODUZIR, CODIGO_PRODUZINDO, CODIGO_CONCLUIDO, CHAVE_RARIDADE_COMUM, CHAVE_RARIDADE_MELHORADO, CHAVE_RARIDADE_RARO, CHAVE_RARIDADE_ESPECIAL
 from uuid import uuid4
+from modelos.trabalho import Trabalho
 
-class TrabalhoProducao:
+class TrabalhoProducao(Trabalho):
     def __init__(self):
-        self.id = str(uuid4())
+        super().__init__()
         self.idTrabalho = None
-        self.nome = None
-        self.nomeProducao = None
-        self.experiencia = 0
-        self.nivel = 0
-        self.profissao = None
-        self.raridade = None
-        self.trabalhoNecessario = ''
         self.recorrencia = None
         self.tipo_licenca = None
         self.estado = None
-    
-    @property
-    def pegaExperiencia(self):
-        return self.experiencia
-    
-    @property
-    def pegaNivel(self):
-        return self.nivel
-
-    @pegaExperiencia.setter
-    def setExperiencia(self, experiencia):
-        experiencia = int(experiencia)
-        self.experiencia = experiencia
-
-    @pegaNivel.setter
-    def setNivel(self, nivel):
-        nivel = int(nivel)
-        self.nivel = nivel
 
     def ehParaProduzir(self):
         return self.estado == CODIGO_PARA_PRODUZIR
