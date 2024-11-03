@@ -75,6 +75,32 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
+    def pegaTrabalhoEstoquePorId(self, trabalhoBuscado):
+        trabalhoEncontrado = TrabalhoEstoque()
+        sql = """
+            SELECT Lista_estoque.id, trabalhos.nome, trabalhos.profissao, trabalhos.nivel, Lista_estoque.quantidade, trabalhos.raridade, Lista_estoque.idTrabalho
+            FROM Lista_estoque
+            INNER JOIN trabalhos
+            ON Lista_estoque.idTrabalho == trabalhos.id
+            WHERE Lista_estoque.id == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [trabalhoBuscado.id])
+            for linha in cursor.fetchall():
+                trabalhoEncontrado.id = linha[0]
+                trabalhoEncontrado.nome = linha[1]
+                trabalhoEncontrado.profissao = linha[2]
+                trabalhoEncontrado.nivel = linha[3]
+                trabalhoEncontrado.quantidade = linha[4]
+                trabalhoEncontrado.raridade = linha[5]
+                trabalhoEncontrado.trabalhoId = linha[6]
+            self.__meuBanco.desconecta()
+            return trabalhoEncontrado
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
     def insereTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         sql = """
             INSERT INTO Lista_estoque (id, idPersonagem, idTrabalho, quantidade)
