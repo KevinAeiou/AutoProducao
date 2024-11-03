@@ -327,101 +327,100 @@ class CRUD:
             input(f'Clique para continuar...')
             break
 
+    def mostraListaTrabalhosProducao(self):
+        limpaTela()
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+        trabalhos = trabalhoProducaoDao.pegaTrabalhosProducao()
+        if variavelExiste(trabalhos):
+            if tamanhoIgualZero(trabalhos):
+                print('Lista de trabalhos em produção está vazia!')
+            else:
+                print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'NÍVEL'.ljust(5)} | {'ESTADO'.ljust(10)} | {'LICENÇA'.ljust(34)} | RECORRÊNCIA")
+                for trabalhoProducao in trabalhos:
+                    print(f'{str(trabalhos.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao}')
+            return trabalhos
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção: {trabalhoProducaoDao.pegaErro()}')
+        return None
+    
+    def mostraListaTrabalhosPorProfissaoRaridade(self, trabalhoBuscado):
+        limpaTela()
+        trabalhoDao = TrabalhoDaoSqlite()
+        trabalhos = trabalhoDao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
+        if variavelExiste(trabalhos):
+            if tamanhoIgualZero(trabalhos):
+                print(f'Nem um trabalho encontrado!')
+            else:
+                print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(40)} | {('PROFISSÃO').ljust(20)} | NÍVEL")
+                for trabalho in trabalhos:
+                    print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
+            return trabalhos
+        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
+        return None
+    
+    def defineNovoTrabalhoProducao(self, trabalhos):
+        print(f"{'0'.ljust(6)} - Voltar")
+        opcaoTrabalho = input(f'Trabalhos escolhido: ')
+        return None if int(opcaoTrabalho) == 0 else trabalhos[int(opcaoTrabalho) - 1]
+    
+    def defineLicencaSelecionada(self):
+        opcaoLicenca = input(f'Licença escolhida: ')
+        return None if int(opcaoLicenca) == 0 else LISTA_LICENCAS[int(opcaoLicenca) - 1]
+
+    def defineRecorrenciaSelecionada(self):
+        opcaoRecorrencia = input(f'Trabalho recorrente? (S/N)')
+        return True if (opcaoRecorrencia).lower() == 's' else False
+    
+    def defineInsereNovoTrabalho(self):
+        opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N) ')
+        return True if opcaoTrabalho.lower() == 's' else False
+
     def insereNovoTrabalhoProducao(self):
         while True:
-            limpaTela()
-            print(f"{'ÍNDICE'.ljust(6)} | {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
-            personagemDao = PersonagemDaoSqlite()
-            personagens = personagemDao.pegaPersonagens()
-            if variavelExiste(personagens):
-                if tamanhoIgualZero(personagens):
-                    print('Lista de personagens está vazia!')
-                else:
-                    for personagem in personagens:
-                        print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
-                print(f"{'0'.ljust(6)} - Voltar")
-                opcaoPersonagem = input(f'Opção:')
-                if int(opcaoPersonagem) == 0:
-                    break
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
                 while True:
-                    limpaTela()
-                    personagem = personagens[int(opcaoPersonagem) - 1]
-                    self.__personagemEmUso = personagem
-                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                    trabalhos = trabalhoProducaoDao.pegaTrabalhosProducao()
-                    if variavelExiste(trabalhos):
-                        if tamanhoIgualZero(trabalhos):
-                            print('Lista de trabalhos em produção está vazia!')
-                        else:
-                            print(f"{'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'NÍVEL'.ljust(5)} | {'ESTADO'.ljust(10)} | {'LICENÇA'.ljust(34)} | RECORRÊNCIA")
-                            for trabalhoProducao in trabalhos:
-                                print(trabalhoProducao)
-                        opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N) ')    
-                        if (opcaoTrabalho).lower() == 'n':
-                            break
-                        limpaTela()
-                        print(f"{'ÍNDICE'.ljust(6)} - PROFISSÃO")
-                        for profissao in LISTA_PROFISSOES:
-                            print(f'{str(LISTA_PROFISSOES.index(profissao) + 1).ljust(6)} - {profissao}')
-                        opcaoProfissao = input(f'Opção de profissao: ')
-                        if int(opcaoProfissao) == 0:
-                            continue
-                        profissao = LISTA_PROFISSOES[int(opcaoProfissao) - 1]
-                        limpaTela()
-                        print(f"{'ÍNDICE'.ljust(6)} - RARIDADE")
-                        for raridade in LISTA_RARIDADES:
-                            print(f'{str(LISTA_RARIDADES.index(raridade) + 1).ljust(6)} - {raridade}')
-                        print(f"{'0'.ljust(6)} - Voltar")
-                        opcaoRaridade = input(f'Opção de raridade: ')
-                        if int(opcaoRaridade) == 0:
-                            continue
-                        raridade = LISTA_RARIDADES[int(opcaoRaridade) - 1]
-                        trabalhoBuscado = Trabalho()
-                        trabalhoBuscado.raridade = raridade
-                        trabalhoBuscado.profissao = profissao
-                        trabalhoDao = TrabalhoDaoSqlite()
-                        trabalhos = trabalhoDao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
-                        if variavelExiste(trabalhos):
-                            limpaTela()
-                            if tamanhoIgualZero(trabalhos):
-                                print(f'Nem um trabalho encontrado!')
-                            else:
-                                print(f"{'INDICE'.ljust(6)} - {'NOME'.ljust(40)} | {('PROFISSÃO').ljust(20)} | NÍVEL")
-                                for trabalho in trabalhos:
-                                    print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
-                            print(f"{'0'.ljust(6)} - Voltar")
-                            opcaoTrabalho = input(f'Trabalhos escolhido: ')
-                            if int(opcaoTrabalho) == 0:
-                                continue
-                            trabalho = trabalhos[int(opcaoTrabalho) - 1]
-                            limpaTela()
-                            for licenca in LISTA_LICENCAS:
-                                print(f'{LISTA_LICENCAS.index(licenca) + 1} - {licenca}')
-                            opcaoLicenca = input(f'Licença escolhida: ')
-                            if int(opcaoLicenca) == 0:
-                                continue
-                            licenca = LISTA_LICENCAS[int(opcaoLicenca) - 1]
-                            opcaoRecorrencia = input(f'Trabalho recorrente? (S/N)')
-                            recorrencia = True if (opcaoRecorrencia).lower() == 's' else False
-                            novoTrabalhoProducao = TrabalhoProducao()
-                            novoTrabalhoProducao.dicionarioParaObjeto(trabalho.__dict__)
-                            novoTrabalhoProducao.id = str(uuid4())
-                            novoTrabalhoProducao.idTrabalho = trabalho.id
-                            novoTrabalhoProducao.recorrencia = recorrencia
-                            novoTrabalhoProducao.tipo_licenca = licenca
-                            novoTrabalhoProducao.estado = CODIGO_PARA_PRODUZIR
+                    trabalhosProducao = self.mostraListaTrabalhosProducao()
+                    insereNovoTrabalho = self.defineInsereNovoTrabalho()
+                    if variavelExiste(trabalhosProducao) and insereNovoTrabalho:
+                        trabalhoBuscado = self.defineTrabalhoBuscadoPorProfissaoRaridade()
+                        trabalhosEncontrados = self.mostraListaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
+                        trabalhoSelecionado = self.defineNovoTrabalhoProducao(trabalhosEncontrados)
+                        if variavelExiste(trabalhosEncontrados) and variavelExiste(trabalhoSelecionado):
+                            novoTrabalhoProducao = self.defineNovoTrabalhoProducaoSelecionado(trabalhoSelecionado)
                             self.insereTrabalhoProducao(novoTrabalhoProducao)
                             continue
-                        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
-                        input(f'Clique para continuar...')
                         break
-                    self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção: {trabalhoProducaoDao.pegaErro()}')
-                    input(f'Clique para continuar...')
                     break
                 continue
-            self.__loggerPersonagemDao.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
             break
+
+    def defineNovoTrabalhoProducaoSelecionado(self, trabalhoSelecionado):
+        self.mostraListaLicencas()
+        licenca = self.defineLicencaSelecionada()
+        recorrencia = self.defineRecorrenciaSelecionada()
+        novoTrabalhoProducao = TrabalhoProducao()
+        novoTrabalhoProducao.dicionarioParaObjeto(trabalhoSelecionado.__dict__)
+        novoTrabalhoProducao.id = str(uuid4())
+        novoTrabalhoProducao.idTrabalho = trabalhoSelecionado.id
+        novoTrabalhoProducao.recorrencia = recorrencia
+        novoTrabalhoProducao.tipo_licenca = licenca
+        novoTrabalhoProducao.estado = CODIGO_PARA_PRODUZIR
+        return novoTrabalhoProducao
+
+    def defineTrabalhoBuscadoPorProfissaoRaridade(self):
+        self.mostraListaProfissoes()
+        profissaoSelecionada = self.defineProfissaoSelecionada()
+        self.mostraListaRaridades()
+        raridadeSelecionada = self.defineRaridadeSelecionada()
+        trabalhoBuscado = Trabalho()
+        trabalhoBuscado.raridade = raridadeSelecionada
+        trabalhoBuscado.profissao = profissaoSelecionada
+        return trabalhoBuscado
+
+    def mostraListaLicencas(self):
+        limpaTela()
+        for licenca in LISTA_LICENCAS:
+            print(f'{LISTA_LICENCAS.index(licenca) + 1} - {licenca}')
     
     def modificaTrabalhoProducao(self):
         logger = logging.getLogger('trabalhoProducaoDao')
