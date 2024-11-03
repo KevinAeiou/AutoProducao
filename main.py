@@ -751,28 +751,29 @@ class Aplicacao:
 
     def verificaProducaoTrabalhoRaro(self, trabalhoProducaoConcluido):
         profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoProducaoConcluido)
-        if variavelExiste(profissao):
-            if trabalhoProducaoConcluido.ehMelhorado():
-                trabalhoDao = TrabalhoDaoSqlite()
-                trabalhos = trabalhoDao.pegaTrabalhos()
-                if variavelExiste(trabalhos):
-                    for trabalho in trabalhos:
-                        trabalhoNecessarioEhIgualNomeTrabalhoConcluido = textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome)
-                        if trabalhoNecessarioEhIgualNomeTrabalhoConcluido:
-                            licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel() >= profissao.pegaExperienciaMaxima() else CHAVE_LICENCA_INICIANTE
-                            trabalhoProducaoRaro = TrabalhoProducao()
-                            trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
-                            trabalhoProducaoRaro.id = str(uuid.uuid4())
-                            trabalhoProducaoRaro.idTrabalho = trabalho.id
-                            trabalhoProducaoRaro.experiencia = trabalho.experiencia * 1.5
-                            trabalhoProducaoRaro.recorrencia = False
-                            trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
-                            trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
-                            return trabalhoProducaoRaro
-                    return None
-                logger = logging.getLogger('trabalhoDao')
-                logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+        if variavelExiste(profissao) and trabalhoProducaoConcluido.ehMelhorado():
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhos = trabalhoDao.pegaTrabalhos()
+            if variavelExiste(trabalhos):
+                for trabalho in trabalhos:
+                    trabalhoNecessarioEhIgualNomeTrabalhoConcluido = textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome)
+                    if trabalhoNecessarioEhIgualNomeTrabalhoConcluido:
+                        return self.defineNovoTrabalhoProducaoRaro(profissao, trabalho)
+                return None
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
         return None
+
+    def defineNovoTrabalhoProducaoRaro(self, profissao, trabalho):
+        licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel() >= profissao.pegaExperienciaMaxima() else CHAVE_LICENCA_INICIANTE
+        trabalhoProducaoRaro = TrabalhoProducao()
+        trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
+        trabalhoProducaoRaro.id = str(uuid.uuid4())
+        trabalhoProducaoRaro.idTrabalho = trabalho.id
+        trabalhoProducaoRaro.experiencia = trabalho.experiencia * 1.5
+        trabalhoProducaoRaro.recorrencia = False
+        trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
+        trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
+        return trabalhoProducaoRaro
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado):
         if tamanhoIgualZero(listaPersonagemPresenteRecuperado):
