@@ -1540,7 +1540,7 @@ class Aplicacao:
                 if variavelExiste(trabalhoProducaoEncontrado):
                     logger = logging.getLogger('trabalhoProducaoDao')
                     if trabalhoProducaoEncontrado.ehRecorrente():
-                        self.clonaTrabalhoProducaoEncontrado(dicionarioTrabalho, trabalhoProducaoEncontrado)
+                        self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado)
                         self.verificaNovamente = True
                         break
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
