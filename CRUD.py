@@ -423,69 +423,35 @@ class CRUD:
             print(f'{LISTA_LICENCAS.index(licenca) + 1} - {licenca}')
     
     def modificaTrabalhoProducao(self):
-        logger = logging.getLogger('trabalhoProducaoDao')
         while True:
-            limpaTela()
-            personagemDao = PersonagemDaoSqlite()
-            personagens = personagemDao.pegaPersonagens()
-            if variavelExiste(personagens):
-                if tamanhoIgualZero(personagens):
-                    print('Lista de personagens está vazia!')
-                else:
-                    print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
-                    for personagem in personagens:
-                        print(f'{str(personagens.index(personagem) + 1).ljust(6)} - {personagem}')
-                print(f"{'0'.ljust(6)} - Voltar")
-                opcaoPersonagem = input(f'Opção: ')
-                if int(opcaoPersonagem) == 0:
-                    break
-                personagem = personagens[int(opcaoPersonagem) - 1]
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
                 while True:
-                    limpaTela()
-                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                    trabalhosProducao = trabalhoProducaoDao.pegaTrabalhosProducao()
-                    if variavelExiste(trabalhosProducao):
-                        if tamanhoIgualZero(trabalhosProducao):
-                            print(f'Lista de trabalhos em produção está vazia!')
-                        else:
-                            for trabalhoProducao in trabalhosProducao:
-                                print(f'{str(trabalhosProducao.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao}')
-                        print(f"{'0'.ljust(6)} - Voltar")
-                        opcaoTrabalho = input(f'Opção trabalho: ')
-                        if int(opcaoTrabalho) == 0:
-                            break
-                        limpaTela()
-                        trabalhoEscolhido = trabalhosProducao[int(opcaoTrabalho) - 1]
-                        for licenca in LISTA_LICENCAS:
-                            print(f'{LISTA_LICENCAS.index(licenca) + 1} - {licenca}')
-                        novaLicenca = input(f'Nova licença: ')
-                        if tamanhoIgualZero(novaLicenca):
-                            novaLicenca = trabalhoEscolhido.tipo_licenca
-                        else:
-                            trabalhoEscolhido.tipo_licenca = LISTA_LICENCAS[int(novaLicenca) - 1]
-                        limpaTela()
-                        novaRecorrencia = input(f'Alterna recorrencia? (S/N) ')
-                        if novaRecorrencia.lower() == 's':
-                            trabalhoEscolhido.alternaRecorrencia()
-                        limpaTela()
-                        novoEstado = input(f'Novo estado: (0 - PRODUZIR, 1 - PRODUZINDO, 2 - CONCLUÍDO)')
-                        if tamanhoIgualZero(novoEstado):
-                            novoEstado = trabalhoEscolhido.estado 
-                        else:
-                            trabalhoEscolhido.estado = int(novoEstado)
-                        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                        if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoEscolhido):
-                            logger.info(f'({trabalhoEscolhido}) modificado com sucesso!')
+                    self.mostraListaTrabalhosProducao()
+                    trabalhoProducaoSelecionado = self.defineTrabalhoSelecionado()
+                    if variavelExiste(trabalhoProducaoSelecionado):
+                        self.mostraListaLicencas()
+                        novaLicenca = self.defineLicencaSelecionada()
+                        if variavelExiste(novaLicenca):
+                            trabalhoProducaoSelecionado.tipo_licenca = novaLicenca
+                            novaRecorrencia = input(f'Alterna recorrencia? (S/N) ')
+                            if novaRecorrencia.lower() == 's':
+                                trabalhoProducaoSelecionado.alternaRecorrencia()
+                            limpaTela()
+                            novoEstado = input(f'Novo estado: (0 - PRODUZIR, 1 - PRODUZINDO, 2 - CONCLUÍDO) ')
+                            if tamanhoIgualZero(novoEstado):
+                                novoEstado = trabalhoProducaoSelecionado.estado 
+                            else:
+                                trabalhoProducaoSelecionado.estado = int(novoEstado)
+                            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                            if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoSelecionado):
+                                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoSelecionado}) modificado com sucesso!')
+                                continue
+                            self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoSelecionado}): {trabalhoProducaoDao.pegaErro()}')
                             continue
-                        logger.error(f'Erro ao modificar ({trabalhoEscolhido}): {trabalhoProducaoDao.pegaErro()}')
-                        input(f'Clique para continuar...')
-                        continue
-                    logger.error(f'Erro ao buscar trabalhos em produção: {trabalhoProducaoDao.pegaErro()}')
-                    input(f'Clique para continuar...')
+                        break
                     break
                 continue
-            logger.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
             break
     
     def removeTrabalhoProducao(self):
@@ -962,7 +928,7 @@ class CRUD:
                                     trabalhoBuscado.raridade = raridadeSelecionada
                                     trabalhos = self.mostraTrabalhosPorProfissaoRaridade(trabalhoBuscado)
                                     if variavelExiste(trabalhos):
-                                        trabalhoSelecionado = self.defineTrabalhoEscolhido(trabalhos)
+                                        trabalhoSelecionado = self.defineTrabalhoSelecionado(trabalhos)
                                         if variavelExiste(trabalhoSelecionado):
                                             novoTrabalhoVendido = self.defineNovoTrabalhoVendido(trabalhoSelecionado)
                                             if variavelExiste(novoTrabalhoVendido):
@@ -1097,7 +1063,7 @@ class CRUD:
         trabalhoVendidoModificado.setValor(valor)
         return trabalhoVendidoModificado
 
-    def defineTrabalhoEscolhido(self, trabalhos):
+    def defineTrabalhoSelecionado(self, trabalhos):
         print(f'{'0'.ljust(6)} - Voltar')
         opcaoTrabalho = input(f'Opção trabalho: ')    
         if int(opcaoTrabalho) == 0:
