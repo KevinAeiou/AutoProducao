@@ -427,8 +427,8 @@ class CRUD:
             personagens = self.mostraListaPersonagens()
             if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
                 while True:
-                    self.mostraListaTrabalhosProducao()
-                    trabalhoProducaoSelecionado = self.defineTrabalhoSelecionado()
+                    trabalhos = self.mostraListaTrabalhosProducao()
+                    trabalhoProducaoSelecionado = self.defineTrabalhoSelecionado(trabalhos)
                     if variavelExiste(trabalhoProducaoSelecionado):
                         self.mostraListaLicencas()
                         novaLicenca = self.defineLicencaSelecionada()
