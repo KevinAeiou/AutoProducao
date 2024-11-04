@@ -479,7 +479,7 @@ class Aplicacao:
             if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
                 self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) inserido com sucesso!')
                 return True
-            self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao.id} |{trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
             return False
 
     def retornaTrabalhoConcluido(self, nomeTrabalhoConcluido):
@@ -518,16 +518,16 @@ class Aplicacao:
             print(f'Trabalho recorrente.')
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoConcluido):
-                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido}) removido com sucesso!')
+                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido.id} | {trabalhoProducaoConcluido}) removido com sucesso!')
                 return trabalhoProducaoConcluido
-            self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducaoConcluido.id} | {trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
             return trabalhoProducaoConcluido
         print(f'Trabalho sem recorrencia.')
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoConcluido):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido}) modificado para concluído com sucesso!.')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido.id} | {trabalhoProducaoConcluido}) modificado para concluído com sucesso!.')
             return trabalhoProducaoConcluido
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoConcluido.id} | {trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
         return trabalhoProducaoConcluido
 
     def modificaExperienciaProfissao(self, trabalhoProducao):
@@ -1546,9 +1546,9 @@ class Aplicacao:
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoEncontrado):
                         estado = 'produzir' if trabalhoProducaoEncontrado.estado  == 0 else 'produzindo' if trabalhoProducaoEncontrado.estado  == 1 else 'concluido'
-                        logger.info(f'({trabalhoProducaoEncontrado}) modificado para {estado} com sucesso!.')
+                        logger.info(f'({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}) modificado para {estado} com sucesso!.')
                     else:
-                        logger.error(f'Erro ao modificar ({trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
+                        logger.error(f'Erro ao modificar ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
                     self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
                     clickContinuo(12,'up')
                     self.verificaNovamente = True
@@ -1651,10 +1651,10 @@ class Aplicacao:
                     self.__confirmacao = False
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoEncontrado):
-                        logger.info(f'({trabalhoProducaoEncontrado}) removido com sucesso!')
+                        logger.info(f'({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}) removido com sucesso!')
                         erro = self.verificaErro()
                         continue
-                    logger.error(f'Erro ao remover ({trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
+                    logger.error(f'Erro ao remover ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
                     erro = self.verificaErro()
                     continue
                 if ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
@@ -2063,23 +2063,23 @@ class Aplicacao:
     def removeTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
         if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducao, False):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) removido com sucesso!')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) removido com sucesso!')
             return
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducao.id} | {trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def insereTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
         if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, False):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) inserido com sucesso!')
             return
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao.id} |{trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def modificaTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao, False):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) modificado com sucesso!')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) modificado com sucesso!')
             return
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducao.id} | {trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:
@@ -2286,9 +2286,9 @@ class Aplicacao:
                 if variavelExiste(trabalhoProducaoEncontrada.nome):
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
                     if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao):
-                        loggerTrabalhoProducaoDAO.info(f'({trabalhoProducao}) modificado no banco com sucesso!')
+                        loggerTrabalhoProducaoDAO.info(f'({trabalhoProducao.id} | {trabalhoProducao}) modificado no banco com sucesso!')
                         continue
-                    loggerTrabalhoProducaoDAO.error(f'Erro ao modificar ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+                    loggerTrabalhoProducaoDAO.error(f'Erro ao modificar ({trabalhoProducao.id} | {trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
                     continue
                 self.insereTrabalhoProducao(trabalhoProducaoEncontrada)
         input(f'Clique para continuar...')
