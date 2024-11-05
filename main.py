@@ -1538,7 +1538,6 @@ class Aplicacao:
             menu = self.retornaMenu()
             if menuTrabalhosAtuaisReconhecido(menu):
                 if variavelExiste(trabalhoProducaoEncontrado):
-                    logger = logging.getLogger('trabalhoProducaoDao')
                     if trabalhoProducaoEncontrado.ehRecorrente():
                         self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado)
                         self.verificaNovamente = True
@@ -1546,9 +1545,9 @@ class Aplicacao:
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoEncontrado):
                         estado = 'produzir' if trabalhoProducaoEncontrado.estado  == 0 else 'produzindo' if trabalhoProducaoEncontrado.estado  == 1 else 'concluido'
-                        logger.info(f'({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}) modificado para {estado} com sucesso!.')
+                        self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}) modificado para {estado} com sucesso!.')
                     else:
-                        logger.error(f'Erro ao modificar ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
+                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
                     self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
                     clickContinuo(12,'up')
                     self.verificaNovamente = True
@@ -1588,8 +1587,7 @@ class Aplicacao:
                                                 estado = 'verdadeiro' if self.__personagemEmUso.estado  else 'falso'
                                                 print(f'{self.__personagemEmUso.nome}: Estado modificado para {estado} com sucesso!')
                                             else:
-                                                logger = logging.getLogger('personagemDao')
-                                                logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
+                                                self.__loggerPersonagemDao.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
                                                 print(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
                                             clickEspecifico(3, 'f1')
                                             clickContinuo(10, 'up')
@@ -1627,8 +1625,7 @@ class Aplicacao:
                             estado = 'verdadeiro' if self.__personagemEmUso.estado  else 'falso'
                             print(f'{self.__personagemEmUso.nome}: Estado modificado para {estado} com sucesso!')
                         else:
-                            logger = logging.getLogger('personagemDao')
-                            logger.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')   
+                            self.__loggerPersonagemDao.error(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')   
                             print(f'Erro ao modificar personagem: {personagemDao.pegaErro()}')
                         clickEspecifico(3, 'f1')
                         clickContinuo(10, 'up')
@@ -1645,16 +1642,16 @@ class Aplicacao:
             print(f'Tratando possíveis erros...')
             tentativas = 1
             erro = self.verificaErro()
-            logger = logging.getLogger('trabalhoProducaoDao')
             while erroEncontrado(erro):
                 if ehErroRecursosInsuficiente(erro):
+                    self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado})')
                     self.__confirmacao = False
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoEncontrado):
-                        logger.info(f'({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}) removido com sucesso!')
+                        self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}) removido com sucesso!')
                         erro = self.verificaErro()
                         continue
-                    logger.error(f'Erro ao remover ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
+                    self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
                     erro = self.verificaErro()
                     continue
                 if ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
