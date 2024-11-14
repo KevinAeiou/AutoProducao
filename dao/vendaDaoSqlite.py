@@ -78,6 +78,41 @@ class VendaDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
+    def pegaTrabalhosRarosVendidos(self):
+        vendas = []
+        sql = """
+            SELECT trabalhoId, COUNT(*) AS quantidade, 
+                (
+                SELECT nome
+                FROM trabalhos
+                WHERE trabalhos.id == trabalhoId
+                AND trabalhos.raridade == 'Raro'
+                ) 
+                AS nome
+            FROM vendas
+            WHERE nomePersonagem == ? 
+            AND nome NOT NULL
+            GROUP BY trabalhoId
+            ORDER BY quantidade
+            ;
+            """
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [self.__personagem.id])
+            # cursor.execute(sql)
+            for linha in cursor.fetchall():
+                # trabalhoVendido = TrabalhoVendido()
+                # trabalhoVendido.trabalhoId = linha[0]
+                # trabalhoVendido.quantidadeProduto = linha[1]
+                # vendas.append(trabalhoVendido)
+                print(linha)
+            self.__meuBanco.desconecta()
+            return vendas
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
     def insereTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
         sql = """
             INSERT INTO vendas (id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto)
