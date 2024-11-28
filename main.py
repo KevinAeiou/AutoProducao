@@ -1124,8 +1124,6 @@ class Aplicacao:
                     self.__loggerTrabalhoDao.warning(f'({trabalhoVendido}) não foi encontrado na lista de trabalhos!')
                     continue
                 self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalho especifico ({trabalhoVendido}) no banco: {trabalhoDao.pegaErro()}')
-                return trabalhosRarosVendidos
-            trabalhosRarosVendidos = sorted(trabalhosRarosVendidos, key = lambda trabalho: (trabalho.dataVenda))
             return trabalhosRarosVendidos
         self.__loggerVendaDao.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
         return trabalhosRarosVendidos
@@ -3250,11 +3248,13 @@ class Aplicacao:
                     break
                 limpaTela()
                 self.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
-                trabalhoProducaoConcluido = self.retornaTrabalhoConcluido('Clâmide aterrorizante do eclip')
-                if variavelExiste(trabalhoProducaoConcluido):
-                    trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
-                else:
-                    print(f'Trabalho produção concluido não reconhecido.')
+                for trabalhoVendido in self.retornaListaTrabalhosRarosVendidos():
+                    print(trabalhoVendido)
+                # trabalhoProducaoConcluido = self.retornaTrabalhoConcluido('Clâmide aterrorizante do eclip')
+                # if variavelExiste(trabalhoProducaoConcluido):
+                #     trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
+                # else:
+                #     print(f'Trabalho produção concluido não reconhecido.')
         #         self.verificaProdutosRarosMaisVendidos()
         #         input('Clique para continuar')
         #         continue
@@ -3381,5 +3381,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().preparaPersonagem()
+    Aplicacao().teste()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))
