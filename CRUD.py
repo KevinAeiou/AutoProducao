@@ -1108,12 +1108,25 @@ class CRUD:
             self.__repositorioTrabalho.limpaLista()
 
     def testeFuncao(self):
+        # estoqueDao = EstoqueDaoSqlite()
+        # if estoqueDao.removeColunasTabelaEstoque():
+        #     self.__loggerEstoqueDao.info(f'Coluna da tabela removida')
+        # else:
+        #     self.__loggerEstoqueDao.error(f'Erro ao remover coluna da tabela: {estoqueDao.pegaErro()}')
         personagens = self.mostraListaPersonagens()
         if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
             vendaDao = VendaDaoSqlite(self.__personagemEmUso)
             vendas = vendaDao.pegaTrabalhosRarosVendidos()
             if variavelExiste(vendas):
-
+                for trabalhoVendido in vendas:
+                    print(trabalhoVendido.id, trabalhoVendido.nome, trabalhoVendido.nivel, trabalhoVendido.quantidadeProduto)
+                    estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                    quantidadeTrabalhoEmEstoque = estoqueDao.pegaQuantidadeTrabalho(trabalhoVendido)
+                    if variavelExiste(quantidadeTrabalhoEmEstoque):
+                        print(f'Quantidade de ({trabalhoVendido.nome}) no estoque: {quantidadeTrabalhoEmEstoque}')
+                        continue
+                    self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade: {estoqueDao.pegaErro()}')
+                    input('Clique para continuar...')
                 input('Clique para continuar...')
                 return
             self.__loggerVendaDao.error(f'Erro: {vendaDao.pegaErro()}')
