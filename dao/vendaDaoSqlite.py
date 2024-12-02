@@ -81,14 +81,30 @@ class VendaDaoSqlite:
     def pegaTrabalhosRarosVendidos(self):
         vendas = []
         sql = """
-            SELECT trabalhoId, COUNT(*) AS quantidade, 
+            SELECT 
+                trabalhoId,  
                 (
                 SELECT nome
                 FROM trabalhos
                 WHERE trabalhos.id == trabalhoId
                 AND trabalhos.raridade == 'Raro'
-                ) 
-                AS nome
+                )
+                AS nome,
+                (
+                SELECT nivel
+                FROM trabalhos
+                WHERE trabalhos.id == trabalhoId
+                AND trabalhos.raridade == 'Raro'
+                )
+                AS nivel,
+                (
+                SELECT trabalhoNecessario
+                FROM trabalhos
+                WHERE trabalhos.id == trabalhoId
+                AND trabalhos.raridade == 'Raro'
+                )
+                AS trabalhoNecessario,
+                COUNT(*) AS quantidade
             FROM vendas
             WHERE nomePersonagem == ? 
             AND nome NOT NULL
@@ -99,14 +115,16 @@ class VendaDaoSqlite:
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.id])
-            # cursor.execute(sql)
             for linha in cursor.fetchall():
-                # trabalhoVendido = TrabalhoVendido()
-                # trabalhoVendido.trabalhoId = linha[0]
-                # trabalhoVendido.quantidadeProduto = linha[1]
-                # vendas.append(trabalhoVendido)
-                print(linha)
+                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido.trabalhoId = linha[0]
+                trabalhoVendido.nome = linha[1]
+                trabalhoVendido.nivel = linha[2]
+                trabalhoVendido.trabalhoNecessario = linha[3]
+                trabalhoVendido.quantidadeProduto = linha[4]
+                vendas.append(trabalhoVendido)
             self.__meuBanco.desconecta()
+            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.quantidadeProduto, trabalhoVendido.nivel, trabalhoVendido.nome), reverse=True)
             return vendas
         except Exception as e:
             self.__erro = str(e)
