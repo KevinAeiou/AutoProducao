@@ -78,6 +78,59 @@ class VendaDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
+    def pegaTrabalhosRarosVendidos(self):
+        vendas = []
+        sql = """
+            SELECT 
+                trabalhoId,  
+                (
+                SELECT nome
+                FROM trabalhos
+                WHERE trabalhos.id == trabalhoId
+                AND trabalhos.raridade == 'Raro'
+                )
+                AS nome,
+                (
+                SELECT nivel
+                FROM trabalhos
+                WHERE trabalhos.id == trabalhoId
+                AND trabalhos.raridade == 'Raro'
+                )
+                AS nivel,
+                (
+                SELECT trabalhoNecessario
+                FROM trabalhos
+                WHERE trabalhos.id == trabalhoId
+                AND trabalhos.raridade == 'Raro'
+                )
+                AS trabalhoNecessario,
+                COUNT(*) AS quantidade
+            FROM vendas
+            WHERE nomePersonagem == ? 
+            AND nome NOT NULL
+            GROUP BY trabalhoId
+            ORDER BY quantidade
+            ;
+            """
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [self.__personagem.id])
+            for linha in cursor.fetchall():
+                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido.trabalhoId = linha[0]
+                trabalhoVendido.nome = linha[1]
+                trabalhoVendido.nivel = linha[2]
+                trabalhoVendido.trabalhoNecessario = linha[3]
+                trabalhoVendido.quantidadeProduto = linha[4]
+                vendas.append(trabalhoVendido)
+            self.__meuBanco.desconecta()
+            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.quantidadeProduto, trabalhoVendido.nivel, trabalhoVendido.nome), reverse=True)
+            return vendas
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
     def insereTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
         sql = """
             INSERT INTO vendas (id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto)

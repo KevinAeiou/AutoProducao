@@ -75,6 +75,52 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
+    def pegaTrabalhoEstoquePorId(self, trabalhoBuscado):
+        trabalhoEncontrado = TrabalhoEstoque()
+        sql = """
+            SELECT Lista_estoque.id, trabalhos.nome, trabalhos.profissao, trabalhos.nivel, Lista_estoque.quantidade, trabalhos.raridade, Lista_estoque.idTrabalho
+            FROM Lista_estoque
+            INNER JOIN trabalhos
+            ON Lista_estoque.idTrabalho == trabalhos.id
+            WHERE Lista_estoque.id == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [trabalhoBuscado.id])
+            for linha in cursor.fetchall():
+                trabalhoEncontrado.id = linha[0]
+                trabalhoEncontrado.nome = linha[1]
+                trabalhoEncontrado.profissao = linha[2]
+                trabalhoEncontrado.nivel = linha[3]
+                trabalhoEncontrado.quantidade = linha[4]
+                trabalhoEncontrado.raridade = linha[5]
+                trabalhoEncontrado.trabalhoId = linha[6]
+            self.__meuBanco.desconecta()
+            return trabalhoEncontrado
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
+    def pegaQuantidadeTrabalho(self, trabalhoBuscado):            
+        sql = """
+            SELECT quantidade
+            FROM Lista_estoque
+            WHERE idTrabalho == ?
+            AND idPersonagem == ?
+            LIMIT 1;
+            """
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (trabalhoBuscado.trabalhoId, self.__personagem.id))
+            linha = cursor.fetchone()
+            quantidade = 0 if linha is None else linha[0]
+            self.__meuBanco.desconecta()
+            return quantidade
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
     def insereTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         sql = """
             INSERT INTO Lista_estoque (id, idPersonagem, idTrabalho, quantidade)
@@ -162,6 +208,37 @@ class EstoqueDaoSqlite:
                 self.__logger.info(f'({trabalhoEstoque}) removido do servidor com sucesso!')
             else:
                 self.__logger.error(f'Erro ao remover ({trabalhoEstoque}) do servidor: {self.__repositorioEstoque.pegaErro()}')
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
+    
+    def removeColunasTabelaEstoque(self):
+        sqlDropNome = """
+            ALTER TABLE Lista_estoque
+            DROP COLUMN nome;
+            """
+        sqlDropProfissao = """
+            ALTER TABLE Lista_estoque
+            DROP COLUMN profissao;
+            """
+        sqlDropNivel = """
+            ALTER TABLE Lista_estoque
+            DROP COLUMN nivel;
+            """
+        sqlDropRaridade = """
+            ALTER TABLE Lista_estoque
+            DROP COLUMN raridade;
+            """
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sqlDropNome)
+            cursor.execute(sqlDropProfissao)
+            cursor.execute(sqlDropNivel)
+            cursor.execute(sqlDropRaridade)
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)

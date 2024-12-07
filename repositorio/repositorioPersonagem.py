@@ -59,12 +59,11 @@ class RepositorioPersonagem:
                 novoPersonagem = message['data']
             else:
                 chavePersonagemModificado = listaChaves[2]
-            self.__logger.info(f'Lista de chaves: ({listaChaves})')
+            self.__logger.info(f'Menssagem: ({message})')
             idTrabalhoProducaoModificado = None
             if chavePersonagemModificado == 'Lista_desejo' or chavePersonagemModificado == 'Lista_estoque' or chavePersonagemModificado == 'Lista_profissoes' or chavePersonagemModificado == 'Lista_vendas':
                 idTrabalhoProducaoModificado = listaChaves[3]
             dicionarioPersonagemModificado = {'id' : idPersonagemModificado, 'idTrabalhoProducao' : idTrabalhoProducaoModificado,chavePersonagemModificado : message['data'], 'novoPersonagem' : novoPersonagem}
-            self.__logger.info(f'({dicionarioPersonagemModificado}) modificado/inserido no servidor!')
             self.__dadosModificados.append(dicionarioPersonagemModificado)
     
     def pegaTodosPersonagens(self):

@@ -2,7 +2,7 @@ import logging
 from uuid import uuid4
 from time import sleep
 from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero
-from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR
+from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_ESTOQUE
 
 from dao.trabalhoDaoSqlite import TrabalhoDaoSqlite
 from dao.personagemDaoSqlite import PersonagemDaoSqlite
@@ -1108,7 +1108,29 @@ class CRUD:
             self.__repositorioTrabalho.limpaLista()
 
     def testeFuncao(self):
-        pass
+        # estoqueDao = EstoqueDaoSqlite()
+        # if estoqueDao.removeColunasTabelaEstoque():
+        #     self.__loggerEstoqueDao.info(f'Coluna da tabela removida')
+        # else:
+        #     self.__loggerEstoqueDao.error(f'Erro ao remover coluna da tabela: {estoqueDao.pegaErro()}')
+        personagens = self.mostraListaPersonagens()
+        if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
+            vendaDao = VendaDaoSqlite(self.__personagemEmUso)
+            vendas = vendaDao.pegaTrabalhosRarosVendidos()
+            if variavelExiste(vendas):
+                for trabalhoVendido in vendas:
+                    print(trabalhoVendido.id, trabalhoVendido.nome, trabalhoVendido.nivel, trabalhoVendido.quantidadeProduto)
+                    estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                    quantidadeTrabalhoEmEstoque = estoqueDao.pegaQuantidadeTrabalho(trabalhoVendido)
+                    if variavelExiste(quantidadeTrabalhoEmEstoque):
+                        print(f'Quantidade de ({trabalhoVendido.nome}) no estoque: {quantidadeTrabalhoEmEstoque}')
+                        continue
+                    self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade: {estoqueDao.pegaErro()}')
+                    input('Clique para continuar...')
+                input('Clique para continuar...')
+                return
+            self.__loggerVendaDao.error(f'Erro: {vendaDao.pegaErro()}')
+        input('Clique para continuar...')
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:
@@ -1116,13 +1138,13 @@ class CRUD:
             for dicionario in dicionarios:
                 personagemModificado = Personagem()
                 personagemModificado.id = dicionario['id']
-                if 'Lista_desejo' in dicionario:
+                if CHAVE_LISTA_TRABALHOS_PRODUCAO in dicionario:
                     trabalhoProducao = TrabalhoProducao()
-                    if dicionario['Lista_desejo'] == None:
+                    if dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO] == None:
                         trabalhoProducao.id = dicionario['idTrabalhoProducao']
                         self.removeTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
-                    trabalhoProducao.dicionarioParaObjeto(dicionario['Lista_desejo'])
+                    trabalhoProducao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
                     trabalhoProducao.id = dicionario['idTrabalhoProducao']
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
                     trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
@@ -1134,20 +1156,43 @@ class CRUD:
                         continue
                     self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducaoEncontrado)
                     continue
-                if dicionario['novoPersonagem'] == None:
-                    persoangemDao = PersonagemDaoSqlite()
-                    personagemEncontrado = persoangemDao.pegaPersonagemEspecificoPorId(personagemModificado)
-                    if personagemEncontrado == None:
-                        self.__loggerPersonagemDao.error(f'Erro ao buscar personagem por id: {persoangemDao.pegaErro()}')
+                if CHAVE_LISTA_ESTOQUE in dicionario:
+                    trabalhoEstoque = TrabalhoEstoque()
+                    if dicionario[CHAVE_LISTA_ESTOQUE] == None:
+                        trabalhoEstoque.id = dicionario['idTrabalhoProducao']
+                        trabalhoEstoqueDao = EstoqueDaoSqlite(personagemModificado)
+                        trabalhoEstoqueEncontrado = trabalhoEstoqueDao.pegaTrabalhoEstoquePorId(trabalhoEstoque)
+                        if variavelExiste(trabalhoEstoqueEncontrado):
+                            if variavelExiste(trabalhoEstoqueEncontrado.nome):
+                                # Remove trabalho do estoque
+                                pass
+                            continue
+                        self.__loggerEstoqueDao.error(f'Erro ao buscar ({trabalhoEstoque.id}) por id: {trabalhoEstoqueDao.pegaErro()}')
                         continue
-                    if personagemEncontrado.nome == None:
-                        self.__loggerPersonagemDao.info(f'({personagemModificado}) não encontrado no banco!')
+                    trabalhoEstoque.dicionarioParaObjeto(dicionario[CHAVE_LISTA_ESTOQUE])
+                    trabalhoEstoqueDao = EstoqueDaoSqlite(personagemModificado)
+                    trabalhoEstoqueEncontrado = trabalhoEstoqueDao.pegaTrabalhoEstoquePorId(trabalhoEstoque)
+                    if variavelExiste(trabalhoEstoqueEncontrado):
+                        if variavelExiste(trabalhoEstoqueEncontrado.nome):
+                            # Modifica trabalho no estoque
+                            continue
+                        # Insere tarbalho no estoque
                         continue
-                    personagemEncontrado.dicionarioParaObjeto(dicionario)
-                    self.modificaPersonagemStream(personagemEncontrado)
+                    self.__loggerEstoqueDao.error(f'Erro ao buscar ({trabalhoEstoque.id}) por id: {trabalhoEstoqueDao.pegaErro()}')
                     continue
-                personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
-                self.inserePersonagemStream(personagemModificado)
+                persoangemDao = PersonagemDaoSqlite()
+                personagemEncontrado = persoangemDao.pegaPersonagemEspecificoPorId(personagemModificado)
+                if variavelExiste(personagemEncontrado):
+                    if variavelExiste(personagemEncontrado.nome):
+                        personagemEncontrado.dicionarioParaObjeto(dicionario)
+                        self.modificaPersonagemStream(personagemEncontrado)
+                        continue
+                    self.__loggerPersonagemDao.warning(f'({personagemModificado}) não encontrado no banco!')
+                    if variavelExiste(dicionario['novoPersonagem']):
+                        personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
+                        self.inserePersonagemStream(personagemModificado)
+                    continue
+                self.__loggerPersonagemDao.error(f'Erro ao buscar personagem por id: {persoangemDao.pegaErro()}')
                 continue
             self.__repositorioPersonagem.limpaLista()
 

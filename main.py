@@ -751,28 +751,29 @@ class Aplicacao:
 
     def verificaProducaoTrabalhoRaro(self, trabalhoProducaoConcluido):
         profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoProducaoConcluido)
-        if variavelExiste(profissao):
-            if trabalhoProducaoConcluido.ehMelhorado():
-                trabalhoDao = TrabalhoDaoSqlite()
-                trabalhos = trabalhoDao.pegaTrabalhos()
-                if variavelExiste(trabalhos):
-                    for trabalho in trabalhos:
-                        trabalhoNecessarioEhIgualNomeTrabalhoConcluido = textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome)
-                        if trabalhoNecessarioEhIgualNomeTrabalhoConcluido:
-                            licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel() >= profissao.pegaExperienciaMaxima() else CHAVE_LICENCA_INICIANTE
-                            trabalhoProducaoRaro = TrabalhoProducao()
-                            trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
-                            trabalhoProducaoRaro.id = str(uuid.uuid4())
-                            trabalhoProducaoRaro.idTrabalho = trabalho.id
-                            trabalhoProducaoRaro.experiencia = trabalho.experiencia * 1.5
-                            trabalhoProducaoRaro.recorrencia = False
-                            trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
-                            trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
-                            return trabalhoProducaoRaro
-                    return None
-                logger = logging.getLogger('trabalhoDao')
-                logger.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+        if variavelExiste(profissao) and trabalhoProducaoConcluido.ehMelhorado():
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhos = trabalhoDao.pegaTrabalhos()
+            if variavelExiste(trabalhos):
+                for trabalho in trabalhos:
+                    trabalhoNecessarioEhIgualNomeTrabalhoConcluido = textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome)
+                    if trabalhoNecessarioEhIgualNomeTrabalhoConcluido:
+                        return self.defineNovoTrabalhoProducaoRaro(profissao, trabalho)
+                return None
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
         return None
+
+    def defineNovoTrabalhoProducaoRaro(self, profissao, trabalho):
+        licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel() >= profissao.pegaExperienciaMaxima() else CHAVE_LICENCA_INICIANTE
+        trabalhoProducaoRaro = TrabalhoProducao()
+        trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
+        trabalhoProducaoRaro.id = str(uuid.uuid4())
+        trabalhoProducaoRaro.idTrabalho = trabalho.id
+        trabalhoProducaoRaro.experiencia = trabalho.experiencia * 1.5
+        trabalhoProducaoRaro.recorrencia = False
+        trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
+        trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
+        return trabalhoProducaoRaro
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado):
         if tamanhoIgualZero(listaPersonagemPresenteRecuperado):
@@ -1123,8 +1124,6 @@ class Aplicacao:
                     self.__loggerTrabalhoDao.warning(f'({trabalhoVendido}) não foi encontrado na lista de trabalhos!')
                     continue
                 self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalho especifico ({trabalhoVendido}) no banco: {trabalhoDao.pegaErro()}')
-                return trabalhosRarosVendidos
-            trabalhosRarosVendidos = sorted(trabalhosRarosVendidos, key = lambda trabalho: (trabalho.dataVenda))
             return trabalhosRarosVendidos
         self.__loggerVendaDao.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
         return trabalhosRarosVendidos
@@ -3246,11 +3245,13 @@ class Aplicacao:
                     break
                 limpaTela()
                 self.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
-                trabalhoProducaoConcluido = self.retornaTrabalhoConcluido('Clâmide aterrorizante do eclip')
-                if variavelExiste(trabalhoProducaoConcluido):
-                    trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
-                else:
-                    print(f'Trabalho produção concluido não reconhecido.')
+                for trabalhoVendido in self.retornaListaTrabalhosRarosVendidos():
+                    print(trabalhoVendido)
+                # trabalhoProducaoConcluido = self.retornaTrabalhoConcluido('Clâmide aterrorizante do eclip')
+                # if variavelExiste(trabalhoProducaoConcluido):
+                #     trabalhoProducaoConcluido = self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
+                # else:
+                #     print(f'Trabalho produção concluido não reconhecido.')
         #         self.verificaProdutosRarosMaisVendidos()
         #         input('Clique para continuar')
         #         continue
@@ -3377,5 +3378,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().preparaPersonagem()
+    Aplicacao().teste()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))
