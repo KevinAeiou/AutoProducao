@@ -2104,10 +2104,10 @@ class Aplicacao:
                     if trabalhoProducaoEncontrado == None:
                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho em produção por id: {trabalhoProducaoDao.pegaErro()}')
                         continue
-                    if trabalhoProducaoEncontrado.nome == None:
+                    if trabalhoProducaoEncontrado.id != trabalhoProducao.id:
                         self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
-                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducaoEncontrado)
+                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                     continue
                 if dicionario['novoPersonagem'] == None:
                     persoangemDao = PersonagemDaoSqlite()
