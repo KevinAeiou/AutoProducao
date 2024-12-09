@@ -2083,9 +2083,9 @@ class Aplicacao:
             for dicionario in dicionarios:
                 personagemModificado = Personagem()
                 personagemModificado.id = dicionario['id']
-                if 'Lista_desejo' in dicionario:
+                if CHAVE_LISTA_TRABALHOS_PRODUCAO in dicionario:
                     trabalhoProducao = TrabalhoProducao()
-                    if dicionario['Lista_desejo'] == None:
+                    if dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO] == None:
                         trabalhoProducao.id = dicionario['idTrabalhoProducao']
                         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
                         trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
@@ -2097,7 +2097,7 @@ class Aplicacao:
                             continue
                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar ({trabalhoProducao.id}) na lista de produção: {trabalhoProducaoDao.pegaErro()}')
                         continue
-                    trabalhoProducao.dicionarioParaObjeto(dicionario['Lista_desejo'])
+                    trabalhoProducao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
                     trabalhoProducao.id = dicionario['idTrabalhoProducao']
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
                     trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
