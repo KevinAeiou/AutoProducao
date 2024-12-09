@@ -2028,7 +2028,7 @@ class Aplicacao:
                 if trabalhoEncontrado is None:
                     self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalho por id: {trabalhoDao.pegaErro()}')
                     continue
-                if trabalhoEncontrado.nome is None:
+                if trabalhoEncontrado.id != trabalho.id:
                     trabalhoDao = TrabalhoDaoSqlite()
                     if trabalhoDao.insereTrabalho(trabalho, False):
                         self.__loggerTrabalhoDao.info(f'({trabalho}) inserido com sucesso!')
