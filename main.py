@@ -167,7 +167,7 @@ class Aplicacao:
                 'Você precisa de mais',
                 'Nome de usuário ou senha inválida',
                 'Pedido de artesanato expirado',
-                'reinodejogoselecionado',
+                'O reino selecionado está indisponível',
                 'Versão do jogo desatualizada',
                 'restaurandoconexão',
                 'paraatarefadeprodução',
