@@ -234,23 +234,25 @@ class ManipulaImagem:
     def retonaImagemRedimensionada(self, imagem, porcentagem):
         return cv2.resize(imagem,(0,0),fx=porcentagem,fy=porcentagem)
 
-    def retornaReferencia(self):
+    def retornaReferencia(self, imagem):
         print(f'Buscando referência "PEGAR"...')
-        telaInteira = self.retornaAtualizacaoTela()
-        frameTela = telaInteira[0:telaInteira.shape[0],330:488]
-        frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
-        imagemCinza = self.retornaImagemCinza(frameTela)
-        imagemDesfocada = cv2.GaussianBlur(imagemCinza,(1,1),1)
-        imagemLimiarizada = cv2.Canny(imagemDesfocada,150,180)
+        imagem = telaInteira[0:imagem.shape[0],330:488]
+        imagem = telaInteira[0:imagem.shape[0],0:telaInteira.shape[1]//2]
+        imagemCinza = self.retornaImagemCinza(imagem)
+        imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
         contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
         for cnt in contornos:
             area = cv2.contourArea(cnt)
-            if area == 258 or area == 4904.5:
+            if area >= 3000 or area <= 3200:
                 x, y, l, a = cv2.boundingRect(cnt)
                 centroX = x+(l/2)
                 centroY = y+(a/2)
                 return [centroX, centroY]
         return None
+    
+    def verificaRecompensaDisponivel(self):
+        telaInteira = self.retornaAtualizacaoTela()
+        return self.retornaReferencia(telaInteira)
 
     def escreveTexto(self, frameTela, contorno):
         area = cv2.contourArea(contorno)
@@ -269,17 +271,21 @@ class ManipulaImagem:
         frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(frameTela)
         # self.mostraImagem(0, imagemCinza, 'TELA_CINZA')
-        imagemDesfocada = cv2.GaussianBlur(imagemCinza,(3,3), 4)
-        # imagemDesfocada = cv2.GaussianBlur(imagemCinza, (3, 3), cv2.BORDER_DEFAULT)
+        imagemDesfocada = cv2.GaussianBlur(imagemCinza,(15,15), 1)
         # self.mostraImagem(0, imagemDesfocada, 'TELA_DESFOCADA')
-        kernel = np.ones((2,2),np.uint8)
-        imagemLimiarizada = cv2.Canny(imagemDesfocada,150,180)
+        imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
         # self.mostraImagem(0, imagemLimiarizada, 'TELA_LIMIARIZADA')
-        imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel, 2)
+        saida1 = cv2.hconcat([imagemDesfocada, imagemLimiarizada])
+        kernel = np.ones((2,2),np.uint8)
+        imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel, 1)
         # self.mostraImagem(0, imagemDilatada, 'TELA_DILATADA')
-        imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel, 2)
+        imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel, 1)
         # self.mostraImagem(0, imagemErodida, 'TELA_ERODIDA')
-        contornos, h1 = cv2.findContours(imagemErodida,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        saida2 = cv2.hconcat([imagemDilatada, imagemErodida])
+        saida3 = cv2.vconcat([saida1, saida2])
+        saida3 = self.retonaImagemRedimensionada(saida3, 0.6)
+        self.mostraImagem(0, saida3, 'SAIDA')
+        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for contorno in contornos:
             area = cv2.contourArea(contorno)
             epsilon = 0.02 * cv2.arcLength(contorno, True)
@@ -290,9 +296,10 @@ class ManipulaImagem:
                 frameTela = self.escreveTexto(frameTela, contorno)
                 centroX = 330+x+(l/2)
                 centroY = y+(a/2)
-                print(f'Centro da forma: {centroX} - {centroY}')
+                print(f'Centro da forma: {centroX} - {centroY} - {area}')
         self.mostraImagem(0, frameTela, 'BORDAS_RECONHECIDAS')
 
 if __name__=='__main__':
     imagem = ManipulaImagem()
-    imagem.retornaReferenciaTeste()
+    telaInteira = imagem.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias.png')
+    print(imagem.retornaReferencia(telaInteira))
