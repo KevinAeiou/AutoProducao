@@ -1064,12 +1064,18 @@ class CRUD:
         return trabalhoVendidoModificado
 
     def defineTrabalhoSelecionado(self, trabalhos):
+        trabalhoProducao = TrabalhoProducao()
         print(f'{"0".ljust(6)} - Voltar')
         opcaoTrabalho = input(f'Opção trabalho: ')    
         if int(opcaoTrabalho) == 0:
             return None
         trabalho = trabalhos[int(opcaoTrabalho) - 1]
-        return trabalho
+        trabalhoProducao.id = trabalho.id
+        trabalhoProducao.idTrabalho = trabalho.idTrabalho
+        trabalhoProducao.tipo_licenca = trabalho.tipo_licenca
+        trabalhoProducao.recorrencia = trabalho.recorrencia
+        trabalhoProducao.estado = trabalho.estado
+        return trabalhoProducao
 
     def sincronizaDados(self):
         self.sincronizaListaTrabalhos()
