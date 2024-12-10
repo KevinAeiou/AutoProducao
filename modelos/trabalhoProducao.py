@@ -42,10 +42,9 @@ class TrabalhoProducao(Trabalho):
             setattr(self, chave, dicionario[chave])
     
     def __str__(self) -> str:
-        nome = 'Indefinido' if self.nome == None else self.nome
-        profissao = 'Indefinido' if self.profissao == None else self.profissao
-        nivel = 'Indefinido' if self.nivel == None else str(self.nivel)
+        id = 'Indefinido' if self.id == None else str(self.id)
+        idTrabalho = 'Indefinido' if self.idTrabalho == None else str(self.idTrabalho)
         estado = 'Produzir' if self.estado == 0 else 'Produzindo' if self.estado == 1 else 'Feito'
-        licenca = 'Indefinido' if self.tipo_licenca == None else self.tipo_licenca
+        licenca = 'Indefinido' if self.tipo_licenca == None else str(self.tipo_licenca)
         recorrencia = 'Recorrente' if self.recorrencia else 'Único'
-        return f'{nome.ljust(44)} | {profissao.ljust(22)} | {nivel.ljust(5)} | {estado.ljust(10)} | {licenca.ljust(34)} | {recorrencia}'
+        return f'{id.ljust(36)} | {idTrabalho.ljust(36)} | {estado.ljust(10)} | {licenca.ljust(34)} | {recorrencia}'
