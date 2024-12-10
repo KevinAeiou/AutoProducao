@@ -671,7 +671,7 @@ class Aplicacao:
                             trabalhoEstoque.quantidade = 1
                         elif tipoRecurso == CHAVE_RCP or tipoRecurso == CHAVE_RAP or tipoRecurso == CHAVE_RAS or tipoRecurso == CHAVE_RAT:
                             trabalhoEstoque.quantidade = 2
-                        if textoEhIgual(trabalhoProducaoConcluido[CHAVE_TIPO_LICENCA], CHAVE_LICENCA_APRENDIZ):
+                        if textoEhIgual(trabalhoProducaoConcluido.tipo_licenca, CHAVE_LICENCA_APRENDIZ):
                             trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     else:
@@ -1594,13 +1594,13 @@ class Aplicacao:
                                             return dicionarioTrabalho
                                     else:
                                         print(f'{trabalhoProducaoEncontrado.tipo_licenca} não encontrado!')
-                                        print(f'Licença buscada agora é Licença de produção do iniciante!')
+                                        print(f'Licença buscada agora é {CHAVE_LICENCA_NOVATO}!')
                                         trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
                                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado
                                 else:
                                     if len(listaCiclo) > 10:
                                         print(f'{trabalhoProducaoEncontrado.tipo_licenca} não encontrado!')
-                                        print(f'Licença buscada agora é Licença de produção do iniciante!')
+                                        print(f'Licença buscada agora é {CHAVE_LICENCA_NOVATO}!')
                                         trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
                                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado          
                             else:
@@ -3378,5 +3378,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().teste()
+    Aplicacao().preparaPersonagem()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))
