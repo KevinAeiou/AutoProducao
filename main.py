@@ -819,6 +819,16 @@ class Aplicacao:
     def deslogaPersonagem(self):
         menu = self.retornaMenu()
         while not ehMenuJogar(menu):
+            tentativas = 0
+            erro = self.verificaErro()
+            while erroEncontrado(erro):
+                if ehErroConectando(erro):
+                    if tentativas > 10:
+                        clickEspecifico(2, 'enter')
+                        tentativas = 0
+                    tentativas += 1
+                erro = self.verificaErro()
+                continue
             if ehMenuInicial(menu):
                 encerraSecao()
                 break
