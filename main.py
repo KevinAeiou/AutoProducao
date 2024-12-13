@@ -2266,39 +2266,55 @@ class Aplicacao:
                     logger.error(f'Erro ao modificar ({profissao}): {profissaoDao.pegaErro()}')
         input(f'Clique para continuar...')
 
+    
     def sincronizaTrabalhosProducao(self):
-        loggerTrabalhoProducaoDAO = logging.getLogger('trabalhoProducaoDao')
-        loggerRepositorioTrabalhoProducao = logging.getLogger('repositorioTrabalhoProducao')
-        limpaTela()
-        print(f'{"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
         personagemDao = PersonagemDaoSqlite()
         personagens = personagemDao.pegaPersonagens()
-        if not variavelExiste(personagens):
-            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
-        for personagem in personagens:
-            print(personagem)
-            repositorioTrabalhoProducao = RepositorioTrabalhoProducao(personagem)
-            trabalhosProducao = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
-            if not variavelExiste(trabalhosProducao):
-                loggerRepositorioTrabalhoProducao.error(f'Erro ao buscar trabalhos em produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
-                continue
-            for trabalhoProducao in trabalhosProducao:
-                print(trabalhoProducao)
-                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                trabalhoProducaoEncontrada = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
-                if not variavelExiste(trabalhoProducaoEncontrada):
-                    loggerTrabalhoProducaoDAO.error(f'Erro ao buscar profissão ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
-                    continue
-                if variavelExiste(trabalhoProducaoEncontrada.nome):
-                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                    if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao):
-                        loggerTrabalhoProducaoDAO.info(f'({trabalhoProducao.id} | {trabalhoProducao}) modificado no banco com sucesso!')
+        if variavelExiste(personagens):
+            for personagem in personagens:
+                self.__personagemEmUso = personagem
+                repositorioTrabalhoProducao = RepositorioTrabalhoProducao(self.__personagemEmUso)
+                trabalhosProducaoServidor = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
+                if variavelExiste(trabalhosProducaoServidor):
+                    for trabalhoProducaoServidor in trabalhosProducaoServidor:
+                        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                        trabalhoProducaoEncontradoBanco = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducaoServidor)
+                        if variavelExiste(trabalhoProducaoEncontradoBanco):
+                            if trabalhoProducaoEncontradoBanco.id == trabalhoProducaoServidor.id:
+                                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                                if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoServidor, False):
+                                    self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoServidor.nome}) sincronizado no banco com sucesso!')
+                                    continue
+                                self.__loggerTrabalhoProducaoDao.error(f'Erro ao sincronizar ({trabalhoProducaoServidor.nome} | {trabalhoProducaoServidor}): {trabalhoProducaoDao.pegaErro()}')
+                                continue
+                            self.insereTrabalhoProducao(trabalhoProducaoServidor, False)
+                            continue
+                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar profissão ({trabalhoProducaoServidor}): {trabalhoProducaoDao.pegaErro()}')
                         continue
-                    loggerTrabalhoProducaoDAO.error(f'Erro ao modificar ({trabalhoProducao.id} | {trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                    trabalhosProducaoBanco = trabalhoProducaoDao.pegaTrabalhosProducao()
+                    if variavelExiste(trabalhosProducaoBanco):
+                        novaLista = []
+                        for trabalhoProducaoBanco in trabalhosProducaoBanco:
+                            for trabalhoProducaoServidor in trabalhosProducaoServidor:
+                                if trabalhoProducaoBanco.id == trabalhoProducaoServidor.id:
+                                    break
+                            else:
+                                novaLista.append(trabalhoProducaoBanco)
+                        for trabalhoProducaoBanco in novaLista:
+                            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                            if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoBanco, False):
+                                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoBanco.nome}) removido no banco com sucesso!')
+                                continue
+                            self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducaoBanco.nome}) do banco: {trabalhoProducaoDao.pegaErro()}')
+                            continue
+                        continue
+                    self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção no banco: {trabalhoProducaoDao.pegaErro()}')
                     continue
-                self.insereTrabalhoProducao(trabalhoProducaoEncontrada)
-        input(f'Clique para continuar...')
+                self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+                continue
+            return
+        print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
 
     def sincronizaTrabalhosVendidos(self):
         loggerTrabalhoVendidoDAO = logging.getLogger('trabalhoVendidoDao')
@@ -2344,7 +2360,6 @@ class Aplicacao:
         self.sincronizaListaTrabalhos()
         self.sincronizaListaPersonagens()
         self.sincronizaListaProfissoes()
-        self.sincronizaTrabalhosProducao()
         self.sincronizaTrabalhosVendidos()
 
     def preparaPersonagem(self):
@@ -2356,6 +2371,7 @@ class Aplicacao:
             self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada!')
         else:
             self.__loggerRepositorioPersonagem.error(f'Erro ao iniciar stream repositório personagem: {self.__repositorioPersonagem.pegaErro()}')
+        self.sincronizaTrabalhosProducao()
         clickAtalhoEspecifico('alt', 'tab')
         clickAtalhoEspecifico('win', 'left')
         self.iniciaProcessoBusca()

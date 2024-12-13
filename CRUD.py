@@ -1,6 +1,5 @@
 import logging
 from uuid import uuid4
-from time import sleep
 from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero, textoEhIgual
 from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_ESTOQUE, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO
 
@@ -13,6 +12,7 @@ from dao.profissaoDaoSqlite import ProfissaoDaoSqlite
 
 from repositorio.repositorioTrabalho import RepositorioTrabalho
 from repositorio.repositorioPersonagem import RepositorioPersonagem
+from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
 
 from modelos.trabalho import Trabalho
 from modelos.trabalhoProducao import TrabalhoProducao
@@ -46,14 +46,13 @@ class CRUD:
             self.__loggerRepositorioTrabalho.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
         self.menu()
     
-    def insereTrabalhoProducao(self, trabalhoProducao):
+    def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
         if variavelExiste(trabalhoProducao):
-            logger = logging.getLogger('trabalhoProducaoDao')
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
-                logger.info(f'({trabalhoProducao}) inserido com sucesso!')
+            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, modificaServidor):
+                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
                 return True
-            logger.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
             return False
     
     def insereNovoTrabalho(self):
@@ -337,7 +336,9 @@ class CRUD:
             else:
                 print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'NÍVEL'.ljust(5)} | {'ESTADO'.ljust(10)} | {'LICENÇA'.ljust(34)} | RECORRÊNCIA")
                 for trabalhoProducao in trabalhos:
-                    print(f'{str(trabalhos.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao}')
+                    estado = 'Produzir' if trabalhoProducao.estado == 0 else 'Produzindo' if trabalhoProducao.estado == 1 else 'Feito'
+                    recorrencia = 'Recorrente' if trabalhoProducao.recorrencia else 'Único'
+                    print(f'{str(trabalhos.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao.nome.ljust(44)} | {trabalhoProducao.profissao.ljust(22)} | {str(trabalhoProducao.nivel).ljust(5)} | {estado.ljust(10)} | {trabalhoProducao.tipo_licenca.ljust(34)} | {recorrencia}')
             return trabalhos
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção: {trabalhoProducaoDao.pegaErro()}')
         return None
@@ -1078,10 +1079,10 @@ class CRUD:
         return trabalhoProducao
 
     def sincronizaDados(self):
-        self.sincronizaListaTrabalhos()
-        self.sincronizaListaPersonagens()
+        # self.sincronizaListaTrabalhos()
+        # self.sincronizaListaPersonagens()
         # self.sincronizaListaProfissoes()
-        # self.sincronizaTrabalhosProducao()
+        self.__aplicacao.sincronizaTrabalhosProducao()
         # self.sincronizaTrabalhosVendidos()
 
     def verificaAlteracaoListaTrabalhos(self):
@@ -1306,6 +1307,7 @@ class CRUD:
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def menu(self):
+        self.sincronizaDados()
         while True:
             self.verificaAlteracaoListaTrabalhos()
             self.verificaAlteracaoPersonagem()
