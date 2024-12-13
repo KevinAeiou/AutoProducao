@@ -12,22 +12,6 @@ class Trabalho:
         self.raridade = None
         self.trabalhoNecessario = None
 
-    @property
-    def pegaExperiencia(self):
-        return self.experiencia
-    
-    @property
-    def pegaNivel(self):
-        return self.nivel
-
-    @pegaExperiencia.setter
-    def setExperiencia(self, experiencia):
-        self.experiencia = int(experiencia)
-
-    @pegaNivel.setter
-    def setNivel(self, nivel):
-        self.nivel = int(nivel)
-
     def ehRaro(self):
         return self.raridade == CHAVE_RARIDADE_RARO
     
