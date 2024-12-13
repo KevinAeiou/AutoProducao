@@ -1905,7 +1905,16 @@ class Aplicacao:
     def configuraLoginPersonagem(self):
         menu = self.retornaMenu()
         while not ehMenuJogar(menu):
-            ehMenuJogar(menu)
+            tentativas = 1
+            erro = self.verificaErro()
+            while erroEncontrado(erro):
+                if ehErroConectando(erro):
+                    if tentativas > 10:
+                        clickEspecifico(2, 'enter')
+                        tentativas = 0
+                    tentativas += 1
+                erro = self.verificaErro()
+                continue
             if menu == MENU_NOTICIAS or ehMenuEscolhaPersonagem(menu):
                 clickEspecifico(1, 'f1')
             elif menu != MENU_INICIAL:
