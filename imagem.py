@@ -54,9 +54,7 @@ class ManipulaImagem:
     def retornaImagemErodida(self,imagem, kernel, iteracoes):
         return cv2.erode(imagem, kernel, iterations = iteracoes)
     
-    def mostraImagem(self, indice, imagem, nomeFrame):
-        if nomeFrame == None:
-            nomeFrame = 'Janela teste'
+    def mostraImagem(self, indice, imagem, nomeFrame = 'Janela teste'):
         cv2.imshow(nomeFrame, imagem)
         cv2.waitKey(indice)
         cv2.destroyAllWindows()
@@ -236,18 +234,23 @@ class ManipulaImagem:
 
     def retornaReferencia(self, imagem):
         print(f'Buscando referência "PEGAR"...')
-        imagem = telaInteira[0:imagem.shape[0],330:488]
-        imagem = telaInteira[0:imagem.shape[0],0:telaInteira.shape[1]//2]
+        imagem = imagem[0:imagem.shape[0],330:488]
+        imagem = imagem[0:imagem.shape[0],0:imagem.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(imagem)
         imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
-        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
-        for cnt in contornos:
-            area = cv2.contourArea(cnt)
-            if area >= 3000 or area <= 3200:
-                x, y, l, a = cv2.boundingRect(cnt)
-                centroX = x+(l/2)
-                centroY = y+(a/2)
-                return [centroX, centroY]
+        kernel = np.ones((2,2),np.uint8)
+        imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel, 1)
+        contornos, h1 = cv2.findContours(imagemDilatada,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+        for contorno in contornos:
+            area = cv2.contourArea(contorno)
+            epsilon = 0.02 * cv2.arcLength(contorno, True)
+            aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
+            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area >= 3000 and area <= 3800:
+                x, y, l, a = cv2.boundingRect(contorno)
+                if l > a:
+                    centroX = x+(l/2)
+                    centroY = y+(a/2)
+                    return [centroX, centroY]
         return None
     
     def verificaRecompensaDisponivel(self):
@@ -266,40 +269,41 @@ class ManipulaImagem:
         return cv2.putText(frameTela, texto, posicao, fonte, escala, cor, thickness, cv2.LINE_AA)
     
     def retornaReferenciaTeste(self):
-        telaInteira = self.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias.png')
+        telaInteira = self.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias2.png')
         telaInteira = self.retonaImagemRedimensionada(telaInteira, 0.8)
         frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(frameTela)
         # self.mostraImagem(0, imagemCinza, 'TELA_CINZA')
-        imagemDesfocada = cv2.GaussianBlur(imagemCinza,(15,15), 1)
+        # imagemDesfocada = cv2.GaussianBlur(imagemCinza,(15,15), 1)
         # self.mostraImagem(0, imagemDesfocada, 'TELA_DESFOCADA')
         imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
         # self.mostraImagem(0, imagemLimiarizada, 'TELA_LIMIARIZADA')
-        saida1 = cv2.hconcat([imagemDesfocada, imagemLimiarizada])
         kernel = np.ones((2,2),np.uint8)
         imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel, 1)
-        # self.mostraImagem(0, imagemDilatada, 'TELA_DILATADA')
-        imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel, 1)
-        # self.mostraImagem(0, imagemErodida, 'TELA_ERODIDA')
-        saida2 = cv2.hconcat([imagemDilatada, imagemErodida])
-        saida3 = cv2.vconcat([saida1, saida2])
-        saida3 = self.retonaImagemRedimensionada(saida3, 0.6)
-        self.mostraImagem(0, saida3, 'SAIDA')
-        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        # imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel, 1)
+        # saida2 = cv2.hconcat([imagemDilatada, imagemErodida])
+        # saida3 = cv2.vconcat([saida1, saida2])
+        # saida3 = self.retonaImagemRedimensionada(saida3, 0.6)
+        # self.mostraImagem(0, saida3, 'SAIDA')
+        contornos, h1 = cv2.findContours(imagemDilatada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for contorno in contornos:
             area = cv2.contourArea(contorno)
             epsilon = 0.02 * cv2.arcLength(contorno, True)
             aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
-            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area > 3000:
+            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area >= 3000 and area <= 3800:
                 x, y, l, a = cv2.boundingRect(contorno)
-                frameTela = self.desenhaRetangulo(frameTela, contorno)
-                frameTela = self.escreveTexto(frameTela, contorno)
-                centroX = 330+x+(l/2)
-                centroY = y+(a/2)
-                print(f'Centro da forma: {centroX} - {centroY} - {area}')
+                if l > a:
+                    frameTela = self.desenhaRetangulo(frameTela, contorno)
+                    frameTela = self.escreveTexto(frameTela, contorno)
+                    centroX = 330+x+(l/2)
+                    centroY = y+(a/2)
+                    print(f'Centro da forma: {centroX} - {centroY} - {area}')
+        # saida1 = cv2.hconcat([imagemLimiarizada, frameTela])
+        # self.mostraImagem(0, imagemLimiarizada, 'IMAGEM_LIMIARIZADA')
+        self.mostraImagem(0, imagemDilatada, 'TELA_DILATADA')
+        # self.mostraImagem(0, imagemErodida, 'TELA_ERODIDA')
         self.mostraImagem(0, frameTela, 'BORDAS_RECONHECIDAS')
 
 if __name__=='__main__':
     imagem = ManipulaImagem()
-    telaInteira = imagem.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias.png')
-    print(imagem.retornaReferencia(telaInteira))
+    imagem.retornaReferenciaTeste()
