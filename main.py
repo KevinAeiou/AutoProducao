@@ -1330,7 +1330,7 @@ class Aplicacao:
                     print(f'Trabalho na lista: {trabalhoProducao.nome}')
                     if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducao.nomeProducao):
                         clickEspecifico(1, 'enter')
-                        dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
+                        dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo - 1
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         contadorParaBaixo += 1
                         tipoTrabalho = 0
