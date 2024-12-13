@@ -2106,15 +2106,7 @@ class Aplicacao:
                     trabalhoProducao = TrabalhoProducao()
                     if dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO] == None:
                         trabalhoProducao.id = dicionario['idTrabalhoProducao']
-                        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
-                        trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
-                        if variavelExiste(trabalhoProducaoEncontrado):
-                            if variavelExiste(trabalhoProducaoEncontrado.nome):
-                                self.removeTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
-                                continue
-                            self.__loggerTrabalhoProducaoDao.warning(f'({trabalhoProducao.id}) não foi encontrado na lista de produção')
-                            continue
-                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar ({trabalhoProducao.id}) na lista de produção: {trabalhoProducaoDao.pegaErro()}')
+                        self.removeTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
                     trabalhoProducao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
                     trabalhoProducao.id = dicionario['idTrabalhoProducao']

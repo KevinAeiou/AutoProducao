@@ -168,8 +168,8 @@ class CRUD:
                         novoTrabalhoNecessario = trabalhoEscolhido.trabalhoNecessario
                     trabalhoEscolhido.nome = novoNome
                     trabalhoEscolhido.nomeProducao = novoNomeProducao
-                    trabalhoEscolhido.setExperiencia(novaExperiencia)
-                    trabalhoEscolhido.setNivel(novoNivel)
+                    trabalhoEscolhido.experiencia = int(novaExperiencia)
+                    trabalhoEscolhido.nivel = int(novoNivel)
                     trabalhoEscolhido.profissao = novaProfissao
                     trabalhoEscolhido.raridade = novaRaridade
                     trabalhoEscolhido.trabalhoNecessario = novoTrabalhoNecessario
@@ -1173,15 +1173,20 @@ class CRUD:
                                                     if variavelExiste(quantidadeTrabalhoMelhoradoEmEstoque):
                                                         quantidadeTrabalhoMelhoradoNecessario = quantidadeTrabalhoRaroNecessario - quantidadeTrabalhoMelhoradoEmEstoque
                                                         print(f'Quantidade de ({trabalhoMelhoradoEncontrado.nome}) no estoque: {quantidadeTrabalhoMelhoradoEmEstoque}')
-
                                                         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                                                         quantidadeTrabalhoMelhoradoEmProducao = trabalhoProducaoDao.pegaQuantidadeProducao(trabalhoMelhoradoEncontrado.id)
                                                         if variavelExiste(quantidadeTrabalhoMelhoradoEmProducao):
                                                             quantidadeTrabalhoMelhoradoNecessario -= quantidadeTrabalhoMelhoradoEmProducao
                                                             if quantidadeTrabalhoMelhoradoNecessario < quantidadeTrabalhoRaroNecessario and quantidadeTrabalhoMelhoradoNecessario >= 0:
-                                                                # Deve adicionar o trabalho raro (quantidadeTrabalhoMelhoradoNecessario) vezes a lista para produção
-                                                                pass
-        
+                                                                quantidadeAdicionada = quantidadeTrabalhoMelhoradoNecessario
+                                                                if quantidadeTrabalhoMelhoradoNecessario == 0:
+                                                                    quantidadeAdicionada = quantidadeTrabalhoRaroNecessario
+                                                                while quantidadeAdicionada > 0:
+                                                                    self.__loggerTrabalhoProducaoDao.info(f'({trabalhoVendido.nome}) adicionado com sucesso!')
+                                                                    quantidadeAdicionada -= 1
+                                                                    pass
+                                                                return 
+                                                            continue                                                       
                                                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
                                                         continue
                                                     self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade: {estoqueDao.pegaErro()}')
