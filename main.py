@@ -335,7 +335,8 @@ class Aplicacao:
                     if texto1PertenceTexto2('Loja Milagrosa',textoMenu):
                         print(f'Menu loja milagrosa...')
                         return MENU_LOJA_MILAGROSA
-                textoMenu=self._imagem.retornaTextoMenuReconhecido(180,40,300)
+                # textoMenu=self._imagem.retornaTextoMenuReconhecido(180,40,300)
+                textoMenu=self._imagem.retornaTextoMenuReconhecido(180,60,300)
                 if variavelExiste(textoMenu):
                     if texto1PertenceTexto2('recompensasdiarias',textoMenu):
                         print(f'Menu recompensas diárias...')
