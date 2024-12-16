@@ -474,10 +474,10 @@ class Aplicacao:
         self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
         return listaPossiveisDicionariosTrabalhos
     
-    def insereTrabalhoProducao(self, trabalhoProducao):
+    def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
         if variavelExiste(trabalhoProducao):
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
+            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, modificaServidor):
                 self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) inserido com sucesso!')
                 return True
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao.id} |{trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
