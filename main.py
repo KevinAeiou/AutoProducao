@@ -2278,6 +2278,10 @@ class Aplicacao:
                 trabalhosProducaoServidor = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
                 if variavelExiste(trabalhosProducaoServidor):
                     for trabalhoProducaoServidor in trabalhosProducaoServidor:
+                        limpaTela()
+                        print(f'Sincronizando trabalhos para produção...')
+                        print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
+                        print(f'Trabalhos: {(trabalhosProducaoServidor.index(trabalhoProducaoServidor)+1)/len(trabalhosProducaoServidor):.2%}')
                         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                         trabalhoProducaoEncontradoBanco = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducaoServidor)
                         if variavelExiste(trabalhoProducaoEncontradoBanco):
