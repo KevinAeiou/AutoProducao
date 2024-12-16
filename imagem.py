@@ -235,7 +235,6 @@ class ManipulaImagem:
     def retornaReferencia(self, imagem):
         print(f'Buscando referência "PEGAR"...')
         imagem = imagem[0:imagem.shape[0],330:488]
-        imagem = imagem[0:imagem.shape[0],0:imagem.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(imagem)
         imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
         kernel = np.ones((2,2),np.uint8)
@@ -245,7 +244,7 @@ class ManipulaImagem:
             area = cv2.contourArea(contorno)
             epsilon = 0.02 * cv2.arcLength(contorno, True)
             aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
-            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area >= 3000 and area <= 3800:
+            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area >= 4000 and area <= 6000:
                 x, y, l, a = cv2.boundingRect(contorno)
                 if l > a:
                     centroX = x+(l/2)
@@ -254,8 +253,7 @@ class ManipulaImagem:
         return None
     
     def verificaRecompensaDisponivel(self):
-        telaInteira = self.retornaAtualizacaoTela()
-        return self.retornaReferencia(telaInteira)
+        return self.retornaReferencia(self.retornaAtualizacaoTela())
 
     def escreveTexto(self, frameTela, contorno):
         area = cv2.contourArea(contorno)
@@ -269,8 +267,8 @@ class ManipulaImagem:
         return cv2.putText(frameTela, texto, posicao, fonte, escala, cor, thickness, cv2.LINE_AA)
     
     def retornaReferenciaTeste(self):
-        telaInteira = self.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias2.png')
-        telaInteira = self.retonaImagemRedimensionada(telaInteira, 0.8)
+        telaInteira = self.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias.png')
+        # telaInteira = self.retonaImagemRedimensionada(telaInteira, 0.8)
         frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(frameTela)
         # self.mostraImagem(0, imagemCinza, 'TELA_CINZA')
@@ -290,7 +288,7 @@ class ManipulaImagem:
             area = cv2.contourArea(contorno)
             epsilon = 0.02 * cv2.arcLength(contorno, True)
             aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
-            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area >= 3000 and area <= 3800:
+            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area >= 3000 and area <= 6000:
                 x, y, l, a = cv2.boundingRect(contorno)
                 if l > a:
                     frameTela = self.desenhaRetangulo(frameTela, contorno)
@@ -306,4 +304,5 @@ class ManipulaImagem:
 
 if __name__=='__main__':
     imagem = ManipulaImagem()
-    imagem.retornaReferenciaTeste()
+    # imagem.retornaReferenciaTeste()
+    print(imagem.verificaRecompensaDisponivel())
