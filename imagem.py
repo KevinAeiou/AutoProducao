@@ -234,22 +234,21 @@ class ManipulaImagem:
 
     def retornaReferencia(self, imagem):
         print(f'Buscando referência "PEGAR"...')
-        imagem = imagem[0:imagem.shape[0],330:488]
+        imagem = imagem[0:imagem.shape[0], 0:imagem.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(imagem)
         imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
-        kernel = np.ones((2,2),np.uint8)
-        imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel, 1)
-        contornos, h1 = cv2.findContours(imagemDilatada,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
         for contorno in contornos:
-            area = cv2.contourArea(contorno)
-            epsilon = 0.02 * cv2.arcLength(contorno, True)
-            aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
-            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area >= 4000 and area <= 6000:
-                x, y, l, a = cv2.boundingRect(contorno)
-                if l > a:
-                    centroX = x+(l/2)
-                    centroY = y+(a/2)
-                    return [centroX, centroY]
+            # epsilon = 0.02 * cv2.arcLength(contorno, True)
+            # aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
+            x, y, l, a = cv2.boundingRect(contorno)
+            proporcao = l/a
+            if l > a and x >=340 and x+l <= 490  and proporcao>2.9 and proporcao<=3.2 and l >= 123 and l <=130:
+                imagem = self.desenhaRetangulo(imagem, contorno)
+                imagem = self.escreveTexto(imagem, contorno)
+                centroX = x+(l/2)
+                centroY = y+(a/2)
+                return [centroX, centroY]
         return None
     
     def verificaRecompensaDisponivel(self):
@@ -257,8 +256,8 @@ class ManipulaImagem:
 
     def escreveTexto(self, frameTela, contorno):
         area = cv2.contourArea(contorno)
-        texto = f'Area: {area}'
         x,y,l,a=cv2.boundingRect(contorno)
+        texto = f'Area: {area}, x: {x}, y: {y}, l: {l}, a:{a}'
         posicao = (x, y)
         fonte = cv2.FONT_HERSHEY_SIMPLEX
         escala = 0.5
@@ -305,4 +304,6 @@ class ManipulaImagem:
 if __name__=='__main__':
     imagem = ManipulaImagem()
     # imagem.retornaReferenciaTeste()
-    print(imagem.verificaRecompensaDisponivel())
+    imagemTeste = imagem.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias2.png')
+    print(imagem.retornaReferencia(imagemTeste))
+    # print(imagem.verificaRecompensaDisponivel())
