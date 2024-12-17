@@ -140,8 +140,7 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def reconheceTextoMenu(self, tela, x, y, largura):
-        alturaFrame = 30
+    def reconheceTextoMenu(self, tela, x, y, largura, alturaFrame = 30):
         frameTela = tela[y:y+alturaFrame,x:x+largura]
         if y > alturaFrame:
             frameTela = self.retornaImagemCinza(frameTela)
@@ -152,9 +151,25 @@ class ManipulaImagem:
             if variavelExiste(texto):
                 return limpaRuidoTexto(texto)
         return None
+    
+    def verificaPosicaoFrameMenu(self, tela):
+        frameTela = tela[0:tela.shape[0],0:tela.shape[1]//2]
+        imagemCinza = self.retornaImagemCinza(frameTela)
+        imagemLimiarizada = cv2.Canny(imagemCinza,200,255)
+        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        for contorno in contornos:
+            x, y, l, a = cv2.boundingRect(contorno)
+            if l > 340 and l < 350 and (a > 50 and a < 60 or a == 5):
+                y -= 40
+                a += 40
+                return (x, y, l, a)
+        return None
 
-    def retornaTextoMenuReconhecido(self, x, y, largura):        
-        return self.reconheceTextoMenu(self.retornaAtualizacaoTela(), x, y, largura)
+    def retornaPosicaoFrameMenuReconhecido(self):
+        return self.verificaPosicaoFrameMenu(self.retornaAtualizacaoTela())
+
+    def retornaTextoMenuReconhecido(self, x, y, largura, altura = 30):        
+        return self.reconheceTextoMenu(self.retornaAtualizacaoTela(), x, y, largura, altura)
     
     def verificaMenuReferenciaInicial(self, tela):
         posicaoMenu = [[703,627],[712,1312]]
@@ -225,9 +240,9 @@ class ManipulaImagem:
     def retornaNomeTrabalhoFrameProducaoReconhecido(self):
         return self.reconheceNomeTrabalhoFrameProducao(self.retornaAtualizacaoTela())
     
-    def desenhaRetangulo(self, imagem, contorno):
+    def desenhaRetangulo(self, imagem, contorno, cor = (0,255,0)):
         x,y,l,a=cv2.boundingRect(contorno)
-        return cv2.rectangle(imagem,(x,y),(x+l,y+a),(0,255,0),2)
+        return cv2.rectangle(imagem,(x,y),(x+l,y+a), cor ,2)
 
     def retonaImagemRedimensionada(self, imagem, porcentagem):
         return cv2.resize(imagem,(0,0),fx=porcentagem,fy=porcentagem)
@@ -244,7 +259,8 @@ class ManipulaImagem:
             x, y, l, a = cv2.boundingRect(contorno)
             proporcao = l/a
             if l > a and x >=340 and x+l <= 490  and proporcao>2.9 and proporcao<=3.2 and l >= 123 and l <=130:
-                imagem = self.desenhaRetangulo(imagem, contorno)
+                cor = (0,255,0)
+                imagem = self.desenhaRetangulo(imagem, contorno, cor)
                 imagem = self.escreveTexto(imagem, contorno)
                 centroX = x+(l/2)
                 centroY = y+(a/2)
@@ -254,56 +270,45 @@ class ManipulaImagem:
     def verificaRecompensaDisponivel(self):
         return self.retornaReferencia(self.retornaAtualizacaoTela())
 
-    def escreveTexto(self, frameTela, contorno):
-        area = cv2.contourArea(contorno)
+    def escreveTexto(self, texto, frameTela, contorno):
         x,y,l,a=cv2.boundingRect(contorno)
-        texto = f'Area: {area}, x: {x}, y: {y}, l: {l}, a:{a}'
-        posicao = (x, y)
+        posicao = (x, y+20)
         fonte = cv2.FONT_HERSHEY_SIMPLEX
         escala = 0.5
-        cor = (255, 255, 255)
+        cor = (0, 0, 0)
         thickness = 1
         return cv2.putText(frameTela, texto, posicao, fonte, escala, cor, thickness, cv2.LINE_AA)
     
     def retornaReferenciaTeste(self):
-        telaInteira = self.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias.png')
-        # telaInteira = self.retonaImagemRedimensionada(telaInteira, 0.8)
-        frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
-        imagemCinza = self.retornaImagemCinza(frameTela)
-        # self.mostraImagem(0, imagemCinza, 'TELA_CINZA')
-        # imagemDesfocada = cv2.GaussianBlur(imagemCinza,(15,15), 1)
-        # self.mostraImagem(0, imagemDesfocada, 'TELA_DESFOCADA')
-        imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
-        # self.mostraImagem(0, imagemLimiarizada, 'TELA_LIMIARIZADA')
-        kernel = np.ones((2,2),np.uint8)
-        imagemDilatada = self.retornaImagemDitalata(imagemLimiarizada,kernel, 1)
-        # imagemErodida = self.retornaImagemErodida(imagemDilatada,kernel, 1)
-        # saida2 = cv2.hconcat([imagemDilatada, imagemErodida])
-        # saida3 = cv2.vconcat([saida1, saida2])
-        # saida3 = self.retonaImagemRedimensionada(saida3, 0.6)
-        # self.mostraImagem(0, saida3, 'SAIDA')
-        contornos, h1 = cv2.findContours(imagemDilatada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        for contorno in contornos:
-            area = cv2.contourArea(contorno)
-            epsilon = 0.02 * cv2.arcLength(contorno, True)
-            aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
-            if cv2.isContourConvex(aproximacao) and len(aproximacao) == 4 and area >= 3000 and area <= 6000:
+        listaImagens = ['testeMenuProfissoes', 'testeMenuRecompensasDiarias', 'testeMenuRecompensasDiarias2', 'testeMenuTrabalhoProducao', 'testeMenuTrabalhosDisponiveis', 'testeMenuEscolhaPersonagem', 'testeMenuLojaMilagrosa', 'testeMenuNoticias']
+        for imagem in listaImagens:
+            telaInteira = self.abreImagem(f'tests/imagemTeste/{imagem}.png')
+            if telaInteira is None:
+                pass
+            frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
+            imagemCinza = self.retornaImagemCinza(frameTela)
+            imagemLimiarizada = cv2.Canny(imagemCinza,200,255)
+            # self.mostraImagem(0, imagemLimiarizada)
+            contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+            for contorno in contornos:
+                epsilon = 0.06 * cv2.arcLength(contorno, True)
+                aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
+                epsilon = f'{epsilon:.2f}'
                 x, y, l, a = cv2.boundingRect(contorno)
-                if l > a:
-                    frameTela = self.desenhaRetangulo(frameTela, contorno)
-                    frameTela = self.escreveTexto(frameTela, contorno)
-                    centroX = 330+x+(l/2)
-                    centroY = y+(a/2)
-                    print(f'Centro da forma: {centroX} - {centroY} - {area}')
-        # saida1 = cv2.hconcat([imagemLimiarizada, frameTela])
-        # self.mostraImagem(0, imagemLimiarizada, 'IMAGEM_LIMIARIZADA')
-        self.mostraImagem(0, imagemDilatada, 'TELA_DILATADA')
-        # self.mostraImagem(0, imagemErodida, 'TELA_ERODIDA')
-        self.mostraImagem(0, frameTela, 'BORDAS_RECONHECIDAS')
+                area = l * a
+                if l > 340 and l < 350 and (a > 50 and a < 60 or a == 5):
+                    # if len(aproximacao) == 4:
+                    azul = (255,0,0)
+                    frameTela = self.desenhaRetangulo(frameTela, contorno, cor = azul)
+                    texto = f'x: {x}, y: {y-40}, l: {l}, a: {a+40}'
+                    frameTela = self.escreveTexto(texto, frameTela, contorno)
+            self.mostraImagem(0, frameTela, 'BORDAS_RECONHECIDAS')
 
 if __name__=='__main__':
     imagem = ManipulaImagem()
-    # imagem.retornaReferenciaTeste()
-    imagemTeste = imagem.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias2.png')
-    print(imagem.retornaReferencia(imagemTeste))
+    posicao = imagem.retornaPosicaoFrameMenuReconhecido()
+    if posicao is not None:
+        print(imagem.retornaTextoMenuReconhecido(posicao[0], posicao[1], posicao[2], posicao[3]))
+    # imagemTeste = imagem.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias2.png')
+    # print(imagem.retornaReferencia(imagemTeste))
     # print(imagem.verificaRecompensaDisponivel())
