@@ -272,17 +272,17 @@ class Aplicacao:
         textoMenu = self._imagem.retornaTextoMenuReconhecido(26,1,150)
         if variavelExiste(textoMenu):
             if texto1PertenceTexto2('spearonline',textoMenu):
-                textoMenu=self._imagem.retornaTextoMenuReconhecido(216,197,270)
-                if variavelExiste(textoMenu):
-                    if texto1PertenceTexto2('noticias',textoMenu):
-                        print(f'Menu notícias...')
-                        return MENU_NOTICIAS
-                    if texto1PertenceTexto2('personagem',textoMenu):
-                        print(f'Menu escolha de personagem...')
-                        return MENU_ESCOLHA_PERSONAGEM
-                    if texto1PertenceTexto2('artesanato',textoMenu):
-                        textoMenu = self._imagem.retornaTextoMenuReconhecido(266, 242, 150)
-                        if variavelExiste(textoMenu):
+                posicao = self._imagem.retornaPosicaoFrameMenuReconhecido()
+                if variavelExiste(posicao):
+                    textoMenu = self._imagem.retornaTextoMenuReconhecido(posicao[0], posicao[1], posicao[2], posicao[3])
+                    if variavelExiste(textoMenu):
+                        if texto1PertenceTexto2('recompensasdiarias',textoMenu):
+                            print(f'Menu recompensas diárias...')
+                            return MENU_RECOMPENSAS_DIARIAS
+                        if texto1PertenceTexto2('selecioneopersonagem',textoMenu):
+                            print(f'Menu escolha de personagem...')
+                            return MENU_ESCOLHA_PERSONAGEM
+                        if texto1PertenceTexto2('artesanato',textoMenu):
                             if texto1PertenceTexto2('pedidosativos',textoMenu):
                                 print(f'Menu trabalhos atuais...')
                                 return MENU_TRABALHOS_ATUAIS
@@ -295,6 +295,11 @@ class Aplicacao:
                                     if texto1PertenceTexto2('voltar',textoMenu):
                                         print(f'Menu trabalhos diponíveis...')
                                         return MENU_TRABALHOS_DISPONIVEIS
+                textoMenu=self._imagem.retornaTextoMenuReconhecido(216,197,270)
+                if variavelExiste(textoMenu):
+                    if texto1PertenceTexto2('noticias',textoMenu):
+                        print(f'Menu notícias...')
+                        return MENU_NOTICIAS
                 textoMenu = self._imagem.retornaTextoSair()
                 if variavelExiste(textoMenu):
                     if textoEhIgual(textoMenu,'sair'):
