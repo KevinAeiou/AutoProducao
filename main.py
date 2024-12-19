@@ -2053,18 +2053,19 @@ class Aplicacao:
                 if trabalhoEncontrado is None:
                     self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalho por id: {trabalhoDao.pegaErro()}')
                     continue
-                if trabalhoEncontrado.id != trabalho.id:
+                if trabalhoEncontrado.id == trabalho.id:
                     trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.insereTrabalho(trabalho, False):
-                        self.__loggerTrabalhoDao.info(f'({trabalho}) inserido com sucesso!')
+                    if trabalhoDao.modificaTrabalhoPorId(trabalho, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalho}) modificado com sucesso!')
                         continue
-                    self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalho}): {trabalhoDao.pegaErro()}')
+                    self.__loggerTrabalhoDao.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
                     continue
                 trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.modificaTrabalhoPorId(trabalho, False):
-                    self.__loggerTrabalhoDao.info(f'({trabalho}) modificado com sucesso!')
+                if trabalhoDao.insereTrabalho(trabalho, False):
+                    self.__loggerTrabalhoDao.info(f'({trabalho}) inserido com sucesso!')
                     continue
-                self.__loggerTrabalhoDao.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+                self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalho}): {trabalhoDao.pegaErro()}')
+                continue
             self.__repositorioTrabalho.limpaLista()
     
     def modificaPersonagemStream(self, personagemEncontrado):
@@ -2121,10 +2122,10 @@ class Aplicacao:
                     if trabalhoProducaoEncontrado == None:
                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho em produção por id: {trabalhoProducaoDao.pegaErro()}')
                         continue
-                    if trabalhoProducaoEncontrado.id != trabalhoProducao.id:
-                        self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                    if trabalhoProducaoEncontrado.id == trabalhoProducao.id:
+                        self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
-                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                    self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                     continue
                 if dicionario['novoPersonagem'] == None:
                     persoangemDao = PersonagemDaoSqlite()
@@ -2138,8 +2139,9 @@ class Aplicacao:
                     personagemEncontrado.dicionarioParaObjeto(dicionario)
                     self.modificaPersonagemStream(personagemEncontrado)
                     continue
-                personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
-                self.inserePersonagemStream(personagemModificado)
+                else:
+                    personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
+                    self.inserePersonagemStream(personagemModificado)
                 continue
             self.__repositorioPersonagem.limpaLista()
         
