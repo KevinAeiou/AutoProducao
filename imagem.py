@@ -254,14 +254,9 @@ class ManipulaImagem:
         imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
         contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
         for contorno in contornos:
-            # epsilon = 0.02 * cv2.arcLength(contorno, True)
-            # aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
             x, y, l, a = cv2.boundingRect(contorno)
             proporcao = l/a
             if l > a and x >=340 and x+l <= 490  and proporcao>2.9 and proporcao<=3.2 and l >= 123 and l <=130:
-                cor = (0,255,0)
-                imagem = self.desenhaRetangulo(imagem, contorno, cor)
-                imagem = self.escreveTexto(imagem, contorno)
                 centroX = x+(l/2)
                 centroY = y+(a/2)
                 return [centroX, centroY]
