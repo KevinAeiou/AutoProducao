@@ -6,6 +6,7 @@ import numpy as np
 import pytesseract
 from time import sleep
 from utilitarios import *
+from teclado import clickAtalhoEspecifico
 
 class ManipulaImagem:
     def reconheceDigito(self, imagem):
@@ -140,16 +141,14 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def reconheceTextoMenu(self, tela, x, y, largura, alturaFrame = 30):
-        frameTela = tela[y:y+alturaFrame,x:x+largura]
-        if y > alturaFrame:
-            frameTela = self.retornaImagemCinza(frameTela)
-            frameTela = self.retornaImagemEqualizada(frameTela)
-            frameTela = self.retornaImagemBinarizada(frameTela)
-        if existePixelPretoSuficiente(frameTela):
-            texto = self.reconheceTexto(frameTela)
-            if variavelExiste(texto):
-                return limpaRuidoTexto(texto)
+    def reconheceTextoMenu(self, tela, x, y, largura, altura):
+        frameTela = tela[y:y+altura,x:x+largura]
+        frameTela = self.retornaImagemCinza(frameTela)
+        frameTela = self.retornaImagemEqualizada(frameTela)
+        frameTela = self.retornaImagemBinarizada(frameTela)
+        texto = self.reconheceTexto(frameTela)
+        if variavelExiste(texto):
+            return limpaRuidoTexto(texto)
         return None
     
     def verificaPosicaoFrameMenu(self, tela):
@@ -301,6 +300,7 @@ class ManipulaImagem:
 
 if __name__=='__main__':
     imagem = ManipulaImagem()
+    clickAtalhoEspecifico('alt','tab')
     posicao = imagem.retornaPosicaoFrameMenuReconhecido()
     if posicao is not None:
         print(imagem.retornaTextoMenuReconhecido(posicao[0], posicao[1], posicao[2], posicao[3]))
