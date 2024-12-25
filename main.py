@@ -2387,7 +2387,7 @@ class Aplicacao:
         sincroniza = input(f'Sincronizar listas? (S/N) ')
         if sincroniza is not None and sincroniza.lower() == 's':
             self.sincronizaTrabalhosProducao()
-            # self.sincronizaListaTrabalhos()
+            self.sincronizaListaTrabalhos()
         clickAtalhoEspecifico('alt', 'tab')
         clickAtalhoEspecifico('win', 'left')
         self.iniciaProcessoBusca()
