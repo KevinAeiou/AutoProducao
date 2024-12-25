@@ -2148,53 +2148,52 @@ class Aplicacao:
             self.__repositorioPersonagem.limpaLista()
         
     def sincronizaListaTrabalhos(self):
-        loggerTrabalho = logging.getLogger('trabalhoDAO')
-        loggerEstoque = logging.getLogger('estoqueDAO')
-        loggerProducao = logging.getLogger('trabalhoProducaoDAO')
-        loggerVenda = logging.getLogger('vendaDAO')
         repositorioTrabalho = RepositorioTrabalho()        
         trabalhosServidor = repositorioTrabalho.pegaTodosTrabalhos()
-        if not variavelExiste(trabalhosServidor):
-            print(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
-            return
-        trabalhoDao = TrabalhoDaoSqlite()
-        trabalhosBanco = trabalhoDao.pegaTrabalhos()
-        if not variavelExiste(trabalhosBanco):
-            print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-            return
-        for trabalhoServidor in trabalhosServidor:
-            trabalhoDao = TrabalhoDaoSqlite()
-            trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoEspecificoPorNomeProfissaoRaridade(trabalhoServidor)
-            if variavelExiste(trabalhoEncontradoBanco):
-                if variavelExiste(trabalhoEncontradoBanco.nome):
-                    if trabalhoServidor.id != trabalhoEncontradoBanco.id:
-                        print(f'Sincronizando ids...')
-                        trabalhoDao = TrabalhoDaoSqlite()
-                        if trabalhoDao.modificaTrabalhoPorNomeProfissaoRaridade(trabalhoServidor):
-                            loggerTrabalho.info(f'ID do trabalho modificado de: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                            trabalhoEstoqueDAO = EstoqueDaoSqlite()
-                            if trabalhoEstoqueDAO.modificaIdTrabalhoEstoque(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                                loggerEstoque.info(f'Id do trabalho em estoque modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                            else:
-                                loggerEstoque.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoEstoqueDAO.pegaErro()}')
-                            trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
-                            if trabalhoProducaoDAO.modificaIdTrabalhoEmProducao(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                                loggerProducao.info(f'Id do trabalho em produção modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                            else:
-                                loggerProducao.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoProducaoDAO.pegaErro()}')
-                            vendaDAO = VendaDaoSqlite()
-                            if vendaDAO.modificaIdTrabalhoVendido(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                                loggerVenda.info(f'Id do trabalho em vendas modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                            else:
-                                loggerVenda.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {vendaDAO.pegaErro()}')
-                            continue
-                        loggerTrabalho.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoDao.pegaErro()}')
-                    continue
+        if variavelExiste(trabalhosServidor):
+            for trabalhoServidor in trabalhosServidor:
+                limpaTela()
+                print(f'Sincronizando trabalhos...')
+                print(f'Trabalhos: {(trabalhosServidor.index(trabalhoServidor)+1)/len(trabalhoServidor):.2%}')
                 trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.insereTrabalho(trabalhoServidor, False):
-                    loggerTrabalho.info(f'({trabalhoServidor}) inserido no banco!')
+                trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoProducaoPorId(trabalhoServidor)
+                if variavelExiste(trabalhoEncontradoBanco):
+                    if trabalhoEncontradoBanco.id == trabalhoServidor.id:
+                        trabalhoDao = TrabalhoDaoSqlite()
+                        if trabalhoDao.modificaTrabalhoPorId(trabalhoServidor, False):
+                            self.__loggerTrabalhoDao.info(f'({trabalhoServidor.nome}) sincronizado no banco com sucesso!')
+                            continue
+                        self.__loggerTrabalhoDao.error(f'Erro ao sincronizar ({trabalhoServidor.nome} | {trabalhoServidor}): {trabalhoDao.pegaErro()}')
+                        continue
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.insereTrabalho(trabalhoServidor, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalhoServidor.nome}) inserido com sucesso!')
+                        continue
+                    self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalhoServidor.nome}) no banco: {trabalhoDao.pegaErro()}')    
                     continue
-                loggerTrabalho.error(f'Erro ao inserir trabalho ({trabalhoServidor}) no banco: {trabalhoDao.pegaErro()}')
+                self.__loggerTrabalhoDao.error(f'Erro ao buscar ({trabalhoServidor.nome}) no banco: {trabalhoDao.pegaErro()}')
+                continue
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhosBanco = trabalhoDao.pegaTrabalhos()
+            if variavelExiste(trabalhosBanco):
+                novaLista = []
+                for trabalhoBanco in trabalhosBanco:
+                    for trabalhoServidor in trabalhosServidor:
+                        if trabalhoBanco.id == trabalhoServidor.id:
+                            break
+                    else:
+                        novaLista.append(trabalhoBanco)
+                for trabalhoBanco in novaLista:
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.removeTrabalho(trabalhoBanco, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalhoBanco.nome}) removido no banco com sucesso!')
+                        continue
+                    self.__loggerTrabalhoDao.error(f'Erro ao remover ({trabalhoBanco.nome}) do banco: {trabalhoDao.pegaErro()}')
+                    continue
+                return
+            self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+            return
+        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
 
     def sincronizaListaPersonagens(self):
         repositorioPersonagem = RepositorioPersonagem()
@@ -2385,7 +2384,10 @@ class Aplicacao:
             self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada!')
         else:
             self.__loggerRepositorioPersonagem.error(f'Erro ao iniciar stream repositório personagem: {self.__repositorioPersonagem.pegaErro()}')
-        self.sincronizaTrabalhosProducao()
+        sincroniza = input(f'Sincronizar listas? (S/N) ')
+        if sincroniza is not None and sincroniza.lower() == 's':
+            self.sincronizaTrabalhosProducao()
+            # self.sincronizaListaTrabalhos()
         clickAtalhoEspecifico('alt', 'tab')
         clickAtalhoEspecifico('win', 'left')
         self.iniciaProcessoBusca()
