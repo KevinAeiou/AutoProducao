@@ -167,7 +167,7 @@ class Aplicacao:
                 'Você precisa de mais',
                 'Nome de usuário ou senha inválida',
                 'Pedido de artesanato expirado',
-                'reinodejogoselecionado',
+                'O reino selecionado está indisponível',
                 'Versão do jogo desatualizada',
                 'restaurandoconexão',
                 'paraatarefadeprodução',
@@ -272,17 +272,17 @@ class Aplicacao:
         textoMenu = self._imagem.retornaTextoMenuReconhecido(26,1,150)
         if variavelExiste(textoMenu):
             if texto1PertenceTexto2('spearonline',textoMenu):
-                textoMenu=self._imagem.retornaTextoMenuReconhecido(216,197,270)
-                if variavelExiste(textoMenu):
-                    if texto1PertenceTexto2('noticias',textoMenu):
-                        print(f'Menu notícias...')
-                        return MENU_NOTICIAS
-                    if texto1PertenceTexto2('personagem',textoMenu):
-                        print(f'Menu escolha de personagem...')
-                        return MENU_ESCOLHA_PERSONAGEM
-                    if texto1PertenceTexto2('artesanato',textoMenu):
-                        textoMenu = self._imagem.retornaTextoMenuReconhecido(266, 242, 150)
-                        if variavelExiste(textoMenu):
+                posicao = self._imagem.retornaPosicaoFrameMenuReconhecido()
+                if variavelExiste(posicao):
+                    textoMenu = self._imagem.retornaTextoMenuReconhecido(posicao[0], posicao[1], posicao[2], posicao[3])
+                    if variavelExiste(textoMenu):
+                        if texto1PertenceTexto2('recompensasdiarias',textoMenu):
+                            print(f'Menu recompensas diárias...')
+                            return MENU_RECOMPENSAS_DIARIAS
+                        if texto1PertenceTexto2('selecioneopersonagem',textoMenu):
+                            print(f'Menu escolha de personagem...')
+                            return MENU_ESCOLHA_PERSONAGEM
+                        if texto1PertenceTexto2('artesanato',textoMenu):
                             if texto1PertenceTexto2('pedidosativos',textoMenu):
                                 print(f'Menu trabalhos atuais...')
                                 return MENU_TRABALHOS_ATUAIS
@@ -295,6 +295,11 @@ class Aplicacao:
                                     if texto1PertenceTexto2('voltar',textoMenu):
                                         print(f'Menu trabalhos diponíveis...')
                                         return MENU_TRABALHOS_DISPONIVEIS
+                textoMenu=self._imagem.retornaTextoMenuReconhecido(216,197,270)
+                if variavelExiste(textoMenu):
+                    if texto1PertenceTexto2('noticias',textoMenu):
+                        print(f'Menu notícias...')
+                        return MENU_NOTICIAS
                 textoMenu = self._imagem.retornaTextoSair()
                 if variavelExiste(textoMenu):
                     if textoEhIgual(textoMenu,'sair'):
@@ -335,7 +340,8 @@ class Aplicacao:
                     if texto1PertenceTexto2('Loja Milagrosa',textoMenu):
                         print(f'Menu loja milagrosa...')
                         return MENU_LOJA_MILAGROSA
-                textoMenu=self._imagem.retornaTextoMenuReconhecido(180,40,300)
+                # textoMenu=self._imagem.retornaTextoMenuReconhecido(180,40,300)
+                textoMenu=self._imagem.retornaTextoMenuReconhecido(180,60,300)
                 if variavelExiste(textoMenu):
                     if texto1PertenceTexto2('recompensasdiarias',textoMenu):
                         print(f'Menu recompensas diárias...')
@@ -473,10 +479,10 @@ class Aplicacao:
         self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
         return listaPossiveisDicionariosTrabalhos
     
-    def insereTrabalhoProducao(self, trabalhoProducao):
+    def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
         if variavelExiste(trabalhoProducao):
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao):
+            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, modificaServidor):
                 self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) inserido com sucesso!')
                 return True
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao.id} |{trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
@@ -518,16 +524,16 @@ class Aplicacao:
             print(f'Trabalho recorrente.')
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoConcluido):
-                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido.id} | {trabalhoProducaoConcluido}) removido com sucesso!')
+                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido}) removido com sucesso!')
                 return trabalhoProducaoConcluido
-            self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducaoConcluido.id} | {trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
             return trabalhoProducaoConcluido
         print(f'Trabalho sem recorrencia.')
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoConcluido):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido.id} | {trabalhoProducaoConcluido}) modificado para concluído com sucesso!.')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoConcluido}) modificado para concluído com sucesso!.')
             return trabalhoProducaoConcluido
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoConcluido.id} | {trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoConcluido}): {trabalhoProducaoDao.pegaErro()}')
         return trabalhoProducaoConcluido
 
     def modificaExperienciaProfissao(self, trabalhoProducao):
@@ -671,7 +677,7 @@ class Aplicacao:
                             trabalhoEstoque.quantidade = 1
                         elif tipoRecurso == CHAVE_RCP or tipoRecurso == CHAVE_RAP or tipoRecurso == CHAVE_RAS or tipoRecurso == CHAVE_RAT:
                             trabalhoEstoque.quantidade = 2
-                        if textoEhIgual(trabalhoProducaoConcluido[CHAVE_TIPO_LICENCA], CHAVE_LICENCA_APRENDIZ):
+                        if textoEhIgual(trabalhoProducaoConcluido.tipo_licenca, CHAVE_LICENCA_APRENDIZ):
                             trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     else:
@@ -792,7 +798,7 @@ class Aplicacao:
         print(f'Buscando recompensa diária...')
         while evento < 2:
             sleep(2)
-            referenciaEncontrada = self._imagem.retornaReferencia()
+            referenciaEncontrada = self._imagem.verificaRecompensaDisponivel()
             if variavelExiste(referenciaEncontrada):
                 print(f'Referência encontrada!')
                 clickMouseEsquerdo(1, referenciaEncontrada[0], referenciaEncontrada[1])
@@ -819,6 +825,16 @@ class Aplicacao:
     def deslogaPersonagem(self):
         menu = self.retornaMenu()
         while not ehMenuJogar(menu):
+            tentativas = 0
+            erro = self.verificaErro()
+            while erroEncontrado(erro):
+                if ehErroConectando(erro):
+                    if tentativas > 10:
+                        clickEspecifico(2, 'enter')
+                        tentativas = 0
+                    tentativas += 1
+                erro = self.verificaErro()
+                continue
             if ehMenuInicial(menu):
                 encerraSecao()
                 break
@@ -1320,7 +1336,7 @@ class Aplicacao:
                     print(f'Trabalho na lista: {trabalhoProducao.nome}')
                     if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducao.nomeProducao):
                         clickEspecifico(1, 'enter')
-                        dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
+                        dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo - 1
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         contadorParaBaixo += 1
                         tipoTrabalho = 0
@@ -1544,9 +1560,9 @@ class Aplicacao:
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoEncontrado):
                         estado = 'produzir' if trabalhoProducaoEncontrado.estado  == 0 else 'produzindo' if trabalhoProducaoEncontrado.estado  == 1 else 'concluido'
-                        self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}) modificado para {estado} com sucesso!.')
+                        self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoEncontrado}) modificado para {estado} com sucesso!.')
                     else:
-                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
+                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoEncontrado}): {trabalhoProducaoDao.pegaErro()}')
                     self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
                     clickContinuo(12,'up')
                     self.verificaNovamente = True
@@ -1594,13 +1610,13 @@ class Aplicacao:
                                             return dicionarioTrabalho
                                     else:
                                         print(f'{trabalhoProducaoEncontrado.tipo_licenca} não encontrado!')
-                                        print(f'Licença buscada agora é Licença de produção do iniciante!')
+                                        print(f'Licença buscada agora é {CHAVE_LICENCA_NOVATO}!')
                                         trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
                                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado
                                 else:
                                     if len(listaCiclo) > 10:
                                         print(f'{trabalhoProducaoEncontrado.tipo_licenca} não encontrado!')
-                                        print(f'Licença buscada agora é Licença de produção do iniciante!')
+                                        print(f'Licença buscada agora é {CHAVE_LICENCA_NOVATO}!')
                                         trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
                                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado          
                             else:
@@ -1895,7 +1911,16 @@ class Aplicacao:
     def configuraLoginPersonagem(self):
         menu = self.retornaMenu()
         while not ehMenuJogar(menu):
-            ehMenuJogar(menu)
+            tentativas = 1
+            erro = self.verificaErro()
+            while erroEncontrado(erro):
+                if ehErroConectando(erro):
+                    if tentativas > 10:
+                        clickEspecifico(2, 'enter')
+                        tentativas = 0
+                    tentativas += 1
+                erro = self.verificaErro()
+                continue
             if menu == MENU_NOTICIAS or ehMenuEscolhaPersonagem(menu):
                 clickEspecifico(1, 'f1')
             elif menu != MENU_INICIAL:
@@ -2028,18 +2053,19 @@ class Aplicacao:
                 if trabalhoEncontrado is None:
                     self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalho por id: {trabalhoDao.pegaErro()}')
                     continue
-                if trabalhoEncontrado.nome is None:
+                if trabalhoEncontrado.id == trabalho.id:
                     trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.insereTrabalho(trabalho, False):
-                        self.__loggerTrabalhoDao.info(f'({trabalho}) inserido com sucesso!')
+                    if trabalhoDao.modificaTrabalhoPorId(trabalho, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalho}) modificado com sucesso!')
                         continue
-                    self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalho}): {trabalhoDao.pegaErro()}')
+                    self.__loggerTrabalhoDao.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
                     continue
                 trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.modificaTrabalhoPorId(trabalho, False):
-                    self.__loggerTrabalhoDao.info(f'({trabalho}) modificado com sucesso!')
+                if trabalhoDao.insereTrabalho(trabalho, False):
+                    self.__loggerTrabalhoDao.info(f'({trabalho}) inserido com sucesso!')
                     continue
-                self.__loggerTrabalhoDao.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
+                self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalho}): {trabalhoDao.pegaErro()}')
+                continue
             self.__repositorioTrabalho.limpaLista()
     
     def modificaPersonagemStream(self, personagemEncontrado):
@@ -2059,23 +2085,23 @@ class Aplicacao:
     def removeTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
         if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducao, False):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) removido com sucesso!')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) removido com sucesso!')
             return
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducao.id} | {trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def insereTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
         if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, False):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) inserido com sucesso!')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
             return
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao.id} |{trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def modificaTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao, False):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) modificado com sucesso!')
+            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) modificado com sucesso!')
             return
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducao.id} | {trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:
@@ -2083,31 +2109,25 @@ class Aplicacao:
             for dicionario in dicionarios:
                 personagemModificado = Personagem()
                 personagemModificado.id = dicionario['id']
-                if 'Lista_desejo' in dicionario:
+                if CHAVE_LISTA_TRABALHOS_PRODUCAO in dicionario:
                     trabalhoProducao = TrabalhoProducao()
-                    if dicionario['Lista_desejo'] == None:
+                    if dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO] == None:
                         trabalhoProducao.id = dicionario['idTrabalhoProducao']
-                        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
-                        trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
-                        if variavelExiste(trabalhoProducaoEncontrado):
-                            if variavelExiste(trabalhoProducaoEncontrado.nome):
-                                self.removeTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
-                                continue
-                            self.__loggerTrabalhoProducaoDao.warning(f'({trabalhoProducao.id}) não foi encontrado na lista de produção')
-                            continue
-                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar ({trabalhoProducao.id}) na lista de produção: {trabalhoProducaoDao.pegaErro()}')
+                        self.removeTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
-                    trabalhoProducao.dicionarioParaObjeto(dicionario['Lista_desejo'])
+                    trabalhoProducao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
                     trabalhoProducao.id = dicionario['idTrabalhoProducao']
+                    if trabalhoProducao.idTrabalho is None or trabalhoProducao.tipo_licenca is None or trabalhoProducao.estado is None or trabalhoProducao.recorrencia is None:
+                        continue
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
                     trabalhoProducaoEncontrado = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
                     if trabalhoProducaoEncontrado == None:
                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho em produção por id: {trabalhoProducaoDao.pegaErro()}')
                         continue
-                    if trabalhoProducaoEncontrado.nome == None:
-                        self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                    if trabalhoProducaoEncontrado.id == trabalhoProducao.id:
+                        self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                         continue
-                    self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducaoEncontrado)
+                    self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                     continue
                 if dicionario['novoPersonagem'] == None:
                     persoangemDao = PersonagemDaoSqlite()
@@ -2121,59 +2141,59 @@ class Aplicacao:
                     personagemEncontrado.dicionarioParaObjeto(dicionario)
                     self.modificaPersonagemStream(personagemEncontrado)
                     continue
-                personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
-                self.inserePersonagemStream(personagemModificado)
+                else:
+                    personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
+                    self.inserePersonagemStream(personagemModificado)
                 continue
             self.__repositorioPersonagem.limpaLista()
         
     def sincronizaListaTrabalhos(self):
-        loggerTrabalho = logging.getLogger('trabalhoDAO')
-        loggerEstoque = logging.getLogger('estoqueDAO')
-        loggerProducao = logging.getLogger('trabalhoProducaoDAO')
-        loggerVenda = logging.getLogger('vendaDAO')
         repositorioTrabalho = RepositorioTrabalho()        
         trabalhosServidor = repositorioTrabalho.pegaTodosTrabalhos()
-        if not variavelExiste(trabalhosServidor):
-            print(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
-            return
-        trabalhoDao = TrabalhoDaoSqlite()
-        trabalhosBanco = trabalhoDao.pegaTrabalhos()
-        if not variavelExiste(trabalhosBanco):
-            print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
-            return
-        for trabalhoServidor in trabalhosServidor:
-            trabalhoDao = TrabalhoDaoSqlite()
-            trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoEspecificoPorNomeProfissaoRaridade(trabalhoServidor)
-            if variavelExiste(trabalhoEncontradoBanco):
-                if variavelExiste(trabalhoEncontradoBanco.nome):
-                    if trabalhoServidor.id != trabalhoEncontradoBanco.id:
-                        print(f'Sincronizando ids...')
-                        trabalhoDao = TrabalhoDaoSqlite()
-                        if trabalhoDao.modificaTrabalhoPorNomeProfissaoRaridade(trabalhoServidor):
-                            loggerTrabalho.info(f'ID do trabalho modificado de: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                            trabalhoEstoqueDAO = EstoqueDaoSqlite()
-                            if trabalhoEstoqueDAO.modificaIdTrabalhoEstoque(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                                loggerEstoque.info(f'Id do trabalho em estoque modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                            else:
-                                loggerEstoque.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoEstoqueDAO.pegaErro()}')
-                            trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
-                            if trabalhoProducaoDAO.modificaIdTrabalhoEmProducao(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                                loggerProducao.info(f'Id do trabalho em produção modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                            else:
-                                loggerProducao.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoProducaoDAO.pegaErro()}')
-                            vendaDAO = VendaDaoSqlite()
-                            if vendaDAO.modificaIdTrabalhoVendido(trabalhoServidor.id, trabalhoEncontradoBanco.id):
-                                loggerVenda.info(f'Id do trabalho em vendas modificado: ({trabalhoEncontradoBanco}) -> ({trabalhoServidor})')
-                            else:
-                                loggerVenda.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {vendaDAO.pegaErro()}')
-                            continue
-                        loggerTrabalho.error(f'Erro ao modificar o id do trabalho ({trabalhoEncontradoBanco}): {trabalhoDao.pegaErro()}')
-                    continue
+        if variavelExiste(trabalhosServidor):
+            for trabalhoServidor in trabalhosServidor:
+                limpaTela()
+                print(f'Sincronizando trabalhos...')
+                print(f'Trabalhos: {(trabalhosServidor.index(trabalhoServidor)+1)/len(trabalhoServidor):.2%}')
                 trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.insereTrabalho(trabalhoServidor, False):
-                    loggerTrabalho.info(f'({trabalhoServidor}) inserido no banco!')
+                trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoProducaoPorId(trabalhoServidor)
+                if variavelExiste(trabalhoEncontradoBanco):
+                    if trabalhoEncontradoBanco.id == trabalhoServidor.id:
+                        trabalhoDao = TrabalhoDaoSqlite()
+                        if trabalhoDao.modificaTrabalhoPorId(trabalhoServidor, False):
+                            self.__loggerTrabalhoDao.info(f'({trabalhoServidor.nome}) sincronizado no banco com sucesso!')
+                            continue
+                        self.__loggerTrabalhoDao.error(f'Erro ao sincronizar ({trabalhoServidor.nome} | {trabalhoServidor}): {trabalhoDao.pegaErro()}')
+                        continue
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.insereTrabalho(trabalhoServidor, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalhoServidor.nome}) inserido com sucesso!')
+                        continue
+                    self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalhoServidor.nome}) no banco: {trabalhoDao.pegaErro()}')    
                     continue
-                loggerTrabalho.error(f'Erro ao inserir trabalho ({trabalhoServidor}) no banco: {trabalhoDao.pegaErro()}')
+                self.__loggerTrabalhoDao.error(f'Erro ao buscar ({trabalhoServidor.nome}) no banco: {trabalhoDao.pegaErro()}')
+                continue
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhosBanco = trabalhoDao.pegaTrabalhos()
+            if variavelExiste(trabalhosBanco):
+                novaLista = []
+                for trabalhoBanco in trabalhosBanco:
+                    for trabalhoServidor in trabalhosServidor:
+                        if trabalhoBanco.id == trabalhoServidor.id:
+                            break
+                    else:
+                        novaLista.append(trabalhoBanco)
+                for trabalhoBanco in novaLista:
+                    trabalhoDao = TrabalhoDaoSqlite()
+                    if trabalhoDao.removeTrabalho(trabalhoBanco, False):
+                        self.__loggerTrabalhoDao.info(f'({trabalhoBanco.nome}) removido no banco com sucesso!')
+                        continue
+                    self.__loggerTrabalhoDao.error(f'Erro ao remover ({trabalhoBanco.nome}) do banco: {trabalhoDao.pegaErro()}')
+                    continue
+                return
+            self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
+            return
+        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
 
     def sincronizaListaPersonagens(self):
         repositorioPersonagem = RepositorioPersonagem()
@@ -2227,7 +2247,7 @@ class Aplicacao:
     def sincronizaListaProfissoes(self):
         logger = logging.getLogger('profissaoDao')
         limpaTela()
-        print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+        print(f'{"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
         personagemDao = PersonagemDaoSqlite()
         personagens = personagemDao.pegaPersonagens()
         if not variavelExiste(personagens):
@@ -2255,45 +2275,65 @@ class Aplicacao:
                     logger.error(f'Erro ao modificar ({profissao}): {profissaoDao.pegaErro()}')
         input(f'Clique para continuar...')
 
+    
     def sincronizaTrabalhosProducao(self):
-        loggerTrabalhoProducaoDAO = logging.getLogger('trabalhoProducaoDao')
-        loggerRepositorioTrabalhoProducao = logging.getLogger('repositorioTrabalhoProducao')
-        limpaTela()
-        print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
         personagemDao = PersonagemDaoSqlite()
         personagens = personagemDao.pegaPersonagens()
-        if not variavelExiste(personagens):
-            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
-        for personagem in personagens:
-            print(personagem)
-            repositorioTrabalhoProducao = RepositorioTrabalhoProducao(personagem)
-            trabalhosProducao = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
-            if not variavelExiste(trabalhosProducao):
-                loggerRepositorioTrabalhoProducao.error(f'Erro ao buscar trabalhos em produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
-                continue
-            for trabalhoProducao in trabalhosProducao:
-                print(trabalhoProducao)
-                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                trabalhoProducaoEncontrada = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducao)
-                if not variavelExiste(trabalhoProducaoEncontrada):
-                    loggerTrabalhoProducaoDAO.error(f'Erro ao buscar profissão ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
-                    continue
-                if variavelExiste(trabalhoProducaoEncontrada.nome):
-                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-                    if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao):
-                        loggerTrabalhoProducaoDAO.info(f'({trabalhoProducao.id} | {trabalhoProducao}) modificado no banco com sucesso!')
+        if variavelExiste(personagens):
+            for personagem in personagens:
+                self.__personagemEmUso = personagem
+                repositorioTrabalhoProducao = RepositorioTrabalhoProducao(self.__personagemEmUso)
+                trabalhosProducaoServidor = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
+                if variavelExiste(trabalhosProducaoServidor):
+                    for trabalhoProducaoServidor in trabalhosProducaoServidor:
+                        limpaTela()
+                        print(f'Sincronizando trabalhos para produção...')
+                        print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
+                        print(f'Trabalhos: {(trabalhosProducaoServidor.index(trabalhoProducaoServidor)+1)/len(trabalhosProducaoServidor):.2%}')
+                        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                        trabalhoProducaoEncontradoBanco = trabalhoProducaoDao.pegaTrabalhoProducaoPorId(trabalhoProducaoServidor)
+                        if variavelExiste(trabalhoProducaoEncontradoBanco):
+                            if trabalhoProducaoEncontradoBanco.id == trabalhoProducaoServidor.id:
+                                trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                                if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoServidor, False):
+                                    self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoServidor.nome}) sincronizado no banco com sucesso!')
+                                    continue
+                                self.__loggerTrabalhoProducaoDao.error(f'Erro ao sincronizar ({trabalhoProducaoServidor.nome} | {trabalhoProducaoServidor}): {trabalhoProducaoDao.pegaErro()}')
+                                continue
+                            self.insereTrabalhoProducao(trabalhoProducaoServidor, False)
+                            continue
+                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar profissão ({trabalhoProducaoServidor}): {trabalhoProducaoDao.pegaErro()}')
                         continue
-                    loggerTrabalhoProducaoDAO.error(f'Erro ao modificar ({trabalhoProducao.id} | {trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                    trabalhosProducaoBanco = trabalhoProducaoDao.pegaTrabalhosProducao()
+                    if variavelExiste(trabalhosProducaoBanco):
+                        novaLista = []
+                        for trabalhoProducaoBanco in trabalhosProducaoBanco:
+                            for trabalhoProducaoServidor in trabalhosProducaoServidor:
+                                if trabalhoProducaoBanco.id == trabalhoProducaoServidor.id:
+                                    break
+                            else:
+                                novaLista.append(trabalhoProducaoBanco)
+                        for trabalhoProducaoBanco in novaLista:
+                            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+                            if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoBanco, False):
+                                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoBanco.nome}) removido no banco com sucesso!')
+                                continue
+                            self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducaoBanco.nome}) do banco: {trabalhoProducaoDao.pegaErro()}')
+                            continue
+                        continue
+                    self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção no banco: {trabalhoProducaoDao.pegaErro()}')
                     continue
-                self.insereTrabalhoProducao(trabalhoProducaoEncontrada)
-        input(f'Clique para continuar...')
+                self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+                continue
+            return
+        print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
 
     def sincronizaTrabalhosVendidos(self):
         loggerTrabalhoVendidoDAO = logging.getLogger('trabalhoVendidoDao')
         loggerRepositorioVendas = logging.getLogger('repositorioVendas')
         limpaTela()
-        print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+        print(f'{"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
         personagemDao = PersonagemDaoSqlite()
         personagens = personagemDao.pegaPersonagens()
         if variavelExiste(personagens):
@@ -2333,7 +2373,6 @@ class Aplicacao:
         self.sincronizaListaTrabalhos()
         self.sincronizaListaPersonagens()
         self.sincronizaListaProfissoes()
-        self.sincronizaTrabalhosProducao()
         self.sincronizaTrabalhosVendidos()
 
     def preparaPersonagem(self):
@@ -2345,6 +2384,10 @@ class Aplicacao:
             self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada!')
         else:
             self.__loggerRepositorioPersonagem.error(f'Erro ao iniciar stream repositório personagem: {self.__repositorioPersonagem.pegaErro()}')
+        sincroniza = input(f'Sincronizar listas? (S/N) ')
+        if sincroniza is not None and sincroniza.lower() == 's':
+            self.sincronizaTrabalhosProducao()
+            # self.sincronizaListaTrabalhos()
         clickAtalhoEspecifico('alt', 'tab')
         clickAtalhoEspecifico('win', 'left')
         self.iniciaProcessoBusca()
@@ -2358,7 +2401,7 @@ class Aplicacao:
                 print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
                 input(f'Clique para continuar...')
                 break
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             for personagem in personagens:
                 print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
@@ -2382,7 +2425,7 @@ class Aplicacao:
                         input(f'Clique para continuar...')
                         break
                     continue
-                print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(40)} | {('NOME').ljust(22)} | {str('EXP').ljust(6)} | PRIORIDADE')
+                print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(40)} | {"NOME".ljust(22)} | {"EXP".ljust(6)} | PRIORIDADE')
                 for profissao in profissoes:
                     print(f'{str(profissoes.index(profissao) + 1).ljust(6)} | {profissao}')
                 opcaoProfissao = input(f'Opção: ')
@@ -2418,7 +2461,7 @@ class Aplicacao:
             if not variavelExiste(trabalhos):
                 print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
                 break
-            print(f'{('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            print(f'{"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
             for trabalho in trabalhos:
                 print(f'{trabalho} | {trabalho.trabalhoNecessario}')
             opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')
@@ -2474,7 +2517,7 @@ class Aplicacao:
                 print(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
                 input(f'Clique para continuar...')
                 break
-            print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
             for trabalho in trabalhos:
                 print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho}')
             opcaoTrabalho = input(f'Opção trabalho: ')    
@@ -2522,7 +2565,7 @@ class Aplicacao:
     def insereNovoTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2537,7 +2580,7 @@ class Aplicacao:
             while True:
                 limpaTela()
                 personagem = personagens[int(opcaoPersonagem) - 1]
-                print(f'{('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('NÍVEL').ljust(5)} | {('ESTADO').ljust(10)} | {('LICENÇA').ljust(31)} | RECORRÊNCIA')
+                print(f'{"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"NÍVEL".ljust(5)} | {"ESTADO".ljust(10)} | {"LICENÇA".ljust(31)} | RECORRÊNCIA')
                 trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
                 trabalhos = trabalhoProducaoDao.pegaTrabalhosProducao()
                 if not variavelExiste(trabalhos):
@@ -2551,7 +2594,7 @@ class Aplicacao:
                     break
                 limpaTela()
                 profissoes = [CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES]
-                print(f'{('ÍNDICE').ljust(6)} - PROFISSÃO')
+                print(f'{"ÍNDICE".ljust(6)} - PROFISSÃO')
                 for profissao in profissoes:
                     print(f'{str(profissoes.index(profissao) + 1).ljust(6)} - {profissao}')
                 opcaoProfissao = input(f'Opção de profissao: ')
@@ -2568,7 +2611,7 @@ class Aplicacao:
                 for trabalho in trabalhos:
                     if trabalho.profissao == profissao:
                         trabalhosFiltrados.append(trabalho)
-                print(f'{('INDICE').ljust(6)} | {('NOME').ljust(40)} | {('PROFISSÃO').ljust(20)} | NÍVEL')
+                print(f'{"INDICE".ljust(6)} | {"NOME".ljust(40)} | {"PROFISSÃO".ljust(20)} | NÍVEL')
                 for trabalho in trabalhosFiltrados:
                     print(f'{str(trabalhosFiltrados.index(trabalho) + 1).ljust(6)} - {trabalho}')
                 opcaoTrabalho = input(f'Trabalhos escolhido: ')
@@ -2597,7 +2640,7 @@ class Aplicacao:
     def modificaPersonagem(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2641,7 +2684,7 @@ class Aplicacao:
     def removeTrabalho(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+            print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
             trabalhoDao = TrabalhoDaoSqlite()
             trabalhos = trabalhoDao.pegaTrabalhos()
             if not variavelExiste(trabalhos):
@@ -2667,7 +2710,7 @@ class Aplicacao:
     def modificaTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2726,7 +2769,7 @@ class Aplicacao:
     def removeTrabalhoProducao(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2741,7 +2784,7 @@ class Aplicacao:
             personagem = personagens[int(opcaoPersonagem) - 1]
             while True: 
                 limpaTela()
-                print(f'{('ÍNDICE').ljust(6)} - {('NOME').ljust(40)} | {('PROFISSÃO').ljust(21)} | {('NÍVEL').ljust(5)} | {('ESTADO').ljust(10)} | LICENÇA')
+                print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(40)} | {"PROFISSÃO".ljust(21)} | {"NÍVEL".ljust(5)} | {"ESTADO".ljust(10)} | LICENÇA')
                 trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
                 trabalhosProducao = trabalhoProducaoDao.pegaTrabalhosProducao()
                 if not variavelExiste(trabalhosProducao):
@@ -2767,7 +2810,7 @@ class Aplicacao:
     def mostraVendas(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagens = PersonagemDaoSqlite().pegaPersonagens()
             for personagem in personagens:
                 print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
@@ -2785,7 +2828,7 @@ class Aplicacao:
                     print(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
-                print(f'{('NOME').ljust(112)} | {('DATA').ljust(10)} | {('ID TRABALHO').ljust(36)} | {('VALOR').ljust(5)} | QUANT')
+                print(f'{"NOME".ljust(112)} | {"DATA".ljust(10)} | {"ID TRABALHO".ljust(36)} | {"VALOR".ljust(5)} | QUANT')
                 for trabalhoVendido in vendas:
                     print(trabalhoVendido)
                 opcaoTrabalhoVendido = input(f'Opção trabalho vendido: ')
@@ -2795,7 +2838,7 @@ class Aplicacao:
     def inserePersonagem(self):
          while True:
             limpaTela()
-            print(f'{('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2827,7 +2870,7 @@ class Aplicacao:
     def removePersonagem(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2853,7 +2896,7 @@ class Aplicacao:
     def insereTrabalhoEstoque(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2868,7 +2911,7 @@ class Aplicacao:
             personagem = personagens[int(opcaoPersonagem) - 1]
             while True:
                 limpaTela()
-                print(f'{('NOME').ljust(40)} | {('PROFISSÃO').ljust(25)} | {('QNT').ljust(3)} | {('NÍVEL').ljust(5)} | {('RARIDADE').ljust(10)} | {'ID TRABALHO'}')
+                print(f'{"NOME".ljust(40)} | {"PROFISSÃO".ljust(25)} | {"QNT".ljust(3)} | {"NÍVEL".ljust(5)} | {"RARIDADE".ljust(10)} | ID TRABALHO')
                 trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
                 estoque = trabalhoEstoqueDao.pegaEstoque()
                 if not variavelExiste(estoque):
@@ -2886,7 +2929,7 @@ class Aplicacao:
                     print(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
-                print(f'{('ÍNDICE').ljust(6)} | {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+                print(f'{"ÍNDICE".ljust(6)} | {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
                 for trabalho in trabalhos:
                     print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} | {trabalho}')
                 opcaoTrabalho = input(f'Opção trabalho: ')    
@@ -2914,7 +2957,7 @@ class Aplicacao:
     def modificaTrabalhoEstoque(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2935,10 +2978,10 @@ class Aplicacao:
                     print(f'Erro ao buscar trabalhos no estoque: {trabalhoEstoqueDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
-                print(f'{('ÍNDICE').ljust(6)} | {('NOME').ljust(40)} | {('PROFISSÃO').ljust(25)} | {('QNT').ljust(3)} | {('NÍVEL').ljust(5)} | {('RARIDADE').ljust(10)} | {'ID TRABALHO'}')
+                print(f'{"ÍNDICE".ljust(6)} | {"NOME".ljust(40)} | {"PROFISSÃO".ljust(25)} | {"QNT".ljust(3)} | {"NÍVEL".ljust(5)} | {"RARIDADE".ljust(10)} | ID TRABALHO')
                 for trabalhoEstoque in estoque:
                     print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} | {trabalhoEstoque}')
-                print(f'{('0').ljust(6)} | Sair')
+                print(f'{"0".ljust(6)} | Sair')
                 opcaoTrabalho = input(f'opção trabalho ')
                 if int(opcaoTrabalho) == 0:
                     break
@@ -2960,7 +3003,7 @@ class Aplicacao:
     def removeTrabalhoEstoque(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -2981,10 +3024,10 @@ class Aplicacao:
                     print(f'Erro ao buscar trabalhos no estoque: {trabalhoEstoqueDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
-                print(f'{('ÍNDICE').ljust(6)} | {('NOME').ljust(40)} | {('PROFISSÃO').ljust(25)} | {('QNT').ljust(3)} | {('NÍVEL').ljust(5)} | {('RARIDADE').ljust(10)} | {'ID TRABALHO'}')
+                print(f'{"ÍNDICE".ljust(6)} | {"NOME".ljust(40)} | {"PROFISSÃO".ljust(25)} | {"QNT".ljust(3)} | {"NÍVEL".ljust(5)} | {"RARIDADE".ljust(10)} | ID TRABALHO')
                 for trabalhoEstoque in estoque:
                     print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} | {trabalhoEstoque}')
-                print(f'{('0').ljust(6)} | Sair')
+                print(f'{"0".ljust(6)} | Sair')
                 opcaoTrabalho = input(f'opção trabalho ')
                 if int(opcaoTrabalho) == 0:
                     break
@@ -3019,7 +3062,7 @@ class Aplicacao:
             print(f'Erro ao buscar todas as vendas: {vendaDao.pegaErro()}')
             input(f'Clique para continuar...')
             return
-        print(f'{'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+        print(f'{"NOME".ljust(113)} | {"DATA".ljust(10)} | {"ID TRABALHO".ljust(36)} | {"VALOR".ljust(5)} | UND')
         for trabalhoVendido in vendas:
             print(trabalhoVendido)
         input(f'Clique para continuar...')
@@ -3032,7 +3075,7 @@ class Aplicacao:
             print(f'Erro ao buscar todas os trabalhos em produção: {trabalhoProducaoDao.pegaErro()}')
             input(f'Clique para continuar...')
             return
-        # print(f'{'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+        # print(f'{"NOME".ljust(113)} | {"DATA".ljust(10)} | {"ID TRABALHO".ljust(36)} | {"VALOR".ljust(5)} | UND')
         for trabalhoProducao in trabalhosProducao:
             print(trabalhoProducao)
         input(f'Clique para continuar...')
@@ -3040,7 +3083,7 @@ class Aplicacao:
     def insereTrabalhoVendido(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if not variavelExiste(personagens):
@@ -3055,7 +3098,7 @@ class Aplicacao:
             personagem = personagens[int(opcaoPersonagem) - 1]
             while True:
                 limpaTela()
-                print(f'{'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+                print(f'{"NOME".ljust(113)} | {"DATA".ljust(10)} | {"ID TRABALHO".ljust(36)} | {"VALOR".ljust(5)} | UND')
                 trabalhoVendidoDao = VendaDaoSqlite(personagem)
                 vendas = trabalhoVendidoDao.pegaVendas()
                 if not variavelExiste(vendas):
@@ -3073,7 +3116,7 @@ class Aplicacao:
                     print(f'Erro ao buscar trabalhos: {trabalhoDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
-                print(f'{('ÍNDICE').ljust(6)} | {('NOME').ljust(44)} | {('PROFISSÃO').ljust(22)} | {('RARIDADE').ljust(9)} | NÍVEL')
+                print(f'{"ÍNDICE".ljust(6)} | {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
                 for trabalho in trabalhos:
                     print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} | {trabalho}')
                 opcaoTrabalho = input(f'Opção trabalho: ')    
@@ -3109,7 +3152,7 @@ class Aplicacao:
                 print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
                 input(f'Clique para continuar...')
                 break
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             for personagem in personagens:
                 print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
@@ -3124,7 +3167,7 @@ class Aplicacao:
                     print(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
-                print(f'{('ÍNDICE').ljust(6)} | {'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+                print(f'{"ÍNDICE".ljust(6)} | {"NOME".ljust(113)} | {"DATA".ljust(10)} | {"ID TRABALHO".ljust(36)} | {"VALOR".ljust(5)} | UND')
                 for trabalhoVendido in vendas:
                     print(f'{str(vendas.index(trabalhoVendido) + 1).ljust(6)} | {trabalhoVendido}')
                 opcaoTrabalho = input(f'Opção trabalho: ')    
@@ -3149,7 +3192,7 @@ class Aplicacao:
                 print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
                 input(f'Clique para continuar...')
                 break
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             for personagem in personagens:
                 print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
@@ -3164,7 +3207,7 @@ class Aplicacao:
                     print(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
                     input(f'Clique para continuar...')
                     break
-                print(f'{('ÍNDICE').ljust(6)} | {'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
+                print(f'{"ÍNDICE".ljust(6)} | {"NOME".ljust(113)} | {"DATA".ljust(10)} | {"ID TRABALHO".ljust(36)} | {"VALOR".ljust(5)} | UND')
                 for trabalhoVendido in vendas:
                     print(f'{str(vendas.index(trabalhoVendido) + 1).ljust(6)} | {trabalhoVendido}')
                 opcaoTrabalho = input(f'Opção trabalho: ')    
@@ -3218,7 +3261,7 @@ class Aplicacao:
                 print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
                 input(f'Clique para continuar...')
                 break
-            print(f'{('ÍNDICE').ljust(6)} | {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} | {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             for personagem in personagens:
                 print(f'{str(personagens.index(personagem) + 1).ljust(6)} | {personagem}')
             opcaoPersonagem = input(f'Opção:')
@@ -3230,7 +3273,7 @@ class Aplicacao:
     def testeFuncao(self):
         while True:
             limpaTela()
-            print(f'{('ÍNDICE').ljust(6)} - {('ID').ljust(36)} | {('NOME').ljust(17)} | {('ESPAÇO').ljust(6)} | {('ESTADO').ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO')
+            print(f'{"ÍNDICE".ljust(6)} - {"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
             personagemDao = PersonagemDaoSqlite()
             personagens = personagemDao.pegaPersonagens()
             if variavelExiste(personagens):
@@ -3239,7 +3282,7 @@ class Aplicacao:
                 else:
                     for personagem in personagens:
                         print(f'{str(personagens.index(personagem) + 1).ljust(6)} - {personagem}')
-                print(f'{'0'.ljust(6)} - Voltar')
+                print(f'{"0".ljust(6)} - Voltar')
                 opcaoPersonagem = input(f'Opção:')
                 if int(opcaoPersonagem) == 0:
                     break
@@ -3378,5 +3421,5 @@ class Aplicacao:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    Aplicacao().teste()
+    Aplicacao().preparaPersonagem()
     # print(self.imagem.reconheceTextoNomePersonagem(self.imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png'), 1))

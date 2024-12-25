@@ -101,7 +101,7 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaQuantidadeTrabalho(self, trabalhoBuscado):            
+    def pegaQuantidadeTrabalho(self, trabalhoId):            
         sql = """
             SELECT quantidade
             FROM Lista_estoque
@@ -111,7 +111,7 @@ class EstoqueDaoSqlite:
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoBuscado.trabalhoId, self.__personagem.id))
+            cursor.execute(sql, (trabalhoId, self.__personagem.id))
             linha = cursor.fetchone()
             quantidade = 0 if linha is None else linha[0]
             self.__meuBanco.desconecta()

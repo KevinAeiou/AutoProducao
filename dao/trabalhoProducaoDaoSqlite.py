@@ -123,31 +123,41 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
+    def pegaQuantidadeProducao(self, trabalhoId):
+        sql = """
+            SELECT COUNT(*) AS quantidade
+            FROM Lista_desejo
+            WHERE idPersonagem == ?
+            AND idTrabalho == ?
+            AND estado == 1;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (self.__personagem.id, trabalhoId))
+            linha = cursor.fetchone()
+            quantidade = 0 if linha is None else linha[0]
+            self.__meuBanco.desconecta()
+            return quantidade
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
     def pegaTrabalhoProducaoPorId(self, trabalhoProducaoBuscado):
         trabalhoProducao = TrabalhoProducao()
         sql = """
-            SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado
+            SELECT id, idTrabalho, recorrencia, tipoLicenca, estado
             FROM Lista_desejo
-            INNER JOIN trabalhos
-            ON Lista_desejo.idTrabalho == trabalhos.id
-            WHERE Lista_desejo.id == ?;"""
+            WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [trabalhoProducaoBuscado.id])
             for linha in cursor.fetchall():
-                recorrencia = True if linha[9] == 1 else False
+                recorrencia = True if linha[2] == 1 else False
                 trabalhoProducao.id = linha[0]
                 trabalhoProducao.idTrabalho = linha[1]
-                trabalhoProducao.nome = linha[2]
-                trabalhoProducao.nomeProducao = linha[3]
-                trabalhoProducao.experiencia = linha[4]
-                trabalhoProducao.nivel = linha[5]
-                trabalhoProducao.profissao = linha[6]
-                trabalhoProducao.raridade = linha[7]
-                trabalhoProducao.trabalhoNecessario = linha[8]
                 trabalhoProducao.recorrencia = recorrencia
-                trabalhoProducao.tipo_licenca = linha[10]
-                trabalhoProducao.estado = linha[11]
+                trabalhoProducao.tipo_licenca = linha[3]
+                trabalhoProducao.estado = linha[4]
             self.__meuBanco.desconecta()
             return trabalhoProducao
         except Exception as e:

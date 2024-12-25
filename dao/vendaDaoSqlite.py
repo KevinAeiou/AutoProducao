@@ -98,6 +98,13 @@ class VendaDaoSqlite:
                 )
                 AS nivel,
                 (
+                SELECT profissao
+                FROM trabalhos
+                WHERE trabalhos.id == trabalhoId
+                AND trabalhos.raridade == 'Raro'
+                )
+                AS nivel,
+                (
                 SELECT trabalhoNecessario
                 FROM trabalhos
                 WHERE trabalhos.id == trabalhoId
@@ -120,8 +127,9 @@ class VendaDaoSqlite:
                 trabalhoVendido.trabalhoId = linha[0]
                 trabalhoVendido.nome = linha[1]
                 trabalhoVendido.nivel = linha[2]
-                trabalhoVendido.trabalhoNecessario = linha[3]
-                trabalhoVendido.quantidadeProduto = linha[4]
+                trabalhoVendido.profissao = linha[3]
+                trabalhoVendido.trabalhoNecessario = linha[4]
+                trabalhoVendido.quantidadeProduto = linha[5]
                 vendas.append(trabalhoVendido)
             self.__meuBanco.desconecta()
             vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.quantidadeProduto, trabalhoVendido.nivel, trabalhoVendido.nome), reverse=True)
