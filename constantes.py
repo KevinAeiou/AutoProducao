@@ -48,7 +48,7 @@ CHAVE_POSICAO='posicao'
 
 CHAVE_LICENCA_NOVATO = 'Licença de Artesanato de Novato'
 CHAVE_LICENCA_APRENDIZ = 'Licença de Artesanato de Aprendiz'
-CHAVE_LICENCA_MESTRE = 'Licença de produção do mestre'
+CHAVE_LICENCA_MESTRE = 'Licença de Artesanato de Mestre'
 CHAVE_LICENCA_INICIANTE = 'Licença de Artesanato de Iniciante'
 CHAVE_RARIDADE_COMUM='Comum'
 CHAVE_RARIDADE_MELHORADO='Melhorado'
