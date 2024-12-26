@@ -5,7 +5,13 @@ from modelos.trabalhoVendido import TrabalhoVendido
 class TestRespositorioVendas:
     _listaVendas = []
     _repositorioPersonagem = RepositorioPersonagem()
-    _vendaTeste = TrabalhoVendido('-O4xG-Ucqy-0BWoqvmwL', 'Nome teste', '01/01/2000', 'idTeste', 1, 'idTeste', 999)
+    _vendaTeste = TrabalhoVendido()
+    _vendaTeste.nomeProduto = 'DescriçãoTeste'
+    _vendaTeste.dataVenda = '01/01/2000'
+    _vendaTeste.trabalhoId = 'IdTrabalhoTeste'
+    _vendaTeste.quantidadeProduto = 1
+    _vendaTeste.valorProduto = 200
+    _vendaTeste.nomePersonagem = 'IdPersonagemTeste'
     _personagemTeste = _repositorioPersonagem.pegaTodosPersonagens()[0]
     _repositorioVendas = RepositorioVendas(_personagemTeste)
 
@@ -38,7 +44,3 @@ class TestRespositorioVendas:
         self._repositorioVendas.limpaListaVenda()
         recebido = len(self._repositorioVendas.pegaTodasVendas())
         assert recebido == esperado
-
-    def testDeveRetornarStringTrabalhoVendido(self):
-        imagemTeste = self.imagem
-        esperado = ''
