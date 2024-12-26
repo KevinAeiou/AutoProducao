@@ -141,7 +141,7 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def reconheceTextoMenu(self, tela, x, y, largura, altura):
+    def reconheceTextoMenu(self, tela, x, y, largura, altura = 30):
         frameTela = tela[y:y+altura,x:x+largura]
         frameTela = self.retornaImagemCinza(frameTela)
         frameTela = self.retornaImagemEqualizada(frameTela)
@@ -209,7 +209,10 @@ class ManipulaImagem:
         
     def existeCorrespondencia(self):
         print(f'Verificando se possui correspondencia...')
-        return np.sum(self.retornaAtualizacaoTela()[233:233+30, 235:235+200] == 255) > 0
+        return self.quantidadePixelBrancoEhMaiorQueZero(self.retornaAtualizacaoTela())
+
+    def quantidadePixelBrancoEhMaiorQueZero(self, imagem):
+        return np.sum(imagem[233:233+30, 235:235+200] == 255) > 0
     
     def reconheceTextoCorrespondencia(self, tela):
         return self.reconheceTexto(tela[231:231+100, 168:168+343])
