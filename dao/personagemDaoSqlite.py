@@ -21,7 +21,7 @@ class PersonagemDaoSqlite():
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaPersonagens(self):
+    def pegaPersonagens(self) -> list[Personagem]:
         personagens = []
         sql = """SELECT * FROM personagens;"""
         try:
