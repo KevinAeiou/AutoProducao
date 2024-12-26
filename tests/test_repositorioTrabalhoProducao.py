@@ -15,8 +15,8 @@ class TestRepositorioTrabalhoProducao:
         assert esperado != recebido
 
     def testDeveAdicionarItemNaLista(self):
-        esperado = len(listaTrabalhosProducao) + 1
         listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
+        esperado = len(listaTrabalhosProducao) + 1
         self._repositorioTrabalhoProducao.insereTrabalhoProducao(self._trabalhoProducaoTeste)
         listaTrabalhosProducao = self._repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
         recebido = len(listaTrabalhosProducao)

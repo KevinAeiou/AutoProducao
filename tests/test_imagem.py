@@ -1,29 +1,30 @@
 from imagem import ManipulaImagem
+from constantes import CHAVE_LICENCA_APRENDIZ, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_LICENCA_MESTRE
 
 class TestImagem:
     imagem = ManipulaImagem()
 
-    def testDeveRetornarStringLicencaDeProducaoDoIniciante(self):
-        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeLicencaDeProducaoDoIniciante.png')
-        esperado = 'Licença de produção do iniciante'
+    def testDeveRetornarStringLicencaDeNovato(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeLicencaDeNovato.png')
+        esperado = CHAVE_LICENCA_NOVATO
         recebido = self.imagem.reconheceTextoLicenca(imagemTeste)
         assert recebido == esperado
 
-    def testDeveRetornarStringLicencaDeProducaoDoPrincipiante(self):
-        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeLicencaDeProducaoDoPrincipiante.png')
-        esperado = 'Licença de produção do principiante'
+    def testDeveRetornarStringLicencaDeIniciante(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeLicencaDeIniciante.png')
+        esperado = CHAVE_LICENCA_INICIANTE
         recebido = self.imagem.reconheceTextoLicenca(imagemTeste)
         assert recebido == esperado
 
-    def testDeveRetornarStringLicencaDeProducaoDoMestre(self):
-        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeLicencaDeProducaoDoMestre.png')
-        esperado = 'Licença de produção do mestre'
+    def testDeveRetornarStringLicencaDeMestre(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeLicencaDeMestre.png')
+        esperado = CHAVE_LICENCA_MESTRE
         recebido = self.imagem.reconheceTextoLicenca(imagemTeste)
         assert recebido == esperado
 
-    def testDeveRetornarStringLicencaDeProducaoDoAprendiz(self):
-        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeLicencaDeProducaoDoAprendiz.png')
-        esperado = 'Licença de produção do aprendiz'
+    def testDeveRetornarStringLicencaDeAprendiz(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeLicencaDeAprendiz.png')
+        esperado = CHAVE_LICENCA_APRENDIZ
         recebido = self.imagem.reconheceTextoLicenca(imagemTeste)
         assert recebido == esperado
 
@@ -153,13 +154,15 @@ class TestImagem:
 
 
     def testDeveRetornarTrueQuandoExisteCorrespondencia(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuCorrespondenciaComCorrespondencia.png')
         esperado = True
-        recebido = self.imagem.existeCorrespondencia()
+        recebido = self.imagem.quantidadePixelBrancoEhMaiorQueZero(imagemTeste)
         assert esperado == recebido
 
     def testDeveRetornarFalseQuandoNaoExisteCorrespondencia(self):
+        imagemTeste = self.imagem.abreImagem('tests/imagemTeste/testeMenuCorrespondenciaSemCorrespondencia.png')
         esperado = False
-        recebido = self.imagem.existeCorrespondencia()
+        recebido = self.imagem.quantidadePixelBrancoEhMaiorQueZero(imagemTeste)
         assert esperado == recebido
 
     def testDeveRetornarTextoCorrespondenciaQuandoLoteVendido(self):
