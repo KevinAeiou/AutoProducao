@@ -7,7 +7,6 @@ from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
 from time import time
 
 class RepositorioPersonagem:
-    listaPersonagens = []
     def __init__(self):
         logging.basicConfig(level = logging.debug, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
         self.__logger = logging.getLogger('repositorioPersonagem')

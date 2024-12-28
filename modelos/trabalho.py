@@ -12,6 +12,35 @@ class Trabalho:
         self.raridade = None
         self.trabalhoNecessario = None
 
+    def pegaNivel(self, nivelProfissao):
+        if nivelProfissao == 2 or nivelProfissao == 3:
+            return 10
+        if nivelProfissao == 4 or nivelProfissao == 5:
+            return 12
+        if nivelProfissao == 6 or nivelProfissao == 7:
+            return 14
+        if nivelProfissao == 8:
+            return 8
+        if nivelProfissao == 9 or nivelProfissao == 10:
+            return 16
+        if nivelProfissao == 11 or nivelProfissao == 12:
+            return 18
+        if nivelProfissao == 13 or nivelProfissao == 14:
+            return 20
+        if nivelProfissao == 15 or nivelProfissao == 16:
+            return 22
+        if nivelProfissao == 17 or nivelProfissao == 18:
+            return 24
+        if nivelProfissao == 19 or nivelProfissao == 20:
+            return 26
+        if nivelProfissao == 21 or nivelProfissao == 22:
+            return 28
+        if nivelProfissao == 23 or nivelProfissao == 24:
+            return 30
+        if nivelProfissao == 25 or nivelProfissao == 26:
+            return 32
+        return 1
+
     def ehRaro(self):
         return self.raridade == CHAVE_RARIDADE_RARO
     

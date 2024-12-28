@@ -48,8 +48,8 @@ class ProfissaoDaoSqlite:
     def pegaProfissoes(self):
         profissoes = []
         sql = f"""
-        SELECT * FROM profissoes 
-        WHERE idPersonagem == ?;"""
+            SELECT * FROM profissoes 
+            WHERE idPersonagem == ?;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.id])

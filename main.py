@@ -37,6 +37,8 @@ class Aplicacao:
         self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
         self.__loggerTrabalhoDao = logging.getLogger('trabalhoDao')
         self.__loggerVendaDao = logging.getLogger('vendaDao')
+        self.__loggerProfissaoDao = logging.getLogger('profissaoDao')
+        self.__loggerEstoqueDao = logging.getLogger('estoqueDao')
         self._imagem = ManipulaImagem()
         self.__listaPersonagemJaVerificado = []
         self.__listaPersonagemAtivo = []
@@ -44,6 +46,9 @@ class Aplicacao:
         self.__personagemEmUso = None
         self.__repositorioTrabalho = RepositorioTrabalho()
         self.__repositorioPersonagem = RepositorioPersonagem()
+
+    def personagemEmUso(self, personagem):
+        self.__personagemEmUso = personagem
 
     def defineListaPersonagemMesmoEmail(self):
         listaDicionarioPersonagemMesmoEmail = []
@@ -104,7 +109,7 @@ class Aplicacao:
         for personagemAtivo in self.__listaPersonagemAtivo:
             if textoEhIgual(personagemReconhecido, personagemAtivo.nome):
                 print(f'Personagem {personagemReconhecido} confirmado!')
-                self.__personagemEmUso = personagemAtivo
+                self.personagemEmUso(personagemAtivo)
                 return
         print(f'Personagem {personagemReconhecido} não encontrado na lista de personagens ativos atual!')
 
@@ -483,9 +488,9 @@ class Aplicacao:
         if variavelExiste(trabalhoProducao):
             trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
             if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, modificaServidor):
-                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao.id} | {trabalhoProducao}) inserido com sucesso!')
+                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
                 return True
-            self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao.id} |{trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
             return False
 
     def retornaTrabalhoConcluido(self, nomeTrabalhoConcluido):
@@ -1988,6 +1993,93 @@ class Aplicacao:
             return
         clickMouseEsquerdo(1,2,35)
 
+    def retornaProfissaoPriorizada(self):
+        profissaoDao = ProfissaoDaoSqlite(self.__personagemEmUso)
+        profissoes = profissaoDao.pegaProfissoes()
+        if variavelExiste(profissoes):
+            for profissao in profissoes:
+                if profissao.prioridade:
+                    return profissao
+            return None
+        self.__loggerProfissaoDao.error(f'Erro ao buscar profissões: {profissaoDao.pegaErro()}')
+        return None
+
+    def defineTrabalhoComumProfissaoPriorizada(self):
+        profissaoPriorizada = self.retornaProfissaoPriorizada()
+        if variavelExiste(profissaoPriorizada):
+            nivelProfissao = profissaoPriorizada.pegaNivel()
+            if nivelProfissao == 1 or nivelProfissao == 8:
+                self.__loggerProfissaoDao.warning(f'Nível de produção é 1 ou 8')
+                return 
+            trabalhoBuscado = self.defineTrabalhoComumBuscado(profissaoPriorizada, nivelProfissao)
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhosComunsProfissaoNivelExpecifico = trabalhoDao.pegaTrabalhosComumProfissaoNivelEspecifico(trabalhoBuscado)
+            if variavelExiste(trabalhosComunsProfissaoNivelExpecifico):
+                if tamanhoIgualZero(trabalhosComunsProfissaoNivelExpecifico):
+                    self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade (comum) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
+                    return
+                while True:
+                    trabalhosQuantidade = self.defineListaTrabalhosQuantidade(trabalhosComunsProfissaoNivelExpecifico)
+                    trabalhosQuantidade = self.atualizaListaTrabalhosQuantidadeEstoque(trabalhosQuantidade)
+                    trabalhosQuantidade, quantidadeTotalTrabalhoProducao = self.atualizaListaTrabalhosQuantidadeTrabalhosProducao(trabalhosQuantidade)
+                    trabalhosQuantidade = sorted(trabalhosQuantidade, key=lambda trabalho: trabalho.quantidade)
+                    quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns = quantidadeTotalTrabalhoProducao >= len(trabalhosComunsProfissaoNivelExpecifico)
+                    if quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns:
+                        break
+                    trabalhoComum = self.defineTrabalhoProducaoComum(trabalhosQuantidade)
+                    self.insereTrabalhoProducao(trabalhoComum)
+                return
+            self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos específicos no banco: {trabalhoDao.pegaErro()}')
+            return
+        self.__loggerProfissaoDao.warning(f'Nem uma profissão priorizada encontrada!')
+        return
+
+    def defineTrabalhoComumBuscado(self, profissaoPriorizada, nivelProfissao):
+        trabalhoBuscado = Trabalho()
+        trabalhoBuscado.profissao = profissaoPriorizada.nome
+        trabalhoBuscado.nivel = trabalhoBuscado.pegaNivel(nivelProfissao)
+        trabalhoBuscado.raridade = CHAVE_RARIDADE_COMUM
+        return trabalhoBuscado
+
+    def defineTrabalhoProducaoComum(self, trabalhosQuantidade):
+        trabalhoComum = TrabalhoProducao()
+        trabalhoComum.idTrabalho = trabalhosQuantidade[0].trabalhoId
+        trabalhoComum.estado = 0
+        trabalhoComum.recorrencia = False
+        trabalhoComum.tipo_licenca = CHAVE_LICENCA_NOVATO
+        return trabalhoComum
+
+    def atualizaListaTrabalhosQuantidadeTrabalhosProducao(self, trabalhosQuantidade):
+        quantidadeTotalTrabalhoProducao = 0
+        for trabalhoQuantidade in trabalhosQuantidade:
+            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+            quantidade = trabalhoProducaoDao.pegaQuantidadeTrabalhoProducaoProduzirProduzindo(trabalhoQuantidade.trabalhoId)
+            if variavelExiste(quantidade):
+                trabalhoQuantidade.quantidade += quantidade
+                quantidadeTotalTrabalhoProducao += quantidade
+                continue
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao pegar quantidade trabalho na lista de produções: {trabalhoProducaoDao.pegaErro()}')
+        return trabalhosQuantidade, quantidadeTotalTrabalhoProducao
+
+    def atualizaListaTrabalhosQuantidadeEstoque(self, trabalhosQuantidade):
+        for trabalhoQuantidade in trabalhosQuantidade:
+            trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+            quantidade = trabalhoEstoqueDao.pegaQuantidadeTrabalho(trabalhoQuantidade.trabalhoId)
+            if variavelExiste(quantidade):
+                trabalhoQuantidade.quantidade += quantidade
+                continue
+            self.__loggerEstoqueDao.error(f'Erro ao pegar quantidade trabalho no estoque: {trabalhoEstoqueDao.pegaErro()}')
+        return trabalhosQuantidade
+
+    def defineListaTrabalhosQuantidade(self, trabalhosComunsProfissaoNivelExpecifico):
+        trabalhosQuantidade = []
+        for trabalhoComum in trabalhosComunsProfissaoNivelExpecifico:
+            trabalhoQuantidade = TrabalhoEstoque()
+            trabalhoQuantidade.trabalhoId = trabalhoComum.id
+            trabalhoQuantidade.quantidade = 0
+            trabalhosQuantidade.append(trabalhoQuantidade)
+        return trabalhosQuantidade
+
     def iniciaProcessoBusca(self):
         while True:
             self.verificaAlteracaoListaTrabalhos()
@@ -2004,8 +2096,7 @@ class Aplicacao:
                 self.inicializaChavesPersonagem()
                 print('Inicia busca...')
                 if self.vaiParaMenuProduzir():
-                    # while defineTrabalhoComumProfissaoPriorizada():
-                    #     continue
+                    self.defineTrabalhoComumProfissaoPriorizada()
                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
                     trabalhosProducao = trabalhoProducaoDao.pegaTrabalhosProducaoParaProduzirProduzindo()
                     if not variavelExiste(trabalhosProducao):
@@ -2283,7 +2374,7 @@ class Aplicacao:
         personagens = personagemDao.pegaPersonagens()
         if variavelExiste(personagens):
             for personagem in personagens:
-                self.__personagemEmUso = personagem
+                self.personagemEmUso(personagem)
                 repositorioTrabalhoProducao = RepositorioTrabalhoProducao(self.__personagemEmUso)
                 trabalhosProducaoServidor = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
                 if variavelExiste(trabalhosProducaoServidor):
@@ -3289,7 +3380,7 @@ class Aplicacao:
                 if int(opcaoPersonagem) == 0:
                     break
                 limpaTela()
-                self.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
+                self.personagemEmUso(personagens[int(opcaoPersonagem) - 1])
                 for trabalhoVendido in self.retornaListaTrabalhosRarosVendidos():
                     print(trabalhoVendido)
                 # trabalhoProducaoConcluido = self.retornaTrabalhoConcluido('Clâmide aterrorizante do eclip')

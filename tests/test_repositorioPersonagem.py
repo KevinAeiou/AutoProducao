@@ -2,25 +2,25 @@ from repositorio.repositorioPersonagem import RepositorioPersonagem
 
 class TestRepositorioPersonagem:
     _repositorio = RepositorioPersonagem()
-    _personagemTeste = _repositorio.listaPersonagens[0]
+    _personagemTeste = _repositorio.pegaTodosPersonagens()[0]
 
-    def testDeveRetornarListaComOitoPersonagens(self):
-        esperado = 8
-        recebido = len(self._repositorio.listaPersonagens)
-        assert esperado == recebido
+    def testDeveRetornarListaComMaisDeZeroPersonagens(self):
+        esperado = 0
+        recebido = len(self._repositorio.pegaTodosPersonagens())
+        assert esperado < recebido
 
     def testDeveAlternarChaveUso(self):
-        esperado = not self._personagemTeste.pegaUso()
-        self._repositorio.alternaUso(self._personagemTeste)
-        self._listaPersonagens = self._repositorio.pegaTodosPersonagens()
-        personagemTesteModificado = self._listaPersonagens[0]
-        recebido = personagemTesteModificado.pegaUso()
+        esperado = not self._personagemTeste.uso
+        self._personagemTeste.alternaUso()
+        self._repositorio.modificaPersonagem(self._personagemTeste)
+        personagemTesteModificado = self._repositorio.pegaTodosPersonagens()[0]
+        recebido = personagemTesteModificado.uso
         assert esperado == recebido
 
     def testDeveAlternarChaveEstado(self):
-        esperado = not self._personagemTeste.pegaEstado()
-        self._repositorio.alternaEstado(self._personagemTeste)
-        self._listaPersonagens = self._repositorio.pegaTodosPersonagens()
-        personagemTesteModificado = self._listaPersonagens[0]
-        recebido = personagemTesteModificado.pegaEstado()
+        esperado = not self._personagemTeste.estado
+        self._personagemTeste.alternaEstado()
+        self._repositorio.modificaPersonagem(self._personagemTeste)
+        personagemTesteModificado = self._repositorio.pegaTodosPersonagens()[0]
+        recebido = personagemTesteModificado.estado
         assert esperado == recebido

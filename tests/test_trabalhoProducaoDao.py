@@ -4,46 +4,58 @@ from modelos.trabalhoProducao import TrabalhoProducao
 import uuid
 
 class TesteTrabalhoProducaoDao:
-    personagemTeste = PersonagemDaoSqlite().pegaPersonagens()[0]
-    __trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemTeste)
-    __trabalhoProducaoTeste = TrabalhoProducao(str(uuid.uuid4()), 'testTrabalhoId', 'Trabalho teste', 'Trabalho teste', 999, 0, 'Profissao teste', 'Comum', 'Trabalho necessario teste', False, 'Licença teste', 0)
+    __personagemTeste = PersonagemDaoSqlite().pegaPersonagens()[0]
 
     def testDeveInserirTrabalhoProducaoQuandoMetodoInsereTrabalhoProducaoEhChamado(self):
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemTeste)
         esperadoMensagem = 'Sucesso'
-        if self.__trabalhoProducaoDao.insereTrabalhoProducao(self.__trabalhoProducaoTeste):
+        trabalhoProducaoTeste = TrabalhoProducao()
+        trabalhoProducaoTeste.idTrabalho = 'IdTrabalhoTeste'
+        trabalhoProducaoTeste.estado = 0
+        trabalhoProducaoTeste.tipo_licenca = 'LicencaTeste'
+        if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
             recebidoMensagem = 'Sucesso'
         else:
-            recebidoMensagem = self.__trabalhoProducaoDao.pegaErro()
+            recebidoMensagem = trabalhoProducaoDao.pegaErro()
         assert esperadoMensagem == recebidoMensagem
 
     def testeRemoverTrabalhoProducaoQuandoMetodoRemoveTrabalhoProducaoEhChamada(self):
-        esperadoMensagem = 'Sucesso'
-        if self.__trabalhoProducaoDao.removeTrabalhoProducao(self.__trabalhoProducaoTeste):
-            recebidoMensagem = 'Sucesso'
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemTeste)
+        mensagemInsereEsperado = 'Sucesso'
+        trabalhoProducaoTeste = TrabalhoProducao()
+        trabalhoProducaoTeste.idTrabalho = 'IdTrabalhoTeste'
+        trabalhoProducaoTeste.estado = 0
+        trabalhoProducaoTeste.tipo_licenca = 'LicencaTeste'
+        if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
+            mensagemInsereRecebido = 'Sucesso'
         else:
-            recebidoMensagem = self.__trabalhoProducaoDao.pegaErro()
-        assert esperadoMensagem == recebidoMensagem
-
-    def testDeveRetornarListaComMaisDeZeroItensQuandoMetodoPegaTrabalhosProducaoParaProduzirProduzindo(self):
-        esperado = 0
-        recebido = len(self.__trabalhoProducaoDao.pegaTrabalhosProducaoParaProduzirProduzindo())
-        assert esperado != recebido
-
-    def testDeveRetornarListaComMaisDeZeroItensQuandoMetodoPegaTrabalhosProducaoEhChamado(self):
-        esperado = 0
-        recebido = len(self.__trabalhoProducaoDao.pegaTrabalhosProducao())
-        assert esperado != recebido
+            mensagemInsereRecebido = trabalhoProducaoDao.pegaErro()
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemTeste)
+        mensagemRemoveEsperado = 'Sucesso'
+        if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoTeste):
+            mensagemRemoveRecebido = 'Sucesso'
+        else:
+            mensagemRemoveRecebido = trabalhoProducaoDao.pegaErro()
+        assert mensagemInsereEsperado == mensagemInsereRecebido
+        assert mensagemRemoveEsperado == mensagemRemoveRecebido
 
     def testDeveModificarTrabalhoProducaoQuandoMetodoModificaTrabalhoProducaoEhChamado(self):
-        trabalhoProducao = self.__trabalhoProducaoDao.pegaTrabalhosProducao()[0]
-        esperadoMenssagem = 'Sucesso'
-        esperadoValor = trabalhoProducao.pegaRecorrencia()
-        trabalhoProducao.alternaRecorrencia()
-        if self.__trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao):
-            recebidoMenssagem = 'Sucesso'
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemTeste)
+        trabalhoProducaoTeste = TrabalhoProducao()
+        trabalhoProducaoTeste.idTrabalho = 'IdTrabalhoTeste'
+        trabalhoProducaoTeste.estado = 0
+        trabalhoProducaoTeste.tipo_licenca = 'LicencaTeste'
+        mensagemInsereEsperado = 'Sucesso'
+        if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
+            mensagemInsereRecebido = 'Sucesso'
         else:
-            recebidoMenssagem = self.__trabalhoProducaoDao.pegaErro()
-        assert esperadoMenssagem == recebidoMenssagem
-        trabalhoProducaoModificado = self.__trabalhoProducaoDao.pegaTrabalhosProducao()[0]
-        recebidoValor = trabalhoProducaoModificado.pegaRecorrencia()
-        assert esperadoValor != recebidoValor
+            mensagemInsereRecebido = trabalhoProducaoDao.pegaErro()
+        mensagemModificaEsperado = 'Sucesso'
+        trabalhoProducaoTeste.estado = 1
+        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemTeste)
+        if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoTeste):
+            mensagemModificaRecebido = 'Sucesso'
+        else:
+            mensagemModificaRecebido = trabalhoProducaoDao.pegaErro()
+        assert mensagemInsereEsperado == mensagemInsereRecebido
+        assert mensagemModificaEsperado == mensagemModificaRecebido

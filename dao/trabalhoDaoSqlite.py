@@ -50,12 +50,44 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
         return None
     
+    def pegaTrabalhosComumProfissaoNivelEspecifico(self, trabalhoBuscado):
+        trabalhos = []
+        sql = """
+            SELECT * 
+            FROM trabalhos
+            WHERE profissao = ? 
+            AND raridade == ? 
+            AND nivel == ?;
+            """
+        try:
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, (trabalhoBuscado.profissao, trabalhoBuscado.raridade, str(trabalhoBuscado.nivel)))
+                for linha in cursor.fetchall():
+                    trabalho = Trabalho()
+                    trabalho.id = linha[0]
+                    trabalho.nome = linha[1]
+                    trabalho.nomeProducao = linha[2]
+                    trabalho.experiencia = linha[3]
+                    trabalho.nivel = linha[4]
+                    trabalho.profissao = linha[5]
+                    trabalho.raridade = linha[6]
+                    trabalho.trabalhoNecessario = linha[7]
+                    trabalhos.append(trabalho)
+                trabalhos = sorted(trabalhos, key= lambda trabalho: trabalho.nome)
+                self.__meuBanco.desconecta()
+                return trabalhos            
+        except Exception as e:
+            self.__erro = str(e)
+        return None
+    
     def pegaTrabalhosPorProfissaoRaridade(self, trabalhoBuscado):
         trabalhos = []
         sql = """
             SELECT * 
             FROM trabalhos
-            WHERE profissao = ? AND raridade == ?;
+            WHERE profissao = ? 
+            AND raridade == ?;
             """
         try:
             if self.__fabrica == 1:
@@ -72,7 +104,7 @@ class TrabalhoDaoSqlite():
                     trabalho.raridade = linha[6]
                     trabalho.trabalhoNecessario = linha[7]
                     trabalhos.append(trabalho)
-                trabalhos = sorted(trabalhos, key= lambda trabalho: (trabalho.nivel, trabalho.nome))
+                trabalhos = sorted(trabalhos, key= lambda trabalho: trabalho.nome)
                 self.__meuBanco.desconecta()
                 return trabalhos            
         except Exception as e:

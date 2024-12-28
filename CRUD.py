@@ -31,6 +31,7 @@ class CRUD:
         self.__repositorioTrabalho = RepositorioTrabalho()
         self.__loggerTrabalhoDao = logging.getLogger('trabalhoDao')
         self.__loggerPersonagemDao = logging.getLogger('personagemDao')
+        self.__loggerProfissaoDao = logging.getLogger('profissaoDao')
         self.__loggerEstoqueDao = logging.getLogger('estoqueDao')
         self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
         self.__loggerVendaDao = logging.getLogger('vendaDao')
@@ -603,7 +604,6 @@ class CRUD:
                 print(f'Erro ao modificar o id do personagem {personagemEncontrado.id}: {personagemDao.pegaErro()}')
     
     def modificaProfissao(self):
-        logger = logging.getLogger('profissaoDao')
         while True:
             limpaTela()
             personagemDao = PersonagemDaoSqlite()
@@ -627,10 +627,9 @@ class CRUD:
                         if len(profissoes) == 0:
                             profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem) - 1])
                             if profissaoDao.insereListaProfissoes():
-                                logger.info(f'Profissões inseridas com sucesso!')
+                                self.__loggerProfissaoDao.info(f'Profissões inseridas com sucesso!')
                             else:
-                                logger.error(f'Erro ao inserir profissões: {profissaoDao.pegaErro()}')
-                                input(f'Clique para continuar...')
+                                self.__loggerProfissaoDao.error(f'Erro ao inserir profissões: {profissaoDao.pegaErro()}')
                                 break
                             continue
                         print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'ID PERSONAGEM'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE")
@@ -652,17 +651,14 @@ class CRUD:
                             profissaoModificado.alternaPrioridade()
                         profissaoDao = ProfissaoDaoSqlite(personagens[int(opcaoPersonagem)-1])
                         if profissaoDao.modificaProfissao(profissaoModificado):
-                            logger.info(f'({profissaoModificado}) modificado com sucesso!')
+                            self.__loggerProfissaoDao.info(f'({profissaoModificado}) modificado com sucesso!')
                             continue
-                        logger.error(f'Erro ao modificar ({profissaoModificado}): {profissaoDao.pegaErro()}')
-                        input(f'Clique para continuar...')
+                        self.__loggerProfissaoDao.error(f'Erro ao modificar ({profissaoModificado}): {profissaoDao.pegaErro()}')
                         continue
                     print(f'Erro ao buscar profissões: {profissaoDao.pegaErro()}')
-                    input(f'Clique para continuar...')
                     break
                 continue
-            logger.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
+            self.__loggerProfissaoDao.error(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
             break
 
     def pegaTodosTrabalhosProducao(self):
@@ -848,7 +844,7 @@ class CRUD:
             else:
                 print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(40)} | {"PROFISSÃO".ljust(25)} | {"QNT".ljust(3)} | {"NÍVEL".ljust(5)} | {"RARIDADE".ljust(10)} | ID TRABALHO')
                 for trabalhoEstoque in estoque:
-                    print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} - {trabalhoEstoque}')
+                    print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} - {trabalhoEstoque.nome.ljust(40)} | {trabalhoEstoque.profissao.ljust(25)} | {str(trabalhoEstoque.quantidade).ljust(3)} | {str(trabalhoEstoque.nivel).ljust(5)} | {trabalhoEstoque.raridade.ljust(10)} | {trabalhoEstoque.trabalhoId}')
                 print(f'{"0".ljust(6)} - Voltar')
             return estoque
         self.__loggerEstoqueDao.error(f'Erro ao buscar trabalhos no estoque: {estoqueDao.pegaErro()}')
@@ -873,8 +869,8 @@ class CRUD:
         opcaoPersonagem = input(f'Opção: ')
         if int(opcaoPersonagem) == 0:
             return False
-        self.__aplicacao.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
         self.__personagemEmUso = personagens[int(opcaoPersonagem) - 1]
+        self.__aplicacao.personagemEmUso(personagens[int(opcaoPersonagem) - 1])
         return True
     
     def mostraListaVendas(self):
@@ -1126,86 +1122,89 @@ class CRUD:
             return None
         logger.error(f'Erro ao buscar profissões ({self.__personagemEmUso}): {profissaoDao.pegaErro()}')
         return None
+    
+    def verificaTrabalhoRaroMaisVendido(self):
+        vendaDao = VendaDaoSqlite(self.__personagemEmUso)
+        vendas = vendaDao.pegaTrabalhosRarosVendidos()
+        if variavelExiste(vendas):
+            for trabalhoVendido in vendas:
+                estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                quantidadeTrabalhoRaroEmEstoque = estoqueDao.pegaQuantidadeTrabalho(trabalhoVendido.trabalhoId)
+                if variavelExiste(quantidadeTrabalhoRaroEmEstoque):
+                    print(f'Quantidade de ({trabalhoVendido.nome}) no estoque: {quantidadeTrabalhoRaroEmEstoque}')
+                    # quantidadeTrabalhoRaroNecessario = CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE - quantidadeTrabalhoEmEstoque
+                    quantidadeTrabalhoRaroNecessario = 2 - quantidadeTrabalhoRaroEmEstoque
+                    if quantidadeTrabalhoRaroNecessario > 0:
+                        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                        quantidadeTrabalhoRaroEmProducao = trabalhoProducaoDao.pegaQuantidadeTrabalhoProducaoProduzindo(trabalhoVendido.trabalhoId)
+                        if variavelExiste(quantidadeTrabalhoRaroEmProducao):
+                            quantidadeTrabalhoRaroNecessario -= quantidadeTrabalhoRaroEmProducao
+                            print(f'Quantidade de ({trabalhoVendido.nome}) em produção: {quantidadeTrabalhoRaroEmProducao}')
+                            if quantidadeTrabalhoRaroNecessario > 0:
+                                trabalhoMelhoradoNecessario = trabalhoVendido.trabalhoNecessario
+                                if variavelExiste(trabalhoMelhoradoNecessario):
+                                    print(f'Trabalho melhorado necessário: ({trabalhoMelhoradoNecessario})')
+                                    profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoVendido)
+                                    if variavelExiste(profissao):
+                                        print(f'Profissão: ({profissao})')
+                                        xpMaximo = profissao.pegaExperienciaMaximaPorNivel()
+                                        licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if xpMaximo >= 830000 else CHAVE_LICENCA_INICIANTE
+                                        print(f'Licença de produção ideal: ({licencaProducaoIdeal})')
+                                        trabalhoMelhoradoBuscado = Trabalho()
+                                        trabalhoMelhoradoBuscado.nome = trabalhoVendido.trabalhoNecessario
+                                        trabalhoMelhoradoBuscado.raridade = CHAVE_RARIDADE_MELHORADO
+                                        trabalhoMelhoradoBuscado.profissao = trabalhoVendido.profissao
+                                        trabalhoDao = TrabalhoDaoSqlite()
+                                        trabalhoMelhoradoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorNomeProfissaoRaridade(trabalhoMelhoradoBuscado)
+                                        if variavelExiste(trabalhoMelhoradoEncontrado):
+                                            if variavelExiste(trabalhoMelhoradoEncontrado.nome):
+                                                estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
+                                                quantidadeTrabalhoMelhoradoEmEstoque = estoqueDao.pegaQuantidadeTrabalho(trabalhoMelhoradoEncontrado.id)
+                                                if variavelExiste(quantidadeTrabalhoMelhoradoEmEstoque):
+                                                    quantidadeTrabalhoMelhoradoNecessario = quantidadeTrabalhoRaroNecessario - quantidadeTrabalhoMelhoradoEmEstoque
+                                                    print(f'Quantidade de ({trabalhoMelhoradoEncontrado.nome}) no estoque: {quantidadeTrabalhoMelhoradoEmEstoque}')
+                                                    trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
+                                                    quantidadeTrabalhoMelhoradoEmProducao = trabalhoProducaoDao.pegaQuantidadeTrabalhoProducaoProduzindo(trabalhoMelhoradoEncontrado.id)
+                                                    if variavelExiste(quantidadeTrabalhoMelhoradoEmProducao):
+                                                        quantidadeTrabalhoMelhoradoNecessario -= quantidadeTrabalhoMelhoradoEmProducao
+                                                        if quantidadeTrabalhoMelhoradoNecessario < quantidadeTrabalhoRaroNecessario and quantidadeTrabalhoMelhoradoNecessario >= 0:
+                                                            quantidadeAdicionada = quantidadeTrabalhoMelhoradoNecessario
+                                                            if quantidadeTrabalhoMelhoradoNecessario == 0:
+                                                                quantidadeAdicionada = quantidadeTrabalhoRaroNecessario
+                                                            while quantidadeAdicionada > 0:
+                                                                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoVendido.nome}) adicionado com sucesso!')
+                                                                quantidadeAdicionada -= 1
+                                                                pass
+                                                            return 
+                                                        continue                                                       
+                                                    self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
+                                                    continue
+                                                self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade: {estoqueDao.pegaErro()}')
+                                                continue
+                                            self.__loggerTrabalhoDao.warning(f'({trabalhoMelhoradoBuscado.nome}) não foi encontrado na lista de trabalhos!')
+                                            continue
+                                        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalho melhorado necessário: {trabalhoDao.pegaErro()}')
+                                    continue
+                                print(f'({trabalhoVendido.nome}) não possue trabalho necesssário!')
+                            continue
+                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
+                    continue
+                self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade: {estoqueDao.pegaErro()}')
+                input('Clique para continuar...')
+            input('Clique para continuar...')
+            return
+        self.__loggerVendaDao.error(f'Erro: {vendaDao.pegaErro()}')
         
     def testeFuncao(self):
+        personagens = self.mostraListaPersonagens()
+        if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
+            self.__aplicacao.defineTrabalhoComumProfissaoPriorizada()
         # estoqueDao = EstoqueDaoSqlite()
         # if estoqueDao.removeColunasTabelaEstoque():
         #     self.__loggerEstoqueDao.info(f'Coluna da tabela removida')
         # else:
         #     self.__loggerEstoqueDao.error(f'Erro ao remover coluna da tabela: {estoqueDao.pegaErro()}')
-        personagens = self.mostraListaPersonagens()
-        if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-            vendaDao = VendaDaoSqlite(self.__personagemEmUso)
-            vendas = vendaDao.pegaTrabalhosRarosVendidos()
-            if variavelExiste(vendas):
-                for trabalhoVendido in vendas:
-                    estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-                    quantidadeTrabalhoRaroEmEstoque = estoqueDao.pegaQuantidadeTrabalho(trabalhoVendido.trabalhoId)
-                    if variavelExiste(quantidadeTrabalhoRaroEmEstoque):
-                        print(f'Quantidade de ({trabalhoVendido.nome}) no estoque: {quantidadeTrabalhoRaroEmEstoque}')
-                        # quantidadeTrabalhoRaroNecessario = CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE - quantidadeTrabalhoEmEstoque
-                        quantidadeTrabalhoRaroNecessario = 2 - quantidadeTrabalhoRaroEmEstoque
-                        if quantidadeTrabalhoRaroNecessario > 0:
-                            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-                            quantidadeTrabalhoRaroEmProducao = trabalhoProducaoDao.pegaQuantidadeProducao(trabalhoVendido.trabalhoId)
-                            if variavelExiste(quantidadeTrabalhoRaroEmProducao):
-                                quantidadeTrabalhoRaroNecessario -= quantidadeTrabalhoRaroEmProducao
-                                print(f'Quantidade de ({trabalhoVendido.nome}) em produção: {quantidadeTrabalhoRaroEmProducao}')
-                                if quantidadeTrabalhoRaroNecessario > 0:
-                                    trabalhoMelhoradoNecessario = trabalhoVendido.trabalhoNecessario
-                                    if variavelExiste(trabalhoMelhoradoNecessario):
-                                        print(f'Trabalho melhorado necessário: ({trabalhoMelhoradoNecessario})')
-                                        profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoVendido)
-                                        if variavelExiste(profissao):
-                                            print(f'Profissão: ({profissao})')
-                                            xpMaximo = profissao.pegaExperienciaMaximaPorNivel()
-                                            licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if xpMaximo >= 830000 else CHAVE_LICENCA_INICIANTE
-                                            print(f'Licença de produção ideal: ({licencaProducaoIdeal})')
-                                            trabalhoMelhoradoBuscado = Trabalho()
-                                            trabalhoMelhoradoBuscado.nome = trabalhoVendido.trabalhoNecessario
-                                            trabalhoMelhoradoBuscado.raridade = CHAVE_RARIDADE_MELHORADO
-                                            trabalhoMelhoradoBuscado.profissao = trabalhoVendido.profissao
-                                            trabalhoDao = TrabalhoDaoSqlite()
-                                            trabalhoMelhoradoEncontrado = trabalhoDao.pegaTrabalhoEspecificoPorNomeProfissaoRaridade(trabalhoMelhoradoBuscado)
-                                            if variavelExiste(trabalhoMelhoradoEncontrado):
-                                                if variavelExiste(trabalhoMelhoradoEncontrado.nome):
-                                                    estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-                                                    quantidadeTrabalhoMelhoradoEmEstoque = estoqueDao.pegaQuantidadeTrabalho(trabalhoMelhoradoEncontrado.id)
-                                                    if variavelExiste(quantidadeTrabalhoMelhoradoEmEstoque):
-                                                        quantidadeTrabalhoMelhoradoNecessario = quantidadeTrabalhoRaroNecessario - quantidadeTrabalhoMelhoradoEmEstoque
-                                                        print(f'Quantidade de ({trabalhoMelhoradoEncontrado.nome}) no estoque: {quantidadeTrabalhoMelhoradoEmEstoque}')
-                                                        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-                                                        quantidadeTrabalhoMelhoradoEmProducao = trabalhoProducaoDao.pegaQuantidadeProducao(trabalhoMelhoradoEncontrado.id)
-                                                        if variavelExiste(quantidadeTrabalhoMelhoradoEmProducao):
-                                                            quantidadeTrabalhoMelhoradoNecessario -= quantidadeTrabalhoMelhoradoEmProducao
-                                                            if quantidadeTrabalhoMelhoradoNecessario < quantidadeTrabalhoRaroNecessario and quantidadeTrabalhoMelhoradoNecessario >= 0:
-                                                                quantidadeAdicionada = quantidadeTrabalhoMelhoradoNecessario
-                                                                if quantidadeTrabalhoMelhoradoNecessario == 0:
-                                                                    quantidadeAdicionada = quantidadeTrabalhoRaroNecessario
-                                                                while quantidadeAdicionada > 0:
-                                                                    self.__loggerTrabalhoProducaoDao.info(f'({trabalhoVendido.nome}) adicionado com sucesso!')
-                                                                    quantidadeAdicionada -= 1
-                                                                    pass
-                                                                return 
-                                                            continue                                                       
-                                                        self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
-                                                        continue
-                                                    self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade: {estoqueDao.pegaErro()}')
-                                                    continue
-                                                self.__loggerTrabalhoDao.warning(f'({trabalhoMelhoradoBuscado.nome}) não foi encontrado na lista de trabalhos!')
-                                                continue
-                                            self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalho melhorado necessário: {trabalhoDao.pegaErro()}')
-                                        continue
-                                    print(f'({trabalhoVendido.nome}) não possue trabalho necesssário!')
-                                continue
-                            self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
-                        continue
-                    self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade: {estoqueDao.pegaErro()}')
-                    input('Clique para continuar...')
-                input('Clique para continuar...')
-                return
-            self.__loggerVendaDao.error(f'Erro: {vendaDao.pegaErro()}')
-        input('Clique para continuar...')
+        
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:
@@ -1309,7 +1308,6 @@ class CRUD:
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def menu(self):
-        self.sincronizaDados()
         while True:
             self.verificaAlteracaoListaTrabalhos()
             self.verificaAlteracaoPersonagem()

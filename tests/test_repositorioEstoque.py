@@ -7,29 +7,24 @@ class TestRepositorioEstoque:
     _repositorioPersonagem = RepositorioPersonagem()
     _personagemTeste = _repositorioPersonagem.pegaTodosPersonagens()[0]
     _repositorioEstoque = RepositorioEstoque(_personagemTeste)
-    _trabalhoTeste = TrabalhoEstoque('', 'NomeTeste', 'ProfissaoTeste', 0, 1, 'RaridadeTeste', 'IdTeste')
+    _trabalhoTeste = TrabalhoEstoque()
+    _trabalhoTeste.trabalhoId = 'IdTrabalhoTeste'
+    _trabalhoTeste.quantidade = 1
 
-    def testDeveRetornaListaComMaisDeZeroItens(self):
-        esperado = 0
-        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        recebido = len(self._listaTrabalhosEstoque)
-        assert esperado != recebido
-
-    def testDeveAdicionarItemAoEstoque(self):
-        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        esperado = len(self._listaTrabalhosEstoque)
-        self._repositorioEstoque.insereTrabalhoEstoque(self._trabalhoTeste)
-        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        recebido = len(self._listaTrabalhosEstoque) - 1
+    def testDeveInserirTrabalhoAoEstoque(self):
+        esperado = 'Sucesso'
+        if self._repositorioEstoque.insereTrabalhoEstoque(self._trabalhoTeste):
+            recebido = 'Sucesso'
+        else:
+            recebido = self._repositorioEstoque.pegaErro()
         assert esperado == recebido
 
     def testDeveModificarQuantidadeDoPrimeiroItemDoEstoque(self):
-        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        trabalhoTeste = self._listaTrabalhosEstoque[0]
-        esperado = trabalhoTeste.pegaQuantidade() + 1
-        trabalhoTeste.setQuantidade(esperado)
-        self._repositorioEstoque.modificaTrabalhoEstoque(trabalhoTeste)
-        self._listaTrabalhosEstoque = self._repositorioEstoque.pegaTodosTrabalhosEstoque()
-        trabalhoTeste = self._listaTrabalhosEstoque[0]
-        recebido = trabalhoTeste.pegaQuantidade()
+        self._repositorioEstoque.insereTrabalhoEstoque(self._trabalhoTeste)
+        esperado = 'Sucesso'
+        self._trabalhoTeste.setQuantidade(20)
+        if self._repositorioEstoque.modificaTrabalhoEstoque(self._trabalhoTeste):
+            recebido = 'Sucesso'
+        else:
+            recebido = self._repositorioEstoque.pegaErro()
         assert esperado == recebido

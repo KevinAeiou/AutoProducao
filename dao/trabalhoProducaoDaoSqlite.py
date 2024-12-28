@@ -123,13 +123,33 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaQuantidadeProducao(self, trabalhoId):
+    def pegaQuantidadeTrabalhoProducaoProduzindo(self, trabalhoId):
         sql = """
             SELECT COUNT(*) AS quantidade
             FROM Lista_desejo
             WHERE idPersonagem == ?
             AND idTrabalho == ?
             AND estado == 1;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (self.__personagem.id, trabalhoId))
+            linha = cursor.fetchone()
+            quantidade = 0 if linha is None else linha[0]
+            self.__meuBanco.desconecta()
+            return quantidade
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
+    def pegaQuantidadeTrabalhoProducaoProduzirProduzindo(self, trabalhoId):
+        sql = """
+            SELECT COUNT(*) AS quantidade
+            FROM Lista_desejo
+            WHERE idPersonagem == ?
+            AND idTrabalho == ?
+            AND (estado == 0
+            OR estado == 1);"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (self.__personagem.id, trabalhoId))
