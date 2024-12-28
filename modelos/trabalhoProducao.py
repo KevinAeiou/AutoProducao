@@ -1,5 +1,4 @@
 from constantes import CODIGO_PARA_PRODUZIR, CODIGO_PRODUZINDO, CODIGO_CONCLUIDO, CHAVE_RARIDADE_COMUM, CHAVE_RARIDADE_MELHORADO, CHAVE_RARIDADE_RARO, CHAVE_RARIDADE_ESPECIAL
-from uuid import uuid4
 from modelos.trabalho import Trabalho
 
 class TrabalhoProducao(Trabalho):
