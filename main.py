@@ -817,10 +817,12 @@ class Aplicacao:
         if menu == MENU_LOJA_MILAGROSA:
             clickEspecifico(1,'down')
             clickEspecifico(1,'enter')
-        elif menu == MENU_RECOMPENSAS_DIARIAS:
+            return False
+        if menu == MENU_RECOMPENSAS_DIARIAS:
             self.recuperaPresente()
-        else:
-            print(f'Recompensa diária já recebida!')
+            return True
+        print(f'Recompensa diária já recebida!')
+        return True
 
     def deslogaPersonagem(self):
         menu = self.retornaMenu()
@@ -903,17 +905,17 @@ class Aplicacao:
     def recebeTodasRecompensas(self, menu):
         listaPersonagemPresenteRecuperado = self.retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado = [])
         while True:
-            self.reconheceMenuRecompensa(menu)
-            if self._imagem.retornaExistePixelCorrespondencia():
-                vaiParaMenuCorrespondencia()
-                self.recuperaCorrespondencia()
-            print(f'Lista: {listaPersonagemPresenteRecuperado}.')
-            self.deslogaPersonagem()
-            if self.entraPersonagem(listaPersonagemPresenteRecuperado):
-                listaPersonagemPresenteRecuperado = self.retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado)
-            else:
-                print(f'Todos os personagens foram verificados!')
-                break
+            if self.reconheceMenuRecompensa(menu):
+                if self._imagem.retornaExistePixelCorrespondencia():
+                    vaiParaMenuCorrespondencia()
+                    self.recuperaCorrespondencia()
+                print(f'Lista: {listaPersonagemPresenteRecuperado}.')
+                self.deslogaPersonagem()
+                if self.entraPersonagem(listaPersonagemPresenteRecuperado):
+                    listaPersonagemPresenteRecuperado = self.retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado)
+                else:
+                    print(f'Todos os personagens foram verificados!')
+                    break
             menu = self.retornaMenu()
 
     def trataMenu(self, menu):
