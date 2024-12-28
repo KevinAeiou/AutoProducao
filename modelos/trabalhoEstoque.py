@@ -17,6 +17,6 @@ class TrabalhoEstoque(Trabalho):
             
     def __str__(self) -> str:
         id = 'Indefinido' if self.id == None else str(self.id)
-        idTrabalho = 'Indefinido' if self.idTrabalho == None else str(self.idTrabalho)
+        trabalhoId = 'Indefinido' if self.trabalhoId == None else str(self.trabalhoId)
         quantidade = str(self.quantidade)
-        return f'{id.ljust(36)} | {idTrabalho.ljust(36)} | {quantidade}'
+        return f'{id.ljust(36)} | {trabalhoId.ljust(36)} | {quantidade}'
