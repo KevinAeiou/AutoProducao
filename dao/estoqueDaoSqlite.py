@@ -75,17 +75,18 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaTrabalhoEstoquePorId(self, trabalhoBuscado):
+    def pegaTrabalhoEstoquePorId(self, id):
         trabalhoEncontrado = TrabalhoEstoque()
         sql = """
             SELECT Lista_estoque.id, trabalhos.nome, trabalhos.profissao, trabalhos.nivel, Lista_estoque.quantidade, trabalhos.raridade, Lista_estoque.idTrabalho
             FROM Lista_estoque
             INNER JOIN trabalhos
             ON Lista_estoque.idTrabalho == trabalhos.id
-            WHERE Lista_estoque.id == ?;"""
+            WHERE Lista_estoque.id == ?
+            LIMIT 1;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoBuscado.id])
+            cursor.execute(sql, [id])
             for linha in cursor.fetchall():
                 trabalhoEncontrado.id = linha[0]
                 trabalhoEncontrado.nome = linha[1]
@@ -194,7 +195,7 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return False
     
-    def removeTrabalhoEstoque(self, trabalhoEstoque):
+    def removeTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         sql = """
             DELETE FROM Lista_estoque
             WHERE id == ?;
@@ -204,10 +205,11 @@ class EstoqueDaoSqlite:
             cursor.execute(sql, [trabalhoEstoque.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioEstoque.removeTrabalho(trabalhoEstoque):
-                self.__logger.info(f'({trabalhoEstoque}) removido do servidor com sucesso!')
-            else:
-                self.__logger.error(f'Erro ao remover ({trabalhoEstoque}) do servidor: {self.__repositorioEstoque.pegaErro()}')
+            if modificaServidor:
+                if self.__repositorioEstoque.removeTrabalho(trabalhoEstoque):
+                    self.__logger.info(f'({trabalhoEstoque}) removido do servidor com sucesso!')
+                else:
+                    self.__logger.error(f'Erro ao remover ({trabalhoEstoque}) do servidor: {self.__repositorioEstoque.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
