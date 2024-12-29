@@ -1,7 +1,7 @@
 import logging
 from uuid import uuid4
 from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero, textoEhIgual
-from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_ESTOQUE, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO
+from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_ESTOQUE, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO, CHAVE_LISTA_PROFISSAO
 
 from dao.trabalhoDaoSqlite import TrabalhoDaoSqlite
 from dao.personagemDaoSqlite import PersonagemDaoSqlite
@@ -19,6 +19,7 @@ from modelos.trabalhoProducao import TrabalhoProducao
 from modelos.personagem import Personagem
 from modelos.trabalhoEstoque import TrabalhoEstoque
 from modelos.trabalhoVendido import TrabalhoVendido
+from modelos.profissao import Profissao
 
 from main import Aplicacao
 
@@ -1206,7 +1207,26 @@ class CRUD:
         #     self.__loggerEstoqueDao.info(f'Coluna da tabela removida')
         # else:
         #     self.__loggerEstoqueDao.error(f'Erro ao remover coluna da tabela: {estoqueDao.pegaErro()}')
+
+    def concluiModificaProfissao(self, profissao, modificaServidor = True, personagem = None):
+        if personagem is None:
+            personagem = self.__personagemEmUso
+        profissaoDao = ProfissaoDaoSqlite(personagem)
+        if profissaoDao.modificaProfissao(profissao, modificaServidor):
+            self.__loggerProfissaoDao.info(f'({profissao}) modificado no banco com sucesso!')
+            return True
+        self.__loggerProfissaoDao.error(f'Erro ao modificar ({profissao}) no banco: {profissaoDao.pegaErro()}')
+        return False
         
+    def concluiInsereProfissao(self, profissao, modificaServidor = True, personagem = None):
+        if personagem is None:
+            personagem = self.__personagemEmUso
+        profissaoDao = ProfissaoDaoSqlite(personagem)
+        if profissaoDao.insereProfissao(profissao, modificaServidor):
+            self.__loggerProfissaoDao.info(f'({profissao}) inserido no banco com sucesso!')
+            return True
+        self.__loggerProfissaoDao.error(f'Erro ao inserir ({profissao}) no banco: {profissaoDao.pegaErro()}')
+        return False
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:
@@ -1259,6 +1279,19 @@ class CRUD:
                         self.concluiInsereTrabalhoEstoque(trabalhoEstoque, False, personagemModificado)
                         continue
                     self.__loggerEstoqueDao.error(f'Erro ao buscar ({trabalhoEstoque.id}) por id: {trabalhoEstoqueDao.pegaErro()}')
+                    continue
+                if CHAVE_LISTA_PROFISSAO in dicionario:
+                    profissao = Profissao()
+                    profissao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_PROFISSAO])
+                    profissaoDao = ProfissaoDaoSqlite(personagemModificado)
+                    profissaoEncontrada = profissaoDao.pegaProfissaoPorId(profissao.id)
+                    if variavelExiste(profissaoEncontrada):
+                        if profissaoEncontrada.id == profissao.id:
+                            self.concluiModificaProfissao(profissao, False, personagemModificado)
+                            continue
+                        self.concluiInsereProfissao(profissao, False, personagemModificado)
+                        continue
+                    self.__loggerProfissaoDao.error(f'Erro ao buscar ({profissao.id}) por id: {profissaoDao.pegaErro()}')
                     continue
                 persoangemDao = PersonagemDaoSqlite()
                 personagemEncontrado = persoangemDao.pegaPersonagemEspecificoPorId(personagemModificado)
