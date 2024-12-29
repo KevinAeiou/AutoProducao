@@ -22,14 +22,15 @@ class ProfissaoDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaProfissaoPorId(self, profissao):
+    def pegaProfissaoPorId(self, id):
         sql = f"""
-            SELECT * FROM profissoes
+            SELECT * 
+            FROM profissoes
             WHERE id == ?;
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [profissao.id])
+            cursor.execute(sql, [id])
             for linha in cursor.fetchall():
                 prioridade = True if linha[4] == 1 else False
                 profissao = Profissao()
@@ -95,20 +96,20 @@ class ProfissaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def modificaProfissao(self, profissao, modificaProfissao = True):
+    def modificaProfissao(self, profissao, modificaServidor = True):
         prioridade = 1 if profissao.prioridade else 0
         sql = """
             UPDATE profissoes 
             SET nome = ?, experiencia = ?, prioridade = ?
-            WHERE id = ?"""
+            WHERE id == ?"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (profissao.nome, profissao.experiencia, prioridade, profissao.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaProfissao:
+            if modificaServidor:
                 if self.__repositorioProfissao.modificaProfissao(profissao):
-                    self.logger.info(f'({profissao}) modificada no servidor com sucesso!')
+                    self.logger.info(f'({profissao}) modificado no servidor com sucesso!')
                 else:
                     self.logger.error(f'Erro ao modificar ({profissao}) no servidor: {self.__repositorioProfissao.pegaErro()}')
             return True
