@@ -737,9 +737,11 @@ class CRUD:
         trabalhoEstoque.setQuantidade(quantidadeTrabalho)
         return trabalhoEstoque
 
-    def concluiInsereTrabalhoEstoque(self, trabalhoEstoque):
-        trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-        if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoque):
+    def concluiInsereTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True, personagem = None):
+        if personagem is None:
+            personagem = self.__personagemEmUso
+        trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
+        if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalhoEstoque, modificaServidor):
             self.__loggerEstoqueDao.info(f'({trabalhoEstoque}) inserido com sucesso!')
             return
         self.__loggerEstoqueDao.error(f'Erro ao inserir ({trabalhoEstoque}): {trabalhoEstoqueDao.pegaErro()}')
@@ -795,9 +797,9 @@ class CRUD:
         trabalhoEstoque.setQuantidade(quantidade)
         return trabalhoEstoque
 
-    def concluiModificaTrabalhoEstoque(self, trabalhoEstoque):
+    def concluiModificaTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-        if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque):
+        if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque, modificaServidor):
             self.__loggerEstoqueDao.info(f'({trabalhoEstoque}) modificado com sucesso!')
             return
         self.__loggerEstoqueDao.error(f'Erro ao modificar ({trabalhoEstoque}): {estoqueDao.pegaErro()}')
@@ -820,9 +822,9 @@ class CRUD:
                 break
             break
 
-    def concluiRemoveTrabalhoEstoque(self, trabalhoEstoque):
+    def concluiRemoveTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         trabalhoEstoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
-        if trabalhoEstoqueDao.removeTrabalhoEstoque(trabalhoEstoque):
+        if trabalhoEstoqueDao.removeTrabalhoEstoque(trabalhoEstoque, modificaServidor):
             self.__loggerEstoqueDao.info(f'({trabalhoEstoque}) removido com sucesso!')
             return
         self.__loggerEstoqueDao.error(f'Erro ao remover ({trabalhoEstoque}): {trabalhoEstoqueDao.pegaErro()}')
@@ -1237,22 +1239,24 @@ class CRUD:
                     if dicionario[CHAVE_LISTA_ESTOQUE] == None:
                         trabalhoEstoque.id = dicionario['idTrabalhoProducao']
                         trabalhoEstoqueDao = EstoqueDaoSqlite(personagemModificado)
-                        trabalhoEstoqueEncontrado = trabalhoEstoqueDao.pegaTrabalhoEstoquePorId(trabalhoEstoque)
+                        trabalhoEstoqueEncontrado = trabalhoEstoqueDao.pegaTrabalhoEstoquePorId(trabalhoEstoque.id)
                         if variavelExiste(trabalhoEstoqueEncontrado):
-                            if variavelExiste(trabalhoEstoqueEncontrado.nome):
-                                # Remove trabalho do estoque
-                                pass
+                            if trabalhoEstoqueEncontrado.id == trabalhoEstoque.id:
+                                self.concluiRemoveTrabalhoEstoque(trabalhoEstoqueEncontrado, False)
+                                continue
+                            self.__loggerEstoqueDao.warning(f'({trabalhoEstoque.id}) não foi encontrado no banco!')
                             continue
                         self.__loggerEstoqueDao.error(f'Erro ao buscar ({trabalhoEstoque.id}) por id: {trabalhoEstoqueDao.pegaErro()}')
                         continue
                     trabalhoEstoque.dicionarioParaObjeto(dicionario[CHAVE_LISTA_ESTOQUE])
                     trabalhoEstoqueDao = EstoqueDaoSqlite(personagemModificado)
-                    trabalhoEstoqueEncontrado = trabalhoEstoqueDao.pegaTrabalhoEstoquePorId(trabalhoEstoque)
+                    trabalhoEstoqueEncontrado = trabalhoEstoqueDao.pegaTrabalhoEstoquePorId(trabalhoEstoque.id)
                     if variavelExiste(trabalhoEstoqueEncontrado):
-                        if variavelExiste(trabalhoEstoqueEncontrado.nome):
-                            # Modifica trabalho no estoque
+                        if trabalhoEstoqueEncontrado.id == trabalhoEstoque.id:
+                            trabalhoEstoqueEncontrado.setQuantidade(trabalhoEstoque.quantidade)
+                            self.concluiModificaTrabalhoEstoque(trabalhoEstoqueEncontrado, False)
                             continue
-                        # Insere tarbalho no estoque
+                        self.concluiInsereTrabalhoEstoque(trabalhoEstoque, False, personagemModificado)
                         continue
                     self.__loggerEstoqueDao.error(f'Erro ao buscar ({trabalhoEstoque.id}) por id: {trabalhoEstoqueDao.pegaErro()}')
                     continue
