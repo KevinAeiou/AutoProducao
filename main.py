@@ -510,7 +510,7 @@ class Aplicacao:
                         self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProduzirProduzindo}) encontrado na lista de produção')
                         return trabalhoProduzirProduzindo
             else:
-                self.__loggerTrabalhoDao.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
+                self.__loggerTrabalhoProducaoDao.error(f'Erro ao bucar trabalho de produção: {trabalhoProducaoDao.pegaErro()}')
                 continue
         else:
             self.__loggerTrabalhoProducaoDao.warning(f'({nomeTrabalhoConcluido}) concluido não encontrado na lista de produção...')
@@ -2204,7 +2204,7 @@ class Aplicacao:
             self.__loggerEstoqueDao.info(f'({trabalhoEstoque}) removido com sucesso!')
             return
         self.__loggerEstoqueDao.error(f'Erro ao remover ({trabalhoEstoque}): {trabalhoEstoqueDao.pegaErro()}')
-        
+
     def concluiModificaTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         estoqueDao = EstoqueDaoSqlite(self.__personagemEmUso)
         if estoqueDao.modificaTrabalhoEstoque(trabalhoEstoque, modificaServidor):
@@ -2230,16 +2230,36 @@ class Aplicacao:
             return True
         self.__loggerProfissaoDao.error(f'Erro ao modificar ({profissao}) no banco: {profissaoDao.pegaErro()}')
         return False
-     
+
+    def concluiModificaPersonagem(self, personagem, modificaServidor = True):
+        personagemDao = PersonagemDaoSqlite()
+        if personagemDao.modificaPersonagem(personagem, modificaServidor):
+            self.__loggerPersonagemDao.info(f'({personagem}) modificado no banco com sucesso!')
+            return
+        self.__loggerPersonagemDao.error(f'Erro ao modificar ({personagem}): {personagemDao.pegaErro()}')
+    
+    def concluiRemovePersonagem(self, personagem, modificaServirdor = True):
+        personagemDao = PersonagemDaoSqlite()
+        if personagemDao.removePersonagem(personagem, modificaServirdor):
+            self.__loggerPersonagemDao.info(f'({personagem}) removido no banco com sucesso!')
+            return
+        self.__loggerPersonagemDao.error(f'Erro ao remover ({personagem}) do banco: {personagemDao.pegaErro()}')
+        
     def concluiInsereProfissao(self, profissao, modificaServidor = True, personagem = None):
         if personagem is None:
             personagem = self.__personagemEmUso
         profissaoDao = ProfissaoDaoSqlite(personagem)
         if profissaoDao.insereProfissao(profissao, modificaServidor):
             self.__loggerProfissaoDao.info(f'({profissao}) inserido no banco com sucesso!')
-            return True
+            return
         self.__loggerProfissaoDao.error(f'Erro ao inserir ({profissao}) no banco: {profissaoDao.pegaErro()}')
-        return False
+
+    def concluiInserePersonagem(self, personagem, modificaServidor = True):
+        personagemDao = PersonagemDaoSqlite()
+        if personagemDao.inserePersonagem(personagem, modificaServidor):
+            self.__loggerPersonagemDao.info(f'({personagem}) inserido no banco com sucesso!')
+            return
+        self.__loggerPersonagemDao.error(f'Erro ao inserir ({personagem}) no banco: {personagemDao.pegaErro()}') 
 
     def verificaAlteracaoPersonagem(self):
         if self.__repositorioPersonagem.estaPronto:
@@ -2308,7 +2328,7 @@ class Aplicacao:
                     continue
                 if dicionario['novoPersonagem'] == None:
                     persoangemDao = PersonagemDaoSqlite()
-                    personagemEncontrado = persoangemDao.pegaPersonagemEspecificoPorId(personagemModificado)
+                    personagemEncontrado = persoangemDao.pegaPersonagemPorId(personagemModificado)
                     if personagemEncontrado == None:
                         self.__loggerPersonagemDao.error(f'Erro ao buscar personagem por id: {persoangemDao.pegaErro()}')
                         continue
@@ -2331,9 +2351,9 @@ class Aplicacao:
             for trabalhoServidor in trabalhosServidor:
                 limpaTela()
                 print(f'Sincronizando trabalhos...')
-                print(f'Trabalhos: {(trabalhosServidor.index(trabalhoServidor)+1)/len(trabalhoServidor):.2%}')
+                print(f'Trabalhos: {(trabalhosServidor.index(trabalhoServidor)+1)/len(trabalhosServidor):.2%}')
                 trabalhoDao = TrabalhoDaoSqlite()
-                trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoProducaoPorId(trabalhoServidor)
+                trabalhoEncontradoBanco = trabalhoDao.pegaTrabalhoEspecificoPorId(trabalhoServidor.id)
                 if variavelExiste(trabalhoEncontradoBanco):
                     if trabalhoEncontradoBanco.id == trabalhoServidor.id:
                         trabalhoDao = TrabalhoDaoSqlite()
@@ -2370,60 +2390,43 @@ class Aplicacao:
                 return
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
             return
-        self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
+        self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
 
     def sincronizaListaPersonagens(self):
         repositorioPersonagem = RepositorioPersonagem()
         personagensServidor = repositorioPersonagem.pegaTodosPersonagens()
-        if not variavelExiste(personagensServidor):
-            print(f'Erro ao buscar lista de personagens no servidor: {repositorioPersonagem.pegaErro()}')
-            input(f'Clique para continuar...')
-            return
-        personagemDao = PersonagemDaoSqlite()
-        personagensBanco = personagemDao.pegaPersonagens()
-        if not variavelExiste(personagensBanco):
-            print(f'Erro ao buscar lista de personagens no banco: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
-            return
-        for personagemServidor in personagensServidor:
+        if variavelExiste(personagensServidor):
+            for personagemServidor in personagensServidor:
+                limpaTela()
+                print(f'Sincronizando personagens...')
+                print(f'Personagens: {(personagensServidor.index(personagemServidor)+1)/len(personagensServidor):.2%}')
+                personagemDao = PersonagemDaoSqlite()
+                personagemEncontradoBanco = personagemDao.pegaPersonagemPorId(personagemServidor.id)
+                if variavelExiste(personagemEncontradoBanco):
+                    if personagemEncontradoBanco.id == personagemServidor.id:
+                        self.concluiModificaPersonagem(personagemServidor, False)
+                        continue
+                    self.concluiInserePersonagem(personagemServidor, False)
+                    continue
+                self.__loggerPersonagemDao.error(f'Erro ao pegar ({personagemServidor}) no banco: {personagemDao.pegaErro()}')
             personagemDao = PersonagemDaoSqlite()
-            personagemEncontrado = personagemDao.pegaPersonagemEspecificoPorNome(personagemServidor)
-            if not variavelExiste(personagemEncontrado):
-                print(f'Erro ao buscar trabalho especifico no banco: {personagemDao.pegaErro()}')
-                continue
-            if personagemEncontrado.nome == None:
-                personagemDao = PersonagemDaoSqlite()
-                if personagemDao.inserePersonagem(personagemServidor, False):
-                    print(f'{personagemServidor.nome} inserido no banco com sucesso!')
-                    continue
-                print(f'Erro ao inserir {personagemServidor.nome} no banco: {personagemDao.pegaErro()}')
-                continue
-            if personagemServidor.id != personagemEncontrado.id:
-                print(f'Sincronizando ids...')
-                personagemDao = PersonagemDaoSqlite()
-                if personagemDao.modificaPersonagemPorNome(personagemServidor):
-                    print(f'ID do personagem: {personagemServidor.nome} modificado de: {personagemEncontrado.id} -> {personagemServidor.id}')
-                    trabalhoEstoqueDAO = EstoqueDaoSqlite()
-                    if trabalhoEstoqueDAO.modificaIdPersonagemTrabalhoEstoque(personagemServidor.id, personagemEncontrado.id):
-                        print(f'idPersonagem do trabalho em estoque modificado: {personagemEncontrado.id} -> {personagemServidor.id}')
+            personagensBanco = personagemDao.pegaPersonagens()
+            if variavelExiste(personagensBanco):
+                novaLista = []
+                for personagemBanco in personagensBanco:
+                    for personagemServidor in personagensServidor:
+                        if personagemBanco.id == personagemServidor.id:
+                            break
                     else:
-                        print(f'Erro ao modificar o idPersonagem do trabalho no estoque: {trabalhoEstoqueDAO.pegaErro()}')
-                    trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
-                    if trabalhoProducaoDAO.modificaIdPersonagemTrabalhoEmProducao(personagemServidor.id, personagemEncontrado.id):
-                        print(f'idPersonagem do trabalho em produção modificado: {personagemEncontrado.id} -> {personagemServidor.id}')
-                    else:
-                        print(f'Erro ao modificar o idPersonagem do trabalho em produção: {trabalhoProducaoDAO.pegaErro()}')
-                    vendaDAO = VendaDaoSqlite()
-                    if vendaDAO.modificaIdPersonagemTrabalhoVendido(personagemServidor.id, personagemEncontrado.id):
-                        print(f'idPersonagem do trabalho em vendas modificado: {personagemEncontrado.id} -> {personagemServidor.id}')
-                    else:
-                        print(f'Erro ao modificar o idPersonagem do trabalho em vendas: {vendaDAO.pegaErro()}')
-                    continue
-                print(f'Erro ao modificar o id do personagem {personagemEncontrado.id}: {personagemDao.pegaErro()}')
+                        novaLista.append(personagemBanco)
+                for personagemBanco in novaLista:
+                    self.concluiRemovePersonagem(personagemBanco, False)                    
+                return
+            self.__loggerPersonagemDao.error(f'Erro ao pegar personagens no banco: {personagemDao.pegaErro()}')
+            return
+        self.__loggerRepositorioPersonagem.error(f'Erro ao pegar personagens no servidor: {repositorioPersonagem.pegaErro()}')
 
     def sincronizaListaProfissoes(self):
-        limpaTela()
-        print(f'{"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
         personagemDao = PersonagemDaoSqlite()
         personagens = personagemDao.pegaPersonagens()
         if variavelExiste(personagens):
