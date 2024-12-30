@@ -555,55 +555,6 @@ class CRUD:
             return
         print(f'Erro ao buscar trabalhos no servidor: {self.__repositorioTrabalho.pegaErro()}')
 
-    def sincronizaListaPersonagens(self):
-        repositorioPersonagem = RepositorioPersonagem()
-        personagensServidor = repositorioPersonagem.pegaTodosPersonagens()
-        if not variavelExiste(personagensServidor):
-            print(f'Erro ao buscar lista de personagens no servidor: {repositorioPersonagem.pegaErro()}')
-            input(f'Clique para continuar...')
-            return
-        personagemDao = PersonagemDaoSqlite()
-        personagensBanco = personagemDao.pegaPersonagens()
-        if not variavelExiste(personagensBanco):
-            print(f'Erro ao buscar lista de personagens no banco: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
-            return
-        for personagemServidor in personagensServidor:
-            personagemDao = PersonagemDaoSqlite()
-            personagemEncontrado = personagemDao.pegaPersonagemEspecificoPorNome(personagemServidor)
-            if not variavelExiste(personagemEncontrado):
-                print(f'Erro ao buscar trabalho especifico no banco: {personagemDao.pegaErro()}')
-                continue
-            if personagemEncontrado.nome == None:
-                personagemDao = PersonagemDaoSqlite()
-                if personagemDao.inserePersonagem(personagemServidor, False):
-                    print(f'{personagemServidor.nome} inserido no banco com sucesso!')
-                    continue
-                print(f'Erro ao inserir {personagemServidor.nome} no banco: {personagemDao.pegaErro()}')
-                continue
-            if personagemServidor.id != personagemEncontrado.id:
-                print(f'Sincronizando ids...')
-                personagemDao = PersonagemDaoSqlite()
-                if personagemDao.modificaPersonagemPorNome(personagemServidor):
-                    print(f'ID do personagem: {personagemServidor.nome} modificado de: {personagemEncontrado.id} -> {personagemServidor.id}')
-                    trabalhoEstoqueDAO = EstoqueDaoSqlite()
-                    if trabalhoEstoqueDAO.modificaIdPersonagemTrabalhoEstoque(personagemServidor.id, personagemEncontrado.id):
-                        print(f'idPersonagem do trabalho em estoque modificado: {personagemEncontrado.id} -> {personagemServidor.id}')
-                    else:
-                        print(f'Erro ao modificar o idPersonagem do trabalho no estoque: {trabalhoEstoqueDAO.pegaErro()}')
-                    trabalhoProducaoDAO = TrabalhoProducaoDaoSqlite()
-                    if trabalhoProducaoDAO.modificaIdPersonagemTrabalhoEmProducao(personagemServidor.id, personagemEncontrado.id):
-                        print(f'idPersonagem do trabalho em produção modificado: {personagemEncontrado.id} -> {personagemServidor.id}')
-                    else:
-                        print(f'Erro ao modificar o idPersonagem do trabalho em produção: {trabalhoProducaoDAO.pegaErro()}')
-                    vendaDAO = VendaDaoSqlite()
-                    if vendaDAO.modificaIdPersonagemTrabalhoVendido(personagemServidor.id, personagemEncontrado.id):
-                        print(f'idPersonagem do trabalho em vendas modificado: {personagemEncontrado.id} -> {personagemServidor.id}')
-                    else:
-                        print(f'Erro ao modificar o idPersonagem do trabalho em vendas: {vendaDAO.pegaErro()}')
-                    continue
-                print(f'Erro ao modificar o id do personagem {personagemEncontrado.id}: {personagemDao.pegaErro()}')
-    
     def modificaProfissao(self):
         while True:
             limpaTela()
@@ -1079,9 +1030,9 @@ class CRUD:
 
     def sincronizaDados(self):
         # self.sincronizaListaTrabalhos()
-        # self.sincronizaListaPersonagens()
-        # self.sincronizaListaProfissoes()
-        self.__aplicacao.sincronizaTrabalhosProducao()
+        self.__aplicacao.sincronizaListaPersonagens()
+        # self.__aplicacao.sincronizaListaProfissoes()
+        # self.__aplicacao.sincronizaTrabalhosProducao()
         # self.sincronizaTrabalhosVendidos()
 
     def verificaAlteracaoListaTrabalhos(self):
@@ -1294,7 +1245,7 @@ class CRUD:
                     self.__loggerProfissaoDao.error(f'Erro ao buscar ({profissao.id}) por id: {profissaoDao.pegaErro()}')
                     continue
                 persoangemDao = PersonagemDaoSqlite()
-                personagemEncontrado = persoangemDao.pegaPersonagemEspecificoPorId(personagemModificado)
+                personagemEncontrado = persoangemDao.pegaPersonagemPorId(personagemModificado)
                 if variavelExiste(personagemEncontrado):
                     if variavelExiste(personagemEncontrado.nome):
                         personagemEncontrado.dicionarioParaObjeto(dicionario)
