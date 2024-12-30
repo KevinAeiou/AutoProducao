@@ -34,6 +34,7 @@ class Aplicacao:
         logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
         self.__loggerRepositorioTrabalho = logging.getLogger('repositorioTrabalho')
         self.__loggerRepositorioPersonagem = logging.getLogger('repositorioPersonagem')
+        self.__loggerRepositorioProfissao = logging.getLogger('repositorioProfissao')
         self.__loggerPersonagemDao = logging.getLogger('personagemDao')
         self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
         self.__loggerTrabalhoDao = logging.getLogger('trabalhoDao')
@@ -2421,35 +2422,55 @@ class Aplicacao:
                 print(f'Erro ao modificar o id do personagem {personagemEncontrado.id}: {personagemDao.pegaErro()}')
 
     def sincronizaListaProfissoes(self):
-        logger = logging.getLogger('profissaoDao')
         limpaTela()
         print(f'{"ID".ljust(36)} | {"NOME".ljust(17)} | {"ESPAÇO".ljust(6)} | {"ESTADO".ljust(10)} | {"USO".ljust(10)} | AUTOPRODUCAO')
         personagemDao = PersonagemDaoSqlite()
         personagens = personagemDao.pegaPersonagens()
-        if not variavelExiste(personagens):
-            print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
-            input(f'Clique para continuar...')
-        for personagem in personagens:
-            print(personagem)
-            repositorioProfissao = RepositorioProfissao(personagem)
-            profissoes = repositorioProfissao.pegaTodasProfissoes()
-            if not variavelExiste(profissoes):
-                print(f'Erro ao buscar profissões no servidor: {repositorioProfissao.pegaErro()}')
-                continue
-            for profissao in profissoes:
-                print(profissao)
-                profissaoDao = ProfissaoDaoSqlite(personagem)
-                profissaoEncontrada = profissaoDao.pegaProfissaoPorId(profissao)
-                if not variavelExiste(profissaoEncontrada):
-                    logger.error(f'Erro ao buscar profissão ({profissao}): {profissaoDao.pegaErro()}')
-                    continue
-                if variavelExiste(profissaoEncontrada.nome):
+        if variavelExiste(personagens):
+            for personagem in personagens:
+                repositorioProfissao = RepositorioProfissao(personagem)
+                profissoesServidor = repositorioProfissao.pegaTodasProfissoes()
+                if variavelExiste(profissoesServidor):
+                    for profissaoServidor in profissoesServidor:
+                        limpaTela()
+                        print(f'Sincronizando profissões...')
+                        print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
+                        print(f'Profissões: {(profissoesServidor.index(profissaoServidor)+1)/len(profissoesServidor):.2%}')
+                        profissaoDao = ProfissaoDaoSqlite(personagem)
+                        profissaoEncontrada = profissaoDao.pegaProfissaoPorId(profissaoServidor.id)
+                        if variavelExiste(profissaoEncontrada):
+                            if profissaoEncontrada.id == profissaoServidor.id:
+                                profissaoDao = ProfissaoDaoSqlite(personagem)
+                                if profissaoDao.modificaProfissao(profissaoServidor, False):
+                                    self.__loggerProfissaoDao.info(f'({profissaoServidor}) sincronizado com sucesso!')
+                                continue
+                            profissaoDao = ProfissaoDaoSqlite(personagem)
+                            if profissaoDao.insereProfissao(profissaoServidor, False):
+                                self.__loggerProfissaoDao.info(f'({profissaoServidor}) inserido com sucesso!')
+                            continue
+                        self.__loggerProfissaoDao.error(f'Erro ao pegar profissão por id ({profissaoServidor}): {profissaoDao.pegaErro()}')
                     profissaoDao = ProfissaoDaoSqlite(personagem)
-                    if profissaoDao.modificaProfissao(profissao):
-                        logger.info(f'({profissao}) modificado com sucesso!')
+                    profissoesBanco = profissaoDao.pegaProfissoes()
+                    if variavelExiste(profissoesBanco):
+                        novaLista = []
+                        for profissaoBanco in profissoesBanco:
+                            for profissaoServidor in profissoesServidor:
+                                if profissaoBanco.id == profissaoServidor.id:
+                                    break
+                            else:
+                                novaLista.append(profissaoBanco)
+                        for profissaoBanco in novaLista:
+                            profissaoDao = ProfissaoDaoSqlite(personagem)
+                            if profissaoDao.removeProfissao(profissaoBanco, False):
+                                self.__loggerProfissaoDao.info(f'({profissaoBanco.nome}) removido do banco com sucesso!')
+                                continue
+                            self.__loggerProfissaoDao.error(f'Erro ao remover ({profissaoBanco.nome}) do banco: {profissaoDao.pegaErro()}')
                         continue
-                    logger.error(f'Erro ao modificar ({profissao}): {profissaoDao.pegaErro()}')
-        input(f'Clique para continuar...')
+                    self.__loggerProfissaoDao.error(f'Erro ao buscar trabalhos em produção no banco: {profissaoDao.pegaErro()}')
+                    continue
+                self.__loggerRepositorioProfissao.error(f'Erro ao pegar profissões: {repositorioProfissao.pegaErro()}')
+            return
+        self.__loggerPersonagemDao.error(f'Erro ao pegar personagens: {personagemDao.pegaErro()}')
 
     
     def sincronizaTrabalhosProducao(self):
@@ -2546,10 +2567,10 @@ class Aplicacao:
         print(f'Erro ao buscar personagens: {personagemDao.pegaErro()}')
 
     def sincronizaDados(self):
-        self.sincronizaListaTrabalhos()
-        self.sincronizaListaPersonagens()
+        # self.sincronizaListaTrabalhos()
+        # self.sincronizaListaPersonagens()
         self.sincronizaListaProfissoes()
-        self.sincronizaTrabalhosVendidos()
+        # self.sincronizaTrabalhosVendidos()
 
     def preparaPersonagem(self):
         if self.__repositorioTrabalho.abreStream():
