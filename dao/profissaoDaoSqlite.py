@@ -22,7 +22,7 @@ class ProfissaoDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaProfissaoPorId(self, id):
+    def pegaProfissaoPorId(self, id : str) -> Profissao:
         sql = f"""
             SELECT * 
             FROM profissoes
@@ -112,6 +112,27 @@ class ProfissaoDaoSqlite:
                     self.logger.info(f'({profissao}) modificado no servidor com sucesso!')
                 else:
                     self.logger.error(f'Erro ao modificar ({profissao}) no servidor: {self.__repositorioProfissao.pegaErro()}')
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return False
+    
+    def removeProfissao(self, profissao, modificaServidor = True):
+        sql = """
+            DELETE FROM profissoes
+            WHERE id == ?;
+            """
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [profissao.id])
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
+            if modificaServidor:
+                if self.__repositorioProfissao.removeProfissao(profissao):
+                    self.logger.info(f'({profissao}) removido do servidor com sucesso!')
+                else:
+                    self.logger.error(f'Erro ao remover ({profissao}) do servidor: {self.__repositorioProfissao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
