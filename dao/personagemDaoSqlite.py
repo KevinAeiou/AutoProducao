@@ -49,7 +49,7 @@ class PersonagemDaoSqlite():
         self.__meuBanco.desconecta()
         return None
     
-    def pegaPersonagemEspecificoPorId(self, personagem):
+    def pegaPersonagemPorId(self, id : str) -> Personagem:
         sql = """
             SELECT * 
             FROM personagens
@@ -58,7 +58,7 @@ class PersonagemDaoSqlite():
             personagemEncontrado = Personagem()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, [personagem.id])
+                cursor.execute(sql, [id])
                 for linha in cursor.fetchall():
                     estado = True if linha[5] else False
                     uso = True if linha[6] else False
