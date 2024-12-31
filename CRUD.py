@@ -175,7 +175,7 @@ class CRUD:
                     trabalhoEscolhido.raridade = novaRaridade
                     trabalhoEscolhido.trabalhoNecessario = novoTrabalhoNecessario
                     trabalhoDao = TrabalhoDaoSqlite()
-                    if trabalhoDao.modificaTrabalhoPorId(trabalhoEscolhido):
+                    if trabalhoDao.modificaTrabalho(trabalhoEscolhido):
                         self.__loggerTrabalhoDao.info(f'({trabalhoEscolhido}) modificado com sucesso!')
                         continue
                     self.__loggerTrabalhoDao.error(f'Erro ao modificar ({trabalhoEscolhido}): {trabalhoDao.pegaErro()}')
@@ -1030,10 +1030,10 @@ class CRUD:
 
     def sincronizaDados(self):
         # self.sincronizaListaTrabalhos()
-        self.__aplicacao.sincronizaListaPersonagens()
-        # self.__aplicacao.sincronizaListaProfissoes()
-        # self.__aplicacao.sincronizaTrabalhosProducao()
-        # self.sincronizaTrabalhosVendidos()
+        # self.__aplicacao.sincronizaListaPersonagens()
+        self.__aplicacao.sincronizaListaProfissoes()
+        self.__aplicacao.sincronizaTrabalhosProducao()
+        self.__aplicacao.sincronizaTrabalhosVendidos()
 
     def verificaAlteracaoListaTrabalhos(self):
         if self.__repositorioTrabalho.estaPronto:
@@ -1058,7 +1058,7 @@ class CRUD:
                     self.__loggerTrabalhoDao.error(f'Erro ao inserir ({trabalho}): {trabalhoDao.pegaErro()}')
                     continue
                 trabalhoDao = TrabalhoDaoSqlite()
-                if trabalhoDao.modificaTrabalhoPorId(trabalho, False):
+                if trabalhoDao.modificaTrabalho(trabalho, False):
                     self.__loggerTrabalhoDao.info(f'({trabalho}) modificado com sucesso!')
                     continue
                 self.__loggerTrabalhoDao.error(f'Erro ao modificar trabalho: {trabalhoDao.pegaErro()}')
@@ -1297,7 +1297,7 @@ class CRUD:
 
     def menu(self):
         while True:
-            self.verificaAlteracaoListaTrabalhos()
+            self.__aplicacao.verificaAlteracaoListaTrabalhos()
             self.verificaAlteracaoPersonagem()
             limpaTela()
             print(f'MENU')
