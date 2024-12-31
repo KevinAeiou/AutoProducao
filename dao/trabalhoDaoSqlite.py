@@ -160,6 +160,32 @@ class TrabalhoDaoSqlite():
         except Exception as e:
             self.__erro = str(e)
         return None
+
+    def pegaTrabalhoPorNome(self, nomeTrabalho : str) -> Trabalho:
+        trabalho = Trabalho()
+        sql = """
+            SELECT * 
+            FROM trabalhos
+            WHERE nome == ?
+            LIMIT 1;"""
+        try:
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, [nomeTrabalho])
+                for linha in cursor.fetchall():
+                    trabalho.id = linha[0]
+                    trabalho.nome = linha[1]
+                    trabalho.nomeProducao = linha[2]
+                    trabalho.experiencia = linha[3]
+                    trabalho.nivel = linha[4]
+                    trabalho.profissao = linha[5]
+                    trabalho.raridade = linha[6]
+                    trabalho.trabalhoNecessario = linha[7]
+                self.__meuBanco.desconecta()
+                return trabalho            
+        except Exception as e:
+            self.__erro = str(e)
+        return None
     
     def insereTrabalho(self, trabalho, modificaServidor = True):
         sql = """INSERT INTO trabalhos (id, nome, nomeProducao, experiencia, nivel, profissao, raridade, trabalhoNecessario)
@@ -180,7 +206,7 @@ class TrabalhoDaoSqlite():
         self.__meuBanco.desconecta()
         return False
 
-    def modificaTrabalhoPorId(self, trabalho, modificaServidor = True):
+    def modificaTrabalho(self, trabalho : Trabalho, modificaServidor = True) -> bool:
         sql = """
             UPDATE trabalhos SET nome = ?, nomeProducao = ?, experiencia = ?, nivel = ?, profissao = ?, raridade = ?, trabalhoNecessario = ?
             WHERE id = ?"""
