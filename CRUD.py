@@ -1,7 +1,7 @@
 import logging
 from uuid import uuid4
 from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero, textoEhIgual
-from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_ESTOQUE, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO, CHAVE_LISTA_PROFISSAO
+from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_PRODUZINDO, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_ESTOQUE, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO, CHAVE_LISTA_PROFISSAO
 
 from dao.trabalhoDaoSqlite import TrabalhoDaoSqlite
 from dao.personagemDaoSqlite import PersonagemDaoSqlite
@@ -38,24 +38,15 @@ class CRUD:
         self.__loggerVendaDao = logging.getLogger('vendaDao')
         self.__loggerRepositorioPersonagem = logging.getLogger('repositorioPersonagem')
         self.__loggerRepositorioTrabalho = logging.getLogger('repositorioTrabalho')
-        if self.__repositorioPersonagem.abreStream():
-            self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada com sucesso!')
-        else:
-            self.__loggerRepositorioPersonagem.info(f'Erro ao inicar stream: {self.__repositorioPersonagem.pegaErro()}')
-        if self.__repositorioTrabalho.abreStream():
-            self.__loggerRepositorioTrabalho.info(f'Stream repositório trabalhos iniciada com sucesso!')
-        else:
-            self.__loggerRepositorioTrabalho.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
+        # if self.__repositorioPersonagem.abreStream():
+        #     self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada com sucesso!')
+        # else:
+        #     self.__loggerRepositorioPersonagem.info(f'Erro ao inicar stream: {self.__repositorioPersonagem.pegaErro()}')
+        # if self.__repositorioTrabalho.abreStream():
+        #     self.__loggerRepositorioTrabalho.info(f'Stream repositório trabalhos iniciada com sucesso!')
+        # else:
+        #     self.__loggerRepositorioTrabalho.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
         self.menu()
-    
-    def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
-        if variavelExiste(trabalhoProducao):
-            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, modificaServidor):
-                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
-                return True
-            self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
-            return False
     
     def insereNovoTrabalho(self):
         while True:
@@ -390,7 +381,7 @@ class CRUD:
                         trabalhoSelecionado = self.defineNovoTrabalhoProducao(trabalhosEncontrados)
                         if variavelExiste(trabalhosEncontrados) and variavelExiste(trabalhoSelecionado):
                             novoTrabalhoProducao = self.defineNovoTrabalhoProducaoSelecionado(trabalhoSelecionado)
-                            self.insereTrabalhoProducao(novoTrabalhoProducao)
+                            self.__aplicacao.insereTrabalhoProducao(novoTrabalhoProducao)
                             continue
                         break
                     break
@@ -446,11 +437,7 @@ class CRUD:
                                 novoEstado = trabalhoProducaoSelecionado.estado 
                             else:
                                 trabalhoProducaoSelecionado.estado = int(novoEstado)
-                            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
-                            if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoSelecionado):
-                                self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoSelecionado}) modificado com sucesso!')
-                                continue
-                            self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalhoProducaoSelecionado}): {trabalhoProducaoDao.pegaErro()}')
+                            self.__aplicacao.modificaTrabalhoProducao(trabalhoProducaoSelecionado)
                             continue
                         break
                     break
@@ -1152,7 +1139,23 @@ class CRUD:
     def testeFuncao(self):
         personagens = self.mostraListaPersonagens()
         if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-            self.__aplicacao.defineTrabalhoComumProfissaoPriorizada()
+            trabalhoDao = TrabalhoDaoSqlite()
+            trabalhos = trabalhoDao.pegaTrabalhos()
+            if trabalhos == None:
+                self.__loggerTrabalhoDao.error(f'Erro ao pegar trabalhos: {trabalhoDao.pegaErro()}')
+                return
+            self.__aplicacao.abreStreamPersonagens()
+            for trabalho in trabalhos:
+                self.__aplicacao.verificaAlteracaoPersonagem()
+                trabalhoProducao = TrabalhoProducao()
+                trabalhoProducao.idTrabalho = trabalho.id
+                trabalhoProducao.estado = CODIGO_PRODUZINDO
+                trabalhoProducao.recorrencia = False
+                trabalhoProducao.tipo_licenca = CHAVE_LICENCA_NOVATO
+                self.__aplicacao.insereTrabalhoProducao(trabalhoProducao=trabalhoProducao)
+                trabalhoProducaoConcluido = self.__aplicacao.retornaTrabalhoConcluido(trabalho.nomeProducao[:25])
+                if variavelExiste(trabalhoProducaoConcluido):
+                    trabalhoProducaoConcluido = self.__aplicacao.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
         # estoqueDao = EstoqueDaoSqlite()
         # if estoqueDao.removeColunasTabelaEstoque():
         #     self.__loggerEstoqueDao.info(f'Coluna da tabela removida')
@@ -1201,7 +1204,7 @@ class CRUD:
                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho em produção por id: {trabalhoProducaoDao.pegaErro()}')
                         continue
                     if trabalhoProducaoEncontrado.id != trabalhoProducao.id:
-                        self.insereTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
+                        self.__aplicacao.insereTrabalhoProducao(trabalhoProducao=trabalhoProducao, personagem=personagemModificado, modificaServidor=False)
                         continue
                     self.modificaTrabalhoProducaoStream(personagemModificado, trabalhoProducao)
                     continue
@@ -1280,13 +1283,6 @@ class CRUD:
             self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) removido com sucesso!')
             return
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
-
-    def insereTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
-        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
-        if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao, False):
-            self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducao}) inserido com sucesso!')
-            return
-        self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalhoProducao}): {trabalhoProducaoDao.pegaErro()}')
 
     def modificaTrabalhoProducaoStream(self, personagemModificado, trabalhoProducao):
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagemModificado)
