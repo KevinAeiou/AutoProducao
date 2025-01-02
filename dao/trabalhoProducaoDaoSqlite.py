@@ -186,21 +186,27 @@ class TrabalhoProducaoDaoSqlite:
         return None
     
     def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
-        recorrencia = 1 if trabalhoProducao.recorrencia else 0
+        trabalhoProducaoLimpo = TrabalhoProducao()
+        trabalhoProducaoLimpo.id = trabalhoProducao.id
+        trabalhoProducaoLimpo.idTrabalho = trabalhoProducao.idTrabalho
+        trabalhoProducaoLimpo.recorrencia = trabalhoProducao.recorrencia
+        trabalhoProducaoLimpo.tipo_licenca = trabalhoProducao.tipo_licenca
+        trabalhoProducaoLimpo.estado = trabalhoProducao.estado
+        recorrencia = 1 if trabalhoProducaoLimpo.recorrencia else 0
         sql = """
             INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, recorrencia, tipoLicenca, estado) 
             VALUES (?, ?, ?, ?, ?, ?);
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.idTrabalho, self.__personagem.id, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado))
+            cursor.execute(sql, (trabalhoProducaoLimpo.id, trabalhoProducaoLimpo.idTrabalho, self.__personagem.id, recorrencia, trabalhoProducaoLimpo.tipo_licenca, trabalhoProducaoLimpo.estado))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao):
-                    self.__logger.info(f'({trabalhoProducao}) inserido no servidor com sucesso!')
+                if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducaoLimpo):
+                    self.__logger.info(f'({trabalhoProducaoLimpo}) inserido no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao inserir ({trabalhoProducao}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({trabalhoProducaoLimpo}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -228,21 +234,28 @@ class TrabalhoProducaoDaoSqlite:
         return False
         
     def modificaTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
-        recorrencia = 1 if trabalhoProducao.recorrencia else 0
+        trabalhoProducaoLimpo = TrabalhoProducao()
+        trabalhoProducaoLimpo.id = trabalhoProducao.id
+        trabalhoProducaoLimpo.idTrabalho = trabalhoProducao.idTrabalho
+        trabalhoProducaoLimpo.recorrencia = trabalhoProducao.recorrencia
+        trabalhoProducaoLimpo.tipo_licenca = trabalhoProducao.tipo_licenca
+        trabalhoProducaoLimpo.estado = trabalhoProducao.estado
+        recorrencia = 1 if trabalhoProducaoLimpo.recorrencia else 0
         sql = """
             UPDATE Lista_desejo 
             SET idTrabalho = ?, recorrencia = ?, tipoLicenca = ?, estado = ? 
-            WHERE id == ?;"""
+            WHERE id == ?;
+            """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.idTrabalho, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado, trabalhoProducao.id))
+            cursor.execute(sql, (trabalhoProducaoLimpo.idTrabalho, recorrencia, trabalhoProducaoLimpo.tipo_licenca, trabalhoProducaoLimpo.estado, trabalhoProducaoLimpo.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducao):
-                    self.__logger.info(f'({trabalhoProducao}) modificado no servidor com sucesso!')
+                if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducaoLimpo):
+                    self.__logger.info(f'({trabalhoProducaoLimpo}) modificado no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao modificar ({trabalhoProducao}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                    self.__logger.error(f'Erro ao modificar ({trabalhoProducaoLimpo}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
