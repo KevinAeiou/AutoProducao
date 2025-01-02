@@ -111,7 +111,7 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
         return None
 
-    def pegaTrabalhoEspecificoPorId(self, idBuscado):
+    def pegaTrabalhoPorId(self, idBuscado):
         trabalho = Trabalho()
         sql = """
             SELECT * 
