@@ -1707,63 +1707,11 @@ class Aplicacao:
                 entraProfissaoEspecifica(profissaoNecessaria, posicao)
                 print(f'Verificando profissão: {profissaoNecessaria.nome}')
                 dicionarioTrabalho[CHAVE_PROFISSAO] = profissaoNecessaria.nome
-                listaDeListasTrabalhosProducao = self.retornaListaDeListasTrabalhosProducao(dicionarioTrabalho)
-                for listaTrabalhosProducao in listaDeListasTrabalhosProducao:
-                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
-                        break
-                    dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA] = listaTrabalhosProducao
-                    for trabalhoProducaoPriorizado in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
-                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
-                            break
-                        if trabalhoProducaoPriorizado.ehEspecial() or trabalhoProducaoPriorizado.ehRaro():
-                            print(f'Trabalho desejado: {trabalhoProducaoPriorizado.nome}.')
-                            posicaoAux = -1
-                            if dicionarioTrabalho[CHAVE_POSICAO] != -1:
-                                posicaoAux = dicionarioTrabalho[CHAVE_POSICAO]
-                            dicionarioTrabalho[CHAVE_POSICAO] = 0
-                            while naoFizerQuatroVerificacoes(dicionarioTrabalho) and not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
-                                nomeTrabalhoReconhecido = self.retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(dicionarioTrabalho)
-                                print(f'Trabalho {trabalhoProducaoPriorizado.raridade} reconhecido: {nomeTrabalhoReconhecido}.')
-                                if variavelExiste(nomeTrabalhoReconhecido):
-                                    if texto1PertenceTexto2(nomeTrabalhoReconhecido[:-1], trabalhoProducaoPriorizado.nomeProducao):
-                                        erro = self.verificaErro()
-                                        if erroEncontrado(erro):
-                                            if ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
-                                                self.__confirmacao = False
-                                                if ehErroOutraConexao(erro):
-                                                    dicionarioTrabalho[CHAVE_UNICA_CONEXAO] = False
-                                        else:
-                                            entraTrabalhoEncontrado(dicionarioTrabalho)
-                                        if self.__confirmacao:
-                                            dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizado
-                                            tipoTrabalho = 0
-                                            if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]):
-                                                tipoTrabalho = 1
-                                            dicionarioTrabalho = self.confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
-                                            if not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
-                                                clickEspecifico(1,'f1')
-                                                clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
-                                        else:
-                                            break
-                                else:
-                                    dicionarioTrabalho[CHAVE_POSICAO] = 4
-                                dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
-                            dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
-                            if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
-                                break
-                            continue
-                        if trabalhoProducaoPriorizado.ehMelhorado() or trabalhoProducaoPriorizado.ehComum():
-                            dicionarioTrabalho = self.defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho)
-                            if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
-                                break
-                            elif listaDeListasTrabalhosProducao.index(listaTrabalhosProducao) + 1 >= len(listaDeListasTrabalhosProducao):
-                                vaiParaMenuTrabalhoEmProducao()
-                            else:
-                                vaiParaOTopoDaListaDeTrabalhosComunsEMelhorados(dicionarioTrabalho)
+                dicionarioTrabalho = self.veficaTrabalhosProducaoListaDesejos(dicionarioTrabalho)
                 if self.__confirmacao:
                     if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
                         dicionarioTrabalho = self.iniciaProcessoDeProducao(dicionarioTrabalho)
-                    else:
+                    elif ehMenuTrabalhosDisponiveis(self.retornaMenu()):
                         saiProfissaoVerificada(dicionarioTrabalho)
                     if self._unicaConexao and self._espacoBolsa:
                         if self._imagem.retornaEstadoTrabalho() == CODIGO_CONCLUIDO:
@@ -1793,6 +1741,64 @@ class Aplicacao:
             if self._profissaoModificada:
                 self.verificaEspacoProducao()
             print(f'Fim da lista de profissões...')
+
+    def veficaTrabalhosProducaoListaDesejos(self, dicionarioTrabalho):
+        listaDeListasTrabalhosProducao = self.retornaListaDeListasTrabalhosProducao(dicionarioTrabalho)
+        for listaTrabalhosProducao in listaDeListasTrabalhosProducao:
+            if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
+                break
+            dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA] = listaTrabalhosProducao
+            for trabalhoProducaoPriorizado in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
+                if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
+                    break
+                if trabalhoProducaoPriorizado.ehEspecial() or trabalhoProducaoPriorizado.ehRaro():
+                    print(f'Trabalho desejado: {trabalhoProducaoPriorizado.nome}.')
+                    posicaoAux = -1
+                    if dicionarioTrabalho[CHAVE_POSICAO] != -1:
+                        posicaoAux = dicionarioTrabalho[CHAVE_POSICAO]
+                    dicionarioTrabalho[CHAVE_POSICAO] = 0
+                    while naoFizerQuatroVerificacoes(dicionarioTrabalho) and not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+                        nomeTrabalhoReconhecido = self.retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(dicionarioTrabalho)
+                        print(f'Trabalho {trabalhoProducaoPriorizado.raridade} reconhecido: {nomeTrabalhoReconhecido}.')
+                        if variavelExiste(nomeTrabalhoReconhecido):
+                            if texto1PertenceTexto2(nomeTrabalhoReconhecido[:-1], trabalhoProducaoPriorizado.nomeProducao):
+                                erro = self.verificaErro()
+                                if erroEncontrado(erro):
+                                    if ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
+                                        self.__confirmacao = False
+                                        if ehErroOutraConexao(erro):
+                                            dicionarioTrabalho[CHAVE_UNICA_CONEXAO] = False
+                                else:
+                                    entraTrabalhoEncontrado(dicionarioTrabalho)
+                                if self.__confirmacao:
+                                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizado
+                                    tipoTrabalho = 0
+                                    if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]):
+                                        tipoTrabalho = 1
+                                    dicionarioTrabalho = self.confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
+                                    if not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+                                        clickEspecifico(1,'f1')
+                                        clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
+                                else:
+                                    break
+                        else:
+                            dicionarioTrabalho[CHAVE_POSICAO] = 4
+                        dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
+                    dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
+                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
+                        break
+                    continue
+                if trabalhoProducaoPriorizado.ehMelhorado() or trabalhoProducaoPriorizado.ehComum():
+                    dicionarioTrabalho = self.defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho)
+                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
+                        return dicionarioTrabalho
+                    if listaDeListasTrabalhosProducao.index(listaTrabalhosProducao) + 1 >= len(listaDeListasTrabalhosProducao):
+                        vaiParaMenuTrabalhoEmProducao()
+                        break
+                    vaiParaOTopoDaListaDeTrabalhosComunsEMelhorados(dicionarioTrabalho)
+                    dicionarioTrabalho[CHAVE_POSICAO] = -1
+                    break
+        return dicionarioTrabalho
 
     def retornaListaDeListasTrabalhosProducao(self, dicionarioTrabalho):
         listaDeListaTrabalhos = []

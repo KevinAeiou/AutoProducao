@@ -49,6 +49,9 @@ def ehMenuJogar(menu):
 def ehMenuEscolhaPersonagem(menu):
     return menu == MENU_ESCOLHA_PERSONAGEM
 
+def ehMenuTrabalhosDisponiveis(menu):
+    menu == MENU_TRABALHOS_DISPONIVEIS
+
 def ehErroOutraConexao(erro):
     return erro == CODIGO_ERRO_OUTRA_CONEXAO
 

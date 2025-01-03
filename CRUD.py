@@ -1,7 +1,7 @@
 import logging
 from uuid import uuid4
 from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero, textoEhIgual
-from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_PRODUZINDO, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_ESTOQUE, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO, CHAVE_LISTA_PROFISSAO
+from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_PRODUZINDO, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_ESTOQUE, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO, CHAVE_LISTA_PROFISSAO, CHAVE_PROFISSAO_BRACELETES, CHAVE_PROFISSAO, CHAVE_TRABALHO_PRODUCAO_ENCONTRADO, CHAVE_POSICAO
 
 from dao.trabalhoDaoSqlite import TrabalhoDaoSqlite
 from dao.personagemDaoSqlite import PersonagemDaoSqlite
@@ -1017,10 +1017,10 @@ class CRUD:
 
     def sincronizaDados(self):
         # self.sincronizaListaTrabalhos()
-        # self.__aplicacao.sincronizaListaPersonagens()
+        self.__aplicacao.sincronizaListaPersonagens()
         self.__aplicacao.sincronizaListaProfissoes()
         self.__aplicacao.sincronizaTrabalhosProducao()
-        self.__aplicacao.sincronizaTrabalhosVendidos()
+        # self.__aplicacao.sincronizaTrabalhosVendidos()
 
     def verificaAlteracaoListaTrabalhos(self):
         if self.__repositorioTrabalho.estaPronto:
@@ -1137,25 +1137,12 @@ class CRUD:
         self.__loggerVendaDao.error(f'Erro: {vendaDao.pegaErro()}')
         
     def testeFuncao(self):
+        from teclado import clickAtalhoEspecifico
         personagens = self.mostraListaPersonagens()
         if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-            trabalhoDao = TrabalhoDaoSqlite()
-            trabalhos = trabalhoDao.pegaTrabalhos()
-            if trabalhos == None:
-                self.__loggerTrabalhoDao.error(f'Erro ao pegar trabalhos: {trabalhoDao.pegaErro()}')
-                return
-            self.__aplicacao.abreStreamPersonagens()
-            for trabalho in trabalhos:
-                self.__aplicacao.verificaAlteracaoPersonagem()
-                trabalhoProducao = TrabalhoProducao()
-                trabalhoProducao.idTrabalho = trabalho.id
-                trabalhoProducao.estado = CODIGO_PRODUZINDO
-                trabalhoProducao.recorrencia = False
-                trabalhoProducao.tipo_licenca = CHAVE_LICENCA_NOVATO
-                self.__aplicacao.insereTrabalhoProducao(trabalhoProducao=trabalhoProducao)
-                trabalhoProducaoConcluido = self.__aplicacao.retornaTrabalhoConcluido(trabalho.nomeProducao[:25])
-                if variavelExiste(trabalhoProducaoConcluido):
-                    trabalhoProducaoConcluido = self.__aplicacao.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
+            clickAtalhoEspecifico('alt','tab')
+            self.__aplicacao.inicializaChavesPersonagem()
+            self.__aplicacao.veficaTrabalhosProducaoListaDesejos({CHAVE_TRABALHO_PRODUCAO_ENCONTRADO: None, CHAVE_POSICAO: -1, CHAVE_PROFISSAO: CHAVE_PROFISSAO_BRACELETES})
         # estoqueDao = EstoqueDaoSqlite()
         # if estoqueDao.removeColunasTabelaEstoque():
         #     self.__loggerEstoqueDao.info(f'Coluna da tabela removida')
