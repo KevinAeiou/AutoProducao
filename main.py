@@ -1731,47 +1731,39 @@ class Aplicacao:
         listaDeListasTrabalhosProducao = self.retornaListaDeListasTrabalhosProducao(dicionarioTrabalho)
         for listaTrabalhosProducao in listaDeListasTrabalhosProducao:
             if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
-                break
+                return dicionarioTrabalho
             dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA] = listaTrabalhosProducao
             for trabalhoProducaoPriorizado in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
                 if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
-                    break
+                    return dicionarioTrabalho
                 if trabalhoProducaoPriorizado.ehEspecial() or trabalhoProducaoPriorizado.ehRaro():
                     print(f'Trabalho desejado: {trabalhoProducaoPriorizado.nome}.')
                     posicaoAux = -1
                     if dicionarioTrabalho[CHAVE_POSICAO] != -1:
                         posicaoAux = dicionarioTrabalho[CHAVE_POSICAO]
                     dicionarioTrabalho[CHAVE_POSICAO] = 0
-                    while naoFizerQuatroVerificacoes(dicionarioTrabalho) and not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+                    while naoFizerQuatroVerificacoes(dicionarioTrabalho):
                         nomeTrabalhoReconhecido = self.retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(dicionarioTrabalho)
                         print(f'Trabalho {trabalhoProducaoPriorizado.raridade} reconhecido: {nomeTrabalhoReconhecido}.')
-                        if variavelExiste(nomeTrabalhoReconhecido):
-                            if texto1PertenceTexto2(nomeTrabalhoReconhecido[:-1], trabalhoProducaoPriorizado.nomeProducao):
-                                erro = self.verificaErro()
-                                if erroEncontrado(erro):
-                                    if ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
-                                        self.__confirmacao = False
-                                        if ehErroOutraConexao(erro):
-                                            dicionarioTrabalho[CHAVE_UNICA_CONEXAO] = False
-                                else:
-                                    entraTrabalhoEncontrado(dicionarioTrabalho)
-                                if self.__confirmacao:
-                                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizado
-                                    tipoTrabalho = 0
-                                    if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]):
-                                        tipoTrabalho = 1
-                                    dicionarioTrabalho = self.confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
-                                    if not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
-                                        clickEspecifico(1,'f1')
-                                        clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
-                                else:
-                                    break
-                        else:
-                            dicionarioTrabalho[CHAVE_POSICAO] = 4
+                        if variavelExiste(nomeTrabalhoReconhecido) and texto1PertenceTexto2(nomeTrabalhoReconhecido[:-1], trabalhoProducaoPriorizado.nomeProducao):
+                            erro = self.verificaErro()
+                            if erroEncontrado(erro) and (ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro)):
+                                self.__confirmacao = False
+                                dicionarioTrabalho[CHAVE_UNICA_CONEXAO] = False if ehErroOutraConexao(erro) else True
+                                return dicionarioTrabalho
+                            entraTrabalhoEncontrado(dicionarioTrabalho)
+                            dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizado
+                            tipoTrabalho = 0
+                            if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]):
+                                tipoTrabalho = 1
+                            dicionarioTrabalho = self.confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
+                            if not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+                                clickEspecifico(1,'f1')
+                                clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
+                            continue
+                        dicionarioTrabalho[CHAVE_POSICAO] = 4
                         dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
                     dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
-                    if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
-                        break
                     continue
                 if trabalhoProducaoPriorizado.ehMelhorado() or trabalhoProducaoPriorizado.ehComum():
                     dicionarioTrabalho = self.defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho)
