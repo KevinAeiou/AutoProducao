@@ -2159,6 +2159,7 @@ class Aplicacao:
                     if trabalhoProducaoEncontrado == None:
                         self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho em produção por id: {trabalhoProducaoDao.pegaErro()}')
                         continue
+                    self.__loggerTrabalhoProducaoDao.warning(f'({trabalhoProducao}) foi modificado/inserido no servidor...')
                     if trabalhoProducaoEncontrado.id == trabalhoProducao.id:
                         self.modificaTrabalhoProducao(trabalhoProducao, personagemModificado, False)
                         continue
