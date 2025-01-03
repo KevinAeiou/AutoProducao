@@ -1187,7 +1187,6 @@ class Aplicacao:
 
     def retornaListaTrabalhosProducaoRaridadeEspecifica(self, dicionarioTrabalho, raridade):
         listaTrabalhosProducaoRaridadeEspecifica = []
-        print(f'Buscando trabalho {raridade} na lista...')
         trabalhosProducao = self.pegaTrabalhosProducaoParaProduzirProduzindo()
         if variavelExiste(trabalhosProducao):
             for trabalhoProducao in trabalhosProducao:
@@ -1201,7 +1200,6 @@ class Aplicacao:
                         listaTrabalhosProducaoRaridadeEspecifica.append(trabalhoProducao)
             if tamanhoIgualZero(listaTrabalhosProducaoRaridadeEspecifica):
                 print(f'Nem um trabalho {raridade} na lista!')
-            return listaTrabalhosProducaoRaridadeEspecifica
         return listaTrabalhosProducaoRaridadeEspecifica
 
     def retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(self, dicionarioTrabalho):
@@ -1745,7 +1743,9 @@ class Aplicacao:
                     while naoFizerQuatroVerificacoes(dicionarioTrabalho):
                         nomeTrabalhoReconhecido = self.retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(dicionarioTrabalho)
                         print(f'Trabalho {trabalhoProducaoPriorizado.raridade} reconhecido: {nomeTrabalhoReconhecido}.')
-                        if variavelExiste(nomeTrabalhoReconhecido) and texto1PertenceTexto2(nomeTrabalhoReconhecido[:-1], trabalhoProducaoPriorizado.nomeProducao):
+                        if nomeTrabalhoReconhecido is None:
+                            break
+                        if texto1PertenceTexto2(nomeTrabalhoReconhecido[:-1], trabalhoProducaoPriorizado.nomeProducao):
                             erro = self.verificaErro()
                             if erroEncontrado(erro) and (ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro)):
                                 self.__confirmacao = False
@@ -1761,7 +1761,6 @@ class Aplicacao:
                                 clickEspecifico(1,'f1')
                                 clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
                             continue
-                        dicionarioTrabalho[CHAVE_POSICAO] = 4
                         dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
                     dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
                     continue
