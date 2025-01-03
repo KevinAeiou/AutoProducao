@@ -158,7 +158,7 @@ class ManipulaImagem:
         contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for contorno in contornos:
             x, y, l, a = cv2.boundingRect(contorno)
-            if l > 340 and l < 350 and (a > 50 and a < 60 or a == 5):
+            if l > 345 and l < 350 and (a > 50 and a < 60 or a == 5):
                 y -= 40
                 a += 40
                 return (x, y, l, a)
