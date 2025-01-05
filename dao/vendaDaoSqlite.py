@@ -20,7 +20,7 @@ class VendaDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaVendas(self):
+    def pegaTrabalhosVendidos(self):
         vendas = []
         sql = """
             SELECT vendas.id, trabalhos.id, trabalhos.nome, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, vendas.nomeProduto, vendas.dataVenda, vendas.quantidadeProduto, vendas.valorProduto
@@ -139,21 +139,21 @@ class VendaDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
+    def insereTrabalhoVendido(self, trabalho, modificaServidor = True):
         sql = """
             INSERT INTO vendas (id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto)
             VALUES (?, ?, ?, ?, ?, ?, ?);
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoVendido.id, trabalhoVendido.nomeProduto, trabalhoVendido.dataVenda, self.__personagem.id, trabalhoVendido.quantidadeProduto, trabalhoVendido.trabalhoId, trabalhoVendido.valorProduto))
+            cursor.execute(sql, (trabalho.id, trabalho.nomeProduto, trabalho.dataVenda, self.__personagem.id, trabalho.quantidadeProduto, trabalho.trabalhoId, trabalho.valorProduto))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioVendas.insereTrabalhoVendido(trabalhoVendido):
-                    self.__logger.info(f'({trabalhoVendido}) inserido no servidor com sucesso!')
+                if self.__repositorioVendas.insereTrabalhoVendido(trabalho):
+                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao inserir ({trabalhoVendido}) no servidor: {self.__repositorioVendas.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
