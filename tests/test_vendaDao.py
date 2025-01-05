@@ -6,12 +6,11 @@ class TesteVendaDao:
     __personagemTeste = PersonagemDaoSqlite().pegaPersonagens()[0]
     __vendaDao = VendaDaoSqlite(__personagemTeste)
     __trabalhoVendido = TrabalhoVendido()
-    __trabalhoVendido.trabalhoId = 'IdTrabalhoTeste'
-    __trabalhoVendido.nomeProduto = 'Descrição teste'
+    __trabalhoVendido.idTrabalho = 'IdTrabalhoTeste'
+    __trabalhoVendido.descricao = 'Descrição teste'
     __trabalhoVendido.dataVenda = '01/01/2000'
-    __trabalhoVendido.quantidadeProduto = 1
-    __trabalhoVendido.valorProduto = 200
-    __trabalhoVendido.nomePersonagem = 'IdPersonagemTeste'
+    __trabalhoVendido.quantidade = 1
+    __trabalhoVendido.valor = 200
 
     def testDeveInserirNovaVendaQuandoMetodoInsereVendaEhChamado(self):
         esperado = 'Sucesso'
