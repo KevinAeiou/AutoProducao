@@ -55,4 +55,4 @@ class Trabalho:
         profissao = 'Indefinido' if self.profissao == None else self.profissao
         raridade = 'Indefinido' if self.raridade == None else self.raridade
         nivel = 'Indefinido' if self.nivel == None else str(self.nivel)
-        return f'{nome.ljust(44)} | {profissao.ljust(22)} | {raridade.ljust(9)} | {nivel}'
+        return f'{nome.ljust(44)} | {profissao.ljust(22)} | {raridade.ljust(9)} | {nivel.ljust(5)}'
