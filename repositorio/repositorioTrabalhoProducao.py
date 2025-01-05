@@ -26,7 +26,6 @@ class RepositorioTrabalhoProducao:
                     trabalhoProducao.id = trabalhoProducaoEncontrado.key()
                     trabalhosProducao.append(trabalhoProducao)
             trabalhosProducao = sorted(trabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.estado, reverse=True)
-
             return trabalhosProducao
         except Exception as e:
             self.__erro = str(e)

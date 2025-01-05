@@ -162,7 +162,7 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaTrabalhoProducaoPorId(self, trabalhoProducaoBuscado):
+    def pegaTrabalhoProducaoPorId(self, id):
         trabalhoProducao = TrabalhoProducao()
         sql = """
             SELECT id, idTrabalho, recorrencia, tipoLicenca, estado
@@ -170,7 +170,7 @@ class TrabalhoProducaoDaoSqlite:
             WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoProducaoBuscado.id])
+            cursor.execute(sql, [id])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[2] == 1 else False
                 trabalhoProducao.id = linha[0]
