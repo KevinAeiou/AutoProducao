@@ -104,7 +104,7 @@ class TrabalhoDaoSqlite():
                     trabalho.raridade = linha[6]
                     trabalho.trabalhoNecessario = linha[7]
                     trabalhos.append(trabalho)
-                trabalhos = sorted(trabalhos, key= lambda trabalho: trabalho.nome)
+                trabalhos = sorted(trabalhos, key= lambda trabalho: (trabalho.nivel, trabalho.nome))
                 self.__meuBanco.desconecta()
                 return trabalhos            
         except Exception as e:
@@ -136,7 +136,7 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
         return None
 
-    def pegaTrabalhoEspecificoPorNomeProfissaoRaridade(self, trabalhoBuscado):
+    def pegaTrabalhoPorNomeProfissaoRaridade(self, trabalhoBuscado):
         trabalho = Trabalho()
         sql = """
             SELECT * 
@@ -197,9 +197,9 @@ class TrabalhoDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalho.insereTrabalho(trabalho):
-                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
+                    self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) inserido no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({trabalho.id.ljust(36)} | {trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -217,9 +217,9 @@ class TrabalhoDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalho.modificaTrabalho(trabalho):
-                    self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
+                    self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) modificado no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro()}')
+                    self.__logger.error(f'Erro ao modificar ({trabalho.id.ljust(36)} | {trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -250,9 +250,9 @@ class TrabalhoDaoSqlite():
             self.__meuBanco.desconecta()
             if modificaServidor:
                 if self.__repositorioTrabalho.removeTrabalho(trabalho):
-                    self.__logger.info(f'({trabalho}) removido do servidor com sucesso!')
+                    self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) removido do servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao remover ({trabalho}) do servidor: {self.__repositorioTrabalho.pegaErro()}')
+                    self.__logger.error(f'Erro ao remover ({trabalho.id.ljust(36)} | {trabalho}) do servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
