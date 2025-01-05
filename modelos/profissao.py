@@ -44,6 +44,9 @@ class Profissao:
             setattr(self, chave, dicionario[chave])
 
     def __str__(self) -> str:
+        id = 'Indefinido' if self.id is None else self.id
         idPersonagem = 'Indefinido' if self.idPersonagem is None else self.idPersonagem
+        nome = 'Indefinido' if self.nome is None else self.nome
+        experiencia = 'Indefinido' if self.experiencia is None else str(self.experiencia)
         prioridade = 'Verdadeiro' if self.prioridade else 'Falso'
-        return f'{(self.id).ljust(40)} | {(idPersonagem).ljust(40)} | {(self.nome).ljust(22)} | {str(self.experiencia).ljust(6)} | {prioridade}'
+        return f'{(id).ljust(40)} | {(idPersonagem).ljust(40)} | {(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}'
