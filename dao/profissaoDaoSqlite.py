@@ -144,13 +144,12 @@ class ProfissaoDaoSqlite:
         for nomeProfissao in profissoes:
             self.__conexao = self.__meuBanco.pegaConexao(1)
             profissao = Profissao()
-            profissao.id = str(profissoes.index(nomeProfissao))+str(uuid4())
             profissao.nome = nomeProfissao
             profissao.idPersonagem = self.__personagem.id
             if self.insereProfissao(profissao):
-                print(f'({nomeProfissao}) inserida com sucesso!')
+                print(f'({nomeProfissao}) inserido no banco com sucesso!')
                 continue
-            print(f'Erro ao inserir profissão: {self.pegaErro()}')
+            print(f'Erro ao inserir profissão no banco: {self.pegaErro()}')
             return False
         return True
     
