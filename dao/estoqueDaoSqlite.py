@@ -20,7 +20,7 @@ class EstoqueDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaEstoque(self):
+    def pegaTrabalhosEstoque(self):
         estoque = []
         sql = """
             SELECT Lista_estoque.id, trabalhos.nome, trabalhos.profissao, trabalhos.nivel, Lista_estoque.quantidade, trabalhos.raridade, Lista_estoque.idTrabalho
@@ -102,7 +102,7 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaQuantidadeTrabalho(self, trabalhoId):            
+    def pegaQuantidadeTrabalho(self, idTrabalho):            
         sql = """
             SELECT quantidade
             FROM Lista_estoque
@@ -112,7 +112,7 @@ class EstoqueDaoSqlite:
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoId, self.__personagem.id))
+            cursor.execute(sql, (idTrabalho, self.__personagem.id))
             linha = cursor.fetchone()
             quantidade = 0 if linha is None else linha[0]
             self.__meuBanco.desconecta()
