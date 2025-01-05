@@ -5,8 +5,7 @@ from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO
 
 from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 
-from repositorio.repositorioTrabalho import RepositorioTrabalho
-from repositorio.repositorioPersonagem import RepositorioPersonagem
+from db.db import MeuBanco
 
 from modelos.trabalho import Trabalho
 from modelos.trabalhoProducao import TrabalhoProducao
@@ -21,24 +20,7 @@ class CRUD:
         logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
         self.__personagemEmUso = None
         self.__aplicacao = Aplicacao()
-        self.__repositorioPersonagem = RepositorioPersonagem()
-        self.__repositorioTrabalho = RepositorioTrabalho()
-        self.__loggerTrabalhoDao = logging.getLogger('trabalhoDao')
-        self.__loggerPersonagemDao = logging.getLogger('personagemDao')
-        self.__loggerProfissaoDao = logging.getLogger('profissaoDao')
-        self.__loggerEstoqueDao = logging.getLogger('estoqueDao')
         self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
-        self.__loggerVendaDao = logging.getLogger('vendaDao')
-        self.__loggerRepositorioPersonagem = logging.getLogger('repositorioPersonagem')
-        self.__loggerRepositorioTrabalho = logging.getLogger('repositorioTrabalho')
-        # if self.__repositorioPersonagem.abreStream():
-        #     self.__loggerRepositorioPersonagem.info(f'Stream repositório personagem iniciada com sucesso!')
-        # else:
-        #     self.__loggerRepositorioPersonagem.info(f'Erro ao inicar stream: {self.__repositorioPersonagem.pegaErro()}')
-        # if self.__repositorioTrabalho.abreStream():
-        #     self.__loggerRepositorioTrabalho.info(f'Stream repositório trabalhos iniciada com sucesso!')
-        # else:
-        #     self.__loggerRepositorioTrabalho.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
         self.menu()
     
     def insereNovoTrabalho(self):
@@ -859,8 +841,6 @@ class CRUD:
         input('Clique para continuar...')
         
     def testeFuncao(self):
-        self.__aplicacao.abreStreamPersonagens()
-        return
         from teclado import clickAtalhoEspecifico
         personagens = self.mostraListaPersonagens()
         if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
@@ -879,26 +859,26 @@ class CRUD:
             self.__aplicacao.verificaAlteracaoPersonagem()
             limpaTela()
             print(f'MENU')
-            print(f'01 - Insere trabalho')
-            print(f'02 - Modifica trabalho')
-            print(f'03 - Remove trabalho')
-            print(f'04 - Insere personagem')
-            print(f'05 - Modifica personagem')
-            print(f'06 - Remove personagem')
-            print(f'07 - Insere trabalho produção')
-            print(f'08 - Modifica trabalho produção')
-            print(f'09 - Remove trabalho produção')
-            print(f'10 - Modifica profissao')
-            print(f'11 - Insere trabalho no estoque')
-            print(f'12 - Modifica trabalho no estoque')
-            print(f'13 - Remove trabalho no estoque')
-            print(f'14 - Insere trabalho vendido')
-            print(f'15 - Modifica trabalho vendido')
-            print(f'16 - Remove trabalho vendido')
-            print(f'20 - Pega todos trabalhos producao')
-            print(f'21 - Sincroniza dados')
-            print(f'24 - Teste de funções')
-            print(f'0 - Sair')
+            print(f'{"1".ljust(2)} - Insere trabalho')
+            print(f'{"2".ljust(2)} - Modifica trabalho')
+            print(f'{"3".ljust(2)} - Remove trabalho')
+            print(f'{"4".ljust(2)} - Insere personagem')
+            print(f'{"5".ljust(2)} - Modifica personagem')
+            print(f'{"6".ljust(2)} - Remove personagem')
+            print(f'{"7".ljust(2)} - Insere trabalho produção')
+            print(f'{"8".ljust(2)} - Modifica trabalho produção')
+            print(f'{"9".ljust(2)} - Remove trabalho produção')
+            print(f'{"10".ljust(2)} - Modifica profissao')
+            print(f'{"11".ljust(2)} - Insere trabalho no estoque')
+            print(f'{"12".ljust(2)} - Modifica trabalho no estoque')
+            print(f'{"13".ljust(2)} - Remove trabalho no estoque')
+            print(f'{"14".ljust(2)} - Insere trabalho vendido')
+            print(f'{"15".ljust(2)} - Modifica trabalho vendido')
+            print(f'{"16".ljust(2)} - Remove trabalho vendido')
+            print(f'{"20".ljust(2)} - Pega todos trabalhos producao')
+            print(f'{"21".ljust(2)} - Sincroniza dados')
+            print(f'{"24".ljust(2)} - Teste de funções')
+            print(f'{"0".ljust(2)} - Sair')
             try:
                 opcaoMenu = input(f'Opção escolhida: ')
                 if int(opcaoMenu) == 0:
