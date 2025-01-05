@@ -396,11 +396,10 @@ class Aplicacao:
                 print(f'Produto vendido')
                 textoCarta = re.sub("Item vendido", "", textoCarta).strip()
                 trabalhoVendido = TrabalhoVendido()
-                trabalhoVendido.nomeProduto = textoCarta
+                trabalhoVendido.descricao = textoCarta
                 trabalhoVendido.dataVenda = str(datetime.date.today())
-                trabalhoVendido.nomePersonagem = self.__personagemEmUso.id
                 trabalhoVendido.setQuantidade(self.retornaQuantidadeTrabalhoVendido(textoCarta))
-                trabalhoVendido.trabalhoId = self.retornaChaveIdTrabalho(textoCarta)
+                trabalhoVendido.idTrabalho = self.retornaChaveIdTrabalho(textoCarta)
                 trabalhoVendido.setValor(self.retornaValorTrabalhoVendido(textoCarta))
                 self.insereTrabalhoVendido(trabalhoVendido)
                 return trabalhoVendido
