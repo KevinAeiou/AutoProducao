@@ -2174,6 +2174,7 @@ class Aplicacao:
                     if trabalhoProducao.idTrabalho is None or trabalhoProducao.tipo_licenca is None or trabalhoProducao.estado is None or trabalhoProducao.recorrencia is None:
                         continue
                     trabalhoProducaoEncontrado = self.pegaTrabalhoProducaoPorId(trabalhoProducao)
+                    self.__loggerTrabalhoProducaoDao.warning(f'({trabalhoProducao}) foi modificado/inserido no servidor...')
                     if variavelExiste(trabalhoProducaoEncontrado):
                         if trabalhoProducaoEncontrado.id == trabalhoProducao.id:
                             self.modificaTrabalhoProducao(trabalhoProducao, personagemModificado, False)
