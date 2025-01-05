@@ -26,8 +26,9 @@ class TrabalhoVendido(Trabalho):
             setattr(self, chave, dicionario[chave])
             
     def __str__(self) -> str:
-        nome = 'Indefinido' if self.nome == None else self.nome
+        id = 'Indefinido' if self.id == None else self.id
+        idTrabalho = 'Indefinido' if self.trabalhoId == None else self.trabalhoId
         data = 'Indefinido' if self.dataVenda == None else self.dataVenda
         valor = 'Indefinido' if self.valorProduto == None else str(self.valorProduto)
         quantidade = '0' if self.quantidadeProduto == None else str(self.quantidadeProduto)
-        return f'{nome.ljust(44)} | {data.ljust(10)} | {valor.ljust(5)} | {quantidade}'
+        return f'{id.ljust(36)} | {idTrabalho.ljust(36)} | {data.ljust(10)} | {valor.ljust(5)} | {quantidade.ljust(3)}'
