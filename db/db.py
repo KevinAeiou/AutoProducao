@@ -1,4 +1,5 @@
 import sqlite3
+from constantes import *
 
 class MeuBanco:
     def __init__(self):
@@ -20,10 +21,12 @@ class MeuBanco:
     def desconecta(self):
         try:
             self.conexao.close()
-        except AttributeError:
-            pass
+            return True
+        except Exception as e:
+            self.__erroConexao = str(e)
+        return False
 
-    def pegaErros(self):
+    def pegaErro(self):
         return self.__erroConexao
     
     def pegaFabrica(self):
@@ -65,15 +68,15 @@ class MeuBanco:
                 prioridade TINYINT NOT NULL);
                 """)
 
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS vendas(
-                id VARCHAR(30) PRIMARY KEY NOT NULL, 
-                nomeProduto TEXT NOT NULL, 
-                dataVenda VARCHAR(12) NOT NULL, 
-                nomePersonagem VARCHAR(30) NOT NULL, 
-                quantidadeProduto INTEGER NOT NULL, 
-                trabalhoId VARCHAR(30) NOT NULL, 
-                valorProduto INTEGER NOT NULL);
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {CHAVE_LISTA_VENDAS}(
+                {CHAVE_ID} VARCHAR(30) PRIMARY KEY NOT NULL, 
+                {CHAVE_DESCRICAO} TEXT NOT NULL, 
+                {CHAVE_DATA_VENDA} VARCHAR(12) NOT NULL, 
+                {CHAVE_ID_PERSONAGEM} VARCHAR(30) NOT NULL, 
+                {CHAVE_QUANTIDADE} INTEGER NOT NULL, 
+                {CHAVE_ID_TRABALHO} VARCHAR(30) NOT NULL, 
+                {CHAVE_VALOR} INTEGER NOT NULL);
                 """)
 
             cursor.execute("""
@@ -93,12 +96,14 @@ class MeuBanco:
                 idTrabalho VARCHAR(30) NOT NULL, 
                 quantidade INTEGER NOT NULL);
                 """)
-        except AttributeError:
-            print(f'Faça a conexão do banco antes de criar as tabelas.')
+        except Exception as e:
+            self.__erroConexao = str(e)
 
-    def excluiTabelaVendas(self):
+    def removeTabela(self, tabela: str) -> bool:
         try:
             cursor = self.conexao.cursor()
-            cursor.execute("""DROP TABLE vendas""")
-        except AttributeError:
-            print(f'Faça a conexão do banco antes de alternar o uso.')
+            cursor.execute(f"""DROP TABLE {tabela}""")
+            return True
+        except Exception as e:
+            self.__erroConexao = str(e)
+        return False
