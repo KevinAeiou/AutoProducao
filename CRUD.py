@@ -1,7 +1,7 @@
 import logging
 from uuid import uuid4
 from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero, textoEhIgual
-from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO, CHAVE_PROFISSAO_BRACELETES, CHAVE_PROFISSAO, CHAVE_TRABALHO_PRODUCAO_ENCONTRADO, CHAVE_POSICAO
+from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO
 
 from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 
@@ -616,7 +616,7 @@ class CRUD:
     
     def mostraListaVendas(self):
         limpaTela()
-        print(f'{"ÍNDICE".ljust(6)} - {"ID".ljust(36)} | {"ID TRABALHO".ljust(36)} | {"DATA".ljust(10)} | {"VALOR".ljust(5)} | UND')
+        print(f'{"ÍNDICE".ljust(6)} - {"ID".ljust(36)} | {"NOME".ljust(36)} | {"DATA".ljust(10)} | {"VALOR".ljust(5)} | UND')
         vendas = self.__aplicacao.pegaTrabalhosVendidos()
         if tamanhoIgualZero(vendas):
             print('Lista de vendas está vazia!')
@@ -688,13 +688,13 @@ class CRUD:
         data = input(f'Data da venda: ')
         quantidade = input(f'Quantidade trabalho vendido: ')
         valor = input(f'Valor do trabalho vendido: ')
-        trabalho.nomeProduto = descricao
+        trabalho.descricao = descricao
         trabalho.dataVenda = data
         trabalho.setQuantidade(quantidade)
         trabalho.setValor(valor)
         return trabalho
 
-    def defineVendaEscolhida(self, vendas) -> TrabalhoVendido:
+    def defineVendaEscolhida(self, vendas: list[TrabalhoVendido]) -> TrabalhoVendido:
         opcaoTrabalho = input(f'Opção trabalho: ')    
         if int(opcaoTrabalho) == 0:
             return None
@@ -735,25 +735,17 @@ class CRUD:
                 continue
             break
 
-    def defineTrabalhoVendidoModificado(self, trabalhoVendidoModificado):
+    def defineTrabalhoVendidoModificado(self, trabalho: TrabalhoVendido):
         limpaTela()
         descricao = input(f'Descrição do trabalho: ')
-        if tamanhoIgualZero(descricao):
-            descricao = trabalhoVendidoModificado.nomeProduto
         data = input(f'Data da venda: ')
-        if tamanhoIgualZero(data):
-            data = trabalhoVendidoModificado.dataVenda
         quantidade = input(f'Quantidade vendida: ')
-        if tamanhoIgualZero(quantidade):
-            quantidade = trabalhoVendidoModificado.quantidadeProduto
         valor = input(f'Valor da venda: ')
-        if tamanhoIgualZero(valor):
-            valor = trabalhoVendidoModificado.valorProduto
-        trabalhoVendidoModificado.nomeProduto = descricao
-        trabalhoVendidoModificado.dataVenda = data
-        trabalhoVendidoModificado.setQuantidade(quantidade)
-        trabalhoVendidoModificado.setValor(valor)
-        return trabalhoVendidoModificado
+        trabalho.descricao = trabalho.descricao if tamanhoIgualZero(descricao) else descricao
+        trabalho.dataVenda = trabalho.dataVenda if tamanhoIgualZero(data) else data
+        trabalho.quantidade = trabalho.quantidade if tamanhoIgualZero(quantidade) else quantidade
+        trabalho.valor = trabalho.valor if tamanhoIgualZero(valor) else valor
+        return trabalho
 
     def defineTrabalhoProducaoSelecionado(self, trabalhos):
         trabalhoProducao = TrabalhoProducao()
@@ -775,7 +767,7 @@ class CRUD:
         if int(opcaoTrabalho) == 0:
             return None
         trabalho = trabalhos[int(opcaoTrabalho) - 1]
-        trabalhoVendido.trabalhoId = trabalho.id
+        trabalhoVendido.idTrabalho = trabalho.id
         return trabalhoVendido
 
     def sincronizaDados(self):
@@ -839,19 +831,34 @@ class CRUD:
                 self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
             continue
         input('Clique para continuar...')
+
+    def atualizaListaTrababalhosVendidos(self):
+        from repositorio.repositorioVendas import RepositorioVendas
+        meuBanco = MeuBanco()
+        meuBanco.pegaConexao(1)
+        if not meuBanco.removeTabela('Lista_vendas'):
+            print(f'Erro: {meuBanco.pegaErro()}')
+        personagens = self.__aplicacao.pegaPersonagens()
+        for personagem in personagens:
+            self.__aplicacao.personagemEmUso(personagem)
+            repositorioTrabalhoVendido = RepositorioVendas(personagem)
+            trabalhosVendidos = repositorioTrabalhoVendido.pegaTrabalhosVendidos()
+            if trabalhosVendidos is None:
+                logging.error(f'Erro ao buscar trabalhos vendidos no servidor: {repositorioTrabalhoVendido.pegaErro()}')
+                return
+            for trabalho in trabalhosVendidos:
+                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido.id = trabalho.id
+                trabalhoVendido.idTrabalho = trabalho.trabalhoId if trabalho.trabalhoId is not None else trabalho.idTrabalho if trabalho.idTrabalho is not None else ''
+                trabalhoVendido.descricao = trabalho.nomeProduto if trabalho.nomeProduto is not None else trabalho.descricao if trabalho.descricao is not None else ''
+                trabalhoVendido.dataVenda = trabalho.dataVenda
+                trabalhoVendido.valor = trabalho.valorProduto if trabalho.valorProduto is not None else trabalho.valor if trabalho.valor is not None else 0
+                trabalhoVendido.quantidade = trabalho.quantidadeProduto if trabalho.quantidadeProduto is not None else trabalho.quantidade if trabalho.quantidade is not None else 0
+                self.__aplicacao.insereTrabalhoVendido(trabalhoVendido)
+                pass
         
     def testeFuncao(self):
-        from teclado import clickAtalhoEspecifico
-        personagens = self.mostraListaPersonagens()
-        if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-            # clickAtalhoEspecifico('alt','tab')
-            self.__aplicacao.inicializaChavesPersonagem()
-            self.__aplicacao.veficaTrabalhosProducaoListaDesejos({CHAVE_TRABALHO_PRODUCAO_ENCONTRADO: None, CHAVE_POSICAO: -1, CHAVE_PROFISSAO: CHAVE_PROFISSAO_BRACELETES})
-        # estoqueDao = EstoqueDaoSqlite()
-        # if estoqueDao.removeColunasTabelaEstoque():
-        #     self.__loggerEstoqueDao.info(f'Coluna da tabela removida')
-        # else:
-        #     self.__loggerEstoqueDao.error(f'Erro ao remover coluna da tabela: {estoqueDao.pegaErro()}')
+        self.atualizaListaTrababalhosVendidos()
         
     def menu(self):
         while True:

@@ -1,7 +1,7 @@
 from repositorio.firebaseDatabase import FirebaseDatabase
 from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
-from modelos.trabalhoVendido import TrabalhoVendido
-from constantes import *
+from modelos.trabalhoVendido import TrabalhoVendidoVelho, TrabalhoVendido
+from constantes import CHAVE_USUARIOS, CHAVE_LISTA_PERSONAGEM, CHAVE_LISTA_VENDAS
 
 class RepositorioVendas:
     __meuBanco = None
@@ -10,14 +10,14 @@ class RepositorioVendas:
         self.__personagem = personagem
         self.__meuBanco = FirebaseDatabase().pegaDataBase()
 
-    def pegaTodasVendas(self):
+    def pegaTrabalhosVendidos(self) -> list[TrabalhoVendidoVelho] | None:
         listaVendas = []
         try:
             todasVendas = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).get()
             if todasVendas.pyres == None:
                 return listaVendas
             for vendaEncontrada in todasVendas.each():
-                trabalhoVendido = TrabalhoVendido()
+                trabalhoVendido = TrabalhoVendidoVelho()
                 trabalhoVendido.dicionarioParaObjeto(vendaEncontrada.val())
                 trabalhoVendido.id = vendaEncontrada.key()
                 listaVendas.append(trabalhoVendido)
@@ -26,25 +26,25 @@ class RepositorioVendas:
             self.__erro = str(e)
         return None
     
-    def insereTrabalhoVendido(self, trabalhoVendido):
+    def insereTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(trabalhoVendido.id).set(trabalhoVendido.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(trabalho.id).set(trabalho.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
         return False
 
-    def modificaVenda(self, trabalhoVendido):
+    def modificaTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(trabalhoVendido.id).update(trabalhoVendido.__dict__)
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(trabalho.id).update(trabalho.__dict__)
             return True
         except Exception as e:
             self.__erro = str(e)
         return False
         
-    def removeVenda(self, venda):
+    def removeTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(venda.id).remove()
+            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_VENDAS).child(trabalho.id).remove()
             return True
         except Exception as e:
             self.__erro = str(e)
