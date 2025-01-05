@@ -2204,6 +2204,8 @@ class Aplicacao:
                     profissao = Profissao()
                     profissao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_PROFISSAO])
                     profissaoEncontrada = self.pegaProfissaoPorId(profissao.id)
+                    if profissaoEncontrada is None:
+                        continue
                     if profissaoEncontrada.id == profissao.id:
                         self.modificaProfissao(profissao, personagemModificado, False)
                         continue
@@ -2308,6 +2310,8 @@ class Aplicacao:
                     print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
                     print(f'Profissões: {(profissoesServidor.index(profissaoServidor)+1)/len(profissoesServidor):.2%}')
                     profissaoEncontrada = self.pegaProfissaoPorId(profissaoServidor.id)
+                    if profissaoEncontrada is None:
+                        continue
                     if profissaoEncontrada.id == profissaoServidor.id:
                         if self.modificaProfissao(profissaoServidor, personagem, False):
                             self.__loggerProfissaoDao.info(f'({profissaoServidor}) sincronizado com sucesso!')
