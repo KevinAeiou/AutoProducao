@@ -31,9 +31,9 @@ class ProfissaoDaoSqlite:
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [id])
+            profissao = Profissao()
             for linha in cursor.fetchall():
                 prioridade = True if linha[4] == 1 else False
-                profissao = Profissao()
                 profissao.id = linha[0]
                 profissao.idPersonagem = linha[1]
                 profissao.nome = linha[2]
