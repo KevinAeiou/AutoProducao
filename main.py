@@ -1761,6 +1761,7 @@ class Aplicacao:
                             if not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
                                 clickEspecifico(1,'f1')
                                 clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
+                                dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
                             continue
                         dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
                     dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
