@@ -388,21 +388,21 @@ class Aplicacao:
             return []
         return vendas
 
-    def retornaConteudoCorrespondencia(self):
+    def retornaConteudoCorrespondencia(self) -> TrabalhoVendido | None:
         textoCarta = self._imagem.retornaTextoCorrespondenciaReconhecido()
         if variavelExiste(textoCarta):
             trabalhoFoiVendido = texto1PertenceTexto2('Item vendido', textoCarta)
             if trabalhoFoiVendido:
                 print(f'Produto vendido')
                 textoCarta = re.sub("Item vendido", "", textoCarta).strip()
-                trabalhoVendido = TrabalhoVendido()
-                trabalhoVendido.descricao = textoCarta
-                trabalhoVendido.dataVenda = str(datetime.date.today())
-                trabalhoVendido.setQuantidade(self.retornaQuantidadeTrabalhoVendido(textoCarta))
-                trabalhoVendido.idTrabalho = self.retornaChaveIdTrabalho(textoCarta)
-                trabalhoVendido.setValor(self.retornaValorTrabalhoVendido(textoCarta))
-                self.insereTrabalhoVendido(trabalhoVendido)
-                return trabalhoVendido
+                trabalho = TrabalhoVendido()
+                trabalho.descricao = textoCarta
+                trabalho.dataVenda = str(datetime.date.today())
+                trabalho.setQuantidade(self.retornaQuantidadeTrabalhoVendido(textoCarta))
+                trabalho.idTrabalho = self.retornaChaveIdTrabalho(textoCarta)
+                trabalho.setValor(self.retornaValorTrabalhoVendido(textoCarta))
+                self.insereTrabalhoVendido(trabalho)
+                return trabalho
         return None
 
     def retornaChaveIdTrabalho(self, textoCarta):
@@ -421,23 +421,23 @@ class Aplicacao:
             return []
         return trabalhosEstoque
 
-    def atualizaQuantidadeTrabalhoEstoque(self, venda):
+    def atualizaQuantidadeTrabalhoEstoque(self, trabalho: TrabalhoVendido):
         estoque = self.pegaTrabalhosEstoque()
         for trabalhoEstoque in estoque:
-            if textoEhIgual(trabalhoEstoque.trabalhoId, venda.trabalhoId):
-                novaQuantidade = 0 if trabalhoEstoque.quantidade - venda.quantidadeProduto < 0 else trabalhoEstoque.quantidade - venda.quantidadeProduto
+            if textoEhIgual(trabalhoEstoque.trabalhoId, trabalho.idTrabalho):
+                novaQuantidade = 0 if trabalhoEstoque.quantidade - trabalho.quantidade < 0 else trabalhoEstoque.quantidade - trabalho.quantidade
                 trabalhoEstoque.quantidade = novaQuantidade
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__loggerEstoqueDao.debug(f'Quantidade de ({trabalhoEstoque}) atualizada para {novaQuantidade}.')
                 return
-        self.__loggerEstoqueDao.warning(f'({venda}) não encontrado no estoque.')
+        self.__loggerEstoqueDao.warning(f'({trabalho}) não encontrado no estoque.')
 
     def recuperaCorrespondencia(self, ):
         while self._imagem.existeCorrespondencia():
             clickEspecifico(1, 'enter')
-            venda = self.retornaConteudoCorrespondencia()
-            if variavelExiste(venda):
-                self.atualizaQuantidadeTrabalhoEstoque(venda)
+            trabalhoVendido = self.retornaConteudoCorrespondencia()
+            if variavelExiste(trabalhoVendido):
+                self.atualizaQuantidadeTrabalhoEstoque(trabalhoVendido)
             clickEspecifico(1,'f2')
             continue
         print(f'Caixa de correio vazia!')
@@ -2173,7 +2173,7 @@ class Aplicacao:
                     trabalhoProducao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
                     if trabalhoProducao.idTrabalho is None or trabalhoProducao.tipo_licenca is None or trabalhoProducao.estado is None or trabalhoProducao.recorrencia is None:
                         continue
-                    trabalhoProducaoEncontrado = self.pegaTrabalhoProducaoPorId(trabalhoProducao)
+                    trabalhoProducaoEncontrado = self.pegaTrabalhoProducaoPorId(trabalhoProducao.id)
                     self.__loggerTrabalhoProducaoDao.warning(f'({trabalhoProducao}) foi modificado/inserido no servidor...')
                     if variavelExiste(trabalhoProducaoEncontrado):
                         if trabalhoProducaoEncontrado.id == trabalhoProducao.id:
@@ -2349,7 +2349,7 @@ class Aplicacao:
                     print(f'Sincronizando trabalhos para produção...')
                     print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
                     print(f'Trabalhos: {(trabalhosProducaoServidor.index(trabalhoProducaoServidor)+1)/len(trabalhosProducaoServidor):.2%}')
-                    trabalhoProducaoEncontradoBanco = self.pegaTrabalhoProducaoPorId(trabalhoProducaoServidor)
+                    trabalhoProducaoEncontradoBanco = self.pegaTrabalhoProducaoPorId(trabalhoProducaoServidor.id)
                     if variavelExiste(trabalhoProducaoEncontradoBanco):
                         if trabalhoProducaoEncontradoBanco.id == trabalhoProducaoServidor.id:
                             self.modificaTrabalhoProducao(trabalhoProducaoServidor, personagem, False)
