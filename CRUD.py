@@ -162,7 +162,7 @@ class CRUD:
             while True:
                 limpaTela()
                 trabalhos = self.__aplicacao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
-                print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'RARIDADE'.ljust(9)} | {"NÍVEL".ljust(5)} | TRABALHOS NECESSÁRIOS")
+                print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'RARIDADE'.ljust(9)} | {'NÍVEL'.ljust(5)} | TRABALHOS NECESSÁRIOS")
                 if tamanhoIgualZero(trabalhos):
                     print('Lista de trabalhos está vazia!')
                 else:
