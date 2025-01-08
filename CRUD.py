@@ -100,7 +100,7 @@ class CRUD:
                 if tamanhoIgualZero(trabalhos):
                     print('Lista de trabalhos está vazia!')
                 else:
-                    print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'RARIDADE'.ljust(9)} | {"NÍVEL".ljust(5)} | TRABALHOS NECESSÁRIOS")
+                    print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'RARIDADE'.ljust(9)} | {'NÍVEL'.ljust(5)} | TRABALHOS NECESSÁRIOS")
                     for trabalho in trabalhos:
                         print(f'{str(trabalhos.index(trabalho) + 1).ljust(6)} - {trabalho} | {trabalho.trabalhoNecessario}')
                 print(f'{"0".ljust(6)} - Voltar')
