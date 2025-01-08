@@ -1,5 +1,7 @@
 from main import Aplicacao
 from modelos.trabalhoProducao import TrabalhoProducao
+from modelos.personagem import Personagem
+from constantes import CHAVE_LICENCA_INICIANTE
 
 class TesteAplicacao:
     __aplicacao = Aplicacao()
@@ -48,3 +50,25 @@ class TesteAplicacao:
         nomeRecebido = cloneTrabalhoTeste.nome
         assert idEsperado != idRecebido
         assert nomeEsperado == nomeRecebido
+
+    def testDeveRetornarVerdadeiroQuandoFuncaoExperienciaProfissaoEhModificadaComSucesso(self):
+        personagemTeste = Personagem()
+        personagemTeste.id = '0a490f60-b231-4e50-9f52-ed91ba5bda07'
+        self.__aplicacao.personagemEmUso(personagemTeste)
+        trabalhoTeste = TrabalhoProducao()
+        trabalhoTeste.idTrabalho = '-NdR3aKtc466bwo5L5_-'
+        trabalhoTeste.tipo_licenca = CHAVE_LICENCA_INICIANTE
+        esperado = True
+        recebido = self.__aplicacao.modificaExperienciaProfissao(trabalhoTeste)
+        assert esperado == recebido
+
+    def testDeveRetornarFalsoQuandoIdTrabalhoEhInvalido(self):
+        personagemTeste = Personagem()
+        personagemTeste.id = '0a490f60-b231-4e50-9f52-ed91ba5bda07'
+        self.__aplicacao.personagemEmUso(personagemTeste)
+        trabalhoTeste = TrabalhoProducao()
+        trabalhoTeste.idTrabalho = ''
+        trabalhoTeste.tipo_licenca = ''
+        esperado = False
+        recebido = self.__aplicacao.modificaExperienciaProfissao(trabalhoTeste)
+        assert esperado == recebido
