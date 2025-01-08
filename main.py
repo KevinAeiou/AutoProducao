@@ -569,15 +569,20 @@ class Aplicacao:
         self.__loggerProfissaoDao.error(f'Erro ao modificar ({profissao}) no banco: {profissaoDao.pegaErro()}')
         return False
 
-    def modificaExperienciaProfissao(self, trabalhoProducao):
-        profissoes = self.pegaProfissoes()
+    def modificaExperienciaProfissao(self, trabalho: TrabalhoProducao) -> bool:
+        profissoes: list[Profissao] = self.pegaProfissoes()
+        trabalhoEncontado: Trabalho = self.pegaTrabalhoPorId(trabalho.idTrabalho)
+        if trabalhoEncontado is None:
+            return False
+        trabalhoEncontado.experiencia = trabalhoEncontado.experiencia * 1.5 if textoEhIgual(trabalho.tipo_licenca, CHAVE_LICENCA_INICIANTE) else trabalhoEncontado.experiencia
         for profissao in profissoes:
-            if textoEhIgual(profissao.nome, trabalhoProducao.profissao):
-                experiencia = profissao.experiencia + trabalhoProducao.experiencia
+            if textoEhIgual(profissao.nome, trabalhoEncontado.profissao):
+                experiencia = profissao.experiencia + trabalhoEncontado.experiencia
                 profissao.setExperiencia(experiencia)
                 if self.modificaProfissao(profissao):
                     print(f'Experiência de {profissao.nome} atualizada para {experiencia} com sucesso!')
-                return
+                return True
+        return False
 
     def retornaListaTrabalhoProduzido(self, trabalhoProducaoConcluido):
         '''
