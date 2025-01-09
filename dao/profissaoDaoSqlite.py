@@ -2,10 +2,9 @@ __author__ = 'Kevin Amazonas'
 
 from modelos.profissao import Profissao
 from db.db import MeuBanco
-from uuid import uuid4
 import logging
 from repositorio.repositorioProfissao import RepositorioProfissao
-from constantes import CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES
+from constantes import CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_PROFISSAO_ARMA_CORPO_A_CORPO, CHAVE_PROFISSAO_ARMADURA_DE_TECIDO, CHAVE_PROFISSAO_ARMADURA_LEVE, CHAVE_PROFISSAO_ARMADURA_PESADA, CHAVE_PROFISSAO_ANEIS, CHAVE_PROFISSAO_AMULETOS, CHAVE_PROFISSAO_CAPOTES, CHAVE_PROFISSAO_BRACELETES, CHAVE_ID
 
 class ProfissaoDaoSqlite:
     logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
@@ -22,23 +21,22 @@ class ProfissaoDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaProfissaoPorId(self, id : str) -> Profissao:
+    def pegaProfissaoPorId(self, id : str) -> Profissao | None:
         sql = f"""
             SELECT * 
             FROM profissoes
-            WHERE id == ?;
+            WHERE {CHAVE_ID} == ?;
             """
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [id])
             profissao = Profissao()
             for linha in cursor.fetchall():
-                prioridade = True if linha[4] == 1 else False
                 profissao.id = linha[0]
                 profissao.idPersonagem = linha[1]
                 profissao.nome = linha[2]
                 profissao.experiencia = linha[3]
-                profissao.prioridade = prioridade
+                profissao.prioridade = True if linha[4] == 1 else False
             self.__meuBanco.desconecta()
             return profissao
         except Exception as e:
