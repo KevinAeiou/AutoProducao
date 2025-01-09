@@ -404,6 +404,37 @@ class CRUD:
                 trabalhoRemovido = trabalhosProducao[int(opcaoTrabalho) - 1]
                 self.__aplicacao.removeTrabalhoProducao(trabalhoRemovido)
 
+    def removeProfissao(self):
+        while True:
+            limpaTela()
+            personagens = self.__aplicacao.pegaPersonagens()
+            if tamanhoIgualZero(personagens):
+                print(f'Lista de personagens está vazia!')
+            else:
+                print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
+                for personagem in personagens:
+                    print(f'{str(personagens.index(personagem) + 1).ljust(6)} - {personagem}')
+            print(f'{"0".ljust(6)} - Voltar')
+            opcaoPersonagem = input(f'Opção:')
+            if int(opcaoPersonagem) == 0:
+                break
+            while True:
+                limpaTela()
+                self.__aplicacao.personagemEmUso(personagens[int(opcaoPersonagem) - 1])
+                profissoes = self.__aplicacao.pegaProfissoes()
+                if tamanhoIgualZero(profissoes):
+                    self.__aplicacao.insereListaProfissoes()
+                    continue
+                print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'ID PERSONAGEM'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE")
+                for profissao in profissoes:
+                    print(f'{str(profissoes.index(profissao) + 1).ljust(6)} - {profissao}')
+                print(f'{"0".ljust(6)} - Voltar')
+                opcaoProfissao = input(f'Opção: ')
+                if int(opcaoProfissao) == 0:
+                    break
+                profissaoRemovida = profissoes[int(opcaoProfissao)-1]
+                self.__aplicacao.removeProfissao(profissaoRemovida)
+
     def modificaProfissao(self):
         while True:
             limpaTela()
@@ -876,12 +907,13 @@ class CRUD:
             print(f'{"8".ljust(2)} - Modifica trabalho produção')
             print(f'{"9".ljust(2)} - Remove trabalho produção')
             print(f'{"10".ljust(2)} - Modifica profissao')
-            print(f'{"11".ljust(2)} - Insere trabalho no estoque')
-            print(f'{"12".ljust(2)} - Modifica trabalho no estoque')
-            print(f'{"13".ljust(2)} - Remove trabalho no estoque')
-            print(f'{"14".ljust(2)} - Insere trabalho vendido')
-            print(f'{"15".ljust(2)} - Modifica trabalho vendido')
-            print(f'{"16".ljust(2)} - Remove trabalho vendido')
+            print(f'{"11".ljust(2)} - Remove profissao')
+            print(f'{"12".ljust(2)} - Insere trabalho no estoque')
+            print(f'{"13".ljust(2)} - Modifica trabalho no estoque')
+            print(f'{"14".ljust(2)} - Remove trabalho no estoque')
+            print(f'{"15".ljust(2)} - Insere trabalho vendido')
+            print(f'{"16".ljust(2)} - Modifica trabalho vendido')
+            print(f'{"17".ljust(2)} - Remove trabalho vendido')
             print(f'{"20".ljust(2)} - Pega todos trabalhos producao')
             print(f'{"21".ljust(2)} - Sincroniza dados')
             print(f'{"24".ljust(2)} - Teste de funções')
@@ -921,21 +953,24 @@ class CRUD:
                     self.modificaProfissao()
                     continue
                 if int(opcaoMenu) == 11:
-                    self.insereTrabalhoEstoque()
+                    self.removeProfissao()
                     continue
                 if int(opcaoMenu) == 12:
-                    self.modificaTrabalhoEstoque()
+                    self.insereTrabalhoEstoque()
                     continue
                 if int(opcaoMenu) == 13:
-                    self.removeTrabalhoEstoque()
+                    self.modificaTrabalhoEstoque()
                     continue
                 if int(opcaoMenu) == 14:
-                    self.insereTrabalhoVendido()
+                    self.removeTrabalhoEstoque()
                     continue
                 if int(opcaoMenu) == 15:
-                    self.modificaTrabalhoVendido()
+                    self.insereTrabalhoVendido()
                     continue
                 if int(opcaoMenu) == 16:
+                    self.modificaTrabalhoVendido()
+                    continue
+                if int(opcaoMenu) == 17:
                     self.removeTrabalhoVendido()
                     continue
                 if int(opcaoMenu) == 20:
