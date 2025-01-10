@@ -2168,7 +2168,7 @@ class Aplicacao:
             dicionarios = self.__repositorioPersonagem.pegaDadosModificados()
             for dicionario in dicionarios:
                 personagemModificado = Personagem()
-                personagemModificado.id = dicionario[CHAVE_ID]
+                personagemModificado.id = dicionario[CHAVE_ID_PERSONAGEM]
                 if CHAVE_LISTA_TRABALHOS_PRODUCAO in dicionario:
                     trabalhoProducao = TrabalhoProducao()
                     trabalhoProducao.id = dicionario[CHAVE_ID_TRABALHO]
