@@ -862,34 +862,9 @@ class CRUD:
                 self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
             continue
         input('Clique para continuar...')
-
-    def atualizaListaTrababalhosVendidos(self):
-        from repositorio.repositorioVendas import RepositorioVendas
-        meuBanco = MeuBanco()
-        meuBanco.pegaConexao(1)
-        if not meuBanco.removeTabela('Lista_vendas'):
-            print(f'Erro: {meuBanco.pegaErro()}')
-        personagens = self.__aplicacao.pegaPersonagens()
-        for personagem in personagens:
-            self.__aplicacao.personagemEmUso(personagem)
-            repositorioTrabalhoVendido = RepositorioVendas(personagem)
-            trabalhosVendidos = repositorioTrabalhoVendido.pegaTrabalhosVendidos()
-            if trabalhosVendidos is None:
-                logging.error(f'Erro ao buscar trabalhos vendidos no servidor: {repositorioTrabalhoVendido.pegaErro()}')
-                return
-            for trabalho in trabalhosVendidos:
-                trabalhoVendido = TrabalhoVendido()
-                trabalhoVendido.id = trabalho.id
-                trabalhoVendido.idTrabalho = trabalho.trabalhoId if trabalho.trabalhoId is not None else trabalho.idTrabalho if trabalho.idTrabalho is not None else ''
-                trabalhoVendido.descricao = trabalho.nomeProduto if trabalho.nomeProduto is not None else trabalho.descricao if trabalho.descricao is not None else ''
-                trabalhoVendido.dataVenda = trabalho.dataVenda
-                trabalhoVendido.valor = trabalho.valorProduto if trabalho.valorProduto is not None else trabalho.valor if trabalho.valor is not None else 0
-                trabalhoVendido.quantidade = trabalho.quantidadeProduto if trabalho.quantidadeProduto is not None else trabalho.quantidade if trabalho.quantidade is not None else 0
-                self.__aplicacao.insereTrabalhoVendido(trabalhoVendido)
-                pass
         
     def testeFuncao(self):
-        self.atualizaListaTrababalhosVendidos()
+        self.__aplicacao.abreStreamPersonagens()
         
     def menu(self):
         while True:
