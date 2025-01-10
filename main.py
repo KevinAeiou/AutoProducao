@@ -2168,52 +2168,51 @@ class Aplicacao:
             dicionarios = self.__repositorioPersonagem.pegaDadosModificados()
             for dicionario in dicionarios:
                 personagemModificado = Personagem()
-                personagemModificado.id = dicionario['id']
+                personagemModificado.id = dicionario[CHAVE_ID]
                 if CHAVE_LISTA_TRABALHOS_PRODUCAO in dicionario:
                     trabalhoProducao = TrabalhoProducao()
+                    trabalhoProducao.id = dicionario[CHAVE_ID_TRABALHO]
                     if dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO] == None:
-                        trabalhoProducao.id = dicionario['idTrabalhoProducao']
                         self.removeTrabalhoProducao(trabalhoProducao, personagemModificado, False)
                         continue
-                    trabalhoProducao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
-                    if trabalhoProducao.idTrabalho is None or trabalhoProducao.tipo_licenca is None or trabalhoProducao.estado is None or trabalhoProducao.recorrencia is None:
-                        continue
                     trabalhoProducaoEncontrado = self.pegaTrabalhoProducaoPorId(trabalhoProducao.id)
-                    self.__loggerTrabalhoProducaoDao.warning(f'({trabalhoProducao}) foi modificado/inserido no servidor...')
                     if variavelExiste(trabalhoProducaoEncontrado):
                         if trabalhoProducaoEncontrado.id == trabalhoProducao.id:
-                            self.modificaTrabalhoProducao(trabalhoProducao, personagemModificado, False)
+                            trabalhoProducaoEncontrado.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
+                            self.modificaTrabalhoProducao(trabalhoProducaoEncontrado, personagemModificado, False)
                             continue
+                        trabalhoProducao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
                         self.insereTrabalhoProducao(trabalhoProducao, personagemModificado, False)
                     continue
                 if CHAVE_LISTA_ESTOQUE in dicionario:
                     trabalhoEstoque = TrabalhoEstoque()
+                    trabalhoEstoque.id = dicionario[CHAVE_ID_TRABALHO]
                     if dicionario[CHAVE_LISTA_ESTOQUE] == None:
-                        trabalhoEstoque.id = dicionario['idTrabalhoProducao']
                         trabalhoEstoqueEncontrado = self.pegaTrabalhoEstoquePorId(trabalhoEstoque.id)
                         if trabalhoEstoqueEncontrado.id == trabalhoEstoque.id:
                             self.removeTrabalhoEstoque(trabalhoEstoqueEncontrado, personagemModificado, False)
                             continue
                         self.__loggerEstoqueDao.warning(f'({trabalhoEstoque.id}) não foi encontrado no banco!')
                         continue
-                    trabalhoEstoque.dicionarioParaObjeto(dicionario[CHAVE_LISTA_ESTOQUE])
-                    trabalhoEstoqueEncontrado = self.pegaTrabalhoEstoquePorId(trabalhoEstoque.id)
+                    trabalhoEstoqueEncontrado: TrabalhoEstoque = self.pegaTrabalhoEstoquePorId(trabalhoEstoque.id)
+                    if trabalhoEstoqueEncontrado is None:
+                        continue
                     if trabalhoEstoqueEncontrado.id == trabalhoEstoque.id:
-                        trabalhoEstoqueEncontrado.setQuantidade(trabalhoEstoque.quantidade)
+                        trabalhoEstoqueEncontrado.dicionarioParaObjeto(dicionario[CHAVE_LISTA_ESTOQUE])
                         self.modificaTrabalhoEstoque(trabalhoEstoqueEncontrado, personagemModificado, False)
                         continue
+                    trabalhoEstoque.dicionarioParaObjeto(dicionario[CHAVE_LISTA_ESTOQUE])
                     self.insereTrabalhoEstoque(trabalhoEstoque, personagemModificado, False)
                     continue
                 if CHAVE_LISTA_PROFISSAO in dicionario:
                     profissao = Profissao()
-                    profissao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_PROFISSAO])
+                    profissao.id = dicionario[CHAVE_ID_TRABALHO]
                     profissaoEncontrada = self.pegaProfissaoPorId(profissao.id)
                     if profissaoEncontrada is None:
                         continue
                     if profissaoEncontrada.id == profissao.id:
-                        self.modificaProfissao(profissao, personagemModificado, False)
-                        continue
-                    self.insereProfissao(profissao, personagemModificado, False)
+                        profissaoEncontrada.dicionarioParaObjeto(dicionario[CHAVE_LISTA_PROFISSAO])
+                        self.modificaProfissao(profissaoEncontrada, personagemModificado, False)
                     continue
                 if dicionario['novoPersonagem'] is None:
                     personagemEncontrado = self.pegaPersonagemPorId(personagemModificado.id)
