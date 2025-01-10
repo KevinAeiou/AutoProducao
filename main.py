@@ -2223,10 +2223,9 @@ class Aplicacao:
                         continue
                     personagemEncontrado.dicionarioParaObjeto(dicionario)
                     self.modificaPersonagem(personagemEncontrado, False)
-                    continue
-                personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
-                self.inserePersonagem(personagemModificado, False)
-                continue
+                else:
+                    personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
+                    self.inserePersonagem(personagemModificado, False)
             self.__repositorioPersonagem.limpaLista()
         
     def sincronizaListaTrabalhos(self):
