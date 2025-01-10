@@ -61,7 +61,7 @@ class RepositorioPersonagem:
             idTrabalhoProducaoModificado = None
             if chavePersonagemModificado == CHAVE_LISTA_TRABALHOS_PRODUCAO or chavePersonagemModificado == CHAVE_LISTA_ESTOQUE or chavePersonagemModificado == CHAVE_LISTA_PROFISSAO or chavePersonagemModificado == CHAVE_LISTA_VENDAS:
                 idTrabalhoProducaoModificado = listaChaves[3]
-            dicionarioPersonagemModificado = {CHAVE_ID : idPersonagemModificado, CHAVE_ID_TRABALHO : idTrabalhoProducaoModificado,chavePersonagemModificado : message['data'], 'novoPersonagem' : novoPersonagem}
+            dicionarioPersonagemModificado = {CHAVE_ID_PERSONAGEM : idPersonagemModificado, CHAVE_ID_TRABALHO : idTrabalhoProducaoModificado,chavePersonagemModificado : message['data'], 'novoPersonagem' : novoPersonagem}
             self.__dadosModificados.append(dicionarioPersonagemModificado)
     
     def pegaTodosPersonagens(self):
