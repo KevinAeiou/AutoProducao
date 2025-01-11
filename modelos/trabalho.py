@@ -1,5 +1,5 @@
 from uuid import uuid4
-from constantes import CHAVE_RARIDADE_RARO
+from constantes import CHAVE_RARIDADE_RARO, CHAVE_RARIDADE_COMUM, CHAVE_RARIDADE_MELHORADO, CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE
 
 class Trabalho:
     def __init__(self):
@@ -40,8 +40,42 @@ class Trabalho:
         if nivelProfissao == 25 or nivelProfissao == 26:
             return 32
         return 1
+    
+    def pegaQuantidadeRecursosNecessarios(self) -> int:
+        '''
+            Função que retorna a quantidade de recursos terciários necessários para produção de trabalhos comuns
+            Input: int
+        '''
+        x = 0
+        if self.profissao == CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE:
+            x = 1
+        if self.nivel == 10 or self.nivel == 16:
+            return x + 2
+        if self.nivel == 12 or self.nivel == 18:
+            return x + 4
+        if self.nivel == 14 or self.nivel == 20:
+            return x + 6
+        if self.nivel == 22:
+            return x + 8
+        if self.nivel == 24:
+            return x + 10
+        if self.nivel == 26:
+            return x + 12
+        if self.nivel == 28:
+            return x + 14
+        if self.nivel == 30:
+            return x + 16
+        if self.nivel == 32:
+            return x + 18
+        return 0
 
-    def ehRaro(self):
+    def ehComum(self) -> bool:
+        return self.raridade == CHAVE_RARIDADE_COMUM
+    
+    def ehMelhorado(self) -> bool:
+        return self.raridade == CHAVE_RARIDADE_MELHORADO
+
+    def ehRaro(self) -> bool:
         return self.raridade == CHAVE_RARIDADE_RARO
     
     def dicionarioParaObjeto(self, dicionario):
