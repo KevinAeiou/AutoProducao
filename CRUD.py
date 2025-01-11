@@ -375,34 +375,16 @@ class CRUD:
     
     def removeTrabalhoProducao(self):
         while True:
-            limpaTela()
-            personagens = self.__aplicacao.pegaPersonagens()
-            if tamanhoIgualZero(personagens):
-                print('Lista de personagens está vazia!')
-            else:
-                print(f"{'ÍNDICE'.ljust(6)} | {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
-                for personagem in personagens:
-                    print(f'{str(personagens.index(personagem) + 1).ljust(6)} - {personagem}')
-            print(f'{"0".ljust(6)} - Voltar')
-            opcaoPersonagem = input(f'Opção: ')
-            if int(opcaoPersonagem) == 0:
-                break
-            self.__aplicacao.personagemEmUso(personagens[int(opcaoPersonagem) - 1])
-            while True: 
-                limpaTela()
-                trabalhosProducao = self.__aplicacao.pegaTrabalhosProducao()
-                if tamanhoIgualZero(trabalhosProducao):
-                    print('Lista de trabalhos em produção está vazia!')
-                else:
-                    print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(40)} | {'PROFISSÃO'.ljust(21)} | {'NÍVEL'.ljust(5)} | {'ESTADO'.ljust(10)} | LICENÇA")
-                    for trabalhoProducao in trabalhosProducao:
-                        print(f'{str(trabalhosProducao.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao}')
-                print(f'{"0".ljust(6)} - Voltar')
-                opcaoTrabalho = input(f'Opção trabalho: ')
-                if int(opcaoTrabalho) == 0:
-                    break
-                trabalhoRemovido = trabalhosProducao[int(opcaoTrabalho) - 1]
-                self.__aplicacao.removeTrabalhoProducao(trabalhoRemovido)
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
+                while True: 
+                    trabalhosProducao = self.mostraListaTrabalhosProducao()
+                    trabalhoRemovido = self.defineTrabalhoProducaoSelecionado(trabalhosProducao)
+                    if trabalhoRemovido is None:
+                        break
+                    self.__aplicacao.removeTrabalhoProducao(trabalhoRemovido)
+                continue
+            break
 
     def removeProfissao(self):
         while True:
@@ -778,14 +760,15 @@ class CRUD:
         trabalho.valor = trabalho.valor if tamanhoIgualZero(valor) else valor
         return trabalho
 
-    def defineTrabalhoProducaoSelecionado(self, trabalhos):
+    def defineTrabalhoProducaoSelecionado(self, trabalhos: list[TrabalhoProducao]) -> TrabalhoProducao | None:
         trabalhoProducao = TrabalhoProducao()
         print(f'{"0".ljust(6)} - Voltar')
         opcaoTrabalho = input(f'Opção trabalho: ')    
         if int(opcaoTrabalho) == 0:
             return None
-        trabalho = trabalhos[int(opcaoTrabalho) - 1]
-        trabalhoProducao.idTrabalho = trabalho.id
+        trabalho: TrabalhoProducao = trabalhos[int(opcaoTrabalho) - 1]
+        trabalhoProducao.id = trabalho.id
+        trabalhoProducao.idTrabalho = trabalho.idTrabalho
         trabalhoProducao.tipo_licenca = trabalho.tipo_licenca
         trabalhoProducao.recorrencia = trabalho.recorrencia
         trabalhoProducao.estado = trabalho.estado
@@ -811,7 +794,7 @@ class CRUD:
     def verificaTrabalhoRaroMaisVendido(self):
         vendas = self.__aplicacao.pegaTrabalhosRarosVendidos()
         for trabalhoVendido in vendas:
-            quantidadeTrabalhoRaroEmEstoque = self.__aplicacao.pegaQuantidadeTrabalho(trabalhoVendido.trabalhoId)
+            quantidadeTrabalhoRaroEmEstoque = self.__aplicacao.pegaQuantidadeTrabalhoEstoque(trabalhoVendido.trabalhoId)
             print(f'Quantidade de ({trabalhoVendido.nome}) no estoque: {quantidadeTrabalhoRaroEmEstoque}')
             # quantidadeTrabalhoRaroNecessario = CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE - quantidadeTrabalhoEmEstoque
             quantidadeTrabalhoRaroNecessario = 2 - quantidadeTrabalhoRaroEmEstoque
@@ -837,7 +820,7 @@ class CRUD:
                                 trabalhoMelhoradoBuscado.profissao = trabalhoVendido.profissao
                                 trabalhoMelhoradoEncontrado = self.__aplicacao.pegaTrabalhoPorNomeProfissaoRaridade(trabalhoMelhoradoBuscado)
                                 if variavelExiste(trabalhoMelhoradoEncontrado):
-                                    quantidadeTrabalhoMelhoradoEmEstoque = self.__aplicacao.pegaQuantidadeTrabalho(trabalhoMelhoradoEncontrado.id)
+                                    quantidadeTrabalhoMelhoradoEmEstoque = self.__aplicacao.pegaQuantidadeTrabalhoEstoque(trabalhoMelhoradoEncontrado.id)
                                     quantidadeTrabalhoMelhoradoNecessario = quantidadeTrabalhoRaroNecessario - quantidadeTrabalhoMelhoradoEmEstoque
                                     print(f'Quantidade de ({trabalhoMelhoradoEncontrado.nome}) no estoque: {quantidadeTrabalhoMelhoradoEmEstoque}')
                                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
@@ -864,7 +847,13 @@ class CRUD:
         input('Clique para continuar...')
         
     def testeFuncao(self):
-        self.__aplicacao.abreStreamPersonagens()
+        # self.__aplicacao.abreStreamPersonagens()
+        while True:
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
+                self.__aplicacao.defineTrabalhoComumProfissaoPriorizada()
+                continue
+            break
         
     def menu(self):
         while True:
