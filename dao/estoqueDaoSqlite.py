@@ -102,7 +102,7 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaQuantidadeTrabalho(self, idTrabalho):            
+    def pegaQuantidadeTrabalho(self, idTrabalho: str) -> int | None:            
         sql = """
             SELECT quantidade
             FROM Lista_estoque
