@@ -4,6 +4,7 @@ from modelos.trabalho import Trabalho
 from db.db import MeuBanco
 from repositorio.repositorioTrabalho import RepositorioTrabalho
 import logging
+from constantes import CHAVE_ID, CHAVE_PROFISSAO, CHAVE_NIVEL, CHAVE_TRABALHOS
 
 class TrabalhoDaoSqlite():
     logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
@@ -132,6 +133,25 @@ class TrabalhoDaoSqlite():
                     trabalho.trabalhoNecessario = linha[7]
                 self.__meuBanco.desconecta()
                 return trabalho            
+        except Exception as e:
+            self.__erro = str(e)
+        return None
+    
+    def retornaListaIdsRecursosNecessarios(self, trabalho: Trabalho) -> list[str] | None:
+        sql = f"""
+            SELECT {CHAVE_ID} 
+            FROM {CHAVE_TRABALHOS}
+            WHERE {CHAVE_PROFISSAO} == ?
+            AND {CHAVE_NIVEL} == ?;"""
+        try:
+            if self.__fabrica == 1:
+                idsTrabalhos = []
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, (trabalho.profissao, trabalho.nivel))
+                for linha in cursor.fetchall():
+                    idsTrabalhos.append(linha[0])
+                self.__meuBanco.desconecta()
+                return idsTrabalhos            
         except Exception as e:
             self.__erro = str(e)
         return None
