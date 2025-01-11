@@ -4,6 +4,7 @@ from modelos.trabalhoProducao import TrabalhoProducao
 from db.db import MeuBanco
 import logging
 from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
+from constantes import *
 
 class TrabalhoProducaoDaoSqlite:
     logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
@@ -115,6 +116,34 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.recorrencia = recorrencia
                 trabalhoProducao.tipo_licenca = linha[10]
                 trabalhoProducao.estado = linha[11]
+                trabalhosProducao.append(trabalhoProducao)
+            self.__meuBanco.desconecta()
+            return trabalhosProducao
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
+    def pegaTrabalhosParaProduzirPorProfissaoRaridade(self, trabalho: TrabalhoProducao) -> list[TrabalhoProducao]:
+        trabalhosProducao = []
+        sql = f"""
+            SELECT {CHAVE_LISTA_TRABALHOS_PRODUCAO}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_NIVEL}, {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO}
+            FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO}
+            INNER JOIN {CHAVE_TRABALHOS}
+            ON {CHAVE_LISTA_TRABALHOS_PRODUCAO}.{CHAVE_ID_TRABALHO} == {CHAVE_TRABALHOS}.{CHAVE_ID}
+            WHERE {CHAVE_ID_PERSONAGEM} == ? 
+            AND {CHAVE_ESTADO} == {CODIGO_PARA_PRODUZIR}
+            AND {CHAVE_TRABALHOS}.{CHAVE_RARIDADE} == ?
+            AND {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO} == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (self.__personagem.id, trabalho.raridade, trabalho.profissao))
+            for linha in cursor.fetchall():
+                trabalhoProducao = TrabalhoProducao()
+                trabalhoProducao.id = linha[0]
+                trabalhoProducao.idTrabalho = linha[1]
+                trabalhoProducao.nivel = linha[2]
+                trabalhoProducao.profissao = linha[3]
                 trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
             return trabalhosProducao
