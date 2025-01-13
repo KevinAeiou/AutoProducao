@@ -1,5 +1,6 @@
 from unidecode import unidecode
 from constantes import *
+from modelos.trabalho import Trabalho
 import numpy as np
 import os
 
@@ -124,40 +125,10 @@ def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
 def haMaisQueUmPersonagemAtivo(listaPersonagemAtivo):
     return not len(listaPersonagemAtivo) == 1
 
-def trabalhoEhProducaoRecursos(trabalhoProducao):
-    if variavelExiste(trabalhoProducao):
-        listaProducaoRecurso = [
-            'melhorarlicençacomum',
-            'licençadeproduçãodoaprendiz',
-            'grandecoleçãoderecursoscomuns',
-            'grandecoleçãoderecursosavançados',
-            'coletaemmassaderecursosavançados',
-            'melhoriadaessênciacomum',
-            'melhoriadasubstânciacomum',
-            'melhoriadocatalizadorcomum',
-            'melhoriadaessênciacomposta',
-            'melhoriadasubtânciacomposta',
-            'melhoriadocatalizadoramplificado',
-            'criaresferadoaprendiz','produzindoavarinhademadeira','produzindocabeçadocajadodejade',
-            'produzindocabeçadecajadodeônix','criaresferadoneófito','produzindoavarinhadeaço',
-            'extraçãodelascas','manipulaçãodelascas','fazermódoaprendiz',
-            'preparandolascasdequartzo','manipulaçãodeminériodecobre','fazermódoprincipiante',
-            'adquirirtesouradoaprendiz','produzindofioresistente','fazendotecidodelinho',
-            'fazendotecidodecetim','comprartesouradoprincipiante','produzindofiogrosso',
-            'adquirirfacadoaprendiz','recebendoescamasdaserpente','concluindocouroresistente',
-            'adquirirfacadoprincipiante','recebendoescamasdolagarto','curtindocourogrosso',
-            'adquirirmarretãodoaprendiz','forjandoplacasdecobre','fazendoplacasdebronze',
-            'adquirirmarretãodoprincipiante','forjandoplacasdeferro','fazendoanéisdeaço',
-            'adquirirmoldedoaprendiz','extraçãodepepitasdecobre','recebendogemadassombras',
-            'adquirirmoldedoprincipiante','extraçãodepepitasdeprata','recebendogemadaluz',
-            'adquirirpinçadoaprendiz','extraçãodejadebruta','recebendoenergiainicial',
-            'adquirirpinçasdoprincipiante','extraçãodeônixextraordinária','recebendoéterinicial',
-            'adquirirfuradordoaprendiz','produzindotecidodelicado','extraçãodesubstânciainstável',
-            'adquirirfuradordoprincipiante','produzindotecidodenso','extraçãodesubstânciaestável',
-            'recebendofibradebronze','recebendoprata','recebendoinsígniadeestudante',
-            'recebendofibradeplatina','recebendoâmbar','recebendodistintivodeaprendiz']
-        for recurso in listaProducaoRecurso:
-            if textoEhIgual(recurso, trabalhoProducao.nomeProducao):
+def trabalhoEhProducaoRecursos(trabalho: Trabalho) -> bool:
+    if variavelExiste(trabalho):
+        for recurso in CHAVE_LISTA_PRODUCAO_RECURSO:
+            if textoEhIgual(recurso, trabalho.nomeProducao):
                 print(f'Trabalho produção é recurso')
                 return True
     print(f'Trabalho produção não é recurso')
