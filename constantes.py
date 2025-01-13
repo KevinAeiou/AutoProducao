@@ -124,3 +124,34 @@ LISTA_RARIDADES = [CHAVE_RARIDADE_COMUM, CHAVE_RARIDADE_MELHORADO, CHAVE_RARIDAD
 LISTA_LICENCAS = [CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_APRENDIZ, CHAVE_LICENCA_INICIANTE, CHAVE_LICENCA_MESTRE]
 LISTA_EXPERIENCIAS_NIVEL = [20, 200, 540, 1250, 2550, 4700, 7990, 12770, 19440, 28440, 40270, 55450, 74570, 98250, 127180, 156110, 185040, 215000, 245000, 300000, 375000, 470000, 585000, 706825, 830000]
 CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE = 1
+
+CHAVE_LISTA_PRODUCAO_RECURSO = [
+    'melhorarlicençacomum',
+    'licençadeproduçãodoaprendiz',
+    'grandecoleçãoderecursoscomuns',
+    'grandecoleçãoderecursosavançados',
+    'coletaemmassaderecursosavançados',
+    'melhoriadaessênciacomum',
+    'melhoriadasubstânciacomum',
+    'melhoriadocatalizadorcomum',
+    'melhoriadaessênciacomposta',
+    'melhoriadasubtânciacomposta',
+    'melhoriadocatalizadoramplificado',
+    'criaresferadoaprendiz','produzindoavarinhademadeira','produzindocabeçadocajadodejade',
+    'produzindocabeçadecajadodeônix','criaresferadoneófito','produzindoavarinhadeaço',
+    'extraçãodelascas','manipulaçãodelascas','fazermódoaprendiz',
+    'preparandolascasdequartzo','manipulaçãodeminériodecobre','fazermódoprincipiante',
+    'adquirirtesouradoaprendiz','produzindofioresistente','fazendotecidodelinho',
+    'fazendotecidodecetim','comprartesouradoprincipiante','produzindofiogrosso',
+    'adquirirfacadoaprendiz','recebendoescamasdaserpente','concluindocouroresistente',
+    'adquirirfacadoprincipiante','recebendoescamasdolagarto','curtindocourogrosso',
+    'adquirirmarretãodoaprendiz','forjandoplacasdecobre','fazendoplacasdebronze',
+    'adquirirmarretãodoprincipiante','forjandoplacasdeferro','fazendoanéisdeaço',
+    'adquirirmoldedoaprendiz','extraçãodepepitasdecobre','recebendogemadassombras',
+    'adquirirmoldedoprincipiante','extraçãodepepitasdeprata','recebendogemadaluz',
+    'adquirirpinçadoaprendiz','extraçãodejadebruta','recebendoenergiainicial',
+    'adquirirpinçasdoprincipiante','extraçãodeônixextraordinária','recebendoéterinicial',
+    'adquirirfuradordoaprendiz','produzindotecidodelicado','extraçãodesubstânciainstável',
+    'adquirirfuradordoprincipiante','produzindotecidodenso','extraçãodesubstânciaestável',
+    'recebendofibradebronze','recebendoprata','recebendoinsígniadeestudante',
+    'recebendofibradeplatina','recebendoâmbar','recebendodistintivodeaprendiz']
