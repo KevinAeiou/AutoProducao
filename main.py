@@ -533,7 +533,10 @@ class Aplicacao:
 
 
     def modificaTrabalhoConcluidoListaProduzirProduzindo(self, trabalhoProducaoConcluido: TrabalhoProducao):
-        if trabalhoEhProducaoRecursos(self.pegaTrabalhoPorId(trabalhoProducaoConcluido.idTrabalho)):
+        trabalho = self.pegaTrabalhoPorId(trabalhoProducaoConcluido.idTrabalho)
+        if trabalho is None or trabalho.nome is None:
+            return
+        if trabalhoEhProducaoRecursos(trabalho):
             trabalhoProducaoConcluido.recorrencia = True
         if trabalhoProducaoConcluido.recorrencia:
             print(f'Trabalho recorrente.')
@@ -572,7 +575,7 @@ class Aplicacao:
     def modificaExperienciaProfissao(self, trabalho: TrabalhoProducao) -> bool:
         profissoes: list[Profissao] = self.pegaProfissoes()
         trabalhoEncontado: Trabalho = self.pegaTrabalhoPorId(trabalho.idTrabalho)
-        if trabalhoEncontado is None:
+        if trabalhoEncontado is None or trabalhoEncontado.nome is None:
             return False
         trabalhoEncontado.experiencia = trabalhoEncontado.experiencia * 1.5 if textoEhIgual(trabalho.tipo_licenca, CHAVE_LICENCA_INICIANTE) else trabalhoEncontado.experiencia
         for profissao in profissoes:
@@ -590,7 +593,13 @@ class Aplicacao:
         '''
         listaTrabalhoEstoqueConcluido = []
         trabalhoEstoque = None
-        if trabalhoEhProducaoRecursos(self.pegaTrabalhoPorId(trabalhoProducaoConcluido.idTrabalho)):
+        trabalho = self.pegaTrabalhoPorId(trabalhoProducaoConcluido.idTrabalho)
+        if trabalho is None:
+            return listaTrabalhoEstoqueConcluido
+        if trabalho.nome is None:
+            self.__loggerTrabalhoDao.warning(f'({trabalhoProducaoConcluido}) não foi encontrado na lista de trabalhos!')
+            return listaTrabalhoEstoqueConcluido
+        if trabalhoEhProducaoRecursos(trabalho):
             if trabalhoEhProducaoLicenca(trabalhoProducaoConcluido):
                 trabalhoEstoque = TrabalhoEstoque()
                 trabalhoEstoque.nome = CHAVE_LICENCA_APRENDIZ
@@ -1129,25 +1138,23 @@ class Aplicacao:
         if trabalhoEncontrado is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalho por id ({id}) no banco: {trabalhoDao.pegaErro()}')
             return None
-        if trabalhoEncontrado.nome is None:
-            self.__loggerTrabalhoDao.warning(f'Id ({id}) não encontrado no banco: {trabalhoDao.pegaErro()}')
-            return None
         return trabalhoEncontrado
             
 
     def retornaListaTrabalhosRarosVendidos(self):
         print(f'Definindo lista produtos raros vendidos...')
         trabalhosRarosVendidos = []
-        trabalhosVendidos:TrabalhoVendido = self.pegaTrabalhosVendidos()
+        trabalhosVendidos: list[TrabalhoVendido] = self.pegaTrabalhosVendidos()
         for trabalhoVendido in trabalhosVendidos:
             trabalhoEncontrado = self.pegaTrabalhoPorId(trabalhoVendido.trabalhoId)
-            if variavelExiste(trabalhoEncontrado):
-                if variavelExiste(trabalhoEncontrado.nome):
-                    trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos = trabalhoEncontrado.ehRaro() and not trabalhoEhProducaoRecursos(trabalhoEncontrado)
-                    if trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos:
-                        trabalhosRarosVendidos.append(trabalhoVendido)
-                        continue
+            if trabalhoEncontrado is None:
+                continue
+            if trabalhoEncontrado.nome is None:
                 self.__loggerTrabalhoDao.warning(f'({trabalhoVendido}) não foi encontrado na lista de trabalhos!')
+                continue
+            trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos = trabalhoEncontrado.ehRaro() and not trabalhoEhProducaoRecursos(trabalhoEncontrado)
+            if trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos:
+                trabalhosRarosVendidos.append(trabalhoVendido)
         return trabalhosRarosVendidos
 
     def verificaProdutosRarosMaisVendidos(self):
@@ -1442,7 +1449,7 @@ class Aplicacao:
 
     def removeTrabalhoProducaoEstoque(self, trabalhoProducao: TrabalhoProducao) -> None:
         trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
-        if trabalho is None:
+        if trabalho is None or trabalho.nome is None:
             return
         if trabalho.ehComum():
             if trabalhoEhProducaoRecursos(trabalho):
@@ -1468,7 +1475,7 @@ class Aplicacao:
 
     def atualizaRecursosEstoqueTrabalhoRecursoProduzindo(self, trabalhoProducao: TrabalhoProducao) -> None:
         trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
-        if trabalho is None:
+        if trabalho is None or trabalho.nome is None:
             return
         print(f'Trabalho é recurso de produção!')
         print(f'Nome recurso produzido: {trabalho.nome}')
@@ -1512,7 +1519,7 @@ class Aplicacao:
 
     def atualizaRecursosEstoqueTrabalhoComumProduzindo(self, trabalhoProducao: TrabalhoProducao) -> None:
         trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
-        if trabalho is None:
+        if trabalho is None or trabalho.nome is None:
             return
         trabalhoRecurso: TrabalhoRecurso = self.defineTrabalhoRecurso(trabalho)
         for trabalhoEstoque in self.pegaTrabalhosEstoque():
@@ -1785,7 +1792,13 @@ class Aplicacao:
                             entraTrabalhoEncontrado(dicionarioTrabalho)
                             dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizado
                             tipoTrabalho = 0
-                            if trabalhoEhProducaoRecursos(self.pegaTrabalhoPorId(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO])):
+                            trabalhoEncontrado = self.pegaTrabalhoPorId(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO])
+                            if trabalhoEncontrado is None:
+                                continue
+                            if trabalhoEncontrado.nome is None:
+                                self.__loggerTrabalhoDao.warning(f'({dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]}) não foi encontrado na lista de trabalhos!')
+                                continue
+                            if trabalhoEhProducaoRecursos(trabalhoEncontrado):
                                 tipoTrabalho = 1
                             dicionarioTrabalho = self.confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
                             if not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
