@@ -783,16 +783,13 @@ class Aplicacao:
         trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
         return trabalhoProducaoRaro
 
-    def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado):
-        if tamanhoIgualZero(listaPersonagemPresenteRecuperado):
-            print(f'Limpou a lista...')
-            listaPersonagemPresenteRecuperado = []
-        nomePersonagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(0)
+    def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado: list[str] = []) -> list[str]:
+        nomePersonagemReconhecido: str = self._imagem.retornaTextoNomePersonagemReconhecido(0)
         if variavelExiste(nomePersonagemReconhecido):
             print(f'{nomePersonagemReconhecido} foi adicionado a lista!')
             listaPersonagemPresenteRecuperado.append(nomePersonagemReconhecido)
-        else:
-            print(f'Erro ao reconhecer nome...')
+            return listaPersonagemPresenteRecuperado
+        print(f'Erro ao reconhecer nome...')
         return listaPersonagemPresenteRecuperado
 
     def recuperaPresente(self):
@@ -904,8 +901,8 @@ class Aplicacao:
                     break
         return confirmacao
 
-    def recebeTodasRecompensas(self, menu):
-        listaPersonagemPresenteRecuperado = self.retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado = [])
+    def recebeTodasRecompensas(self, menu: int) -> None:
+        listaPersonagemPresenteRecuperado = self.retornaListaPersonagemRecompensaRecebida()
         while True:
             if self.reconheceMenuRecompensa(menu):
                 if self._imagem.retornaExistePixelCorrespondencia():
