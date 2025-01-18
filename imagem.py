@@ -15,7 +15,7 @@ class ManipulaImagem:
         digitoReconhecido=pytesseract.image_to_string(imagem, config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')
         return digitoReconhecido.strip()
 
-    def reconheceTexto(self, imagem):
+    def reconheceTexto(self, imagem) -> str | None:
         caminho = r"C:\Program Files\Tesseract-OCR"
         pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
         textoReconhecido = pytesseract.image_to_string(imagem, lang="por")
@@ -86,7 +86,7 @@ class ManipulaImagem:
         sleep(1.5)
         return self.reconheceNomeTrabalho(self.retornaAtualizacaoTela(), yinicialNome, identificador)
 
-    def reconheceNomeConfirmacaoTrabalhoProducao(self, tela, tipoTrabalho):
+    def reconheceNomeConfirmacaoTrabalhoProducao(self, tela, tipoTrabalho: int) -> str | None:
         listaFrames = [[169, 285, 303, 33], [183, 200, 318, 31]] # [x, y, altura, largura]
         posicao = listaFrames[tipoTrabalho]
         frameNomeTrabalho = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
@@ -96,8 +96,8 @@ class ManipulaImagem:
         # self.mostraImagem(0, frameNomeTrabalhoBinarizado, None)
         return self.reconheceTexto(frameNomeTrabalhoBinarizado)
 
-    def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho):
-        return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho)
+    def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho: int) -> str | None:
+        return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho= tipoTrabalho)
 
     def reconheceTextoLicenca(self, telaInteira):
         listaLicencas = ['novato','iniciante','aprendiz','mestre','nenhumitem']
@@ -131,7 +131,7 @@ class ManipulaImagem:
                 return 'provisorioatecair'
         return None
     
-    def retornaTextoNomePersonagemReconhecido(self, posicao):
+    def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
         print(f'Verificando nome personagem...')
         return self.reconheceTextoNomePersonagem(self.retornaAtualizacaoTela(), posicao)
     
@@ -141,8 +141,9 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def reconheceTextoMenu(self, tela, x, y, largura, altura = 30):
+    def reconheceTextoMenu(self, tela, x: int, y: int, largura: int, altura: int = 30) -> str | None:
         frameTela = tela[y:y+altura,x:x+largura]
+        self.mostraImagem(0, frameTela)
         frameTela = self.retornaImagemCinza(frameTela)
         frameTela = self.retornaImagemEqualizada(frameTela)
         frameTela = self.retornaImagemBinarizada(frameTela)
@@ -151,7 +152,7 @@ class ManipulaImagem:
             return limpaRuidoTexto(texto)
         return None
     
-    def verificaPosicaoFrameMenu(self, tela):
+    def verificaPosicaoFrameMenu(self, tela) -> tuple[int, int, int, int] | None:
         frameTela = tela[0:tela.shape[0],0:tela.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(frameTela)
         imagemLimiarizada = cv2.Canny(imagemCinza,200,255)
@@ -164,10 +165,10 @@ class ManipulaImagem:
                 return (x, y, l, a)
         return None
 
-    def retornaPosicaoFrameMenuReconhecido(self):
-        return self.verificaPosicaoFrameMenu(self.retornaAtualizacaoTela())
+    def retornaPosicaoFrameMenuReconhecido(self) -> tuple[int, int, int, int] | None:
+        return self.verificaPosicaoFrameMenu(tela= self.retornaAtualizacaoTela())
 
-    def retornaTextoMenuReconhecido(self, x, y, largura, altura = 30):        
+    def retornaTextoMenuReconhecido(self, x: int, y: int, largura: int, altura: int = 30):        
         return self.reconheceTextoMenu(self.retornaAtualizacaoTela(), x, y, largura, altura)
     
     def verificaMenuReferenciaInicial(self, tela):
