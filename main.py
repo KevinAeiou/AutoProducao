@@ -240,9 +240,9 @@ class Aplicacao:
             print(f'Nem um erro encontrado!')
         return CODIGO_ERRO
 
-    def retornaMenu(self):
+    def retornaMenu(self) -> int | None:
         print(f'Reconhecendo menu.')
-        textoMenu = self._imagem.retornaTextoMenuReconhecido(26,1,150)
+        textoMenu = self._imagem.retornaTextoMenuReconhecido(x= 5, y= 5, largura= 150)
         if variavelExiste(textoMenu) and texto1PertenceTexto2('spearonline',textoMenu):
             posicao = self._imagem.retornaPosicaoFrameMenuReconhecido()
             if variavelExiste(posicao):
@@ -784,20 +784,20 @@ class Aplicacao:
         return trabalhoProducaoRaro
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado: list[str] = []) -> list[str]:
-        nomePersonagemReconhecido: str = self._imagem.retornaTextoNomePersonagemReconhecido(0)
-        if variavelExiste(nomePersonagemReconhecido):
-            print(f'{nomePersonagemReconhecido} foi adicionado a lista!')
-            listaPersonagemPresenteRecuperado.append(nomePersonagemReconhecido)
+        nomePersonagemReconhecido: str = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 0)
+        if nomePersonagemReconhecido is None:
+            print(f'Erro ao reconhecer nome...')
             return listaPersonagemPresenteRecuperado
-        print(f'Erro ao reconhecer nome...')
+        print(f'{nomePersonagemReconhecido} foi adicionado a lista!')
+        listaPersonagemPresenteRecuperado.append(nomePersonagemReconhecido)
         return listaPersonagemPresenteRecuperado
 
-    def recuperaPresente(self):
-        evento = 0
+    def recuperaPresente(self) -> None:
+        evento: int = 0
         print(f'Buscando recompensa diária...')
         while evento < 2:
             sleep(2)
-            referenciaEncontrada = self._imagem.verificaRecompensaDisponivel()
+            referenciaEncontrada: list[float] = self._imagem.verificaRecompensaDisponivel()
             if variavelExiste(referenciaEncontrada):
                 print(f'Referência encontrada!')
                 clickMouseEsquerdo(1, referenciaEncontrada[0], referenciaEncontrada[1])
@@ -811,7 +811,7 @@ class Aplicacao:
             evento += 1
         clickEspecifico(2,'f1')
 
-    def reconheceMenuRecompensa(self, menu):
+    def reconheceMenuRecompensa(self, menu: int) -> bool:
         sleep(2)
         if menu == MENU_LOJA_MILAGROSA:
             clickEspecifico(1,'down')
@@ -902,9 +902,9 @@ class Aplicacao:
         return confirmacao
 
     def recebeTodasRecompensas(self, menu: int) -> None:
-        listaPersonagemPresenteRecuperado = self.retornaListaPersonagemRecompensaRecebida()
+        listaPersonagemPresenteRecuperado: list[str] = self.retornaListaPersonagemRecompensaRecebida()
         while True:
-            if self.reconheceMenuRecompensa(menu):
+            if self.reconheceMenuRecompensa(menu= menu):
                 if self._imagem.retornaExistePixelCorrespondencia():
                     vaiParaMenuCorrespondencia()
                     self.recuperaCorrespondencia()
@@ -915,7 +915,7 @@ class Aplicacao:
                 else:
                     print(f'Todos os personagens foram verificados!')
                     break
-            menu = self.retornaMenu()
+            menu: int = self.retornaMenu()
 
     def trataMenu(self, menu):
         if menu == MENU_DESCONHECIDO:
@@ -1250,44 +1250,54 @@ class Aplicacao:
     def retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(self, dicionarioTrabalho):
         return self._imagem.retornaNomeTrabalhoReconhecido((dicionarioTrabalho[CHAVE_POSICAO] * 72) + 289, 0)
 
-    def retornaFrameTelaTrabalhoEspecifico(self):
+    def retornaFrameTelaTrabalhoEspecifico(self) -> str | None:
         clickEspecifico(1, 'down')
         clickEspecifico(1, 'enter')
-        nomeTrabalhoReconhecido = self._imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(0)
+        nomeTrabalhoReconhecido: str = self._imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho= 0)
         clickEspecifico(1, 'f1')
         clickEspecifico(1, 'up')
         return nomeTrabalhoReconhecido
 
-    def confirmaNomeTrabalhoProducao(self, dicionarioTrabalho, tipoTrabalho):
+    def confirmaNomeTrabalhoProducao(self, dicionarioTrabalho: dict, tipoTrabalho: int):
         print(f'Confirmando nome do trabalho...')
         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = None
         if tipoTrabalho == 0:
-            nomeTrabalhoReconhecido = self.retornaFrameTelaTrabalhoEspecifico()
+            nomeTrabalhoReconhecido: str = self.retornaFrameTelaTrabalhoEspecifico()
         else:
-            nomeTrabalhoReconhecido = self._imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho)
-        if variavelExiste(nomeTrabalhoReconhecido) and CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionarioTrabalho:
-            if len(nomeTrabalhoReconhecido) >= 29:
-                nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:28]
-            for trabalhoProducaoPriorizada in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
-                if trabalhoProducaoPriorizada.nomeProducao:
-                    nomeTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.nome.replace('-','')
-                    nomeProducaoTrabalhoProducaoDesejado = trabalhoProducaoPriorizada.nomeProducao.replace('-','')
-                    if len(trabalhoProducaoPriorizada.nome) >= 29:
-                        nomeTrabalhoProducaoDesejado = nomeTrabalhoProducaoDesejado[:28]
-                    if len(trabalhoProducaoPriorizada.nomeProducao) >= 29:
-                        nomeProducaoTrabalhoProducaoDesejado = nomeProducaoTrabalhoProducaoDesejado[:28]
-                    if trabalhoEhProducaoRecursos(trabalhoProducaoPriorizada):
-                        if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalhoProducaoDesejado):
-                            dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizada
-                            print(f'Trabalho confirmado: {nomeTrabalhoReconhecido}')
-                            return dicionarioTrabalho
-                    else:
-                        if textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalhoProducaoDesejado) or textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalhoProducaoDesejado):
-                            dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoPriorizada
-                            print(f'Trabalho confirmado: {nomeTrabalhoReconhecido}')
-                            return dicionarioTrabalho
-        print(f'Trabalho negado: {nomeTrabalhoReconhecido}')
+            nomeTrabalhoReconhecido: str = self._imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho= tipoTrabalho)
+        if nomeTrabalhoReconhecido is None:
+            self.__loggerTrabalhoProducaoDao.info(f'Trabalho negado: Não reconhecido')
+            return dicionarioTrabalho
+        if CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionarioTrabalho:
+            nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:28] if len(nomeTrabalhoReconhecido) >= 29 else nomeTrabalhoReconhecido
+            listaTrabalhoProducaoPriorizada: list[TrabalhoProducao] = dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]
+            for trabalhoProducao in listaTrabalhoProducaoPriorizada:
+                trabalhoEncontrado: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
+                if trabalhoEncontrado is None:
+                    continue
+                nomeTrabalho = self.padronizaTexto(trabalhoEncontrado.nome)
+                nomeProducaoTrabalho: str = self.padronizaTexto(trabalhoEncontrado.nomeProducao)
+                if trabalhoEhProducaoRecursos(trabalhoEncontrado):
+                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
+                        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
+                        self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
+                        return dicionarioTrabalho
+                    continue
+                if textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalho):
+                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
+                    self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeTrabalho.ljust(30)}')
+                    return dicionarioTrabalho
+                if textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
+                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
+                    self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
+                    return dicionarioTrabalho
+        self.__loggerTrabalhoProducaoDao.info(f'Trabalho negado: {nomeTrabalhoReconhecido.ljust(30)}')
         return dicionarioTrabalho
+
+    def padronizaTexto(self, texto: str) -> str:
+        textoPadronizado: str = texto.replace('-','')
+        textoPadronizado = textoPadronizado[:28] if len(textoPadronizado) >= 29 else textoPadronizado
+        return textoPadronizado
 
     def incrementaChavePosicaoTrabalho(self, dicionarioTrabalho):
         dicionarioTrabalho[CHAVE_POSICAO] += 1
@@ -1546,18 +1556,16 @@ class Aplicacao:
         while True:
             menu = self.retornaMenu()
             if menuTrabalhosAtuaisReconhecido(menu):
-                if variavelExiste(trabalhoProducaoEncontrado):
-                    if trabalhoProducaoEncontrado.ehRecorrente():
-                        self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
-                        self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado)
-                        self.verificaNovamente = True
-                        break
-                    self.modificaTrabalhoProducao(trabalhoProducaoEncontrado)
+                if trabalhoProducaoEncontrado.ehRecorrente():
                     self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
-                    clickContinuo(12,'up')
+                    self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado)
                     self.verificaNovamente = True
                     break
-                continue
+                self.modificaTrabalhoProducao(trabalhoProducaoEncontrado)
+                self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
+                clickContinuo(12,'up')
+                self.verificaNovamente = True
+                break
             if menuTrabalhoEspecificoReconhecido(menu):
                 if primeiraBusca:
                     print(f'Entra menu licença.')
