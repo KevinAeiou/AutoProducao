@@ -1303,11 +1303,26 @@ class Aplicacao:
         dicionarioTrabalho[CHAVE_POSICAO] += 1
         return dicionarioTrabalho
 
-    def defineDicionarioTrabalhoComumMelhorado(self, dicionarioTrabalho):
-        nomeTrabalhoReconhecidoAux = ''
-        nomeTrabalhoReconhecido = ''
+    def reconheceTextoTrabalhoComumMelhorado(self, trabalho: dict):
+        yinicialNome: int = (2 * 70) + 285
+        if primeiraBusca(trabalho):
+            clicks: int = 3
+            contadorParaBaixo: int = 3
+            clickEspecifico(clicks, 'down')
+            return self._imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
+        if contadorParaBaixo == 3:
+            return self._imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
+        if contadorParaBaixo == 4:
+            yinicialNome = (3 * 70) + 285
+            return self._imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
+        if contadorParaBaixo > 4:
+            return self._imagem.retornaNomeTrabalhoReconhecido(530, 1)
+
+    def defineDicionarioTrabalhoComumMelhorado(self, dicionarioTrabalho: dict) -> dict:
+        nomeTrabalhoReconhecidoAux: str = ''
+        nomeTrabalhoReconhecido: str = ''
         print(f'Buscando trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].raridade}.')
-        contadorParaBaixo = 0
+        contadorParaBaixo: int = 0
         if not primeiraBusca(dicionarioTrabalho):
             contadorParaBaixo = dicionarioTrabalho[CHAVE_POSICAO]
             clickEspecifico(contadorParaBaixo, 'down')
@@ -1316,20 +1331,7 @@ class Aplicacao:
             if erroEncontrado(erro):
                 self.__confirmacao = False
                 break
-            if primeiraBusca(dicionarioTrabalho):
-                clicks = 3
-                contadorParaBaixo = 3
-                clickEspecifico(clicks, 'down')
-                yinicialNome = (2 * 70) + 285
-                nomeTrabalhoReconhecido = self._imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
-            elif contadorParaBaixo == 3:
-                yinicialNome = (2 * 70) + 285
-                nomeTrabalhoReconhecido = self._imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
-            elif contadorParaBaixo == 4:
-                yinicialNome = (3 * 70) + 285
-                nomeTrabalhoReconhecido = self._imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
-            elif contadorParaBaixo > 4:
-                nomeTrabalhoReconhecido = self._imagem.retornaNomeTrabalhoReconhecido(530, 1)
+            nomeTrabalhoReconhecido = self.reconheceTextoTrabalhoComumMelhorado(dicionarioTrabalho)
             nomeReconhecidoNaoEstaVazioEnomeReconhecidoNaoEhIgualAoAnterior = (
                 variavelExiste(nomeTrabalhoReconhecido) and not textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalhoReconhecidoAux))
             if nomeReconhecidoNaoEstaVazioEnomeReconhecidoNaoEhIgualAoAnterior:
@@ -1342,26 +1344,22 @@ class Aplicacao:
                         dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo - 1
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         contadorParaBaixo += 1
-                        tipoTrabalho = 0
-                        if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]):
-                            tipoTrabalho = 1
+                        tipoTrabalho: int = 1 if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]) else 0
                         dicionarioTrabalho = self.confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
                         if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
                             break
-                        else:
-                            clickEspecifico(1, 'f1')
+                        clickEspecifico(1, 'f1')
                 else:
                     clickEspecifico(1, 'down')
                     dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
                     contadorParaBaixo += 1
-            else:
-                if not primeiraBusca(dicionarioTrabalho) and dicionarioTrabalho[CHAVE_POSICAO] > 5:
-                    print(f'Trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].raridade} não reconhecido!')
-                    break
-                else:
-                    clickEspecifico(1, 'down')
-                    dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
-                    contadorParaBaixo += 1
+                continue
+            if not primeiraBusca(dicionarioTrabalho) and dicionarioTrabalho[CHAVE_POSICAO] > 5:
+                print(f'Trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].raridade} não reconhecido!')
+                break
+            clickEspecifico(1, 'down')
+            dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
+            contadorParaBaixo += 1
         return dicionarioTrabalho
 
     def defineCloneTrabalhoProducao(self, trabalhoProducaoEncontrado: TrabalhoProducao) -> TrabalhoProducao:
