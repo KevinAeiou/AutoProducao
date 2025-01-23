@@ -143,7 +143,6 @@ class ManipulaImagem:
     
     def reconheceTextoMenu(self, tela, x: int, y: int, largura: int, altura: int = 30) -> str | None:
         frameTela = tela[y:y+altura,x:x+largura]
-        self.mostraImagem(0, frameTela)
         frameTela = self.retornaImagemCinza(frameTela)
         frameTela = self.retornaImagemEqualizada(frameTela)
         frameTela = self.retornaImagemBinarizada(frameTela)
