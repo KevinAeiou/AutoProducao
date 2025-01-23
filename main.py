@@ -1303,12 +1303,10 @@ class Aplicacao:
         dicionarioTrabalho[CHAVE_POSICAO] += 1
         return dicionarioTrabalho
 
-    def reconheceTextoTrabalhoComumMelhorado(self, trabalho: dict):
+    def reconheceTextoTrabalhoComumMelhorado(self, trabalho: dict, contadorParaBaixo: int):
         yinicialNome: int = (2 * 70) + 285
         if primeiraBusca(trabalho):
-            clicks: int = 3
-            contadorParaBaixo: int = 3
-            clickEspecifico(clicks, 'down')
+            clickEspecifico(cliques= 3, teclaEspecifica= 'down')
             return self._imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
         if contadorParaBaixo == 3:
             return self._imagem.retornaNomeTrabalhoReconhecido(yinicialNome, 1)
@@ -1331,7 +1329,8 @@ class Aplicacao:
             if erroEncontrado(erro):
                 self.__confirmacao = False
                 break
-            nomeTrabalhoReconhecido = self.reconheceTextoTrabalhoComumMelhorado(dicionarioTrabalho)
+            nomeTrabalhoReconhecido = self.reconheceTextoTrabalhoComumMelhorado(dicionarioTrabalho, contadorParaBaixo)
+            contadorParaBaixo = 3 if primeiraBusca(dicionarioTrabalho) else contadorParaBaixo
             nomeReconhecidoNaoEstaVazioEnomeReconhecidoNaoEhIgualAoAnterior = (
                 variavelExiste(nomeTrabalhoReconhecido) and not textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalhoReconhecidoAux))
             if nomeReconhecidoNaoEstaVazioEnomeReconhecidoNaoEhIgualAoAnterior:
