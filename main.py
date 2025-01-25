@@ -2507,8 +2507,8 @@ class Aplicacao:
         if sincroniza is not None and sincroniza.lower() == 's':
             self.sincronizaListaTrabalhos()
             self.sincronizaListaPersonagens
-            self.sincronizaTrabalhosProducao()
             self.sincronizaListaProfissoes()
+            self.sincronizaTrabalhosProducao()
         clickAtalhoEspecifico('alt', 'tab')
         clickAtalhoEspecifico('win', 'left')
         self.iniciaProcessoBusca()
