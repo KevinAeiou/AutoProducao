@@ -143,10 +143,11 @@ class ManipulaImagem:
     
     def reconheceTextoMenu(self, tela, x: int, y: int, largura: int, altura: int = 30) -> str | None:
         frameTela = tela[y:y+altura,x:x+largura]
-        frameTela = self.retornaImagemCinza(frameTela)
-        frameTela = self.retornaImagemEqualizada(frameTela)
-        frameTela = self.retornaImagemBinarizada(frameTela)
-        texto = self.reconheceTexto(frameTela)
+        frameTelaTratado = self.retornaImagemCinza(frameTela)
+        if x * y > 1000:
+            frameTelaTratado = self.retornaImagemEqualizada(frameTelaTratado)
+            frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
+        texto = self.reconheceTexto(frameTelaTratado)
         if variavelExiste(texto):
             return limpaRuidoTexto(texto)
         return None
