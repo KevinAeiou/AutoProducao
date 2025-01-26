@@ -141,15 +141,6 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def reconheceTextoMenu(self, tela) -> str | None:
-        frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
-        frameTelaTratado = self.retornaImagemCinza(frameTela)
-        frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
-        texto = self.reconheceTexto(frameTelaTratado)
-        if variavelExiste(texto):
-            return limpaRuidoTexto(texto)
-        return None
-    
     def verificaPosicaoFrameMenu(self, tela) -> tuple[int, int, int, int] | None:
         frameTela = tela[0:tela.shape[0],0:tela.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(frameTela)
@@ -165,9 +156,6 @@ class ManipulaImagem:
 
     def retornaPosicaoFrameMenuReconhecido(self) -> tuple[int, int, int, int] | None:
         return self.verificaPosicaoFrameMenu(tela= self.retornaAtualizacaoTela())
-
-    def retornaTextoMenuReconhecido(self) -> str | None:        
-        return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
     
     def verificaMenuReferenciaInicial(self, tela):
         posicaoMenu = [[703,627],[712,1312]]
@@ -181,15 +169,21 @@ class ManipulaImagem:
     def verificaMenuReferencia(self):
         return self.verificaMenuReferenciaInicial(self.retornaAtualizacaoTela())
     
-    def reconheceTextoSair(self, tela):
-        frameTelaTratado = self.retornaImagemCinza(tela[tela.shape[0]-50:tela.shape[0]-15,50:50+60])
+    def reconheceTextoMenu(self, tela) -> str | None:
+        frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
+        frameTelaTratado = self.retornaImagemCinza(frameTela)
         frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
-        contadorPixelPreto = np.sum(frameTelaTratado==0)
-        if contadorPixelPreto > 100 and contadorPixelPreto < 400:
-            texto = self.reconheceTexto(frameTelaTratado)
-            if variavelExiste(texto):
-                return limpaRuidoTexto(texto)
-        return None
+        texto = self.reconheceTexto(frameTelaTratado)
+        return None if texto is None else limpaRuidoTexto(texto)
+
+    def retornaTextoMenuReconhecido(self) -> str | None:        
+        return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
+    
+    def reconheceTextoSair(self, tela):
+        frameTelaTratado = self.retornaImagemCinza(tela[tela.shape[0]-55:tela.shape[0]-15,50:50+80])
+        frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
+        texto = self.reconheceTexto(frameTelaTratado)
+        return None if texto is None else limpaRuidoTexto(texto)
     
     def retornaTextoSair(self):
         return self.reconheceTextoSair(self.retornaAtualizacaoTela())

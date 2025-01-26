@@ -849,11 +849,7 @@ class CRUD:
     def testeFuncao(self):
         # self.__aplicacao.abreStreamPersonagens()
         while True:
-            personagens = self.mostraListaPersonagens()
-            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-                self.__aplicacao.defineTrabalhoComumProfissaoPriorizada()
-                continue
-            break
+            self.__aplicacao.retornaMenu()
         
     def menu(self):
         while True:

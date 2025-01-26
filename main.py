@@ -244,7 +244,7 @@ class Aplicacao:
     def retornaMenu(self) -> int | None:
         print(f'Reconhecendo menu.')
         textoMenu = self._imagem.retornaTextoSair()
-        if textoEhIgual(textoMenu,'sai'):
+        if texto1PertenceTexto2('sair', textoMenu):
             print(f'Menu jogar...')
             return MENU_JOGAR
         textoMenu = self._imagem.retornaTextoMenuReconhecido()
