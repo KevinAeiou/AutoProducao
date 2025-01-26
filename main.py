@@ -245,6 +245,10 @@ class Aplicacao:
         print(f'Reconhecendo menu.')
         textoMenu = self._imagem.retornaTextoMenuReconhecido()
         if textoMenu is None:
+            textoMenu = self._imagem.retornaTextoSair()
+            if textoEhIgual(textoMenu,'sair'):
+                print(f'Menu jogar...')
+                return MENU_JOGAR
             print(f'Menu não reconhecido...')
             self.verificaErro()
             return MENU_DESCONHECIDO
@@ -301,10 +305,6 @@ class Aplicacao:
         if texto1PertenceTexto2('Bolsa',textoMenu):
             print(f'Menu bolsa...')
             return MENU_BOLSA
-        textoMenu = self._imagem.retornaTextoSair()
-        if textoEhIgual(textoMenu,'sair'):
-            print(f'Menu jogar...')
-            return MENU_JOGAR
         clickMouseEsquerdo(1,35,35)
         return MENU_DESCONHECIDO
     

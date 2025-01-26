@@ -173,7 +173,6 @@ class ManipulaImagem:
         posicaoMenu = [[703,627],[712,1312]]
         for posicao in posicaoMenu:
             frameTela = tela[posicao[0]:posicao[0] + 53, posicao[1]:posicao[1] + 53]
-            # self.mostraImagem(0, frameTela)
             contadorPixelPreto = np.sum(frameTela == (85,204,255))
             if contadorPixelPreto == 1720:
                 return True
