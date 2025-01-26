@@ -243,12 +243,12 @@ class Aplicacao:
 
     def retornaMenu(self) -> int | None:
         print(f'Reconhecendo menu.')
+        textoMenu = self._imagem.retornaTextoSair()
+        if textoEhIgual(textoMenu,'sai'):
+            print(f'Menu jogar...')
+            return MENU_JOGAR
         textoMenu = self._imagem.retornaTextoMenuReconhecido()
         if textoMenu is None:
-            textoMenu = self._imagem.retornaTextoSair()
-            if textoEhIgual(textoMenu,'sair'):
-                print(f'Menu jogar...')
-                return MENU_JOGAR
             print(f'Menu não reconhecido...')
             self.verificaErro()
             return MENU_DESCONHECIDO
