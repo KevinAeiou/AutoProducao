@@ -46,7 +46,7 @@ class ManipulaImagem:
 
     def retornaImagemBinarizada(self, image):
         blur = cv2.GaussianBlur(image, (1, 1), cv2.BORDER_DEFAULT)
-        ret, thresh = cv2.threshold(blur, 180, 255, cv2.THRESH_BINARY_INV)
+        ret, thresh = cv2.threshold(blur, 170, 255, cv2.THRESH_BINARY_INV)
         return thresh
 
     def retornaImagemDitalata(self, imagem, kernel, iteracoes):
@@ -141,12 +141,10 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def reconheceTextoMenu(self, tela, x: int, y: int, largura: int, altura: int = 30) -> str | None:
-        frameTela = tela[y:y+altura,x:x+largura]
+    def reconheceTextoMenu(self, tela) -> str | None:
+        frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
         frameTelaTratado = self.retornaImagemCinza(frameTela)
-        if x * y > 1000:
-            frameTelaTratado = self.retornaImagemEqualizada(frameTelaTratado)
-            frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
+        frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
         texto = self.reconheceTexto(frameTelaTratado)
         if variavelExiste(texto):
             return limpaRuidoTexto(texto)
@@ -168,13 +166,14 @@ class ManipulaImagem:
     def retornaPosicaoFrameMenuReconhecido(self) -> tuple[int, int, int, int] | None:
         return self.verificaPosicaoFrameMenu(tela= self.retornaAtualizacaoTela())
 
-    def retornaTextoMenuReconhecido(self, x: int, y: int, largura: int, altura: int = 30):        
-        return self.reconheceTextoMenu(self.retornaAtualizacaoTela(), x, y, largura, altura)
+    def retornaTextoMenuReconhecido(self) -> str | None:        
+        return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
     
     def verificaMenuReferenciaInicial(self, tela):
         posicaoMenu = [[703,627],[712,1312]]
         for posicao in posicaoMenu:
             frameTela = tela[posicao[0]:posicao[0] + 53, posicao[1]:posicao[1] + 53]
+            # self.mostraImagem(0, frameTela)
             contadorPixelPreto = np.sum(frameTela == (85,204,255))
             if contadorPixelPreto == 1720:
                 return True

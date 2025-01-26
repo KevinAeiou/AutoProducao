@@ -243,71 +243,69 @@ class Aplicacao:
 
     def retornaMenu(self) -> int | None:
         print(f'Reconhecendo menu.')
-        textoMenu = self._imagem.retornaTextoMenuReconhecido(x= 5, y= 5, largura= 150)
-        if variavelExiste(textoMenu) and texto1PertenceTexto2('spearonline',textoMenu):
-            textoMenu = self._imagem.retornaTextoMenuReconhecido(x= 260, y= 10, largura= 405, altura= 855)
-            if textoMenu is not None:
-                if texto1PertenceTexto2('Loja Milagrosa',textoMenu):
-                    print(f'Menu loja milagrosa...')
-                    return MENU_LOJA_MILAGROSA
-                if texto1PertenceTexto2('recompensasdiarias',textoMenu):
-                    print(f'Menu recompensas diárias...')
-                    return MENU_RECOMPENSAS_DIARIAS
-                if texto1PertenceTexto2('selecioneopersonagem',textoMenu):
-                    print(f'Menu escolha de personagem...')
-                    return MENU_ESCOLHA_PERSONAGEM
-                if texto1PertenceTexto2('artesanato',textoMenu):
-                    if texto1PertenceTexto2('pedidosativos',textoMenu):
-                        print(f'Menu trabalhos atuais...')
-                        return MENU_TRABALHOS_ATUAIS
-                    if texto1PertenceTexto2('profissoes',textoMenu):
-                        if texto1PertenceTexto2('fechar',textoMenu):
-                            print(f'Menu produzir...')
-                            return MENU_PROFISSOES
-                        if texto1PertenceTexto2('voltar',textoMenu):
-                            print(f'Menu trabalhos diponíveis...')
-                            return MENU_TRABALHOS_DISPONIVEIS
-                if texto1PertenceTexto2('noticias',textoMenu):
-                    print(f'Menu notícias...')
-                    return MENU_NOTICIAS
-                textoMenu = self._imagem.retornaTextoSair()
-                if textoEhIgual(textoMenu,'sair'):
-                    print(f'Menu jogar...')
-                    return MENU_JOGAR
-                if self._imagem.verificaMenuReferencia():
-                    print(f'Menu tela inicial...')
-                    return MENU_INICIAL
-                if texto1PertenceTexto2('conquistas',textoMenu):
-                    print(f'Menu personagem...')
-                    return MENU_PERSONAGEM
-                if texto1PertenceTexto2('interagir',textoMenu):
-                    print(f'Menu principal...')
-                    return MENU_PRINCIPAL
-                if texto1PertenceTexto2('parâmetros',textoMenu):
-                    if texto1PertenceTexto2('requisitos',textoMenu):
-                        print(f'Menu atributo do trabalho...')
-                        return MENU_TRABALHOS_ATRIBUTOS
-                    else:
-                        print(f'Menu licenças...')
-                        return MENU_LICENSAS
-                if texto1PertenceTexto2('Recompensa',textoMenu):
-                    print(f'Menu trabalho específico...')
-                    return MENU_TRABALHO_ESPECIFICO
-                if texto1PertenceTexto2('ofertadiaria',textoMenu):
-                    print(f'Menu oferta diária...')
-                    return MENU_OFERTA_DIARIA
-                if texto1PertenceTexto2('recompensasdiarias',textoMenu):
-                    print(f'Menu recompensas diárias...')
-                    return MENU_RECOMPENSAS_DIARIAS
-                if texto1PertenceTexto2('meu',textoMenu):
-                    print(f'Menu meu perfil...')
-                    return MENU_MEU_PERFIL           
-                if texto1PertenceTexto2('Bolsa',textoMenu):
-                    print(f'Menu bolsa...')
-                    return MENU_BOLSA
-                clickMouseEsquerdo(1,35,35)
-        print(f'Menu não reconhecido...')
-        self.verificaErro()
+        textoMenu = self._imagem.retornaTextoMenuReconhecido()
+        if textoMenu is None:
+            print(f'Menu não reconhecido...')
+            self.verificaErro()
+            return MENU_DESCONHECIDO
+        if texto1PertenceTexto2('interagir',textoMenu):
+            print(f'Menu principal...')
+            return MENU_PRINCIPAL
+        if texto1PertenceTexto2('conquistas',textoMenu):
+            print(f'Menu personagem...')
+            return MENU_PERSONAGEM
+        if texto1PertenceTexto2('ofertadiaria',textoMenu):
+            print(f'Menu oferta diária...')
+            return MENU_OFERTA_DIARIA
+        if texto1PertenceTexto2('Loja Milagrosa',textoMenu):
+            print(f'Menu loja milagrosa...')
+            return MENU_LOJA_MILAGROSA
+        if texto1PertenceTexto2('recompensasdiarias',textoMenu):
+            print(f'Menu recompensas diárias...')
+            return MENU_RECOMPENSAS_DIARIAS
+        if texto1PertenceTexto2('selecioneopersonagem',textoMenu):
+            print(f'Menu escolha de personagem...')
+            return MENU_ESCOLHA_PERSONAGEM
+        if texto1PertenceTexto2('artesanato',textoMenu):
+            if texto1PertenceTexto2('pedidosativos',textoMenu):
+                print(f'Menu trabalhos atuais...')
+                return MENU_TRABALHOS_ATUAIS
+            if texto1PertenceTexto2('profissoes',textoMenu):
+                if texto1PertenceTexto2('fechar',textoMenu):
+                    print(f'Menu produzir...')
+                    return MENU_PROFISSOES
+                if texto1PertenceTexto2('voltar',textoMenu):
+                    print(f'Menu trabalhos diponíveis...')
+                    return MENU_TRABALHOS_DISPONIVEIS
+        if texto1PertenceTexto2('noticias',textoMenu):
+            print(f'Menu notícias...')
+            return MENU_NOTICIAS
+        if self._imagem.verificaMenuReferencia():
+            print(f'Menu tela inicial...')
+            return MENU_INICIAL
+        if texto1PertenceTexto2('parâmetros',textoMenu):
+            if texto1PertenceTexto2('requisitos',textoMenu):
+                print(f'Menu atributo do trabalho...')
+                return MENU_TRABALHOS_ATRIBUTOS
+            print(f'Menu licenças...')
+            return MENU_LICENSAS
+        if texto1PertenceTexto2('Recompensa',textoMenu):
+            print(f'Menu trabalho específico...')
+            return MENU_TRABALHO_ESPECIFICO
+        if texto1PertenceTexto2('recompensasdiarias',textoMenu):
+            print(f'Menu recompensas diárias...')
+            return MENU_RECOMPENSAS_DIARIAS
+        if texto1PertenceTexto2('meu',textoMenu):
+            print(f'Menu meu perfil...')
+            return MENU_MEU_PERFIL           
+        if texto1PertenceTexto2('Bolsa',textoMenu):
+            print(f'Menu bolsa...')
+            return MENU_BOLSA
+        textoMenu = self._imagem.retornaTextoSair()
+        if textoEhIgual(textoMenu,'sair'):
+            print(f'Menu jogar...')
+            return MENU_JOGAR
+        clickMouseEsquerdo(1,35,35)
         return MENU_DESCONHECIDO
     
     def retornaValorTrabalhoVendido(self, textoCarta):
