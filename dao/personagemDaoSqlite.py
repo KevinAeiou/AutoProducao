@@ -43,6 +43,7 @@ class PersonagemDaoSqlite():
                     personagem.autoProducao = autoProducao
                     personagens.append(personagem)
                 self.__meuBanco.desconecta()
+                personagens = sorted(personagens,  key= lambda personagem: personagem.email)
                 return personagens
         except Exception as e:
             self.__erro = str(e)
