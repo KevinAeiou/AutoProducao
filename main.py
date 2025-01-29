@@ -1184,7 +1184,7 @@ class Aplicacao:
         self.__listaProfissoesNecessarias = sorted(self.__listaProfissoesNecessarias, key=lambda profissao: profissao.prioridade, reverse= True)
 
     def mostraListaProfissoesNecessarias(self) -> None:
-        print(f'{CHAVE_NOME.upper().ljust(22)} | {CHAVE_EXPERIENCIA.upper().ljust(6)} | {CHAVE_PRIORIDADE.upper().ljust(10)}')
+        print(f'{CHAVE_NOME.upper().ljust(22)} | {"EXP".ljust(6)} | {CHAVE_PRIORIDADE.upper().ljust(10)}')
         for profissaoNecessaria in self.__listaProfissoesNecessarias:
             nome = 'Indefinido' if profissaoNecessaria.nome is None else profissaoNecessaria.nome
             experiencia = 'Indefinido' if profissaoNecessaria.experiencia is None else str(profissaoNecessaria.experiencia)
@@ -2139,6 +2139,7 @@ class Aplicacao:
                 return True
             if self.__autoProducaoTrabalho: self.verificaProdutosRarosMaisVendidos()
             self.iniciaBuscaTrabalho()
+            self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
             return False
         if self.__unicaConexao and haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo): clickMouseEsquerdo(1, 2, 35)
         self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
