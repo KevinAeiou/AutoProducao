@@ -1847,12 +1847,16 @@ class Aplicacao:
         """        
         self.defineListaPersonagensAtivos()
         novaListaPersonagensAtivos: list[Personagem] = []
+        print(f'{CHAVE_NOME.ljust(17).upper()} | {CHAVE_ESPACO_BOLSA.ljust(11).upper()} | {CHAVE_ESTADO.ljust(10).upper()} | {CHAVE_USO.ljust(10).upper()} | {CHAVE_AUTO_PRODUCAO.ljust(10).upper()}')
         for personagemAtivo in self.__listaPersonagemAtivo:
             for personagemRemovido in self.__listaPersonagemJaVerificado:
                 if textoEhIgual(personagemAtivo.nome, personagemRemovido.nome):
                     break
             else:
-                print(personagemAtivo)
+                estado = 'Verdadeiro' if personagemAtivo.estado else 'Falso'
+                uso = 'Verdadeiro' if personagemAtivo.uso else 'Falso'
+                autoProducao = 'Verdadeiro' if personagemAtivo.autoProducao else 'Falso'
+                print(f'{(personagemAtivo.nome).ljust(17)} | {str(personagemAtivo.espacoProducao).ljust(11)} | {estado.ljust(10)} | {uso.ljust(10)} | {autoProducao.ljust(10)}')
                 novaListaPersonagensAtivos.append(personagemAtivo)
         self.__listaPersonagemAtivo = novaListaPersonagensAtivos
 
@@ -2099,45 +2103,51 @@ class Aplicacao:
             trabalhoQuantidade.quantidade = 0
             trabalhosQuantidade.append(trabalhoQuantidade)
         return trabalhosQuantidade
+    
+    def listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(self) -> bool:
+        if not tamanhoIgualZero(self.__listaPersonagemJaVerificado) and textoEhIgual(self.__listaPersonagemJaVerificado[-1].email, self.__listaPersonagemAtivo[0].email):
+            self.entraPersonagemAtivo()
+            return True
+        return False
+    
+    def listaPersonagensAtivosEstaVazia(self) -> bool:
+        if tamanhoIgualZero(self.__listaPersonagemAtivo):
+            self.__listaPersonagemJaVerificado.clear()
+            return True
+        return False
+    
+    def personagemEmUsoExiste(self) -> bool:
+        if self.__personagemEmUso is None: return False
+        self.modificaAtributoUso()
+        print(f'Personagem ({self.__personagemEmUso.nome}) ESTÁ EM USO.')
+        self.inicializaChavesPersonagem()
+        print('Inicia busca...')
+        if self.vaiParaMenuProduzir():
+            self.defineTrabalhoComumProfissaoPriorizada()
+            trabalhosProducao = self.pegaTrabalhosProducaoParaProduzirProduzindo()
+            if trabalhosProducao is None: return True
+            if tamanhoIgualZero(trabalhosProducao):
+                print(f'Lista de trabalhos desejados vazia.')
+                self.__personagemEmUso.alternaEstado()
+                self.modificaPersonagem()
+                return True
+            if self.__autoProducaoTrabalho: self.verificaProdutosRarosMaisVendidos()
+            self.iniciaBuscaTrabalho()
+            return False
+        if self.__unicaConexao and haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo): clickMouseEsquerdo(1, 2, 35)
+        self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
+        return True
 
     def iniciaProcessoBusca(self):
         while True:
             self.verificaAlteracaoListaTrabalhos()
             self.verificaAlteracaoPersonagem()
             self.retiraPersonagemJaVerificadoListaAtivo()
-            listaPersonagensAtivosEstaVazia = tamanhoIgualZero(self.__listaPersonagemAtivo)
-            if listaPersonagensAtivosEstaVazia:
-                self.__listaPersonagemJaVerificado.clear()
-                continue
+            if self.listaPersonagensAtivosEstaVazia(): continue
             self.definePersonagemEmUso()
-            if variavelExiste(self.__personagemEmUso):
-                self.modificaAtributoUso()
-                print(f'Personagem ({self.__personagemEmUso.nome}) ESTÁ EM USO.')
-                self.inicializaChavesPersonagem()
-                print('Inicia busca...')
-                if self.vaiParaMenuProduzir():
-                    self.defineTrabalhoComumProfissaoPriorizada()
-                    trabalhosProducao = self.pegaTrabalhosProducaoParaProduzirProduzindo()
-                    if not variavelExiste(trabalhosProducao):
-                        continue
-                    if tamanhoIgualZero(trabalhosProducao):
-                        print(f'Lista de trabalhos desejados vazia.')
-                        self.__personagemEmUso.alternaEstado()
-                        self.modificaPersonagem()
-                        continue
-                    if self.__autoProducaoTrabalho:
-                        self.verificaProdutosRarosMaisVendidos()
-                    self.iniciaBuscaTrabalho()
-                if self.__unicaConexao:
-                    if haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo):
-                        clickMouseEsquerdo(1, 2, 35)
-                self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
-                continue
-            if not tamanhoIgualZero(self.__listaPersonagemJaVerificado) and textoEhIgual(self.__listaPersonagemJaVerificado[-1].email, self.__listaPersonagemAtivo[0].email):
-                self.entraPersonagemAtivo()
-                continue
-            if self.configuraLoginPersonagem():
-                self.entraPersonagemAtivo()
+            if self.personagemEmUsoExiste(): continue
+            if self.listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(): continue
+            if self.configuraLoginPersonagem(): self.entraPersonagemAtivo()
 
     def insereTrabalho(self, trabalho: Trabalho, modificaServidor: bool = True) -> bool:
         trabalhoDao = TrabalhoDaoSqlite()
@@ -2501,17 +2511,22 @@ class Aplicacao:
             pass
 
     def preparaPersonagem(self):
-        self.abreStreamTrabalhos()
-        self.abreStreamPersonagens()
-        sincroniza = input(f'Sincronizar listas? (S/N) ')
-        if sincroniza is not None and sincroniza.lower() == 's':
-            self.sincronizaListaTrabalhos()
-            self.sincronizaListaPersonagens
-            self.sincronizaListaProfissoes()
-            self.sincronizaTrabalhosProducao()
-        clickAtalhoEspecifico('alt', 'tab')
-        clickAtalhoEspecifico('win', 'left')
-        self.iniciaProcessoBusca()
+        try:
+            self.abreStreamTrabalhos()
+            self.abreStreamPersonagens()
+            sincroniza = input(f'Sincronizar listas? (S/N) ')
+            if sincroniza is not None and sincroniza.lower() == 's':
+                self.sincronizaListaTrabalhos()
+                self.sincronizaListaPersonagens
+                self.sincronizaListaProfissoes()
+                self.sincronizaTrabalhosProducao()
+            clickAtalhoEspecifico('alt', 'tab')
+            clickAtalhoEspecifico('win', 'left')
+            self.iniciaProcessoBusca()
+        except Exception as e:
+            print(e)
+            if input(f'Tentar novamente? (S/N) \n').lower() == 's':
+                self.preparaPersonagem()
 
     def abreStreamPersonagens(self) -> bool:
         if self.__repositorioPersonagem.abreStream():
