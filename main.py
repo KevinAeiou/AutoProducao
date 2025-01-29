@@ -1184,8 +1184,12 @@ class Aplicacao:
         self.__listaProfissoesNecessarias = sorted(self.__listaProfissoesNecessarias, key=lambda profissao: profissao.prioridade, reverse= True)
 
     def mostraListaProfissoesNecessarias(self) -> None:
+        print(f'{CHAVE_NOME.upper().ljust(22)} | {CHAVE_EXPERIENCIA.upper().ljust(6)} | {CHAVE_PRIORIDADE.upper().ljust(10)}')
         for profissaoNecessaria in self.__listaProfissoesNecessarias:
-            print(f'{profissaoNecessaria}')
+            nome = 'Indefinido' if profissaoNecessaria.nome is None else profissaoNecessaria.nome
+            experiencia = 'Indefinido' if profissaoNecessaria.experiencia is None else str(profissaoNecessaria.experiencia)
+            prioridade = 'Verdadeiro' if profissaoNecessaria.prioridade else 'Falso'
+            print(f'{(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}')
 
     def insereItemListaProfissoesNecessarias(self, profissao: Profissao) -> None:
         self.__listaProfissoesNecessarias.append(profissao)
