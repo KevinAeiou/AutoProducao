@@ -38,7 +38,7 @@ def existePixelPreto(frameTela):
 def existePixelPretoSuficiente(frameTela):
     return np.sum(frameTela==0) > 250 and np.sum(frameTela==0) < 3000
 
-def ehMenuInicial(menu):
+def ehMenuInicial(menu: int) -> bool:
     return menu == MENU_INICIAL
 
 def ehMenuProduzir(menu):
@@ -51,15 +51,21 @@ def ehMenuEscolhaPersonagem(menu):
     return menu == MENU_ESCOLHA_PERSONAGEM
 
 def ehMenuTrabalhosDisponiveis(menu):
-    menu == MENU_TRABALHOS_DISPONIVEIS
+    return menu == MENU_TRABALHOS_DISPONIVEIS
+    
+def ehMenuNoticias(menu: int) -> bool:
+    return menu == MENU_NOTICIAS
+
+def ehMenuDesconhecido(menu: int) -> bool:
+    return menu == MENU_DESCONHECIDO
 
 def ehErroOutraConexao(erro):
     return erro == CODIGO_ERRO_OUTRA_CONEXAO
 
-def ehErroRestauraConexao(erro):
+def ehErroRestauraConexao(erro: int) -> bool:
     return erro == CODIGO_RESTAURA_CONEXAO
 
-def ehErroConectando(erro):
+def ehErroConectando(erro: int) -> bool:
     return erro == CODIGO_CONECTANDO
 
 def ehErroRecursosInsuficiente(erro):
@@ -113,7 +119,7 @@ def ehErroTrabalhoNaoConcluido(erro):
 def ehErroEspacoBolsaInsuficiente(erro):
     return erro == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE
 
-def ehErroUsuarioOuSenhaInvalida(erro):
+def ehErroUsuarioOuSenhaInvalida(erro: int) -> bool:
     return erro == CODIGO_ERRO_USUARIO_SENHA_INVALIDA
 
 def ehErroMoedasMilagrosasInsuficientes(erro):
