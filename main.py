@@ -75,7 +75,7 @@ class Aplicacao:
                 return False
         return True
 
-    def confirmaNomePersonagem(self, personagemReconhecido):
+    def confirmaNomePersonagem(self, personagemReconhecido: str) -> None:
         '''
         Esta função é responsável por confirmar se o nome do personagem reconhecido está na lista de personagens ativos atual
         Argumentos:
@@ -83,7 +83,7 @@ class Aplicacao:
         '''
         for personagemAtivo in self.__listaPersonagemAtivo:
             if textoEhIgual(personagemReconhecido, personagemAtivo.nome):
-                print(f'Personagem {personagemReconhecido} confirmado!')
+                print(f'Personagem {personagemReconhecido.upper()} confirmado!')
                 self.personagemEmUso(personagemAtivo)
                 return
         print(f'Personagem {personagemReconhecido} não encontrado na lista de personagens ativos atual!')
