@@ -37,4 +37,4 @@ class Personagem:
         id = 'Indefinido' if self.id == None else self.id
         nome = 'Indefinido' if self.nome == None else self.nome
         espaco = 'Indefinido' if self.espacoProducao == None else self.espacoProducao
-        return f'{(id).ljust(36)} | {(nome).ljust(17)} | {str(espaco).ljust(6)} | {(estado).ljust(10)} | {uso.ljust(10)} | {autoProducao}'
+        return f'{(id).ljust(36)} | {(nome).ljust(17)} | {str(espaco).ljust(6)} | {(estado).ljust(10)} | {uso.ljust(10)} | {autoProducao.ljust(10)}'

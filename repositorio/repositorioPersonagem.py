@@ -7,7 +7,6 @@ from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
 from time import time
 
 class RepositorioPersonagem:
-    listaPersonagens = []
     def __init__(self):
         logging.basicConfig(level = logging.debug, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
         self.__logger = logging.getLogger('repositorioPersonagem')
@@ -59,11 +58,10 @@ class RepositorioPersonagem:
                 novoPersonagem = message['data']
             else:
                 chavePersonagemModificado = listaChaves[2]
-            self.__logger.info(f'Menssagem: ({message})')
             idTrabalhoProducaoModificado = None
-            if chavePersonagemModificado == 'Lista_desejo' or chavePersonagemModificado == 'Lista_estoque' or chavePersonagemModificado == 'Lista_profissoes' or chavePersonagemModificado == 'Lista_vendas':
+            if chavePersonagemModificado == CHAVE_LISTA_TRABALHOS_PRODUCAO or chavePersonagemModificado == CHAVE_LISTA_ESTOQUE or chavePersonagemModificado == CHAVE_LISTA_PROFISSAO or chavePersonagemModificado == CHAVE_LISTA_VENDAS:
                 idTrabalhoProducaoModificado = listaChaves[3]
-            dicionarioPersonagemModificado = {'id' : idPersonagemModificado, 'idTrabalhoProducao' : idTrabalhoProducaoModificado,chavePersonagemModificado : message['data'], 'novoPersonagem' : novoPersonagem}
+            dicionarioPersonagemModificado = {CHAVE_ID_PERSONAGEM : idPersonagemModificado, CHAVE_ID_TRABALHO : idTrabalhoProducaoModificado,chavePersonagemModificado : message['data'], 'novoPersonagem' : novoPersonagem}
             self.__dadosModificados.append(dicionarioPersonagemModificado)
     
     def pegaTodosPersonagens(self):

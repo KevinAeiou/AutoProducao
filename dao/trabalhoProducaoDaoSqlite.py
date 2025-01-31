@@ -4,6 +4,7 @@ from modelos.trabalhoProducao import TrabalhoProducao
 from db.db import MeuBanco
 import logging
 from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
+from constantes import *
 
 class TrabalhoProducaoDaoSqlite:
     logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
@@ -123,7 +124,35 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaQuantidadeProducao(self, trabalhoId):
+    def pegaTrabalhosParaProduzirPorProfissaoRaridade(self, trabalho: TrabalhoProducao) -> list[TrabalhoProducao]:
+        trabalhosProducao = []
+        sql = f"""
+            SELECT {CHAVE_LISTA_TRABALHOS_PRODUCAO}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_NIVEL}, {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO}
+            FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO}
+            INNER JOIN {CHAVE_TRABALHOS}
+            ON {CHAVE_LISTA_TRABALHOS_PRODUCAO}.{CHAVE_ID_TRABALHO} == {CHAVE_TRABALHOS}.{CHAVE_ID}
+            WHERE {CHAVE_ID_PERSONAGEM} == ? 
+            AND {CHAVE_ESTADO} == {CODIGO_PARA_PRODUZIR}
+            AND {CHAVE_TRABALHOS}.{CHAVE_RARIDADE} == ?
+            AND {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO} == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (self.__personagem.id, trabalho.raridade, trabalho.profissao))
+            for linha in cursor.fetchall():
+                trabalhoProducao = TrabalhoProducao()
+                trabalhoProducao.id = linha[0]
+                trabalhoProducao.idTrabalho = linha[1]
+                trabalhoProducao.nivel = linha[2]
+                trabalhoProducao.profissao = linha[3]
+                trabalhosProducao.append(trabalhoProducao)
+            self.__meuBanco.desconecta()
+            return trabalhosProducao
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
+    def pegaQuantidadeTrabalhoProducaoProduzindo(self, trabalhoId):
         sql = """
             SELECT COUNT(*) AS quantidade
             FROM Lista_desejo
@@ -142,7 +171,27 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaTrabalhoProducaoPorId(self, trabalhoProducaoBuscado):
+    def pegaQuantidadeTrabalhoProducaoProduzirProduzindo(self, trabalhoId):
+        sql = """
+            SELECT COUNT(*) AS quantidade
+            FROM Lista_desejo
+            WHERE idPersonagem == ?
+            AND idTrabalho == ?
+            AND (estado == 0
+            OR estado == 1);"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (self.__personagem.id, trabalhoId))
+            linha = cursor.fetchone()
+            quantidade = 0 if linha is None else linha[0]
+            self.__meuBanco.desconecta()
+            return quantidade
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
+    def pegaTrabalhoProducaoPorId(self, id):
         trabalhoProducao = TrabalhoProducao()
         sql = """
             SELECT id, idTrabalho, recorrencia, tipoLicenca, estado
@@ -150,7 +199,7 @@ class TrabalhoProducaoDaoSqlite:
             WHERE id == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoProducaoBuscado.id])
+            cursor.execute(sql, [id])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[2] == 1 else False
                 trabalhoProducao.id = linha[0]
@@ -166,21 +215,27 @@ class TrabalhoProducaoDaoSqlite:
         return None
     
     def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
-        recorrencia = 1 if trabalhoProducao.recorrencia else 0
+        trabalhoProducaoLimpo = TrabalhoProducao()
+        trabalhoProducaoLimpo.id = trabalhoProducao.id
+        trabalhoProducaoLimpo.idTrabalho = trabalhoProducao.idTrabalho
+        trabalhoProducaoLimpo.recorrencia = trabalhoProducao.recorrencia
+        trabalhoProducaoLimpo.tipo_licenca = trabalhoProducao.tipo_licenca
+        trabalhoProducaoLimpo.estado = trabalhoProducao.estado
+        recorrencia = 1 if trabalhoProducaoLimpo.recorrencia else 0
         sql = """
             INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, recorrencia, tipoLicenca, estado) 
             VALUES (?, ?, ?, ?, ?, ?);
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.idTrabalho, self.__personagem.id, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado))
+            cursor.execute(sql, (trabalhoProducaoLimpo.id, trabalhoProducaoLimpo.idTrabalho, self.__personagem.id, recorrencia, trabalhoProducaoLimpo.tipo_licenca, trabalhoProducaoLimpo.estado))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao):
-                    self.__logger.info(f'({trabalhoProducao}) inserido no servidor com sucesso!')
+                if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducaoLimpo):
+                    self.__logger.info(f'({trabalhoProducaoLimpo}) inserido no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao inserir ({trabalhoProducao}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({trabalhoProducaoLimpo}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -208,21 +263,28 @@ class TrabalhoProducaoDaoSqlite:
         return False
         
     def modificaTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
-        recorrencia = 1 if trabalhoProducao.recorrencia else 0
+        trabalhoProducaoLimpo = TrabalhoProducao()
+        trabalhoProducaoLimpo.id = trabalhoProducao.id
+        trabalhoProducaoLimpo.idTrabalho = trabalhoProducao.idTrabalho
+        trabalhoProducaoLimpo.recorrencia = trabalhoProducao.recorrencia
+        trabalhoProducaoLimpo.tipo_licenca = trabalhoProducao.tipo_licenca
+        trabalhoProducaoLimpo.estado = trabalhoProducao.estado
+        recorrencia = 1 if trabalhoProducaoLimpo.recorrencia else 0
         sql = """
             UPDATE Lista_desejo 
             SET idTrabalho = ?, recorrencia = ?, tipoLicenca = ?, estado = ? 
-            WHERE id == ?;"""
+            WHERE id == ?;
+            """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducao.idTrabalho, recorrencia, trabalhoProducao.tipo_licenca, trabalhoProducao.estado, trabalhoProducao.id))
+            cursor.execute(sql, (trabalhoProducaoLimpo.idTrabalho, recorrencia, trabalhoProducaoLimpo.tipo_licenca, trabalhoProducaoLimpo.estado, trabalhoProducaoLimpo.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducao):
-                    self.__logger.info(f'({trabalhoProducao}) modificado no servidor com sucesso!')
+                if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducaoLimpo):
+                    self.__logger.info(f'({trabalhoProducaoLimpo}) modificado no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao modificar ({trabalhoProducao}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                    self.__logger.error(f'Erro ao modificar ({trabalhoProducaoLimpo}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)

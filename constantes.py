@@ -2,6 +2,7 @@ CHAVE_USUARIOS = 'Usuarios'
 CHAVE_LISTA_PERSONAGEM = 'Lista_personagem'
 CHAVE_LISTA_PROFISSAO = 'Lista_profissoes'
 CHAVE_LISTA_TRABALHOS = 'Lista_trabalhos'
+CHAVE_TRABALHOS = 'trabalhos'
 CHAVE_LISTA_VENDAS = 'Lista_vendas'
 CHAVE_LISTA_ESTOQUE = 'Lista_estoque'
 CHAVE_LISTA_TRABALHOS_PRODUCAO = 'Lista_desejo'
@@ -22,12 +23,12 @@ CHAVE_NIVEL = 'nivel'
 CHAVE_PROFISSAO = 'profissao'
 CHAVE_RARIDADE = 'raridade'
 CHAVE_DATA_VENDA = 'dataVenda'
-CHAVE_NOME_PERSONAGEM = 'nomePersonagem'
-CHAVE_NOME_PRODUTO = 'nomeProduto'
-CHAVE_QUANTIDADE_PRODUTO = 'quantidadeProduto'
+CHAVE_ID_PERSONAGEM = 'idPersonagem'
+CHAVE_DESCRICAO = 'descricao'
 CHAVE_QUANTIDADE = 'quantidade'
+CHAVE_ID_TRABALHO = 'idTrabalho'
 CHAVE_TRABALHO_ID = 'trabalhoId'
-CHAVE_VALOR_PRODUTO = 'valorProduto'
+CHAVE_VALOR = 'valor'
 CHAVE_RECORRENCIA = 'recorrencia'
 CHAVE_TIPO_LICENCA = 'tipo_licenca'
 CHAVE_TRABALHO_NECESSARIO = 'trabalhoNecessario'
@@ -48,7 +49,7 @@ CHAVE_POSICAO='posicao'
 
 CHAVE_LICENCA_NOVATO = 'Licença de Artesanato de Novato'
 CHAVE_LICENCA_APRENDIZ = 'Licença de Artesanato de Aprendiz'
-CHAVE_LICENCA_MESTRE = 'Licença de produção do mestre'
+CHAVE_LICENCA_MESTRE = 'Licença de Artesanato de Mestre'
 CHAVE_LICENCA_INICIANTE = 'Licença de Artesanato de Iniciante'
 CHAVE_RARIDADE_COMUM='Comum'
 CHAVE_RARIDADE_MELHORADO='Melhorado'
@@ -123,3 +124,34 @@ LISTA_RARIDADES = [CHAVE_RARIDADE_COMUM, CHAVE_RARIDADE_MELHORADO, CHAVE_RARIDAD
 LISTA_LICENCAS = [CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_APRENDIZ, CHAVE_LICENCA_INICIANTE, CHAVE_LICENCA_MESTRE]
 LISTA_EXPERIENCIAS_NIVEL = [20, 200, 540, 1250, 2550, 4700, 7990, 12770, 19440, 28440, 40270, 55450, 74570, 98250, 127180, 156110, 185040, 215000, 245000, 300000, 375000, 470000, 585000, 706825, 830000]
 CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE = 1
+
+CHAVE_LISTA_PRODUCAO_RECURSO = [
+    'melhorarlicençacomum',
+    'licençadeproduçãodoaprendiz',
+    'grandecoleçãoderecursoscomuns',
+    'grandecoleçãoderecursosavançados',
+    'coletaemmassaderecursosavançados',
+    'melhoriadaessênciacomum',
+    'melhoriadasubstânciacomum',
+    'melhoriadocatalizadorcomum',
+    'melhoriadaessênciacomposta',
+    'melhoriadasubtânciacomposta',
+    'melhoriadocatalizadoramplificado',
+    'criaresferadoaprendiz','produzindoavarinhademadeira','produzindocabeçadocajadodejade',
+    'produzindocabeçadecajadodeônix','criaresferadoneófito','produzindoavarinhadeaço',
+    'extraçãodelascas','manipulaçãodelascas','fazermódoaprendiz',
+    'preparandolascasdequartzo','manipulaçãodeminériodecobre','fazermódoprincipiante',
+    'adquirirtesouradoaprendiz','produzindofioresistente','fazendotecidodelinho',
+    'fazendotecidodecetim','comprartesouradoprincipiante','produzindofiogrosso',
+    'adquirirfacadoaprendiz','recebendoescamasdaserpente','concluindocouroresistente',
+    'adquirirfacadoprincipiante','recebendoescamasdolagarto','curtindocourogrosso',
+    'adquirirmarretãodoaprendiz','forjandoplacasdecobre','fazendoplacasdebronze',
+    'adquirirmarretãodoprincipiante','forjandoplacasdeferro','fazendoanéisdeaço',
+    'adquirirmoldedoaprendiz','extraçãodepepitasdecobre','recebendogemadassombras',
+    'adquirirmoldedoprincipiante','extraçãodepepitasdeprata','recebendogemadaluz',
+    'adquirirpinçadoaprendiz','extraçãodejadebruta','recebendoenergiainicial',
+    'adquirirpinçasdoprincipiante','extraçãodeônixextraordinária','recebendoéterinicial',
+    'adquirirfuradordoaprendiz','produzindotecidodelicado','extraçãodesubstânciainstável',
+    'adquirirfuradordoprincipiante','produzindotecidodenso','extraçãodesubstânciaestável',
+    'recebendofibradebronze','recebendoprata','recebendoinsígniadeestudante',
+    'recebendofibradeplatina','recebendoâmbar','recebendodistintivodeaprendiz']

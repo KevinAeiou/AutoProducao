@@ -1,5 +1,6 @@
 from unidecode import unidecode
 from constantes import *
+from modelos.trabalho import Trabalho
 import numpy as np
 import os
 
@@ -37,7 +38,7 @@ def existePixelPreto(frameTela):
 def existePixelPretoSuficiente(frameTela):
     return np.sum(frameTela==0) > 250 and np.sum(frameTela==0) < 3000
 
-def ehMenuInicial(menu):
+def ehMenuInicial(menu: int) -> bool:
     return menu == MENU_INICIAL
 
 def ehMenuProduzir(menu):
@@ -49,13 +50,22 @@ def ehMenuJogar(menu):
 def ehMenuEscolhaPersonagem(menu):
     return menu == MENU_ESCOLHA_PERSONAGEM
 
+def ehMenuTrabalhosDisponiveis(menu):
+    return menu == MENU_TRABALHOS_DISPONIVEIS
+    
+def ehMenuNoticias(menu: int) -> bool:
+    return menu == MENU_NOTICIAS
+
+def ehMenuDesconhecido(menu: int) -> bool:
+    return menu == MENU_DESCONHECIDO
+
 def ehErroOutraConexao(erro):
     return erro == CODIGO_ERRO_OUTRA_CONEXAO
 
-def ehErroRestauraConexao(erro):
+def ehErroRestauraConexao(erro: int) -> bool:
     return erro == CODIGO_RESTAURA_CONEXAO
 
-def ehErroConectando(erro):
+def ehErroConectando(erro: int) -> bool:
     return erro == CODIGO_CONECTANDO
 
 def ehErroRecursosInsuficiente(erro):
@@ -109,7 +119,7 @@ def ehErroTrabalhoNaoConcluido(erro):
 def ehErroEspacoBolsaInsuficiente(erro):
     return erro == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE
 
-def ehErroUsuarioOuSenhaInvalida(erro):
+def ehErroUsuarioOuSenhaInvalida(erro: int) -> bool:
     return erro == CODIGO_ERRO_USUARIO_SENHA_INVALIDA
 
 def ehErroMoedasMilagrosasInsuficientes(erro):
@@ -121,40 +131,10 @@ def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
 def haMaisQueUmPersonagemAtivo(listaPersonagemAtivo):
     return not len(listaPersonagemAtivo) == 1
 
-def trabalhoEhProducaoRecursos(trabalhoProducao):
-    if variavelExiste(trabalhoProducao):
-        listaProducaoRecurso = [
-            'melhorarlicençacomum',
-            'licençadeproduçãodoaprendiz',
-            'grandecoleçãoderecursoscomuns',
-            'grandecoleçãoderecursosavançados',
-            'coletaemmassaderecursosavançados',
-            'melhoriadaessênciacomum',
-            'melhoriadasubstânciacomum',
-            'melhoriadocatalizadorcomum',
-            'melhoriadaessênciacomposta',
-            'melhoriadasubtânciacomposta',
-            'melhoriadocatalizadoramplificado',
-            'criaresferadoaprendiz','produzindoavarinhademadeira','produzindocabeçadocajadodejade',
-            'produzindocabeçadecajadodeônix','criaresferadoneófito','produzindoavarinhadeaço',
-            'extraçãodelascas','manipulaçãodelascas','fazermódoaprendiz',
-            'preparandolascasdequartzo','manipulaçãodeminériodecobre','fazermódoprincipiante',
-            'adquirirtesouradoaprendiz','produzindofioresistente','fazendotecidodelinho',
-            'fazendotecidodecetim','comprartesouradoprincipiante','produzindofiogrosso',
-            'adquirirfacadoaprendiz','recebendoescamasdaserpente','concluindocouroresistente',
-            'adquirirfacadoprincipiante','recebendoescamasdolagarto','curtindocourogrosso',
-            'adquirirmarretãodoaprendiz','forjandoplacasdecobre','fazendoplacasdebronze',
-            'adquirirmarretãodoprincipiante','forjandoplacasdeferro','fazendoanéisdeaço',
-            'adquirirmoldedoaprendiz','extraçãodepepitasdecobre','recebendogemadassombras',
-            'adquirirmoldedoprincipiante','extraçãodepepitasdeprata','recebendogemadaluz',
-            'adquirirpinçadoaprendiz','extraçãodejadebruta','recebendoenergiainicial',
-            'adquirirpinçasdoprincipiante','extraçãodeônixextraordinária','recebendoéterinicial',
-            'adquirirfuradordoaprendiz','produzindotecidodelicado','extraçãodesubstânciainstável',
-            'adquirirfuradordoprincipiante','produzindotecidodenso','extraçãodesubstânciaestável',
-            'recebendofibradebronze','recebendoprata','recebendoinsígniadeestudante',
-            'recebendofibradeplatina','recebendoâmbar','recebendodistintivodeaprendiz']
-        for recurso in listaProducaoRecurso:
-            if textoEhIgual(recurso, trabalhoProducao.nomeProducao):
+def trabalhoEhProducaoRecursos(trabalho: Trabalho) -> bool:
+    if variavelExiste(trabalho):
+        for recurso in CHAVE_LISTA_PRODUCAO_RECURSO:
+            if textoEhIgual(recurso, trabalho.nomeProducao):
                 print(f'Trabalho produção é recurso')
                 return True
     print(f'Trabalho produção não é recurso')

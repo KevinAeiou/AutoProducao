@@ -15,7 +15,7 @@ class ManipulaImagem:
         digitoReconhecido=pytesseract.image_to_string(imagem, config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')
         return digitoReconhecido.strip()
 
-    def reconheceTexto(self, imagem):
+    def reconheceTexto(self, imagem) -> str | None:
         caminho = r"C:\Program Files\Tesseract-OCR"
         pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
         textoReconhecido = pytesseract.image_to_string(imagem, lang="por")
@@ -44,9 +44,9 @@ class ManipulaImagem:
     def retornaAtualizacaoTela(self):
         return self.retornaImagemColorida(tiraScreenshot())
 
-    def retornaImagemBinarizada(self, image):
+    def retornaImagemBinarizada(self, image) -> np.ndarray:
         blur = cv2.GaussianBlur(image, (1, 1), cv2.BORDER_DEFAULT)
-        ret, thresh = cv2.threshold(blur, 180, 255, cv2.THRESH_BINARY_INV)
+        ret, thresh = cv2.threshold(blur, 170, 255, cv2.THRESH_BINARY_INV)
         return thresh
 
     def retornaImagemDitalata(self, imagem, kernel, iteracoes):
@@ -71,33 +71,26 @@ class ManipulaImagem:
             os.makedirs('tests/imagemTeste')
             cv2.imwrite('tests/imagemTeste/{}'.format(nomeImagem),imagem)
 
-    def reconheceNomeTrabalho(self, tela, y, identificador):
-        altura = 34
-        if identificador == 1:
-            altura = 68
-        frameTelaInteira = tela[y:y + altura, 233:478]
-        frameNomeTrabalhoTratado = self.retornaImagemCinza(frameTelaInteira)
+    def reconheceNomeTrabalho(self, tela: np.ndarray, y: int, identificador: int) -> str | None:
+        altura: int = 68 if identificador == 1 else 34
+        frameTrabalho: np.ndarray = tela[y : y + altura, 233 : 478]
+        frameNomeTrabalhoTratado: np.ndarray = self.retornaImagemCinza(frameTrabalho)
         frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalhoTratado)
-        if existePixelPreto(frameNomeTrabalhoTratado):
-            return self.reconheceTexto(frameNomeTrabalhoTratado)
-        return None
+        return self.reconheceTexto(frameNomeTrabalhoTratado) if existePixelPreto(frameNomeTrabalhoTratado) else None
     
     def retornaNomeTrabalhoReconhecido(self, yinicialNome, identificador):
         sleep(1.5)
         return self.reconheceNomeTrabalho(self.retornaAtualizacaoTela(), yinicialNome, identificador)
 
-    def reconheceNomeConfirmacaoTrabalhoProducao(self, tela, tipoTrabalho):
-        listaFrames = [[169, 285, 303, 33], [183, 200, 318, 31]] # [x, y, altura, largura]
-        posicao = listaFrames[tipoTrabalho]
-        frameNomeTrabalho = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
-        # self.mostraImagem(0, frameNomeTrabalho, None)
-        # frameNomeTrabalhoCinza = self.retornaImagemCinza(frameNomeTrabalho)
-        frameNomeTrabalhoBinarizado = self.retornaImagemBinarizada(frameNomeTrabalho)
-        # self.mostraImagem(0, frameNomeTrabalhoBinarizado, None)
+    def reconheceNomeConfirmacaoTrabalhoProducao(self, tela: np.ndarray, tipoTrabalho: int) -> str | None:
+        arrayFrames: tuple = ((169, 285, 303, 33), (183, 200, 318, 31)) # [x, y, altura, largura]
+        posicao: int = arrayFrames[tipoTrabalho]
+        frameNomeTrabalho: np.ndarray = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
+        frameNomeTrabalhoBinarizado: np.ndarray = self.retornaImagemBinarizada(frameNomeTrabalho)
         return self.reconheceTexto(frameNomeTrabalhoBinarizado)
 
-    def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho):
-        return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho)
+    def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho: int) -> str | None:
+        return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho= tipoTrabalho)
 
     def reconheceTextoLicenca(self, telaInteira):
         listaLicencas = ['novato','iniciante','aprendiz','mestre','nenhumitem']
@@ -131,7 +124,7 @@ class ManipulaImagem:
                 return 'provisorioatecair'
         return None
     
-    def retornaTextoNomePersonagemReconhecido(self, posicao):
+    def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
         print(f'Verificando nome personagem...')
         return self.reconheceTextoNomePersonagem(self.retornaAtualizacaoTela(), posicao)
     
@@ -141,34 +134,21 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def reconheceTextoMenu(self, tela, x, y, largura, altura):
-        frameTela = tela[y:y+altura,x:x+largura]
-        frameTela = self.retornaImagemCinza(frameTela)
-        frameTela = self.retornaImagemEqualizada(frameTela)
-        frameTela = self.retornaImagemBinarizada(frameTela)
-        texto = self.reconheceTexto(frameTela)
-        if variavelExiste(texto):
-            return limpaRuidoTexto(texto)
-        return None
-    
-    def verificaPosicaoFrameMenu(self, tela):
+    def verificaPosicaoFrameMenu(self, tela) -> tuple[int, int, int, int] | None:
         frameTela = tela[0:tela.shape[0],0:tela.shape[1]//2]
         imagemCinza = self.retornaImagemCinza(frameTela)
         imagemLimiarizada = cv2.Canny(imagemCinza,200,255)
         contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for contorno in contornos:
             x, y, l, a = cv2.boundingRect(contorno)
-            if l > 340 and l < 350 and (a > 50 and a < 60 or a == 5):
+            if l > 345 and l < 350 and (a > 50 and a < 60 or a == 5):
                 y -= 40
                 a += 40
                 return (x, y, l, a)
         return None
 
-    def retornaPosicaoFrameMenuReconhecido(self):
-        return self.verificaPosicaoFrameMenu(self.retornaAtualizacaoTela())
-
-    def retornaTextoMenuReconhecido(self, x, y, largura, altura = 30):        
-        return self.reconheceTextoMenu(self.retornaAtualizacaoTela(), x, y, largura, altura)
+    def retornaPosicaoFrameMenuReconhecido(self) -> tuple[int, int, int, int] | None:
+        return self.verificaPosicaoFrameMenu(tela= self.retornaAtualizacaoTela())
     
     def verificaMenuReferenciaInicial(self, tela):
         posicaoMenu = [[703,627],[712,1312]]
@@ -182,15 +162,21 @@ class ManipulaImagem:
     def verificaMenuReferencia(self):
         return self.verificaMenuReferenciaInicial(self.retornaAtualizacaoTela())
     
-    def reconheceTextoSair(self, tela):
-        frameTelaTratado = self.retornaImagemCinza(tela[tela.shape[0]-50:tela.shape[0]-15,50:50+60])
+    def reconheceTextoMenu(self, tela) -> str | None:
+        frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
+        frameTelaTratado = self.retornaImagemCinza(frameTela)
         frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
-        contadorPixelPreto = np.sum(frameTelaTratado==0)
-        if contadorPixelPreto > 100 and contadorPixelPreto < 400:
-            texto = self.reconheceTexto(frameTelaTratado)
-            if variavelExiste(texto):
-                return limpaRuidoTexto(texto)
-        return None
+        texto = self.reconheceTexto(frameTelaTratado)
+        return None if texto is None else limpaRuidoTexto(texto)
+
+    def retornaTextoMenuReconhecido(self) -> str | None:        
+        return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
+    
+    def reconheceTextoSair(self, tela: np.ndarray):
+        frameTelaTratado = self.retornaImagemCinza(tela[tela.shape[0]-55:tela.shape[0]-15,50:50+80])
+        frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
+        texto = self.reconheceTexto(frameTelaTratado)
+        return None if texto is None else limpaRuidoTexto(texto)
     
     def retornaTextoSair(self):
         return self.reconheceTextoSair(self.retornaAtualizacaoTela())
@@ -209,7 +195,10 @@ class ManipulaImagem:
         
     def existeCorrespondencia(self):
         print(f'Verificando se possui correspondencia...')
-        return np.sum(self.retornaAtualizacaoTela()[233:233+30, 235:235+200] == 255) > 0
+        return self.quantidadePixelBrancoEhMaiorQueZero(self.retornaAtualizacaoTela())
+
+    def quantidadePixelBrancoEhMaiorQueZero(self, imagem):
+        return np.sum(imagem[233:233+30, 235:235+200] == 255) > 0
     
     def reconheceTextoCorrespondencia(self, tela):
         return self.reconheceTexto(tela[231:231+100, 168:168+343])
@@ -300,10 +289,8 @@ class ManipulaImagem:
 
 if __name__=='__main__':
     imagem = ManipulaImagem()
-    clickAtalhoEspecifico('alt','tab')
-    posicao = imagem.retornaPosicaoFrameMenuReconhecido()
-    if posicao is not None:
-        print(imagem.retornaTextoMenuReconhecido(posicao[0], posicao[1], posicao[2], posicao[3]))
-    # imagemTeste = imagem.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias2.png')
-    # print(imagem.retornaReferencia(imagemTeste))
-    # print(imagem.verificaRecompensaDisponivel())
+    # clickAtalhoEspecifico('alt','tab')
+    telaTeste = imagem.abreImagem('tests/imagemTeste/testeTrabalhoQuitonDoSenhorDaDorUm.png')
+    print(imagem.reconheceNomeTrabalho(tela= telaTeste, y= (1 * 72) + 289, identificador= 0))
+    telaTeste = imagem.abreImagem('tests/imagemTeste/testeTrabalhoQuitonDoSenhorDaDorDois.png')
+    print(imagem.reconheceNomeConfirmacaoTrabalhoProducao(tela= telaTeste, tipoTrabalho= 0))

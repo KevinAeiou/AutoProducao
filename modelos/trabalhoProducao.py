@@ -1,5 +1,4 @@
 from constantes import CODIGO_PARA_PRODUZIR, CODIGO_PRODUZINDO, CODIGO_CONCLUIDO, CHAVE_RARIDADE_COMUM, CHAVE_RARIDADE_MELHORADO, CHAVE_RARIDADE_RARO, CHAVE_RARIDADE_ESPECIAL
-from uuid import uuid4
 from modelos.trabalho import Trabalho
 
 class TrabalhoProducao(Trabalho):
@@ -47,4 +46,4 @@ class TrabalhoProducao(Trabalho):
         estado = 'Produzir' if self.estado == 0 else 'Produzindo' if self.estado == 1 else 'Feito'
         licenca = 'Indefinido' if self.tipo_licenca == None else str(self.tipo_licenca)
         recorrencia = 'Recorrente' if self.recorrencia else 'Único'
-        return f'{id.ljust(36)} | {idTrabalho.ljust(36)} | {estado.ljust(10)} | {licenca.ljust(34)} | {recorrencia}'
+        return f'{id.ljust(36)} | {idTrabalho.ljust(36)} | {estado.ljust(10)} | {licenca.ljust(34)} | {recorrencia.ljust(10)}'

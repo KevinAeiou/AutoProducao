@@ -4,6 +4,7 @@ from modelos.trabalhoEstoque import TrabalhoEstoque
 from db.db import MeuBanco
 from repositorio.repositorioEstoque import RepositorioEstoque
 import logging
+from constantes import *
 
 class EstoqueDaoSqlite:
     logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
@@ -20,7 +21,7 @@ class EstoqueDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaEstoque(self):
+    def pegaTrabalhosEstoque(self):
         estoque = []
         sql = """
             SELECT Lista_estoque.id, trabalhos.nome, trabalhos.profissao, trabalhos.nivel, Lista_estoque.quantidade, trabalhos.raridade, Lista_estoque.idTrabalho
@@ -75,17 +76,18 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaTrabalhoEstoquePorId(self, trabalhoBuscado):
+    def pegaTrabalhoEstoquePorId(self, id: str) -> TrabalhoEstoque | None:
         trabalhoEncontrado = TrabalhoEstoque()
         sql = """
             SELECT Lista_estoque.id, trabalhos.nome, trabalhos.profissao, trabalhos.nivel, Lista_estoque.quantidade, trabalhos.raridade, Lista_estoque.idTrabalho
             FROM Lista_estoque
             INNER JOIN trabalhos
             ON Lista_estoque.idTrabalho == trabalhos.id
-            WHERE Lista_estoque.id == ?;"""
+            WHERE Lista_estoque.id == ?
+            LIMIT 1;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoBuscado.id])
+            cursor.execute(sql, [id])
             for linha in cursor.fetchall():
                 trabalhoEncontrado.id = linha[0]
                 trabalhoEncontrado.nome = linha[1]
@@ -101,7 +103,28 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def pegaQuantidadeTrabalho(self, trabalhoId):            
+    def pegaTrabalhoEstoquePorIdTrabalho(self, id: str) -> TrabalhoEstoque | None:
+        sql = f"""
+            SELECT {CHAVE_ID}, {CHAVE_QUANTIDADE}, {CHAVE_ID_TRABALHO}
+            FROM {CHAVE_LISTA_ESTOQUE}
+            WHERE {CHAVE_ID_TRABALHO} == ?
+            LIMIT 1;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, [id])
+            trabalhoEncontrado = TrabalhoEstoque()
+            for linha in cursor.fetchall():
+                trabalhoEncontrado.id = linha[0]
+                trabalhoEncontrado.quantidade = linha[1]
+                trabalhoEncontrado.trabalhoId = linha[2]
+            self.__meuBanco.desconecta()
+            return trabalhoEncontrado
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
+    def pegaQuantidadeTrabalho(self, idTrabalho: str) -> int | None:            
         sql = """
             SELECT quantidade
             FROM Lista_estoque
@@ -111,7 +134,7 @@ class EstoqueDaoSqlite:
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoId, self.__personagem.id))
+            cursor.execute(sql, (idTrabalho, self.__personagem.id))
             linha = cursor.fetchone()
             quantidade = 0 if linha is None else linha[0]
             self.__meuBanco.desconecta()
@@ -121,41 +144,48 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
-        sql = """
-            INSERT INTO Lista_estoque (id, idPersonagem, idTrabalho, quantidade)
-            VALUES (?,?,?,?)"""
+    def insereTrabalhoEstoque(self, trabalho: TrabalhoEstoque, modificaServidor: bool = True) -> bool:
+        sql = f"""
+            INSERT INTO {CHAVE_LISTA_ESTOQUE} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_ID_TRABALHO}, {CHAVE_QUANTIDADE})
+            VALUES (?,?,?,?);
+            """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoEstoque.id, self.__personagem.id, trabalhoEstoque.trabalhoId, trabalhoEstoque.quantidade))
+            cursor.execute(sql, (trabalho.id, self.__personagem.id, trabalho.trabalhoId, trabalho.quantidade))
+            if modificaServidor:
+                if self.__repositorioEstoque.insereTrabalhoEstoque(trabalho):
+                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
+                else:
+                    self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor!')
+                    self.__conexao.rollback()
+                    self.__meuBanco.desconecta()
+                    return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioEstoque.insereTrabalhoEstoque(trabalhoEstoque):
-                    self.__logger.info(f'({trabalhoEstoque}) inserido no servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao inserir ({trabalhoEstoque}) no servidor!')
             return True
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return False
 
-    def modificaTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
-        sql = """
-            UPDATE Lista_estoque 
-            SET idTrabalho = ?, quantidade = ?
-            WHERE id == ?"""
+    def modificaTrabalhoEstoque(self, trabalho: TrabalhoEstoque, modificaServidor: bool = True) -> bool:
+        sql = f"""
+            UPDATE {CHAVE_LISTA_ESTOQUE} 
+            SET {CHAVE_ID_TRABALHO} = ?, {CHAVE_QUANTIDADE} = ?
+            WHERE {CHAVE_ID} == ?"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoEstoque.trabalhoId, trabalhoEstoque.quantidade, trabalhoEstoque.id))
+            cursor.execute(sql, (trabalho.trabalhoId, trabalho.quantidade, trabalho.id))
+            if modificaServidor:
+                if self.__repositorioEstoque.modificaTrabalhoEstoque(trabalho):
+                    self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
+                else:
+                    self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {self.__repositorioEstoque.pegaErro()}')
+                    self.__conexao.rollback()
+                    self.__meuBanco.desconecta()
+                    return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioEstoque.modificaTrabalhoEstoque(trabalhoEstoque):
-                    self.__logger.info(f'({trabalhoEstoque}) modificado no servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao modificar ({trabalhoEstoque}) no servidor: {self.__repositorioEstoque.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
@@ -194,7 +224,7 @@ class EstoqueDaoSqlite:
         self.__meuBanco.desconecta()
         return False
     
-    def removeTrabalhoEstoque(self, trabalhoEstoque):
+    def removeTrabalhoEstoque(self, trabalhoEstoque, modificaServidor = True):
         sql = """
             DELETE FROM Lista_estoque
             WHERE id == ?;
@@ -202,12 +232,16 @@ class EstoqueDaoSqlite:
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [trabalhoEstoque.id])
+            if modificaServidor:
+                if self.__repositorioEstoque.removeTrabalho(trabalhoEstoque):
+                    self.__logger.info(f'({trabalhoEstoque}) removido do servidor com sucesso!')
+                else:
+                    self.__logger.error(f'Erro ao remover ({trabalhoEstoque}) do servidor: {self.__repositorioEstoque.pegaErro()}')
+                    self.__conexao.rollback()
+                    self.__meuBanco.desconecta()
+                    return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if self.__repositorioEstoque.removeTrabalho(trabalhoEstoque):
-                self.__logger.info(f'({trabalhoEstoque}) removido do servidor com sucesso!')
-            else:
-                self.__logger.error(f'Erro ao remover ({trabalhoEstoque}) do servidor: {self.__repositorioEstoque.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)

@@ -1,5 +1,7 @@
 from main import Aplicacao
 from modelos.trabalhoProducao import TrabalhoProducao
+from modelos.personagem import Personagem
+from constantes import CHAVE_LICENCA_INICIANTE
 
 class TesteAplicacao:
     __aplicacao = Aplicacao()
@@ -7,29 +9,25 @@ class TesteAplicacao:
     def testDeveRetornarQuantidadeUmQuandoProdutoForVendido(self):
         texto = 'Item vendido BraceleteTranscendental x1 por 173333 deOuroTaxa do mercado 17333 de Ouro'
         esperado = 1
-        listaTextoCarta = texto.split()
-        recebido = self.__aplicacao.retornaQuantidadeTrabalhoVendido(listaTextoCarta)
+        recebido = self.__aplicacao.retornaQuantidadeTrabalhoVendido(texto)
         assert esperado == recebido
 
     def testDeveRetornarValor58888QuandoProdutoForVendido(self):
         texto = 'Item vendido BraceleteTranscendental x1 por 173333 deOuroTaxa do mercado 17333 de Ouro'
         esperado = 173333
-        listaTextoCarta = texto.split()
-        recebido = self.__aplicacao.retornaValorTrabalhoVendido(listaTextoCarta)
+        recebido = self.__aplicacao.retornaValorTrabalhoVendido(texto)
         assert esperado == recebido
 
     def testDeveRetornarZeroQuandoPalavraPorNaoForEncontrada(self):
         texto = 'Item vendido Atiradora do silêncioabsoluto x1 58888 de Ouro'
         esperado = 0
-        listaTextoCarta = texto.split()
-        recebido = self.__aplicacao.retornaValorTrabalhoVendido(listaTextoCarta)
+        recebido = self.__aplicacao.retornaValorTrabalhoVendido(texto)
         assert esperado == recebido
 
     def testDeveRetornarStringIdQuandoMetodoRetornaChaveIdTrabalhoEhChamado(self):
         texto = 'Item vendido BraceleteTranscendental x1 por 173333 deOuroTaxa do mercado 17333 de Ouro'
-        listaTextoCarta = texto.split()
-        esperado = 'e0e6eb2f-3665-47c9-8c70-956e871f3eb1'
-        recebido = self.__aplicacao.retornaChaveIdTrabalho(listaTextoCarta)
+        esperado = 'Jj77Su2yveC7DKuWSaflMxo1Mhbl'
+        recebido = self.__aplicacao.retornaChaveIdTrabalho(texto)
         assert esperado == recebido
 
     def testDeveRetornarMesmoObjetoTrabalhoProducaoComNomeIdQuandoMetodoDefineCloneDicionarioTrabalhoDesejadoEhChamado(self):
@@ -52,3 +50,25 @@ class TesteAplicacao:
         nomeRecebido = cloneTrabalhoTeste.nome
         assert idEsperado != idRecebido
         assert nomeEsperado == nomeRecebido
+
+    def testDeveRetornarVerdadeiroQuandoFuncaoExperienciaProfissaoEhModificadaComSucesso(self):
+        personagemTeste = Personagem()
+        personagemTeste.id = '0a490f60-b231-4e50-9f52-ed91ba5bda07'
+        self.__aplicacao.personagemEmUso(personagemTeste)
+        trabalhoTeste = TrabalhoProducao()
+        trabalhoTeste.idTrabalho = '-NdR3aKtc466bwo5L5_-'
+        trabalhoTeste.tipo_licenca = CHAVE_LICENCA_INICIANTE
+        esperado = True
+        recebido = self.__aplicacao.modificaExperienciaProfissao(trabalhoTeste)
+        assert esperado == recebido
+
+    def testDeveRetornarFalsoQuandoIdTrabalhoEhInvalido(self):
+        personagemTeste = Personagem()
+        personagemTeste.id = '0a490f60-b231-4e50-9f52-ed91ba5bda07'
+        self.__aplicacao.personagemEmUso(personagemTeste)
+        trabalhoTeste = TrabalhoProducao()
+        trabalhoTeste.idTrabalho = ''
+        trabalhoTeste.tipo_licenca = ''
+        esperado = False
+        recebido = self.__aplicacao.modificaExperienciaProfissao(trabalhoTeste)
+        assert esperado == recebido

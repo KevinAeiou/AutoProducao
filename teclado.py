@@ -46,15 +46,14 @@ def posicionaMouseEsquerdo(x_tela,y_tela):
     tecla.moveTo(x_tela,y_tela)
     print(f'Posicionado em {x_tela}:{y_tela}.')
 
-def encerraSecao():
+def encerraSecao() -> None:
     print(f'Encerrando seção...')
     clickEspecifico(1,'f2')
     clickEspecifico(1,8)
     clickEspecifico(1,5)
     clickEspecifico(1,'f2')
 
-def entraProfissaoEspecifica(profissao, posicao):
-    print(f'Entrando na profissão {profissao.nome}...')
+def entraProfissaoEspecifica(posicao: int) -> None:
     sleep(1)
     for x in range(posicao):
         tecla.hotkey('down')
@@ -67,10 +66,8 @@ def entraProfissaoEspecifica(profissao, posicao):
     print('Cima.')
     sleep(0.5)
     
-def entraTrabalhoEncontrado(dicionarioTrabalho):
-    posicao = dicionarioTrabalho[CHAVE_POSICAO]
-    if posicao < 0:
-        posicao = 0
+def entraTrabalhoEncontrado(dicionarioTrabalho: dict) -> None:
+    posicao: int = dicionarioTrabalho[CHAVE_POSICAO] if dicionarioTrabalho[CHAVE_POSICAO] > 0 else 0
     print(f'Entra trabalho na posição: {posicao + 1}.')
     clickContinuo(3, 'up')
     clickEspecifico(posicao + 1, 'down')
@@ -92,7 +89,7 @@ def saiProfissaoVerificada(dicionario):
     clickEspecifico(1, 'left')
     sleep(1)
 
-def preencheCamposLogin(email,senha):
+def preencheCamposLogin(email: str, senha: str) -> None:
     clickEspecifico(1,'f2')
     clickEspecifico(1,0)
     clickEspecifico(1,'f2')

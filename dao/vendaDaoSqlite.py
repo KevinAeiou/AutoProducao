@@ -1,8 +1,10 @@
 __author__ = 'Kevin Amazonas'
 
 from modelos.trabalhoVendido import TrabalhoVendido
+from modelos.personagem import Personagem
 from db.db import MeuBanco
 from repositorio.repositorioVendas import RepositorioVendas
+from constantes import CHAVE_LISTA_VENDAS, CHAVE_TRABALHOS, CHAVE_ID, CHAVE_NOME, CHAVE_NIVEL, CHAVE_PROFISSAO, CHAVE_RARIDADE, CHAVE_TRABALHO_NECESSARIO, CHAVE_DESCRICAO, CHAVE_DATA_VENDA, CHAVE_QUANTIDADE, CHAVE_VALOR, CHAVE_ID_TRABALHO, CHAVE_ID_PERSONAGEM, CHAVE_RARIDADE_RARO
 import logging
 
 class VendaDaoSqlite:
@@ -10,7 +12,7 @@ class VendaDaoSqlite:
     def __init__(self, personagem = None):
         self.__conexao = None
         self.__erro = None
-        self.__personagem = personagem
+        self.__personagem: Personagem = personagem
         self.__repositorioVendas = RepositorioVendas(personagem)
         self.__logger = logging.getLogger('vendaDao')
         try:
@@ -20,33 +22,33 @@ class VendaDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaVendas(self):
+    def pegaTrabalhosVendidos(self):
         vendas = []
-        sql = """
-            SELECT vendas.id, trabalhos.id, trabalhos.nome, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, vendas.nomeProduto, vendas.dataVenda, vendas.quantidadeProduto, vendas.valorProduto
-            FROM vendas
-            INNER JOIN trabalhos
-            ON vendas.trabalhoId == trabalhos.id
-            WHERE nomePersonagem == ?;
+        sql = f"""
+            SELECT {CHAVE_LISTA_VENDAS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_NOME}, {CHAVE_TRABALHOS}.{CHAVE_NIVEL}, {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO}, {CHAVE_TRABALHOS}.{CHAVE_RARIDADE}, {CHAVE_TRABALHOS}.{CHAVE_TRABALHO_NECESSARIO}, {CHAVE_LISTA_VENDAS}.{CHAVE_DESCRICAO}, {CHAVE_LISTA_VENDAS}.{CHAVE_DATA_VENDA}, {CHAVE_LISTA_VENDAS}.{CHAVE_QUANTIDADE}, {CHAVE_LISTA_VENDAS}.{CHAVE_VALOR}
+            FROM {CHAVE_LISTA_VENDAS}
+            INNER JOIN {CHAVE_TRABALHOS}
+            ON {CHAVE_LISTA_VENDAS}.{CHAVE_ID_TRABALHO} == {CHAVE_TRABALHOS}.{CHAVE_ID}
+            WHERE {CHAVE_ID_PERSONAGEM} == ?;
             """
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
-                trabalhoVendido = TrabalhoVendido()
-                trabalhoVendido.id = linha[0]
-                trabalhoVendido.trabalhoId = linha[1]
-                trabalhoVendido.nome = linha[2]
-                trabalhoVendido.nivel = linha[3]
-                trabalhoVendido.profissao = linha[4]
-                trabalhoVendido.raridade = linha[5]
-                trabalhoVendido.trabalhoNecessario = linha[6]
-                trabalhoVendido.nomeProduto = linha[7]
-                trabalhoVendido.dataVenda = linha[8]
-                trabalhoVendido.quantidadeProduto = linha[9]
-                trabalhoVendido.valorProduto = linha[10]
-                vendas.append(trabalhoVendido)
-            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.dataVenda, trabalhoVendido.nome))
+                trabalho = TrabalhoVendido()
+                trabalho.id = linha[0]
+                trabalho.idTrabalho = linha[1]
+                trabalho.nome = linha[2]
+                trabalho.nivel = linha[3]
+                trabalho.profissao = linha[4]
+                trabalho.raridade = linha[5]
+                trabalho.trabalhoNecessario = linha[6]
+                trabalho.descricao = linha[7]
+                trabalho.dataVenda = linha[8]
+                trabalho.quantidade = linha[9]
+                trabalho.valor = linha[10]
+                vendas.append(trabalho)
+            vendas = sorted(vendas, key=lambda trabalho: trabalho.dataVenda)
             self.__meuBanco.desconecta()
             return vendas
         except Exception as e:
@@ -55,24 +57,24 @@ class VendaDaoSqlite:
         return None
 
     def pegaTrabalhoVendidoPorId(self, trabalhoVendidoBuscado):
-        trabalhoVendido = TrabalhoVendido()
-        sql = """
+        trabalho = TrabalhoVendido()
+        sql = f"""
             SELECT * 
-            FROM vendas 
-            WHERE id == ?;"""
+            FROM {CHAVE_LISTA_VENDAS} 
+            WHERE {CHAVE_ID} == ?;"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [trabalhoVendidoBuscado.id])
             for linha in cursor.fetchall():
-                trabalhoVendido.id = linha[0]
-                trabalhoVendido.nomeProduto = linha[1]
-                trabalhoVendido.dataVenda = linha[2]
-                trabalhoVendido.nomePersonagem = linha[3]
-                trabalhoVendido.quantidadeProduto = linha[4]
-                trabalhoVendido.trabalhoId = linha[5]
-                trabalhoVendido.valorProduto = linha[6]
+                trabalho.id = linha[0]
+                trabalho.descricao = linha[1]
+                trabalho.dataVenda = linha[2]
+                trabalho.idPersonagem = linha[3]
+                trabalho.quantidade = linha[4]
+                trabalho.idTrabalho = linha[5]
+                trabalho.valor = linha[6]
             self.__meuBanco.desconecta()
-            return trabalhoVendido
+            return trabalho
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
@@ -80,43 +82,43 @@ class VendaDaoSqlite:
     
     def pegaTrabalhosRarosVendidos(self):
         vendas = []
-        sql = """
+        sql = f"""
             SELECT 
-                trabalhoId,  
+                {CHAVE_ID_TRABALHO},  
                 (
-                SELECT nome
-                FROM trabalhos
-                WHERE trabalhos.id == trabalhoId
-                AND trabalhos.raridade == 'Raro'
+                SELECT {CHAVE_NOME}
+                FROM {CHAVE_TRABALHOS}
+                WHERE {CHAVE_TRABALHOS}.{CHAVE_ID} == {CHAVE_ID_TRABALHO}
+                AND {CHAVE_TRABALHOS}.{CHAVE_RARIDADE} == '{CHAVE_RARIDADE_RARO}'
                 )
-                AS nome,
+                AS {CHAVE_NOME},
                 (
-                SELECT nivel
-                FROM trabalhos
-                WHERE trabalhos.id == trabalhoId
-                AND trabalhos.raridade == 'Raro'
+                SELECT {CHAVE_NIVEL}
+                FROM {CHAVE_TRABALHOS}
+                WHERE {CHAVE_TRABALHOS}.{CHAVE_ID} == {CHAVE_ID_TRABALHO}
+                AND {CHAVE_TRABALHOS}.{CHAVE_RARIDADE} == '{CHAVE_RARIDADE_RARO}'
                 )
-                AS nivel,
+                AS {CHAVE_NIVEL},
                 (
-                SELECT profissao
-                FROM trabalhos
-                WHERE trabalhos.id == trabalhoId
-                AND trabalhos.raridade == 'Raro'
+                SELECT {CHAVE_PROFISSAO}
+                FROM {CHAVE_TRABALHOS}
+                WHERE {CHAVE_TRABALHOS}.{CHAVE_ID} == {CHAVE_ID_TRABALHO}
+                AND {CHAVE_TRABALHOS}.{CHAVE_RARIDADE} == '{CHAVE_RARIDADE_RARO}'
                 )
-                AS nivel,
+                AS {CHAVE_NIVEL},
                 (
-                SELECT trabalhoNecessario
-                FROM trabalhos
-                WHERE trabalhos.id == trabalhoId
-                AND trabalhos.raridade == 'Raro'
+                SELECT {CHAVE_TRABALHO_NECESSARIO}
+                FROM {CHAVE_TRABALHOS}
+                WHERE {CHAVE_TRABALHOS}.{CHAVE_ID} == {CHAVE_ID_TRABALHO}
+                AND {CHAVE_TRABALHOS}.{CHAVE_RARIDADE} == '{CHAVE_RARIDADE_RARO}'
                 )
-                AS trabalhoNecessario,
-                COUNT(*) AS quantidade
-            FROM vendas
-            WHERE nomePersonagem == ? 
-            AND nome NOT NULL
-            GROUP BY trabalhoId
-            ORDER BY quantidade
+                AS {CHAVE_TRABALHO_NECESSARIO},
+                COUNT(*) AS {CHAVE_QUANTIDADE}
+            FROM {CHAVE_LISTA_VENDAS}
+            WHERE {CHAVE_ID_PERSONAGEM} == ? 
+            AND {CHAVE_NOME} NOT NULL
+            GROUP BY {CHAVE_ID_TRABALHO}
+            ORDER BY {CHAVE_QUANTIDADE}
             ;
             """
         try:
@@ -124,85 +126,92 @@ class VendaDaoSqlite:
             cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
                 trabalhoVendido = TrabalhoVendido()
-                trabalhoVendido.trabalhoId = linha[0]
+                trabalhoVendido.idTrabalho = linha[0]
                 trabalhoVendido.nome = linha[1]
                 trabalhoVendido.nivel = linha[2]
                 trabalhoVendido.profissao = linha[3]
                 trabalhoVendido.trabalhoNecessario = linha[4]
-                trabalhoVendido.quantidadeProduto = linha[5]
+                trabalhoVendido.quantidade = linha[5]
                 vendas.append(trabalhoVendido)
             self.__meuBanco.desconecta()
-            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.quantidadeProduto, trabalhoVendido.nivel, trabalhoVendido.nome), reverse=True)
+            vendas = sorted(vendas, key=lambda trabalhoVendido: (trabalhoVendido.quantidade, trabalhoVendido.nivel, trabalhoVendido.nome), reverse=True)
             return vendas
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
-        sql = """
-            INSERT INTO vendas (id, nomeProduto, dataVenda, nomePersonagem, quantidadeProduto, trabalhoId, valorProduto)
+    def insereTrabalhoVendido(self, trabalho: TrabalhoVendido, modificaServidor: bool = True) -> bool:
+        sql = f"""
+            INSERT INTO {CHAVE_LISTA_VENDAS} ({CHAVE_ID}, {CHAVE_DESCRICAO}, {CHAVE_DATA_VENDA}, {CHAVE_ID_PERSONAGEM}, {CHAVE_QUANTIDADE}, {CHAVE_ID_TRABALHO}, {CHAVE_VALOR})
             VALUES (?, ?, ?, ?, ?, ?, ?);
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoVendido.id, trabalhoVendido.nomeProduto, trabalhoVendido.dataVenda, self.__personagem.id, trabalhoVendido.quantidadeProduto, trabalhoVendido.trabalhoId, trabalhoVendido.valorProduto))
+            cursor.execute(sql, (trabalho.id, trabalho.descricao, trabalho.dataVenda, self.__personagem.id, trabalho.quantidade, trabalho.idTrabalho, trabalho.valor))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioVendas.insereTrabalhoVendido(trabalhoVendido):
-                    self.__logger.info(f'({trabalhoVendido}) inserido no servidor com sucesso!')
+                if self.__repositorioVendas.insereTrabalhoVendido(trabalho):
+                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao inserir ({trabalhoVendido}) no servidor: {self.__repositorioVendas.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         return False
     
-    def removeTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
-        sql = """
-            DELETE FROM vendas
-            WHERE id == ?;"""
+    def removeTrabalhoVendido(self, trabalho: TrabalhoVendido, modificaServidor: bool = True) -> bool:
+        sql = f"""
+            DELETE FROM {CHAVE_LISTA_VENDAS}
+            WHERE {CHAVE_ID} == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoVendido.id])
+            cursor.execute(sql, [trabalho.id])
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioVendas.removeVenda(trabalhoVendido):
-                    self.__logger.info(f'({trabalhoVendido}) removido do servidor com sucesso!')
+                if self.__repositorioVendas.removeTrabalhoVendido(trabalho):
+                    self.__logger.info(f'({trabalho}) removido do servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao remover ({trabalhoVendido}) do servidor: {self.__repositorioVendas.pegaErro()}')
+                    self.__logger.error(f'Erro ao remover ({trabalho}) do servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         return False
     
-    def modificaTrabalhoVendido(self, trabalhoVendido, modificaServidor = True):
-        sql = """
-            UPDATE vendas
-            SET nomeProduto = ?, dataVenda = ?, quantidadeProduto = ?, trabalhoId = ?, valorProduto = ?
-            WHERE id == ?;"""
+    def modificaTrabalhoVendido(self, trabalho: TrabalhoVendido, modificaServidor: bool = True):
+        trabalhoModificado = TrabalhoVendido()
+        trabalhoModificado.id = trabalho.id
+        trabalhoModificado.idTrabalho = trabalho.idTrabalho
+        trabalhoModificado.descricao = trabalho.descricao
+        trabalhoModificado.dataVenda = trabalho.dataVenda
+        trabalhoModificado.setQuantidade(trabalho.quantidade)
+        trabalhoModificado.setValor(trabalho.valor)
+        sql = f"""
+            UPDATE {CHAVE_LISTA_VENDAS}
+            SET {CHAVE_DESCRICAO} = ?, {CHAVE_DATA_VENDA} = ?, {CHAVE_QUANTIDADE} = ?, {CHAVE_ID_TRABALHO} = ?, {CHAVE_VALOR} = ?
+            WHERE {CHAVE_ID} == ?;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoVendido.nomeProduto, trabalhoVendido.dataVenda, trabalhoVendido.quantidadeProduto, trabalhoVendido.trabalhoId, trabalhoVendido.valorProduto, trabalhoVendido.id))
+            cursor.execute(sql, (trabalhoModificado.descricao, trabalhoModificado.dataVenda, trabalhoModificado.quantidade, trabalhoModificado.idTrabalho, trabalhoModificado.valor, trabalhoModificado.id))
             self.__conexao.commit()
             self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioVendas.modificaVenda(trabalhoVendido):
-                    self.__logger.info(f'({trabalhoVendido}) modificado no servidor com sucesso!')
+                if self.__repositorioVendas.modificaTrabalhoVendido(trabalhoModificado):
+                    self.__logger.info(f'({trabalhoModificado}) modificado no servidor com sucesso!')
                 else:
-                    self.__logger.error(f'Erro ao modificar ({trabalhoVendido}) no servidor: {self.__repositorioVendas.pegaErro()}')
+                    self.__logger.error(f'Erro ao modificar ({trabalhoModificado}) no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
         return False
     
     def modificaIdTrabalhoVendido(self, idTrabalhoNovo, idTrabalhoAntigo):
-        sql = """
-            UPDATE vendas 
-            SET trabalhoId = ?
-            WHERE trabalhoId == ?"""
+        sql = f"""
+            UPDATE {CHAVE_LISTA_VENDAS} 
+            SET {CHAVE_ID_TRABALHO} = ?
+            WHERE {CHAVE_ID_TRABALHO} == ?"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (idTrabalhoNovo, idTrabalhoAntigo))
@@ -215,10 +224,10 @@ class VendaDaoSqlite:
         return False
     
     def modificaIdPersonagemTrabalhoVendido(self, idTrabalhoNovo, idTrabalhoAntigo):
-        sql = """
-            UPDATE vendas 
-            SET nomePersonagem = ?
-            WHERE nomePersonagem == ?"""
+        sql = f"""
+            UPDATE {CHAVE_LISTA_VENDAS} 
+            SET {CHAVE_ID_PERSONAGEM} = ?
+            WHERE {CHAVE_ID_PERSONAGEM} == ?"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (idTrabalhoNovo, idTrabalhoAntigo))
@@ -233,21 +242,21 @@ class VendaDaoSqlite:
         
     def pegaTodosTrabalhosVendidos(self):
         vendas = []
-        sql = """
+        sql = f"""
             SELECT * 
-            FROM vendas"""
+            FROM {CHAVE_LISTA_VENDAS}"""
         try:
             cursor = self.__conexao.cursor()
             cursor.execute(sql)
             for linha in cursor.fetchall():
                 trabalhoVendido = TrabalhoVendido()
                 trabalhoVendido.id = linha[0]
-                trabalhoVendido.nomeProduto = linha[1]
+                trabalhoVendido.descricao = linha[1]
                 trabalhoVendido.dataVenda = linha[2]
-                trabalhoVendido.nomePersonagem = linha[3]
-                trabalhoVendido.quantidadeProduto = linha[4]
-                trabalhoVendido.trabalhoId = linha[5]
-                trabalhoVendido.valorProduto = linha[6]
+                trabalhoVendido.idPersonagem = linha[3]
+                trabalhoVendido.quantidade = linha[4]
+                trabalhoVendido.idTrabalho = linha[5]
+                trabalhoVendido.valor = linha[6]
                 vendas.append(trabalhoVendido)
             return vendas
         except Exception as e:
