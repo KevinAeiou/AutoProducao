@@ -1,6 +1,7 @@
 __author__ = 'Kevin Amazonas'
 
 from modelos.profissao import Profissao
+from modelos.personagem import Personagem
 from db.db import MeuBanco
 import logging
 from repositorio.repositorioProfissao import RepositorioProfissao
@@ -12,7 +13,7 @@ class ProfissaoDaoSqlite:
     def __init__(self, personagem = None):
         self.__conexao = None
         self.__erro = None
-        self.__personagem = personagem
+        self.__personagem: Personagem = personagem
         try:
             self.__meuBanco = MeuBanco()
             self.__conexao = self.__meuBanco.pegaConexao(1)
@@ -151,9 +152,9 @@ class ProfissaoDaoSqlite:
             return False
         return True
     
-    def insereProfissao(self, profissao, modificaServidor = True):
-        prioridade = 1 if profissao.prioridade else 0
-        sql = """
+    def insereProfissao(self, profissao: Profissao, modificaServidor: bool = True) -> bool:
+        prioridade: int = 1 if profissao.prioridade else 0
+        sql = f"""
             INSERT INTO profissoes (id, idPersonagem, nome, experiencia, prioridade)
             VALUES (?, ?, ?, ?, ?)"""
         try:
