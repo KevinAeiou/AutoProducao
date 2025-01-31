@@ -1550,6 +1550,28 @@ class Aplicacao:
         primeiraBusca: bool = True
         trabalhoProducaoEncontrado: TrabalhoProducao = dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]
         while True:
+            print(f'Tratando possíveis erros...')
+            tentativas: int = 1
+            erro: int = self.verificaErro()
+            while erroEncontrado(erro):
+                if ehErroRecursosInsuficiente(erro):
+                    self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado})')
+                    self.__confirmacao = False
+                    self.removeTrabalhoProducao(trabalhoProducaoEncontrado)
+                    erro = self.verificaErro()
+                    continue
+                if ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
+                    self.__confirmacao = False
+                    if ehErroOutraConexao(erro):
+                        self.__unicaConexao = False
+                        erro = self.verificaErro()
+                        continue
+                    if ehErroConectando(erro):
+                        if tentativas > 10:
+                            clickEspecifico(1, 'enter')
+                            tentativas = 0
+                        tentativas+=1
+                erro = self.verificaErro()
             menu = self.retornaMenu()
             if menuTrabalhosAtuaisReconhecido(menu):
                 if trabalhoProducaoEncontrado.ehRecorrente():
@@ -1635,28 +1657,6 @@ class Aplicacao:
                 clickEspecifico(1, 'f2')
             else:
                 return dicionarioTrabalho
-            print(f'Tratando possíveis erros...')
-            tentativas: int = 1
-            erro: int = self.verificaErro()
-            while erroEncontrado(erro):
-                if ehErroRecursosInsuficiente(erro):
-                    self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado})')
-                    self.__confirmacao = False
-                    self.removeTrabalhoProducao(trabalhoProducaoEncontrado)
-                    erro = self.verificaErro()
-                    continue
-                if ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
-                    self.__confirmacao = False
-                    if ehErroOutraConexao(erro):
-                        self.__unicaConexao = False
-                        erro = self.verificaErro()
-                        continue
-                    if ehErroConectando(erro):
-                        if tentativas > 10:
-                            clickEspecifico(1, 'enter')
-                            tentativas = 0
-                        tentativas+=1
-                erro = self.verificaErro()
             if not self.__confirmacao:
                 break
             primeiraBusca = False
@@ -2133,6 +2133,7 @@ class Aplicacao:
                 return True
             if self.__autoProducaoTrabalho: self.verificaProdutosRarosMaisVendidos()
             self.iniciaBuscaTrabalho()
+            self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
             return False
         if self.__unicaConexao and haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo): clickMouseEsquerdo(1, 2, 35)
         self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
