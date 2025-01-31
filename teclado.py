@@ -46,7 +46,7 @@ def posicionaMouseEsquerdo(x_tela,y_tela):
     tecla.moveTo(x_tela,y_tela)
     print(f'Posicionado em {x_tela}:{y_tela}.')
 
-def encerraSecao():
+def encerraSecao() -> None:
     print(f'Encerrando seção...')
     clickEspecifico(1,'f2')
     clickEspecifico(1,8)
@@ -89,7 +89,7 @@ def saiProfissaoVerificada(dicionario):
     clickEspecifico(1, 'left')
     sleep(1)
 
-def preencheCamposLogin(email,senha):
+def preencheCamposLogin(email: str, senha: str) -> None:
     clickEspecifico(1,'f2')
     clickEspecifico(1,0)
     clickEspecifico(1,'f2')

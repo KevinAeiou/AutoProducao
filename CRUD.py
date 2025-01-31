@@ -879,10 +879,12 @@ class CRUD:
             continue
         input('Clique para continuar...')
         
+    def iniciaStreans(self):
+        self.__aplicacao.abreStreamTrabalhos()
+        self.__aplicacao.abreStreamPersonagens()
+        
     def testeFuncao(self):
-        # self.__aplicacao.abreStreamPersonagens()
-        while True:
-            self.__aplicacao.retornaMenu()
+        self.__aplicacao.abreStreamPersonagens()
         
     def menu(self):
         while True:
@@ -910,6 +912,7 @@ class CRUD:
             print(f'{"18".ljust(2)} - Remove trabalho vendido')
             print(f'{"20".ljust(2)} - Pega todos trabalhos producao')
             print(f'{"21".ljust(2)} - Sincroniza dados')
+            print(f'{"22".ljust(2)} - Inicia streans')
             print(f'{"24".ljust(2)} - Teste de funções')
             print(f'{"0".ljust(2)} - Sair')
             try:
@@ -975,6 +978,9 @@ class CRUD:
                     continue
                 if int(opcaoMenu) == 21:
                     self.sincronizaDados()
+                    continue
+                if int(opcaoMenu) == 22:
+                    self.iniciaStreans()
                     continue
                 if int(opcaoMenu) == 24:
                     self.testeFuncao()

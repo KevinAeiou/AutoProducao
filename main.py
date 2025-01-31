@@ -807,11 +807,11 @@ class Aplicacao:
         print(f'Recompensa diária já recebida!')
         return True
 
-    def deslogaPersonagem(self):
-        menu = self.retornaMenu()
+    def deslogaPersonagem(self) -> None:
+        menu: int = self.retornaMenu()
         while not ehMenuJogar(menu):
-            tentativas = 0
-            erro = self.verificaErro()
+            tentativas: int = 0
+            erro: int = self.verificaErro()
             while erroEncontrado(erro):
                 if ehErroConectando(erro):
                     if tentativas > 10:
@@ -822,13 +822,13 @@ class Aplicacao:
                 continue
             if ehMenuInicial(menu):
                 encerraSecao()
-                break
-            if ehMenuJogar(menu):
-                break
+                menu = self.retornaMenu()
+                continue
             if ehMenuEscolhaPersonagem(menu):
-                clickEspecifico(1, 'f1')
-                break
-            clickMouseEsquerdo(1, 2, 35)
+                clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
+                menu = self.retornaMenu()
+                continue
+            clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
             menu = self.retornaMenu()
 
     def entraPersonagem(self, listaPersonagemPresenteRecuperado):
@@ -1184,8 +1184,12 @@ class Aplicacao:
         self.__listaProfissoesNecessarias = sorted(self.__listaProfissoesNecessarias, key=lambda profissao: profissao.prioridade, reverse= True)
 
     def mostraListaProfissoesNecessarias(self) -> None:
+        print(f'{CHAVE_NOME.upper().ljust(22)} | {"EXP".ljust(6)} | {CHAVE_PRIORIDADE.upper().ljust(10)}')
         for profissaoNecessaria in self.__listaProfissoesNecessarias:
-            print(f'{profissaoNecessaria}')
+            nome = 'Indefinido' if profissaoNecessaria.nome is None else profissaoNecessaria.nome
+            experiencia = 'Indefinido' if profissaoNecessaria.experiencia is None else str(profissaoNecessaria.experiencia)
+            prioridade = 'Verdadeiro' if profissaoNecessaria.prioridade else 'Falso'
+            print(f'{(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}')
 
     def insereItemListaProfissoesNecessarias(self, profissao: Profissao) -> None:
         self.__listaProfissoesNecessarias.append(profissao)
@@ -1860,107 +1864,109 @@ class Aplicacao:
                 novaListaPersonagensAtivos.append(personagemAtivo)
         self.__listaPersonagemAtivo = novaListaPersonagensAtivos
 
-    def logaContaPersonagem(self):
-        confirmacao=False
-        email=self.__listaPersonagemAtivo[0].email
-        senha=self.__listaPersonagemAtivo[0].senha
+    def entraContaPersonagem(self) -> bool:
         print(f'Tentando logar conta personagem...')
-        preencheCamposLogin(email,senha)
-        tentativas=1
-        erro=self.verificaErro()
+        preencheCamposLogin(email= self.__listaPersonagemAtivo[0].email, senha= self.__listaPersonagemAtivo[0].senha)
+        tentativas: int = 1
+        erro: int = self.verificaErro()
         while erroEncontrado(erro):
-            if erro==CODIGO_CONECTANDO or erro==CODIGO_RESTAURA_CONEXAO:
+            if ehErroConectando(erro) or ehErroRestauraConexao(erro):
                 if tentativas>10:
-                    clickEspecifico(1,'enter')
-                    tentativas = 0
-                tentativas+=1
-            elif erro==CODIGO_ERRO_USUARIO_SENHA_INVALIDA:
-                break
-            else:
-                print('Erro ao tentar logar...')
-            erro=self.verificaErro()
-        else:
-            print(f'Login efetuado com sucesso!')
-            confirmacao=True
-        return confirmacao
+                    clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
+                    tentativas = 1
+                tentativas += 1
+                erro = self.verificaErro()
+                continue
+            if ehErroUsuarioOuSenhaInvalida(erro= erro):
+                return False
+            print('Erro ao tentar logar...')
+            erro = self.verificaErro()
+        print(f'Login efetuado com sucesso!')
+        return True
 
-    def configuraLoginPersonagem(self):
-        menu = self.retornaMenu()
+    def configuraEntraPersonagem(self) -> bool:
+        self.vaiParaMenuJogar()
+        return self.entraContaPersonagem()
+
+
+    def vaiParaMenuJogar(self) -> None:
+        menu: int = self.retornaMenu()
         while not ehMenuJogar(menu):
-            tentativas = 1
-            erro = self.verificaErro()
-            while erroEncontrado(erro):
-                if ehErroConectando(erro):
-                    if tentativas > 10:
-                        clickEspecifico(2, 'enter')
-                        tentativas = 0
-                    tentativas += 1
-                erro = self.verificaErro()
-                continue
-            if menu == MENU_NOTICIAS or ehMenuEscolhaPersonagem(menu):
+            self.verificaErroEncontrado()
+            if ehMenuNoticias(menu) or ehMenuEscolhaPersonagem(menu):
                 clickEspecifico(1, 'f1')
-            elif menu != MENU_INICIAL:
-                clickMouseEsquerdo(1, 2, 35)
-            else:
+                menu = self.retornaMenu()
+                continue
+            if ehMenuInicial(menu):
                 encerraSecao()
+                menu = self.retornaMenu()
+                continue
+            clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
             menu = self.retornaMenu()
-        else:
-            login = self.logaContaPersonagem()
-        return login
 
-    def entraPersonagemAtivo(self):
-        contadorPersonagem = 0
-        menu = self.retornaMenu()
-        if ehMenuJogar(menu):
-            print(f'Buscando personagem ativo...')
-            clickEspecifico(1, 'enter')
-            sleep(1)
-            tentativas = 1
+    def verificaErroEncontrado(self) -> None:
+        tentativas: int = 1
+        erro: int = self.verificaErro()
+        while erroEncontrado(erro):
+            if ehErroConectando(erro):
+                if tentativas > 10:
+                    clickEspecifico(2, 'enter')
+                    tentativas = 0
+                tentativas += 1
             erro = self.verificaErro()
-            while erroEncontrado(erro):
-                if ehErroConectando(erro):
+
+    def entraPersonagemAtivo(self) -> None:
+        menu: int = self.retornaMenu()
+        if ehMenuDesconhecido(menu): 
+            clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
+            return
+        if ehMenuJogar(menu= menu):
+            print(f'Buscando personagem ativo...')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
+            sleep(1)
+            tentativas: int = 1
+            erro: int = self.verificaErro()
+            while erroEncontrado(erro= erro):
+                if ehErroConectando(erro= erro):
                     if tentativas > 10:
-                        clickEspecifico(2, 'enter')
+                        clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
                         tentativas = 0
                     tentativas += 1
                 erro = self.verificaErro()
-                continue
-            clickEspecifico(1, 'f2')
-            clickContinuo(10, 'left')   
-            personagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(1)
-            while variavelExiste(personagemReconhecido) and contadorPersonagem < 13:
-                self.confirmaNomePersonagem(personagemReconhecido)
-                if variavelExiste(self.__personagemEmUso):
-                    clickEspecifico(1, 'f2')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+            clickContinuo(cliques= 10, teclaEspecifica= 'left')   
+            contadorPersonagem: int = 0
+            personagemReconhecido: str = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
+            while variavelExiste(variavel= personagemReconhecido) and contadorPersonagem < 13:
+                self.confirmaNomePersonagem(personagemReconhecido= personagemReconhecido)
+                if variavelExiste(variavel= self.__personagemEmUso):
+                    clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
                     sleep(1)
                     print(f'Personagem ({self.__personagemEmUso.nome}) encontrado.')
-                    tentativas = 1
-                    erro = self.verificaErro()
-                    while erroEncontrado(erro):
-                        if ehErroOutraConexao(erro):
+                    tentativas: int = 1
+                    erro: int = self.verificaErro()
+                    while erroEncontrado(erro= erro):
+                        if ehErroOutraConexao(erro= erro):
                             self.__unicaConexao = False
                             contadorPersonagem = 14
-                            break
-                        if ehErroConectando(erro):
+                            return
+                        if ehErroConectando(erro= erro):
                             if tentativas > 10:
-                                clickEspecifico(2, 'enter')
+                                clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
                                 tentativas = 0
                             tentativas += 1
                         erro = self.verificaErro()
                         continue
                     print(f'Login efetuado com sucesso!')
                     return
-                clickEspecifico(1, 'right')
-                personagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(1)
+                clickEspecifico(cliques= 1, teclaEspecifica= 'right')
+                personagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
                 contadorPersonagem += 1
             print(f'Personagem não encontrado!')
-            if ehMenuEscolhaPersonagem(self.retornaMenu()):
-                clickEspecifico(1, 'f1')
+            if ehMenuEscolhaPersonagem(menu= self.retornaMenu()):
+                clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
                 return
-        if ehMenuInicial(menu):
-            self.deslogaPersonagem()
-            return
-        clickMouseEsquerdo(1,2,35)
+        if ehMenuInicial(menu): self.deslogaPersonagem()
 
     def retornaProfissaoPriorizada(self) -> Profissao | None:
         profissoes: list[Profissao] = self.pegaProfissoes()
@@ -2148,7 +2154,7 @@ class Aplicacao:
             self.definePersonagemEmUso()
             if self.personagemEmUsoExiste(): continue
             if self.listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(): continue
-            if self.configuraLoginPersonagem(): self.entraPersonagemAtivo()
+            if self.configuraEntraPersonagem(): self.entraPersonagemAtivo()
 
     def insereTrabalho(self, trabalho: Trabalho, modificaServidor: bool = True) -> bool:
         trabalhoDao = TrabalhoDaoSqlite()
@@ -2515,12 +2521,7 @@ class Aplicacao:
         try:
             self.abreStreamTrabalhos()
             self.abreStreamPersonagens()
-            sincroniza = input(f'Sincronizar listas? (S/N) ')
-            if sincroniza is not None and sincroniza.lower() == 's':
-                self.sincronizaListaTrabalhos()
-                self.sincronizaListaPersonagens
-                self.sincronizaListaProfissoes()
-                self.sincronizaTrabalhosProducao()
+            self.sincronizaListas()
             clickAtalhoEspecifico('alt', 'tab')
             clickAtalhoEspecifico('win', 'left')
             self.iniciaProcessoBusca()
@@ -2528,6 +2529,14 @@ class Aplicacao:
             print(e)
             if input(f'Tentar novamente? (S/N) \n').lower() == 's':
                 self.preparaPersonagem()
+
+    def sincronizaListas(self) -> None:
+        sincroniza = input(f'Sincronizar listas? (S/N) ')
+        if sincroniza is not None and sincroniza.lower() == 's':
+            self.sincronizaListaTrabalhos()
+            self.sincronizaListaPersonagens
+            self.sincronizaListaProfissoes()
+            self.sincronizaTrabalhosProducao()
 
     def abreStreamPersonagens(self) -> bool:
         if self.__repositorioPersonagem.abreStream():

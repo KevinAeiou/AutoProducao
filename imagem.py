@@ -44,7 +44,7 @@ class ManipulaImagem:
     def retornaAtualizacaoTela(self):
         return self.retornaImagemColorida(tiraScreenshot())
 
-    def retornaImagemBinarizada(self, image):
+    def retornaImagemBinarizada(self, image) -> np.ndarray:
         blur = cv2.GaussianBlur(image, (1, 1), cv2.BORDER_DEFAULT)
         ret, thresh = cv2.threshold(blur, 170, 255, cv2.THRESH_BINARY_INV)
         return thresh
@@ -71,29 +71,22 @@ class ManipulaImagem:
             os.makedirs('tests/imagemTeste')
             cv2.imwrite('tests/imagemTeste/{}'.format(nomeImagem),imagem)
 
-    def reconheceNomeTrabalho(self, tela, y, identificador):
-        altura = 34
-        if identificador == 1:
-            altura = 68
-        frameTelaInteira = tela[y:y + altura, 233:478]
-        frameNomeTrabalhoTratado = self.retornaImagemCinza(frameTelaInteira)
+    def reconheceNomeTrabalho(self, tela: np.ndarray, y: int, identificador: int) -> str | None:
+        altura: int = 68 if identificador == 1 else 34
+        frameTrabalho: np.ndarray = tela[y : y + altura, 233 : 478]
+        frameNomeTrabalhoTratado: np.ndarray = self.retornaImagemCinza(frameTrabalho)
         frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalhoTratado)
-        if existePixelPreto(frameNomeTrabalhoTratado):
-            return self.reconheceTexto(frameNomeTrabalhoTratado)
-        return None
+        return self.reconheceTexto(frameNomeTrabalhoTratado) if existePixelPreto(frameNomeTrabalhoTratado) else None
     
     def retornaNomeTrabalhoReconhecido(self, yinicialNome, identificador):
         sleep(1.5)
         return self.reconheceNomeTrabalho(self.retornaAtualizacaoTela(), yinicialNome, identificador)
 
-    def reconheceNomeConfirmacaoTrabalhoProducao(self, tela, tipoTrabalho: int) -> str | None:
-        listaFrames = [[169, 285, 303, 33], [183, 200, 318, 31]] # [x, y, altura, largura]
-        posicao = listaFrames[tipoTrabalho]
-        frameNomeTrabalho = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
-        # self.mostraImagem(0, frameNomeTrabalho, None)
-        # frameNomeTrabalhoCinza = self.retornaImagemCinza(frameNomeTrabalho)
-        frameNomeTrabalhoBinarizado = self.retornaImagemBinarizada(frameNomeTrabalho)
-        # self.mostraImagem(0, frameNomeTrabalhoBinarizado, None)
+    def reconheceNomeConfirmacaoTrabalhoProducao(self, tela: np.ndarray, tipoTrabalho: int) -> str | None:
+        arrayFrames: tuple = ((169, 285, 303, 33), (183, 200, 318, 31)) # [x, y, altura, largura]
+        posicao: int = arrayFrames[tipoTrabalho]
+        frameNomeTrabalho: np.ndarray = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
+        frameNomeTrabalhoBinarizado: np.ndarray = self.retornaImagemBinarizada(frameNomeTrabalho)
         return self.reconheceTexto(frameNomeTrabalhoBinarizado)
 
     def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho: int) -> str | None:
@@ -179,7 +172,7 @@ class ManipulaImagem:
     def retornaTextoMenuReconhecido(self) -> str | None:        
         return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
     
-    def reconheceTextoSair(self, tela):
+    def reconheceTextoSair(self, tela: np.ndarray):
         frameTelaTratado = self.retornaImagemCinza(tela[tela.shape[0]-55:tela.shape[0]-15,50:50+80])
         frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
         texto = self.reconheceTexto(frameTelaTratado)
@@ -296,10 +289,8 @@ class ManipulaImagem:
 
 if __name__=='__main__':
     imagem = ManipulaImagem()
-    clickAtalhoEspecifico('alt','tab')
-    posicao = imagem.retornaPosicaoFrameMenuReconhecido()
-    if posicao is not None:
-        print(imagem.retornaTextoMenuReconhecido(posicao[0], posicao[1], posicao[2], posicao[3]))
-    # imagemTeste = imagem.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias2.png')
-    # print(imagem.retornaReferencia(imagemTeste))
-    # print(imagem.verificaRecompensaDisponivel())
+    # clickAtalhoEspecifico('alt','tab')
+    telaTeste = imagem.abreImagem('tests/imagemTeste/testeTrabalhoQuitonDoSenhorDaDorUm.png')
+    print(imagem.reconheceNomeTrabalho(tela= telaTeste, y= (1 * 72) + 289, identificador= 0))
+    telaTeste = imagem.abreImagem('tests/imagemTeste/testeTrabalhoQuitonDoSenhorDaDorDois.png')
+    print(imagem.reconheceNomeConfirmacaoTrabalhoProducao(tela= telaTeste, tipoTrabalho= 0))
