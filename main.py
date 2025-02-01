@@ -1550,7 +1550,7 @@ class Aplicacao:
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
 
-    def buscaLicencaNecessaria(self, trabalhoProducaoEncontrado: TrabalhoProducao) -> TrabalhoProducao:
+    def trataMenuLicenca(self, trabalhoProducaoEncontrado: TrabalhoProducao) -> TrabalhoProducao:
         print(f"Buscando: {trabalhoProducaoEncontrado.tipo_licenca}")
         textoReconhecido: str = self._imagem.retornaTextoLicencaReconhecida()
         if variavelExiste(variavel= textoReconhecido):
@@ -1606,65 +1606,70 @@ class Aplicacao:
         self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
         self.__confirmacao = False
         return trabalhoProducaoEncontrado
-            
+    
+    def trataMenuTrabalhosAtuais(self, trabalho: TrabalhoProducao) -> None:
+        self.verificaNovamente = True
+        self.removeTrabalhoProducaoEstoque(trabalhoProducao= trabalho)
+        if trabalho.ehRecorrente():
+            self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado= trabalho)
+            return
+        self.modificaTrabalhoProducao(trabalho= trabalho)
+        clickContinuo(cliques= 12, teclaEspecifica= 'up')
+
+    def trataMenuTrabalhoEspecifico(self, primeiraBusca: bool) -> None:
+        if primeiraBusca:
+            print(f'Entra menu licença.')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'up')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
+            return
+        clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+
     def iniciaProcessoDeProducao(self, dicionarioTrabalho: dict) -> dict:
         primeiraBusca: bool = True
         trabalhoProducaoEncontrado: TrabalhoProducao = dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]
         while True:
-            print(f'Tratando possíveis erros...')
-            tentativas: int = 1
-            erro: int = self.verificaErro()
-            while erroEncontrado(erro):
-                if ehErroRecursosInsuficiente(erro):
-                    self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalhoProducaoEncontrado.id} | {trabalhoProducaoEncontrado})')
-                    self.__confirmacao = False
-                    self.removeTrabalhoProducao(trabalhoProducaoEncontrado)
-                    erro = self.verificaErro()
-                    continue
-                if ehErroEspacoProducaoInsuficiente(erro) or ehErroOutraConexao(erro) or ehErroConectando(erro) or ehErroRestauraConexao(erro):
-                    self.__confirmacao = False
-                    if ehErroOutraConexao(erro):
-                        self.__unicaConexao = False
-                        erro = self.verificaErro()
-                        continue
-                    if ehErroConectando(erro):
-                        if tentativas > 10:
-                            clickEspecifico(1, 'enter')
-                            tentativas = 0
-                        tentativas+=1
-                erro = self.verificaErro()
-            menu = self.retornaMenu()
-            if ehMenuTrabalhosAtuais(menu):
-                if trabalhoProducaoEncontrado.ehRecorrente():
-                    self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
-                    self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado)
-                    self.verificaNovamente = True
-                    break
-                self.modificaTrabalhoProducao(trabalhoProducaoEncontrado)
-                self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
-                clickContinuo(12,'up')
-                self.verificaNovamente = True
-                break
-            if menuTrabalhoEspecificoReconhecido(menu):
-                if primeiraBusca:
-                    print(f'Entra menu licença.')
-                    clickEspecifico(1, 'up')
-                    clickEspecifico(1, 'enter')
-                    continue
-                print(f'Clica f2.')
-                clickEspecifico(1, 'f2')
-                continue
-            if menuLicencasReconhecido(menu):
-                dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]= self.buscaLicencaNecessaria(trabalhoProducaoEncontrado)
-            elif menuEscolhaEquipamentoReconhecido(menu) or menuAtributosEquipamentoReconhecido(menu):
-                print(f'Clica f2.')
-                clickEspecifico(1, 'f2')
-            else:
-                return dicionarioTrabalho
             if not self.__confirmacao:
                 break
-            primeiraBusca = False
+            self.trataErrosProcessoDeProducao(trabalho= trabalhoProducaoEncontrado)
+            menu: int = self.retornaMenu()
+            if ehMenuTrabalhosAtuais(menu= menu): 
+                self.trataMenuTrabalhosAtuais(trabalho= trabalhoProducaoEncontrado)
+                return dicionarioTrabalho
+            if ehMenuTrabalhoEspecifico(menu= menu):
+                self.trataMenuTrabalhoEspecifico(primeiraBusca= primeiraBusca)
+                primeiraBusca = False
+                continue
+            if ehMenuLicenca(menu= menu):
+                dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]= self.trataMenuLicenca(trabalhoProducaoEncontrado)
+                continue
+            if ehMenuEscolhaEquipamento(menu= menu) or ehMenuAtributosEquipamento(menu= menu):
+                clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+                continue
         return dicionarioTrabalho
+
+    def trataErrosProcessoDeProducao(self, trabalho: TrabalhoProducao) -> None:
+        print(f'Tratando possíveis erros...')
+        tentativas: int = 1
+        erro: int = self.verificaErro()
+        while erroEncontrado(erro= erro):
+            if ehErroRecursosInsuficiente(erro= erro):
+                self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalho.id} | {trabalho})')
+                self.__confirmacao = False
+                self.removeTrabalhoProducao(trabalho= trabalho)
+                erro = self.verificaErro()
+                continue
+            if ehErroEspacoProducaoInsuficiente(erro= erro) or ehErroOutraConexao(erro= erro) or ehErroConectando(erro= erro) or ehErroRestauraConexao(erro= erro):
+                self.__confirmacao = False
+                if ehErroOutraConexao(erro= erro):
+                    self.__unicaConexao = False
+                    erro = self.verificaErro()
+                    continue
+                if ehErroConectando(erro= erro):
+                    if tentativas > 10:
+                        clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
+                        tentativas = 0
+                    tentativas+=1
+            erro = self.verificaErro()
 
     def retornaListaPossiveisTrabalhos(self, nomeTrabalhoConcluido):
         listaPossiveisTrabalhos = []

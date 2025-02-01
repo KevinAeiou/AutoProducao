@@ -179,16 +179,16 @@ def primeiraBusca(dicionarioTrabalho):
 def ehMenuTrabalhosAtuais(menu: int) -> bool:
     return menu == MENU_TRABALHOS_ATUAIS
 
-def menuTrabalhoEspecificoReconhecido(menu):
+def ehMenuTrabalhoEspecifico(menu: int) -> bool:
     return menu == MENU_TRABALHO_ESPECIFICO
 
-def menuLicencasReconhecido(menu):
+def ehMenuLicenca(menu: int) -> bool:
     return menu == MENU_LICENSAS
 
-def menuEscolhaEquipamentoReconhecido(menu):
+def ehMenuEscolhaEquipamento(menu: int) -> bool:
     return menu == MENU_ESCOLHA_EQUIPAMENTO
 
-def menuAtributosEquipamentoReconhecido(menu):
+def ehMenuAtributosEquipamento(menu: int) -> bool:
     return menu == MENU_TRABALHOS_ATRIBUTOS
 
 def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
