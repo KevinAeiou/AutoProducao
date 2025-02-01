@@ -465,7 +465,7 @@ class Aplicacao:
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalho}) no banco: {trabalhoProducaoDao.pegaErro()}')
             return False
         
-    def pegaTrabalhosProducaoParaProduzirProduzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao]:
+    def pegaTrabalhosProducaoParaProduzirProduzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao] | None:
         personagem = self.__personagemEmUso if personagem is None else personagem
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
         trabalhosProducaoProduzirProduzindo = trabalhoProducaoDao.pegaTrabalhosProducaoParaProduzirProduzindo()
@@ -1226,28 +1226,25 @@ class Aplicacao:
         print(f'Espaços de produção disponíveis: {quantidadeEspacosProducao}.')
         return quantidadeEspacosProducao
 
-    def verificaEspacoProducao(self):
+    def verificaEspacoProducao(self) -> None:
         quantidadeEspacoProducao: int = self.retornaQuantidadeEspacosDeProducao()
-        if self.__personagemEmUso.espacoProducao != quantidadeEspacoProducao:
-            self.__personagemEmUso.setEspacoProducao(quantidadeEspacoProducao)
-            self.modificaPersonagem()
+        if self.__personagemEmUso.espacoProducao == quantidadeEspacoProducao: return
+        self.__personagemEmUso.setEspacoProducao(quantidadeEspacoProducao)
+        self.modificaPersonagem()
 
     def retornaListaTrabalhosProducaoRaridadeEspecifica(self, dicionarioTrabalho: dict, raridade: str) -> list[TrabalhoProducao]:
         listaTrabalhosProducaoRaridadeEspecifica: list[TrabalhoProducao] = []
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
-        if trabalhosProducao is None:
-            return listaTrabalhosProducaoRaridadeEspecifica
+        if trabalhosProducao is None: return listaTrabalhosProducaoRaridadeEspecifica
         for trabalhoProducao in trabalhosProducao:
             raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, dicionarioTrabalho[CHAVE_PROFISSAO]) and trabalhoProducao.ehParaProduzir()
             if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
                 for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
-                    if textoEhIgual(trabalhoProducaoRaridadeEspecifica.nome, trabalhoProducao.nome):
-                        break
+                    if textoEhIgual(trabalhoProducaoRaridadeEspecifica.nome, trabalhoProducao.nome): break
                 else:
                     print(f'Trabalho {raridade} encontado: {trabalhoProducao.nome}')
                     listaTrabalhosProducaoRaridadeEspecifica.append(trabalhoProducao)
-        if tamanhoIgualZero(listaTrabalhosProducaoRaridadeEspecifica):
-            print(f'Nem um trabalho {raridade} na lista!')
+        if tamanhoIgualZero(listaTrabalhosProducaoRaridadeEspecifica): print(f'Nem um trabalho {raridade} na lista!')
         return listaTrabalhosProducaoRaridadeEspecifica
 
     def retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(self, dicionarioTrabalho):
@@ -1671,12 +1668,12 @@ class Aplicacao:
                     tentativas+=1
             erro = self.verificaErro()
 
-    def retornaListaPossiveisTrabalhos(self, nomeTrabalhoConcluido):
-        listaPossiveisTrabalhos = []
-        trabalhos = self.pegaTrabalhosBanco()
+    def retornaListaPossiveisTrabalhos(self, nomeTrabalhoReconhecido: str) -> list[TrabalhoProducao]:
+        listaPossiveisTrabalhos: list[TrabalhoProducao] = []
+        trabalhos: list[Trabalho] = self.pegaTrabalhosBanco()
         for trabalho in trabalhos:
-            if texto1PertenceTexto2(nomeTrabalhoConcluido[1:-1], trabalho.nomeProducao):
-                trabalhoEncontrado = TrabalhoProducao()
+            if texto1PertenceTexto2(nomeTrabalhoReconhecido[1:-1], trabalho.nomeProducao):
+                trabalhoEncontrado: TrabalhoProducao = TrabalhoProducao()
                 trabalhoEncontrado.dicionarioParaObjeto(trabalho.__dict__)
                 trabalhoEncontrado.id = str(uuid.uuid4())
                 trabalhoEncontrado.idTrabalho = trabalho.id
@@ -1686,21 +1683,21 @@ class Aplicacao:
                 listaPossiveisTrabalhos.append(trabalhoEncontrado)
         return listaPossiveisTrabalhos
 
-    def retornaTrabalhoProducaoConcluido(self, nomeTrabalhoConcluido):
-        listaPossiveisTrabalhosProducao = self.retornaListaPossiveisTrabalhos(nomeTrabalhoConcluido)
-        if not tamanhoIgualZero(listaPossiveisTrabalhosProducao):
-            trabalhosProducao = self.pegaTrabalhosProducaoParaProduzirProduzindo()
-            if not variavelExiste(trabalhosProducao):
-                return listaPossiveisTrabalhosProducao[0]
-            for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
-                for trabalhoProduzirProduzindo in trabalhosProducao:
-                    condicoes = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalhoProducao.nome)
-                    if condicoes:
-                        return trabalhoProduzirProduzindo
-            else:
-                print(f'Trabalho concluído ({listaPossiveisTrabalhosProducao[0].nome}) não encontrado na lista produzindo...')
-                return listaPossiveisTrabalhosProducao[0]
-        return None
+    def retornaTrabalhoProducaoConcluido(self, nomeTrabalhoReconhecido: str) -> TrabalhoProducao | None:
+        listaPossiveisTrabalhosProducao: list[TrabalhoProducao] = self.retornaListaPossiveisTrabalhos(nomeTrabalhoReconhecido= nomeTrabalhoReconhecido)
+        if tamanhoIgualZero(listaPossiveisTrabalhosProducao):
+            return None
+        trabalhosProducao = self.pegaTrabalhosProducaoParaProduzirProduzindo()
+        if not variavelExiste(trabalhosProducao):
+            return listaPossiveisTrabalhosProducao[0]
+        for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
+            for trabalhoProduzirProduzindo in trabalhosProducao:
+                condicoes = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalhoProducao.nome)
+                if condicoes:
+                    return trabalhoProduzirProduzindo
+        else:
+            print(f'Trabalho concluído ({listaPossiveisTrabalhosProducao[0].nome}) não encontrado na lista produzindo...')
+            return listaPossiveisTrabalhosProducao[0]
 
     
     def existeEspacoProducao(self) -> bool:
@@ -1729,27 +1726,24 @@ class Aplicacao:
         while self.__confirmacao:
             self.verificaNovamente: bool = False
             self.vaiParaMenuProduzir()
-            if not self.__confirmacao or not self.__unicaConexao or not self.existeEspacoProducao():
-                break
-            if self.listaProfissoesFoiModificada():
-                self.verificaEspacoProducao()
+            if not self.__confirmacao or not self.__unicaConexao or not self.existeEspacoProducao(): break
+            if self.listaProfissoesFoiModificada(): self.verificaEspacoProducao()
             posicao = self.retornaPosicaoProfissaoNecessaria(profissaoNecessaria)
-            if posicao == 0:
-                break
+            if posicao == 0: break
             entraProfissaoEspecifica(posicao)
             print(f'Verificando profissão: {profissaoNecessaria.nome}')
             dicionarioTrabalho[CHAVE_PROFISSAO] = profissaoNecessaria.nome
             dicionarioTrabalho = self.veficaTrabalhosProducaoListaDesejos(dicionarioTrabalho)
+            if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+                dicionarioTrabalho = self.iniciaProcessoDeProducao(dicionarioTrabalho)
+            elif ehMenuTrabalhosDisponiveis(self.retornaMenu()):
+                saiProfissaoVerificada(dicionarioTrabalho)
             if self.__confirmacao:
-                if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
-                    dicionarioTrabalho = self.iniciaProcessoDeProducao(dicionarioTrabalho)
-                elif ehMenuTrabalhosDisponiveis(self.retornaMenu()):
-                    saiProfissaoVerificada(dicionarioTrabalho)
                 if self.__unicaConexao and self.__espacoBolsa:
                     if self._imagem.retornaEstadoTrabalho() == CODIGO_CONCLUIDO:
-                        nomeTrabalhoConcluido = self.reconheceRecuperaTrabalhoConcluido()
-                        if variavelExiste(nomeTrabalhoConcluido):
-                            trabalhoProducaoConcluido = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoConcluido)
+                        nomeTrabalhoReconhecido: str = self.reconheceRecuperaTrabalhoConcluido()
+                        if variavelExiste(variavel= nomeTrabalhoReconhecido):
+                            trabalhoProducaoConcluido: TrabalhoProducao = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= nomeTrabalhoReconhecido)
                             if variavelExiste(trabalhoProducaoConcluido):
                                 self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
                                 self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
@@ -1844,7 +1838,7 @@ class Aplicacao:
     def retornaListaDeListasTrabalhosProducao(self, dicionarioTrabalho: dict) -> list[list[TrabalhoProducao]]:
         listaDeListaTrabalhos: list[list[TrabalhoProducao]] = []
         for raridade in LISTA_RARIDADES:
-            listaTrabalhosProducao: list = self.retornaListaTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho, raridade)
+            listaTrabalhosProducao: list[TrabalhoProducao] = self.retornaListaTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho= dicionarioTrabalho, raridade= raridade)
             if tamanhoIgualZero(listaTrabalhosProducao):
                 continue
             listaDeListaTrabalhos.append(listaTrabalhosProducao)
