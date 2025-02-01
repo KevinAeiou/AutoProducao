@@ -176,7 +176,7 @@ def chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
 def primeiraBusca(dicionarioTrabalho):
     return dicionarioTrabalho[CHAVE_POSICAO] == -1
 
-def menuTrabalhosAtuaisReconhecido(menu):
+def ehMenuTrabalhosAtuais(menu: int) -> bool:
     return menu == MENU_TRABALHOS_ATUAIS
 
 def menuTrabalhoEspecificoReconhecido(menu):

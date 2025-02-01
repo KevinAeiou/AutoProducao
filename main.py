@@ -1577,7 +1577,7 @@ class Aplicacao:
                         tentativas+=1
                 erro = self.verificaErro()
             menu = self.retornaMenu()
-            if menuTrabalhosAtuaisReconhecido(menu):
+            if ehMenuTrabalhosAtuais(menu):
                 if trabalhoProducaoEncontrado.ehRecorrente():
                     self.removeTrabalhoProducaoEstoque(trabalhoProducaoEncontrado)
                     self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado)
@@ -1916,57 +1916,58 @@ class Aplicacao:
             erro = self.verificaErro()
 
     def entraPersonagemAtivo(self) -> None:
-        menu: int = self.retornaMenu()
-        if ehMenuDesconhecido(menu): 
-            clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
-            return
-        if ehMenuJogar(menu= menu):
-            print(f'Buscando personagem ativo...')
-            clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
-            sleep(1)
-            tentativas: int = 1
-            erro: int = self.verificaErro()
-            while erroEncontrado(erro= erro):
-                if ehErroConectando(erro= erro):
-                    if tentativas > 10:
-                        clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
-                        tentativas = 0
-                    tentativas += 1
-                erro = self.verificaErro()
-            clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
-            clickContinuo(cliques= 10, teclaEspecifica= 'left')   
-            contadorPersonagem: int = 0
-            personagemReconhecido: str = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
-            while variavelExiste(variavel= personagemReconhecido) and contadorPersonagem < 13:
-                self.confirmaNomePersonagem(personagemReconhecido= personagemReconhecido)
-                if variavelExiste(variavel= self.__personagemEmUso):
-                    clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
-                    sleep(1)
-                    print(f'Personagem ({self.__personagemEmUso.nome}) encontrado.')
-                    tentativas: int = 1
-                    erro: int = self.verificaErro()
-                    while erroEncontrado(erro= erro):
-                        if ehErroOutraConexao(erro= erro):
-                            self.__unicaConexao = False
-                            contadorPersonagem = 14
-                            return
-                        if ehErroConectando(erro= erro):
-                            if tentativas > 10:
-                                clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
-                                tentativas = 0
-                            tentativas += 1
-                        erro = self.verificaErro()
-                        continue
-                    print(f'Login efetuado com sucesso!')
+        for x in range(5):
+            menu: int = self.retornaMenu()
+            if ehMenuDesconhecido(menu= menu) or ehMenuProduzir(menu= menu) or ehMenuTrabalhosDisponiveis(menu= menu) or ehMenuTrabalhosAtuais(menu= menu): 
+                clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
+                continue
+            if ehMenuJogar(menu= menu):
+                print(f'Buscando personagem ativo...')
+                clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
+                sleep(1)
+                tentativas: int = 1
+                erro: int = self.verificaErro()
+                while erroEncontrado(erro= erro):
+                    if ehErroConectando(erro= erro):
+                        if tentativas > 10:
+                            clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
+                            tentativas = 0
+                        tentativas += 1
+                    erro = self.verificaErro()
+                clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+                clickContinuo(cliques= 10, teclaEspecifica= 'left')   
+                contadorPersonagem: int = 0
+                personagemReconhecido: str = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
+                while variavelExiste(variavel= personagemReconhecido) and contadorPersonagem < 13:
+                    self.confirmaNomePersonagem(personagemReconhecido= personagemReconhecido)
+                    if variavelExiste(variavel= self.__personagemEmUso):
+                        clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+                        sleep(1)
+                        print(f'Personagem ({self.__personagemEmUso.nome}) encontrado.')
+                        tentativas: int = 1
+                        erro: int = self.verificaErro()
+                        while erroEncontrado(erro= erro):
+                            if ehErroOutraConexao(erro= erro):
+                                self.__unicaConexao = False
+                                contadorPersonagem = 14
+                                return
+                            if ehErroConectando(erro= erro):
+                                if tentativas > 10:
+                                    clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
+                                    tentativas = 0
+                                tentativas += 1
+                            erro = self.verificaErro()
+                            continue
+                        print(f'Login efetuado com sucesso!')
+                        return
+                    clickEspecifico(cliques= 1, teclaEspecifica= 'right')
+                    personagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
+                    contadorPersonagem += 1
+                print(f'Personagem não encontrado!')
+                if ehMenuEscolhaPersonagem(menu= self.retornaMenu()):
+                    clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
                     return
-                clickEspecifico(cliques= 1, teclaEspecifica= 'right')
-                personagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
-                contadorPersonagem += 1
-            print(f'Personagem não encontrado!')
-            if ehMenuEscolhaPersonagem(menu= self.retornaMenu()):
-                clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
-                return
-        if ehMenuInicial(menu): self.deslogaPersonagem()
+            if ehMenuInicial(menu): self.deslogaPersonagem()
 
     def retornaProfissaoPriorizada(self) -> Profissao | None:
         profissoes: list[Profissao] = self.pegaProfissoes()
