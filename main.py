@@ -1549,6 +1549,63 @@ class Aplicacao:
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - 1)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
+
+    def buscaLicencaNecessaria(self, trabalhoProducaoEncontrado: TrabalhoProducao) -> TrabalhoProducao:
+        print(f"Buscando: {trabalhoProducaoEncontrado.tipo_licenca}")
+        textoReconhecido: str = self._imagem.retornaTextoLicencaReconhecida()
+        if variavelExiste(variavel= textoReconhecido):
+            print(f'Licença reconhecida: {textoReconhecido}')
+            if texto1PertenceTexto2(texto1= 'Licença de Artesanato', texto2= textoReconhecido):
+                primeiraBusca: bool = True
+                listaCiclo: list[str] = []
+                while not texto1PertenceTexto2(texto1= textoReconhecido, texto2= trabalhoProducaoEncontrado.tipo_licenca):
+                    primeiraBusca = False
+                    listaCiclo.append(textoReconhecido)
+                    clickEspecifico(cliques= 1, teclaEspecifica= "right")
+                    textoReconhecido: str = self._imagem.retornaTextoLicencaReconhecida()
+                    if variavelExiste(variavel= textoReconhecido):
+                        print(f'Licença reconhecida: {textoReconhecido}.')
+                        if textoEhIgual(texto1= textoReconhecido, texto2= 'nenhumitem'):
+                            if textoEhIgual(texto1= trabalhoProducaoEncontrado.tipo_licenca, texto2= CHAVE_LICENCA_NOVATO):
+                                if textoEhIgual(texto1= listaCiclo[-1], texto2= 'nenhumitem'):
+                                    continue
+                                self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
+                                self.__personagemEmUso.alternaEstado()
+                                self.modificaPersonagem()
+                                clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
+                                clickContinuo(cliques= 10, teclaEspecifica= 'up')
+                                clickEspecifico(cliques= 1, teclaEspecifica= 'left')
+                                self.__confirmacao = False
+                                return trabalhoProducaoEncontrado
+                            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
+                            self.__loggerTrabalhoProducaoDao.info(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) modificado para ({CHAVE_LICENCA_NOVATO})')
+                            trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
+                            continue
+                        if len(listaCiclo) > 15:
+                            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
+                            self.__loggerTrabalhoProducaoDao.info(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) modificado para ({CHAVE_LICENCA_NOVATO})')
+                            trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
+                        continue
+                    erro: int = self.verificaErro()
+                    if ehErroOutraConexao(erro= erro):
+                        self.__unicaConexao = False
+                    self.__loggerTrabalhoProducaoDao.error(f'Erro ({erro}) encontrado ao buscar licença necessária')
+                    self.__confirmacao = False
+                    return trabalhoProducaoEncontrado
+                trabalhoProducaoEncontrado.estado = CODIGO_PRODUZINDO
+                clickEspecifico(cliques= 1, teclaEspecifica= "f1") if primeiraBusca else clickEspecifico(cliques= 1, teclaEspecifica= "f2")
+                return trabalhoProducaoEncontrado
+            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
+            self.__personagemEmUso.alternaEstado()
+            self.modificaPersonagem()
+            clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
+            clickContinuo(cliques= 10, teclaEspecifica= 'up')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'left')
+            self.__confirmacao = False
+            return trabalhoProducaoEncontrado
+        self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
+        self.__confirmacao = False
+        return trabalhoProducaoEncontrado
             
     def iniciaProcessoDeProducao(self, dicionarioTrabalho: dict) -> dict:
         primeiraBusca: bool = True
@@ -1598,64 +1655,7 @@ class Aplicacao:
                 clickEspecifico(1, 'f2')
                 continue
             if menuLicencasReconhecido(menu):
-                print(f"Buscando: {trabalhoProducaoEncontrado.tipo_licenca}")
-                textoReconhecido = self._imagem.retornaTextoLicencaReconhecida()
-                if variavelExiste(textoReconhecido):
-                    print(f'Licença reconhecida: {textoReconhecido}')
-                    if texto1PertenceTexto2('Licença de Artesanato', textoReconhecido):
-                        primeiraBusca = True
-                        listaCiclo = []
-                        while not texto1PertenceTexto2(textoReconhecido, trabalhoProducaoEncontrado.tipo_licenca):
-                            listaCiclo.append(textoReconhecido)
-                            clickEspecifico(1, "right")
-                            textoReconhecido = self._imagem.retornaTextoLicencaReconhecida()
-                            if variavelExiste(textoReconhecido):
-                                print(f'Licença reconhecida: {textoReconhecido}.')
-                                if textoEhIgual(textoReconhecido, 'nenhumitem'):
-                                    if textoEhIgual(trabalhoProducaoEncontrado.tipo_licenca, CHAVE_LICENCA_NOVATO):
-                                        if not textoEhIgual(listaCiclo[-1], 'nenhumitem'):
-                                            print(f'Sem licenças de produção...')
-                                            self.__personagemEmUso.alternaEstado()
-                                            self.modificaPersonagem()
-                                            clickEspecifico(3, 'f1')
-                                            clickContinuo(10, 'up')
-                                            clickEspecifico(1, 'left')
-                                            return dicionarioTrabalho
-                                    else:
-                                        print(f'{trabalhoProducaoEncontrado.tipo_licenca} não encontrado!')
-                                        print(f'Licença buscada agora é {CHAVE_LICENCA_NOVATO}!')
-                                        trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
-                                        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado
-                                else:
-                                    if len(listaCiclo) > 10:
-                                        print(f'{trabalhoProducaoEncontrado.tipo_licenca} não encontrado!')
-                                        print(f'Licença buscada agora é {CHAVE_LICENCA_NOVATO}!')
-                                        trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
-                                        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducaoEncontrado          
-                            else:
-                                erro = self.verificaErro()
-                                if ehErroOutraConexao(erro):
-                                    self.__unicaConexao = False
-                                print(f'Erro ao reconhecer licença!')
-                                break
-                            primeiraBusca = False
-                        else:
-                            trabalhoProducaoEncontrado.estado = CODIGO_PRODUZINDO
-                            if primeiraBusca:
-                                clickEspecifico(1, "f1")
-                            else:
-                                clickEspecifico(1, "f2")
-                    else:
-                        print(f'Sem licenças de produção...')
-                        self.__personagemEmUso.alternaEstado()
-                        self.modificaPersonagem()
-                        clickEspecifico(3, 'f1')
-                        clickContinuo(10, 'up')
-                        clickEspecifico(1, 'left')
-                        return dicionarioTrabalho
-                else:
-                    print(f'Erro ao reconhecer licença!')
-                    return dicionarioTrabalho
+                dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]= self.buscaLicencaNecessaria(trabalhoProducaoEncontrado)
             elif menuEscolhaEquipamentoReconhecido(menu) or menuAtributosEquipamentoReconhecido(menu):
                 print(f'Clica f2.')
                 clickEspecifico(1, 'f2')
