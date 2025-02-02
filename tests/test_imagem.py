@@ -7,31 +7,31 @@ class TestImagem:
     def testDeveRetornarStringLicencaDeNovato(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeLicencaDeNovato.png')
         esperado = CHAVE_LICENCA_NOVATO
-        recebido = self.__imagem.reconheceTextoLicenca(imagemTeste)
+        recebido = self.__imagem.reconheceLicenca(imagemTeste)
         assert recebido == esperado
 
     def testDeveRetornarStringLicencaDeIniciante(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeLicencaDeIniciante.png')
         esperado = CHAVE_LICENCA_INICIANTE
-        recebido = self.__imagem.reconheceTextoLicenca(imagemTeste)
+        recebido = self.__imagem.reconheceLicenca(imagemTeste)
         assert recebido == esperado
 
     def testDeveRetornarStringLicencaDeMestre(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeLicencaDeMestre.png')
         esperado = CHAVE_LICENCA_MESTRE
-        recebido = self.__imagem.reconheceTextoLicenca(imagemTeste)
+        recebido = self.__imagem.reconheceLicenca(imagemTeste)
         assert recebido == esperado
 
     def testDeveRetornarStringLicencaDeAprendiz(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeLicencaDeAprendiz.png')
         esperado = CHAVE_LICENCA_APRENDIZ
-        recebido = self.__imagem.reconheceTextoLicenca(imagemTeste)
+        recebido = self.__imagem.reconheceLicenca(imagemTeste)
         assert recebido == esperado
 
     def testDeveRetornarStringLincencaNenhumItem(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeNenhumaLicencaDeProducao.png')
         esperado = 'Nenhum item'
-        recebido = self.__imagem.reconheceTextoLicenca(imagemTeste)
+        recebido = self.__imagem.reconheceLicenca(imagemTeste)
         assert esperado == recebido
 
     def testDeveRetornarStringAnelDeJadeBrutaQuandoPosicaoForZero(self):

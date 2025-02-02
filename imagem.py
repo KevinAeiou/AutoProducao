@@ -47,7 +47,7 @@ class ManipulaImagem:
 
     def retornaImagemBinarizada(self, image) -> np.ndarray:
         blur = cv2.GaussianBlur(image, (1, 1), cv2.BORDER_DEFAULT)
-        ret, thresh = cv2.threshold(blur, 170, 255, cv2.THRESH_BINARY_INV)
+        ret, thresh = cv2.threshold(blur, 120, 255, cv2.THRESH_BINARY_INV)
         return thresh
 
     def retornaImagemDitalata(self, imagem, kernel, iteracoes):
@@ -93,19 +93,27 @@ class ManipulaImagem:
     def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho: int) -> str | None:
         return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho= tipoTrabalho)
 
-    def reconheceTextoLicenca(self, telaInteira):
-        listaLicencas = ['novato','iniciante','aprendiz','mestre','nenhumitem']
-        frameTelaCinza = self.retornaImagemCinza(telaInteira[275:317,169:512])
-        frameTelaEqualizado = self.retornaImagemEqualizada(frameTelaCinza)
-        textoReconhecido = self.reconheceTexto(frameTelaEqualizado)
-        if variavelExiste(textoReconhecido):
-            for licenca in listaLicencas:
-                if texto1PertenceTexto2(licenca, textoReconhecido):
-                    return textoReconhecido
+    def reconheceTextoLicenca(self, frameBinarizado) -> str | None:
+        caminho = r"C:\Program Files\Tesseract-OCR"
+        pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
+        resultado: str = pytesseract.image_to_string(frameBinarizado, lang='por', config= '--psm 6')
+        if len(resultado) == 0:
+            return None
+        return resultado
+
+    def reconheceLicenca(self, telaInteira) -> str | None:
+        listaLicencas = LISTA_LICENCAS
+        listaLicencas.append('Nenhum item')
+        frameTelaCinza = self.retornaImagemCinza(telaInteira[0 : telaInteira.shape[0], 0 : telaInteira.shape[1] // 2])
+        frameTelaBinarizado = self.retornaImagemBinarizada(frameTelaCinza)
+        textoReconhecido: str = self.reconheceTextoLicenca(frameTelaBinarizado)
+        if textoReconhecido is None: return None
+        for licenca in listaLicencas:
+            if texto1PertenceTexto2(licenca, textoReconhecido): return licenca
         return None
     
     def retornaTextoLicencaReconhecida(self):
-        return self.reconheceTextoLicenca(self.retornaAtualizacaoTela())
+        return self.reconheceLicenca(self.retornaAtualizacaoTela())
     
     def reconheceTextoNomePersonagem(self, tela, posicao: int) -> str | None:
         posicaoNome = [[2,33,210,40], [190,355,177,30]] # [x, y, altura, largura]

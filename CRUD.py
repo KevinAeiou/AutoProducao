@@ -884,7 +884,9 @@ class CRUD:
         self.__aplicacao.abreStreamPersonagens()
         
     def testeFuncao(self):
-        self.__aplicacao.abreStreamPersonagens()
+        trabalho = TrabalhoProducao()
+        trabalho.tipo_licenca = CHAVE_LICENCA_INICIANTE
+        self.__aplicacao.trataMenuLicenca(trabalhoProducaoEncontrado=trabalho)
         
     def menu(self):
         while True:
