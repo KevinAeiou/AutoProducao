@@ -47,7 +47,7 @@ class ManipulaImagem:
 
     def retornaImagemBinarizada(self, image) -> np.ndarray:
         blur = cv2.GaussianBlur(image, (1, 1), cv2.BORDER_DEFAULT)
-        ret, thresh = cv2.threshold(blur, 120, 255, cv2.THRESH_BINARY_INV)
+        ret, thresh = cv2.threshold(blur, 170, 255, cv2.THRESH_BINARY_INV)
         return thresh
 
     def retornaImagemDitalata(self, imagem, kernel, iteracoes):
@@ -105,8 +105,9 @@ class ManipulaImagem:
         listaLicencas = LISTA_LICENCAS
         listaLicencas.append('Nenhum item')
         frameTelaCinza = self.retornaImagemCinza(telaInteira[0 : telaInteira.shape[0], 0 : telaInteira.shape[1] // 2])
-        frameTelaBinarizado = self.retornaImagemBinarizada(frameTelaCinza)
-        textoReconhecido: str = self.reconheceTextoLicenca(frameTelaBinarizado)
+        blur = cv2.GaussianBlur(frameTelaCinza, (1, 1), cv2.BORDER_DEFAULT)
+        ret, thresh = cv2.threshold(blur, 120, 255, cv2.THRESH_BINARY_INV)
+        textoReconhecido: str = self.reconheceTextoLicenca(thresh)
         if textoReconhecido is None: return None
         for licenca in listaLicencas:
             if texto1PertenceTexto2(licenca, textoReconhecido): return licenca
