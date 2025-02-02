@@ -1,13 +1,14 @@
 from repositorio.firebaseDatabase import FirebaseDatabase
 from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
 from modelos.trabalhoProducao import TrabalhoProducao
+from modelos.personagem import Personagem
 from constantes import *
 
 class RepositorioTrabalhoProducao:
     def __init__(self, personagem) -> None:
-        self.__erro = None
+        self.__erro: str = None
         self.__meuBanco = FirebaseDatabase().pegaDataBase()
-        self._personagem = personagem
+        self._personagem: Personagem = personagem
 
     def limpaListaProducao(self):
         try:
@@ -31,6 +32,22 @@ class RepositorioTrabalhoProducao:
             self.__erro = str(e)
         return None
 
+    def pegaTrabalhosProducaoEstadoProduzirProduzindo(self) -> list[TrabalhoProducao] | None:
+        trabalhosProducao = []
+        try:
+            todosTrabalhosProducao = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).order_by_child(CHAVE_ESTADO).start_at(0).end_at(1).get()
+            if todosTrabalhosProducao.pyres is None:
+                return trabalhosProducao
+            for trabalhoProducaoEncontrado in todosTrabalhosProducao.each():
+                trabalhoProducao: TrabalhoProducao = TrabalhoProducao()
+                trabalhoProducao.dicionarioParaObjeto(trabalhoProducaoEncontrado.val())
+                trabalhoProducao.id = trabalhoProducaoEncontrado.key()
+                trabalhosProducao.append(trabalhoProducao)
+            trabalhosProducao = sorted(trabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.estado, reverse=True)
+            return trabalhosProducao
+        except Exception as e:
+            self.__erro = str(e)
+        return None
     
     def removeTrabalhoProducao(self, trabalhoProducao):
         try:

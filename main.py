@@ -2457,7 +2457,7 @@ class Aplicacao:
         for personagem in personagens:
             self.personagemEmUso(personagem)
             repositorioTrabalhoProducao = RepositorioTrabalhoProducao(self.__personagemEmUso)
-            trabalhosProducaoServidor = repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
+            trabalhosProducaoServidor = repositorioTrabalhoProducao.pegaTrabalhosProducaoEstadoProduzirProduzindo()
             if variavelExiste(trabalhosProducaoServidor):
                 for trabalhoProducaoServidor in trabalhosProducaoServidor:
                     limpaTela()
