@@ -4,6 +4,7 @@ import re
 import os
 import numpy as np
 import pytesseract
+from pytesseract import Output
 from time import sleep
 from utilitarios import *
 from teclado import clickAtalhoEspecifico
@@ -106,23 +107,30 @@ class ManipulaImagem:
     def retornaTextoLicencaReconhecida(self):
         return self.reconheceTextoLicenca(self.retornaAtualizacaoTela())
     
-    def reconheceTextoNomePersonagem(self, tela, posicao):
-        posicaoNome = [[2,33,169,27], [190,355,177,30]] # [x, y, altura, largura]
+    def reconheceTextoNomePersonagem(self, tela, posicao: int) -> str | None:
+        posicaoNome = [[2,33,210,40], [190,355,177,30]] # [x, y, altura, largura]
         frameNomePersonagem = tela[posicaoNome[posicao][1]:posicaoNome[posicao][1]+posicaoNome[posicao][3], posicaoNome[posicao][0]:posicaoNome[posicao][0]+posicaoNome[posicao][2]]
-        frameNomePersonagemCinza = self.retornaImagemCinza(frameNomePersonagem)
-        frameNomePersonagemEqualizada = self.retornaImagemEqualizada(frameNomePersonagemCinza)
-        frameNomePersonagemBinarizado = self.retornaImagemBinarizada(frameNomePersonagemEqualizada)
-        print(np.sum(frameNomePersonagemBinarizado == 0))
-        contadorPixelPretoEhMaiorQueCinquenta = np.sum(frameNomePersonagemBinarizado == 0) > 50
-        if contadorPixelPretoEhMaiorQueCinquenta:
-            nomePersonagemReconhecido = self.reconheceTexto(frameNomePersonagemBinarizado)
-            if variavelExiste(nomePersonagemReconhecido):
-                nome = limpaRuidoTexto(nomePersonagemReconhecido)
-                print(f'Personagem reconhecido: {nome}.')
-                return nome
-            if np.sum(frameNomePersonagemBinarizado == 0) >= 170 and np.sum(frameNomePersonagemBinarizado == 0) <= 320:
-                return 'provisorioatecair'
-        return None
+        frameNomePersonagemTratado = self.retornaImagemCinza(frameNomePersonagem)
+        if posicao == 1:
+            frameNomePersonagemTratado = self.retornaImagemEqualizada(frameNomePersonagemTratado)
+            frameNomePersonagemBinarizado = self.retornaImagemBinarizada(frameNomePersonagemTratado)
+            print(np.sum(frameNomePersonagemBinarizado == 0))
+            contadorPixelPretoEhMaiorQueCinquenta = np.sum(frameNomePersonagemBinarizado == 0) > 50
+            if contadorPixelPretoEhMaiorQueCinquenta:
+                nomePersonagemReconhecido = self.reconheceTexto(frameNomePersonagemBinarizado)
+                if variavelExiste(nomePersonagemReconhecido):
+                    nome = limpaRuidoTexto(nomePersonagemReconhecido)
+                    print(f'Personagem reconhecido: {nome}.')
+                    return nome
+                if np.sum(frameNomePersonagemBinarizado == 0) >= 170 and np.sum(frameNomePersonagemBinarizado == 0) <= 320:
+                    return 'provisorioatecair'
+            return None
+        frameNomePersonagemBinarizado = self.retornaImagemBinarizada(image= frameNomePersonagemTratado)
+        caminho = r"C:\Program Files\Tesseract-OCR"
+        pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
+        resultado: str = pytesseract.image_to_string(frameNomePersonagemBinarizado, lang='por', config= '--psm 6')
+        return resultado
+        
     
     def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
         print(f'Verificando nome personagem...')
@@ -262,35 +270,13 @@ class ManipulaImagem:
         thickness = 1
         return cv2.putText(frameTela, texto, posicao, fonte, escala, cor, thickness, cv2.LINE_AA)
     
-    def retornaReferenciaTeste(self):
-        listaImagens = ['testeMenuProfissoes', 'testeMenuRecompensasDiarias', 'testeMenuRecompensasDiarias2', 'testeMenuTrabalhoProducao', 'testeMenuTrabalhosDisponiveis', 'testeMenuEscolhaPersonagem', 'testeMenuLojaMilagrosa', 'testeMenuNoticias']
-        for imagem in listaImagens:
-            telaInteira = self.abreImagem(f'tests/imagemTeste/{imagem}.png')
-            if telaInteira is None:
-                pass
-            frameTela = telaInteira[0:telaInteira.shape[0],0:telaInteira.shape[1]//2]
-            imagemCinza = self.retornaImagemCinza(frameTela)
-            imagemLimiarizada = cv2.Canny(imagemCinza,200,255)
-            # self.mostraImagem(0, imagemLimiarizada)
-            contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-            for contorno in contornos:
-                epsilon = 0.06 * cv2.arcLength(contorno, True)
-                aproximacao = cv2.approxPolyDP(contorno, epsilon, True)
-                epsilon = f'{epsilon:.2f}'
-                x, y, l, a = cv2.boundingRect(contorno)
-                area = l * a
-                if l > 340 and l < 350 and (a > 50 and a < 60 or a == 5):
-                    # if len(aproximacao) == 4:
-                    azul = (255,0,0)
-                    frameTela = self.desenhaRetangulo(frameTela, contorno, cor = azul)
-                    texto = f'x: {x}, y: {y-40}, l: {l}, a: {a+40}'
-                    frameTela = self.escreveTexto(texto, frameTela, contorno)
-            self.mostraImagem(0, frameTela, 'BORDAS_RECONHECIDAS')
+    def reconheceNomePersonagemTeste(self):
+        while True:
+            copiaTela = self.retornaAtualizacaoTela()
+            print(self.reconheceTextoNomePersonagem(copiaTela, 0))
+            sleep(1)
+        return
 
 if __name__=='__main__':
     imagem = ManipulaImagem()
-    # clickAtalhoEspecifico('alt','tab')
-    telaTeste = imagem.abreImagem('tests/imagemTeste/testeTrabalhoQuitonDoSenhorDaDorUm.png')
-    print(imagem.reconheceNomeTrabalho(tela= telaTeste, y= (1 * 72) + 289, identificador= 0))
-    telaTeste = imagem.abreImagem('tests/imagemTeste/testeTrabalhoQuitonDoSenhorDaDorDois.png')
-    print(imagem.reconheceNomeConfirmacaoTrabalhoProducao(tela= telaTeste, tipoTrabalho= 0))
+    imagem.reconheceNomePersonagemTeste()
