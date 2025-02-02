@@ -1625,9 +1625,9 @@ class Aplicacao:
         primeiraBusca: bool = True
         trabalhoProducaoEncontrado: TrabalhoProducao = dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]
         while True:
+            self.trataErrosProcessoDeProducao(trabalho= trabalhoProducaoEncontrado)
             if not self.__confirmacao:
                 break
-            self.trataErrosProcessoDeProducao(trabalho= trabalhoProducaoEncontrado)
             menu: int = self.retornaMenu()
             if ehMenuTrabalhosAtuais(menu= menu): 
                 self.trataMenuTrabalhosAtuais(trabalho= trabalhoProducaoEncontrado)
@@ -2534,7 +2534,7 @@ class Aplicacao:
         sincroniza = input(f'Sincronizar listas? (S/N) ')
         if sincroniza is not None and sincroniza.lower() == 's':
             self.sincronizaListaTrabalhos()
-            self.sincronizaListaPersonagens
+            self.sincronizaListaPersonagens()
             self.sincronizaListaProfissoes()
             self.sincronizaTrabalhosProducao()
 
