@@ -82,7 +82,7 @@ class Aplicacao:
             personagemReconhecido {string} -- Valor reconhecido via processamento de imagem
         '''
         for personagemAtivo in self.__listaPersonagemAtivo:
-            if textoEhIgual(personagemReconhecido, personagemAtivo.nome):
+            if texto1PertenceTexto2(texto1= personagemAtivo.nome, texto2= personagemReconhecido):
                 print(f'Personagem {personagemReconhecido.upper()} confirmado!')
                 self.personagemEmUso(personagemAtivo)
                 return
@@ -855,7 +855,7 @@ class Aplicacao:
             while True:
                 nomePersonagemPresenteado = None
                 for nomeLista in listaPersonagemPresenteRecuperado:
-                    if nomePersonagem == nomeLista and nomePersonagem != None:
+                    if texto1PertenceTexto2(nomeLista, nomePersonagem) and nomePersonagem != None:
                         nomePersonagemPresenteado = nomeLista
                         break
                 if nomePersonagemPresenteado != None:
