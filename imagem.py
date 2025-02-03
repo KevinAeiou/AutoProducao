@@ -1,13 +1,11 @@
 from teclado import tiraScreenshot
 import cv2
-import re
 import os
 import numpy as np
 import pytesseract
-from pytesseract import Output
 from time import sleep
 from utilitarios import *
-from teclado import clickAtalhoEspecifico
+from pytesseract import Output
 
 class ManipulaImagem:
     def reconheceDigito(self, imagem):
@@ -16,16 +14,16 @@ class ManipulaImagem:
         digitoReconhecido=pytesseract.image_to_string(imagem, config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')
         return digitoReconhecido.strip()
 
-    def reconheceTexto(self, imagem) -> str | None:
-        caminho = r"C:\Program Files\Tesseract-OCR"
+    def reconheceTexto(self, imagem: tuple, confianca: int = 80) -> str | None:
+        caminho: str = r"C:\Program Files\Tesseract-OCR"
         pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
-        textoReconhecido = pytesseract.image_to_string(imagem, lang="por")
-        if len(textoReconhecido) != 0:
-            listaCaracteresEspeciais = ['"','',',','.','|','!','@','$','%','¨','&','*','(',')','_','-','+','=','§','[',']','{','}','ª','º','^','~','?','/','°',':',';','>','<','\'','\n']
-            for especial in listaCaracteresEspeciais:
-                textoReconhecido = textoReconhecido.replace(especial,'')
-            return textoReconhecido.strip()
-        return None
+        resultado: dict = pytesseract.image_to_data(imagem, lang="por", config='--psm 6', output_type= Output.DICT)
+        listaPalavras: list[str] = []
+        for i in range(len(resultado['text'])):
+            if resultado['conf'][i] > confianca:
+                listaPalavras.append(resultado['text'][i])
+        stringPalavras: str = ''.join(listaPalavras)
+        return None if tamanhoIgualZero(lista= stringPalavras) else limpaRuidoTexto(texto= stringPalavras)
 
     def retornaImagemBinarizadaOtsu(self, imagemDesfocada):
         ret, thresh = cv2.threshold(imagemDesfocada, 0, 255,
@@ -45,9 +43,9 @@ class ManipulaImagem:
     def retornaAtualizacaoTela(self):
         return self.retornaImagemColorida(tiraScreenshot())
 
-    def retornaImagemBinarizada(self, image) -> np.ndarray:
-        blur = cv2.GaussianBlur(image, (1, 1), cv2.BORDER_DEFAULT)
-        ret, thresh = cv2.threshold(blur, 170, 255, cv2.THRESH_BINARY_INV)
+    def retornaImagemBinarizada(self, imagem, nucleo: tuple = (1, 1), limiteMinimo: int = 170) -> np.ndarray:
+        blur = cv2.GaussianBlur(imagem, nucleo, cv2.BORDER_DEFAULT)
+        ret, thresh = cv2.threshold(blur, limiteMinimo, 255, cv2.THRESH_BINARY_INV)
         return thresh
 
     def retornaImagemDitalata(self, imagem, kernel, iteracoes):
@@ -134,7 +132,7 @@ class ManipulaImagem:
                 if np.sum(frameNomePersonagemBinarizado == 0) >= 170 and np.sum(frameNomePersonagemBinarizado == 0) <= 320:
                     return 'provisorioatecair'
             return None
-        frameNomePersonagemBinarizado = self.retornaImagemBinarizada(image= frameNomePersonagemTratado)
+        frameNomePersonagemBinarizado = self.retornaImagemBinarizada(imagem= frameNomePersonagemTratado)
         caminho = r"C:\Program Files\Tesseract-OCR"
         pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
         resultado: str = pytesseract.image_to_string(frameNomePersonagemBinarizado, lang='por', config= '--psm 6')
@@ -151,22 +149,6 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def verificaPosicaoFrameMenu(self, tela) -> tuple[int, int, int, int] | None:
-        frameTela = tela[0:tela.shape[0],0:tela.shape[1]//2]
-        imagemCinza = self.retornaImagemCinza(frameTela)
-        imagemLimiarizada = cv2.Canny(imagemCinza,200,255)
-        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        for contorno in contornos:
-            x, y, l, a = cv2.boundingRect(contorno)
-            if l > 345 and l < 350 and (a > 50 and a < 60 or a == 5):
-                y -= 40
-                a += 40
-                return (x, y, l, a)
-        return None
-
-    def retornaPosicaoFrameMenuReconhecido(self) -> tuple[int, int, int, int] | None:
-        return self.verificaPosicaoFrameMenu(tela= self.retornaAtualizacaoTela())
-    
     def verificaMenuReferenciaInicial(self, tela):
         posicaoMenu = [[703,627],[712,1312]]
         for posicao in posicaoMenu:
@@ -182,9 +164,8 @@ class ManipulaImagem:
     def reconheceTextoMenu(self, tela) -> str | None:
         frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
         frameTelaTratado = self.retornaImagemCinza(frameTela)
-        frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
-        texto = self.reconheceTexto(frameTelaTratado)
-        return None if texto is None else limpaRuidoTexto(texto)
+        frameTelaTratado = self.retornaImagemBinarizada(imagem= frameTelaTratado, limiteMinimo= 135)
+        return self.reconheceTexto(imagem= frameTelaTratado, confianca= 70)
 
     def retornaTextoMenuReconhecido(self) -> str | None:        
         return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
@@ -192,8 +173,7 @@ class ManipulaImagem:
     def reconheceTextoSair(self, tela: np.ndarray):
         frameTelaTratado = self.retornaImagemCinza(tela[tela.shape[0]-55:tela.shape[0]-15,50:50+80])
         frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
-        texto = self.reconheceTexto(frameTelaTratado)
-        return None if texto is None else limpaRuidoTexto(texto)
+        return self.reconheceTexto(frameTelaTratado)
     
     def retornaTextoSair(self):
         return self.reconheceTextoSair(self.retornaAtualizacaoTela())
@@ -287,5 +267,8 @@ class ManipulaImagem:
         return
 
 if __name__=='__main__':
+    from teclado import clickAtalhoEspecifico
+    clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
+    sleep(1)
     imagem = ManipulaImagem()
-    imagem.reconheceNomePersonagemTeste()
+    print(imagem.retornaTextoMenuReconhecido())
