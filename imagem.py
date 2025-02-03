@@ -91,21 +91,12 @@ class ManipulaImagem:
     def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho: int) -> str | None:
         return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho= tipoTrabalho)
 
-    def reconheceTextoLicenca(self, frameBinarizado) -> str | None:
-        caminho = r"C:\Program Files\Tesseract-OCR"
-        pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
-        resultado: str = pytesseract.image_to_string(frameBinarizado, lang='por', config= '--psm 6')
-        if len(resultado) == 0:
-            return None
-        return resultado
-
     def reconheceLicenca(self, telaInteira) -> str | None:
         listaLicencas = LISTA_LICENCAS
         listaLicencas.append('Nenhum item')
         frameTelaCinza = self.retornaImagemCinza(telaInteira[0 : telaInteira.shape[0], 0 : telaInteira.shape[1] // 2])
-        blur = cv2.GaussianBlur(frameTelaCinza, (1, 1), cv2.BORDER_DEFAULT)
-        ret, thresh = cv2.threshold(blur, 120, 255, cv2.THRESH_BINARY_INV)
-        textoReconhecido: str = self.reconheceTextoLicenca(thresh)
+        fremaTelaBinarizada = self.retornaImagemBinarizada(imagem= frameTelaCinza, limiteMinimo= 120)
+        textoReconhecido: str = self.reconheceTexto(fremaTelaBinarizada)
         if textoReconhecido is None: return None
         for licenca in listaLicencas:
             if texto1PertenceTexto2(licenca, textoReconhecido): return licenca
@@ -115,29 +106,13 @@ class ManipulaImagem:
         return self.reconheceLicenca(self.retornaAtualizacaoTela())
     
     def reconheceTextoNomePersonagem(self, tela, posicao: int) -> str | None:
-        posicaoNome = [[2,33,210,40], [190,355,177,30]] # [x, y, altura, largura]
+        x: int = tela.shape[1]//7
+        y: int = 14*(tela.shape[0]//30)
+        posicaoNome = [[2,33,210,40], [x,y,200,40]] # [x, y, altura, largura]
         frameNomePersonagem = tela[posicaoNome[posicao][1]:posicaoNome[posicao][1]+posicaoNome[posicao][3], posicaoNome[posicao][0]:posicaoNome[posicao][0]+posicaoNome[posicao][2]]
-        frameNomePersonagemTratado = self.retornaImagemCinza(frameNomePersonagem)
-        if posicao == 1:
-            frameNomePersonagemTratado = self.retornaImagemEqualizada(frameNomePersonagemTratado)
-            frameNomePersonagemBinarizado = self.retornaImagemBinarizada(frameNomePersonagemTratado)
-            print(np.sum(frameNomePersonagemBinarizado == 0))
-            contadorPixelPretoEhMaiorQueCinquenta = np.sum(frameNomePersonagemBinarizado == 0) > 50
-            if contadorPixelPretoEhMaiorQueCinquenta:
-                nomePersonagemReconhecido = self.reconheceTexto(frameNomePersonagemBinarizado)
-                if variavelExiste(nomePersonagemReconhecido):
-                    nome = limpaRuidoTexto(nomePersonagemReconhecido)
-                    print(f'Personagem reconhecido: {nome}.')
-                    return nome
-                if np.sum(frameNomePersonagemBinarizado == 0) >= 170 and np.sum(frameNomePersonagemBinarizado == 0) <= 320:
-                    return 'provisorioatecair'
-            return None
-        frameNomePersonagemBinarizado = self.retornaImagemBinarizada(imagem= frameNomePersonagemTratado)
-        caminho = r"C:\Program Files\Tesseract-OCR"
-        pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
-        resultado: str = pytesseract.image_to_string(frameNomePersonagemBinarizado, lang='por', config= '--psm 6')
-        return resultado
-        
+        frameCinza = self.retornaImagemCinza(frameNomePersonagem)
+        frameBinarizado = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 150)
+        return self.reconheceTexto(imagem= frameBinarizado, confianca= 40)
     
     def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
         print(f'Verificando nome personagem...')
@@ -164,7 +139,7 @@ class ManipulaImagem:
     def reconheceTextoMenu(self, tela) -> str | None:
         frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
         frameTelaTratado = self.retornaImagemCinza(frameTela)
-        frameTelaTratado = self.retornaImagemBinarizada(imagem= frameTelaTratado, limiteMinimo= 135)
+        frameTelaTratado = self.retornaImagemBinarizada(imagem= frameTelaTratado, limiteMinimo= 160)
         return self.reconheceTexto(imagem= frameTelaTratado, confianca= 70)
 
     def retornaTextoMenuReconhecido(self) -> str | None:        
@@ -271,4 +246,7 @@ if __name__=='__main__':
     clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
     sleep(1)
     imagem = ManipulaImagem()
-    print(imagem.retornaTextoMenuReconhecido())
+    while True:
+        for x in range(2):
+            print(imagem.retornaTextoNomePersonagemReconhecido(posicao= x))
+        sleep(1)
