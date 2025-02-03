@@ -3,6 +3,7 @@ from constantes import *
 from modelos.trabalho import Trabalho
 import numpy as np
 import os
+import re
 
 def textoEhIgual(texto1, texto2):
     return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
@@ -16,9 +17,12 @@ def tamanhoIgualZero(lista):
 def variavelExiste(variavel):
     return variavel != None
 
-def limpaRuidoTexto(texto):
-    texto = '' if texto == None else texto
-    return unidecode(texto).replace(' ','').replace('-','').lower()
+def limpaRuidoTexto(texto: str) -> str:
+    texto = '' if texto is None else texto
+    padrao: str = '[^a-zA-Z0-9áãâéêíîóõôúûç_]'
+    expressao = re.compile(padrao)
+    novaStringPalavras: str = expressao.sub('', texto)
+    return unidecode(novaStringPalavras).lower()
 
 def retiraDigitos(texto):
     listaDigitos = ['0','1','2','3','4','5','6','7','8','9']
