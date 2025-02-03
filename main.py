@@ -296,9 +296,6 @@ class Aplicacao:
         if texto1PertenceTexto2('Recompensa',textoMenu):
             print(f'Menu trabalho específico...')
             return MENU_TRABALHO_ESPECIFICO
-        if texto1PertenceTexto2('recompensasdiarias',textoMenu):
-            print(f'Menu recompensas diárias...')
-            return MENU_RECOMPENSAS_DIARIAS
         if texto1PertenceTexto2('meu',textoMenu):
             print(f'Menu meu perfil...')
             return MENU_MEU_PERFIL           
