@@ -782,8 +782,8 @@ class Aplicacao:
         print(f'Recompensa diária já recebida!')
         return True
 
-    def deslogaPersonagem(self) -> None:
-        menu: int = self.retornaMenu()
+    def deslogaPersonagem(self, menu: int = None) -> None:
+        menu = self.retornaMenu() if menu is None else menu
         while not ehMenuJogar(menu):
             tentativas: int = 0
             erro: int = self.verificaErro()
@@ -797,12 +797,10 @@ class Aplicacao:
                 continue
             if ehMenuInicial(menu):
                 encerraSecao()
-                menu = self.retornaMenu()
-                continue
+                return
             if ehMenuEscolhaPersonagem(menu):
                 clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
-                menu = self.retornaMenu()
-                continue
+                return
             clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
             menu = self.retornaMenu()
 
@@ -1891,11 +1889,11 @@ class Aplicacao:
 
     def entraPersonagemAtivo(self) -> None:
         for x in range(5):
-            menu: int = self.retornaMenu()
-            if ehMenuDesconhecido(menu= menu) or ehMenuProduzir(menu= menu) or ehMenuTrabalhosDisponiveis(menu= menu) or ehMenuTrabalhosAtuais(menu= menu): 
+            codigoMenu: int = self.retornaMenu()
+            if ehMenuDesconhecido(menu= codigoMenu) or ehMenuProduzir(menu= codigoMenu) or ehMenuTrabalhosDisponiveis(menu= codigoMenu) or ehMenuTrabalhosAtuais(menu= codigoMenu): 
                 clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
                 continue
-            if ehMenuJogar(menu= menu):
+            if ehMenuJogar(menu= codigoMenu):
                 print(f'Buscando personagem ativo...')
                 clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
                 sleep(1)
@@ -1941,7 +1939,7 @@ class Aplicacao:
                 if ehMenuEscolhaPersonagem(menu= self.retornaMenu()):
                     clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
                     return
-            if ehMenuInicial(menu): self.deslogaPersonagem()
+            if ehMenuInicial(codigoMenu): self.deslogaPersonagem(menu= codigoMenu)
 
     def retornaProfissaoPriorizada(self) -> Profissao | None:
         profissoes: list[Profissao] = self.pegaProfissoes()

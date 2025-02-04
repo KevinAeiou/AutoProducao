@@ -34,8 +34,7 @@ class ManipulaImagem:
         return None if tamanhoIgualZero(lista= stringPalavras) else limpaRuidoTexto(texto= stringPalavras)
 
     def retornaImagemBinarizadaOtsu(self, imagemDesfocada):
-        ret, thresh = cv2.threshold(imagemDesfocada, 0, 255,
-                                cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        ret, thresh = cv2.threshold(imagemDesfocada, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         return thresh
 
     def retornaImagemEqualizada(self, img):
