@@ -25,8 +25,6 @@ class ManipulaImagem:
         return digitoReconhecido.strip()
 
     def reconheceTexto(self, imagem: tuple, confianca: int = 80) -> str | None:
-        caminho: str = r"C:\Program Files\Tesseract-OCR"
-        pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
         resultado: dict = self.retornaImagemParaDicionario(imagem)
         listaPalavras: list[str] = []
         for i in range(len(resultado['text'])):
@@ -118,10 +116,10 @@ class ManipulaImagem:
     def reconheceTextoNomePersonagem(self, tela, posicao: int) -> str | None:
         x: int = tela.shape[1]//7
         y: int = 14*(tela.shape[0]//30)
-        posicaoNome = [[2,33,210,40], [x,y,200,40]] # [x, y, altura, largura]
+        posicaoNome = [[2,33,210,45], [x,y,200,40]] # [x, y, altura, largura]
         frameNomePersonagem = tela[posicaoNome[posicao][1]:posicaoNome[posicao][1]+posicaoNome[posicao][3], posicaoNome[posicao][0]:posicaoNome[posicao][0]+posicaoNome[posicao][2]]
         frameCinza = self.retornaImagemCinza(frameNomePersonagem)
-        frameBinarizado = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 150)
+        frameBinarizado = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 140)
         return self.reconheceTexto(imagem= frameBinarizado, confianca= 40)
     
     def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
@@ -259,9 +257,5 @@ if __name__=='__main__':
     sleep(1)
     imagem = ManipulaImagem()
     while True:
-        resultado: tuple = imagem.verificaRecompensaDisponivel()
-        if resultado is None:
-            posicionaMouseEsquerdo(x_tela= 10, y_tela= 10)
-            continue
-        posicionaMouseEsquerdo(x_tela= resultado[0], y_tela= resultado[1])
+        print(imagem.retornaTextoNomePersonagemReconhecido(0))
         sleep(1)
