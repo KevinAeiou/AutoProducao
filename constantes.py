@@ -155,3 +155,48 @@ CHAVE_LISTA_PRODUCAO_RECURSO = [
     'adquirirfuradordoprincipiante','produzindotecidodenso','extraçãodesubstânciaestável',
     'recebendofibradebronze','recebendoprata','recebendoinsígniadeestudante',
     'recebendofibradeplatina','recebendoâmbar','recebendodistintivodeaprendiz']
+STRING_VERSAO_JOGO_DESATUALIZADA = 'Versão do jogo desatualizada'
+STRING_FALHA_CONECTAR_SERVIDOR = 'Falha ao se conectar ao servidor'
+STRING_JOGO_ESTA_MANUTENCAO = 'O jogo esta em manutencao'
+STRING_DESEJA_SAIR_WARSPEAR_ONLINE = 'Deseja sair do Warspear Online'
+STRING_TEM_CERTEZA_DESEJA_CONCLUIR_PRODUCAO = 'Tem certeza de que deseja concluir a produção'
+STRING_PRECISA_LICENCA_INICIAR_PEDIDO = 'Você precisa de uma licença'
+STRING_PRECISA_RECURSOS_INICIAR_PEDIDO = 'Você precisa de mais recursos parainiciar este pedido'
+STRING_SELECIONE_ITEM_INICIAR_PEDIDO = 'Selecione um item para iniciar um pedido de artesanato'
+STRING_CONECTANDO = 'Conectando'
+STRING_PRECISA_EXPERIENCIA_INICIAR_PEDIDO = 'Você precisa de mais experiência de produção para iniciar este pedido'
+STRING_RECEBEU_NOVO_PRESENTE = 'Você recebeu um novo presente'
+STRING_ESPACOS_ARTESANATO_OCUPADOS = 'Todos os espaços de artesanato estão ocupados'
+STRING_CONTA_USADA_OUTRO_DISPOSITIVO = 'No momento esta conta está sendousada em outro dispositivo'
+STRING_GOSTARIA_COMPRAR = 'Gostanadecomprar'
+STRING_CONEXAO_PERDIDA_SERVIDOR = 'Conexão perdida com o servidor'
+STRING_VOCE_PRECISA_MAIS = 'Você precisa de mais'
+STRING_USUARIO_SENHA_INVALIDA = 'Nome de usuário ou senha inválida'
+STRING_PEDIDO_EXIPRADO = 'Pedido de artesanato expirado'
+STRING_REINO_INDISPONIVEL = 'O reino selecionado está indisponível'
+STRING_RESTAURANDO_CONEXAO = 'Restaurando conexão'
+STRING_TAREFA_PRODUCAO = 'para a tarefa de produção'
+STRING_BOLSA_CHEIA = 'Bolsa cheia'
+CHAVE_LISTA_ERROS = [
+    STRING_PRECISA_LICENCA_INICIAR_PEDIDO,
+    STRING_FALHA_CONECTAR_SERVIDOR,
+    STRING_PRECISA_RECURSOS_INICIAR_PEDIDO,
+    STRING_SELECIONE_ITEM_INICIAR_PEDIDO,
+    STRING_CONECTANDO,
+    STRING_PRECISA_EXPERIENCIA_INICIAR_PEDIDO,
+    STRING_RECEBEU_NOVO_PRESENTE,
+    STRING_ESPACOS_ARTESANATO_OCUPADOS,
+    STRING_TEM_CERTEZA_DESEJA_CONCLUIR_PRODUCAO,
+    STRING_JOGO_ESTA_MANUTENCAO,
+    STRING_CONTA_USADA_OUTRO_DISPOSITIVO,
+    STRING_GOSTARIA_COMPRAR,
+    STRING_CONEXAO_PERDIDA_SERVIDOR,
+    STRING_VOCE_PRECISA_MAIS,
+    STRING_USUARIO_SENHA_INVALIDA,
+    STRING_PEDIDO_EXIPRADO,
+    STRING_REINO_INDISPONIVEL,
+    STRING_VERSAO_JOGO_DESATUALIZADA,
+    STRING_RESTAURANDO_CONEXAO,
+    STRING_TAREFA_PRODUCAO,
+    STRING_BOLSA_CHEIA,
+    STRING_DESEJA_SAIR_WARSPEAR_ONLINE]
