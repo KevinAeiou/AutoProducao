@@ -120,37 +120,13 @@ class Aplicacao:
         self.__confirmacao: bool = True
         self.__profissaoModificada: bool = False
 
-    def retornaCodigoErroReconhecido(self):
-        textoErroEncontrado = self._imagem.retornaErroReconhecido()
-        if variavelExiste(textoErroEncontrado):
-            textoErroEncontrado = limpaRuidoTexto(textoErroEncontrado)
-            textoErroEncontrado = retiraDigitos(textoErroEncontrado)
-            tipoErro = ['Você precisa de uma licença de artesanato para iniciar este pedido',
-                'Falha ao se conectar ao servidor',
-                'Você precisa de mais recursos parainiciar este pedido',
-                'Selecione um item para iniciar umpedido de artesanato',
-                'Conectando',
-                'Você precisa de mais experiência de produção para iniciar este pedido',
-                'Você recebeu um novo presenteDessgja ir à Loja Milagrosa paraconferir',
-                'Todos os espaços de artesanato estão ocupados',
-                'Tem certeza de que deseja concluir aprodução',
-                'Estamos fazendo de tudo paraconcluíla o mais rápido possível',
-                'No momento esta conta está sendousada em outro dispositivo',
-                'Gostanadecomprar',
-                'Conexão perdida com o servidor',
-                'Você precisa de mais',
-                'Nome de usuário ou senha inválida',
-                'Pedido de artesanato expirado',
-                'O reino selecionado está indisponível',
-                'Versão do jogo desatualizada',
-                'restaurandoconexão',
-                'paraatarefadeprodução',
-                'Bolsa cheia',
-                'Desgeja sair do Warspear Online']
-            for posicaoTipoErro in range(len(tipoErro)):
-                textoErro = limpaRuidoTexto(tipoErro[posicaoTipoErro])
-                if textoErro in textoErroEncontrado:
-                    return posicaoTipoErro+1
+    def retornaCodigoErroReconhecido(self, textoErroEncontrado: str) -> int:
+        if textoErroEncontrado is None:
+            return 0
+        for posicaoTipoErro in range(len(CHAVE_LISTA_ERROS)):
+            textoErro: str = limpaRuidoTexto(CHAVE_LISTA_ERROS[posicaoTipoErro])
+            if textoErro in textoErroEncontrado:
+                return posicaoTipoErro + 1
         return 0
 
     def verificaLicenca(self, dicionarioTrabalho):
@@ -190,10 +166,11 @@ class Aplicacao:
                 print(f'Erro ao reconhecer licença!')
         return confirmacao, dicionarioTrabalho
 
-    def verificaErro(self):
+    def verificaErro(self, textoErroEncontrado:str = None) -> int:
+        textoErroEncontrado = self._imagem.retornaTextoMenuReconhecido() if textoErroEncontrado is None else textoErroEncontrado
         sleep(0.5)
         print(f'Verificando erro...')
-        CODIGO_ERRO = self.retornaCodigoErroReconhecido()
+        CODIGO_ERRO = self.retornaCodigoErroReconhecido(textoErroEncontrado)
         if ehErroLicencaNecessaria(CODIGO_ERRO) or ehErroFalhaConexao(CODIGO_ERRO) or ehErroConexaoInterrompida(CODIGO_ERRO) or ehErroServidorEmManutencao(CODIGO_ERRO) or ehErroReinoIndisponivel(CODIGO_ERRO):
             clickEspecifico(2, "enter")
             if ehErroLicencaNecessaria(CODIGO_ERRO):
@@ -303,6 +280,7 @@ class Aplicacao:
             print(f'Menu bolsa...')
             return MENU_BOLSA
         clickMouseEsquerdo(1,35,35)
+        self.verificaErro(textoErroEncontrado= textoMenu)
         return MENU_DESCONHECIDO
     
     def retornaValorTrabalhoVendido(self, textoCarta):
