@@ -1253,16 +1253,16 @@ class Aplicacao:
                 nomeTrabalho = self.padronizaTexto(trabalhoEncontrado.nome)
                 nomeProducaoTrabalho: str = self.padronizaTexto(trabalhoEncontrado.nomeProducao)
                 if trabalhoEhProducaoRecursos(trabalhoEncontrado):
-                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
+                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeProducaoTrabalho)):
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
                         return dicionarioTrabalho
                     continue
-                if textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalho):
+                if textoEhIgual(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeTrabalho)):
                     dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeTrabalho.ljust(30)}')
                     return dicionarioTrabalho
-                if textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
+                if textoEhIgual(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeProducaoTrabalho)):
                     dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
                     return dicionarioTrabalho
