@@ -8,6 +8,16 @@ from utilitarios import *
 from pytesseract import Output
 
 class ManipulaImagem:
+    def __init__(self):
+        self.configuraTesseract()
+        
+    def configuraTesseract(self):
+        caminho: str = r"C:\Program Files\Tesseract-OCR"
+        pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
+
+    def retornaImagemParaDicionario(self, imagem):
+        return pytesseract.image_to_data(imagem, lang="por", config='--psm 6', output_type= Output.DICT)
+        
     def reconheceDigito(self, imagem):
         caminho = r"C:\Program Files\Tesseract-OCR"
         pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
@@ -17,7 +27,7 @@ class ManipulaImagem:
     def reconheceTexto(self, imagem: tuple, confianca: int = 80) -> str | None:
         caminho: str = r"C:\Program Files\Tesseract-OCR"
         pytesseract.pytesseract.tesseract_cmd = caminho +r"\tesseract.exe"
-        resultado: dict = pytesseract.image_to_data(imagem, lang="por", config='--psm 6', output_type= Output.DICT)
+        resultado: dict = self.retornaImagemParaDicionario(imagem)
         listaPalavras: list[str] = []
         for i in range(len(resultado['text'])):
             if resultado['conf'][i] > confianca:
@@ -34,8 +44,8 @@ class ManipulaImagem:
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         return clahe.apply(img)
 
-    def retornaImagemCinza(self, screenshot):
-        return cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2GRAY)
+    def retornaImagemCinza(self, imagem):
+        return cv2.cvtColor(np.array(imagem), cv2.COLOR_RGB2GRAY)
 
     def retornaImagemColorida(self, screenshot):
         return cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
@@ -207,19 +217,21 @@ class ManipulaImagem:
     def retonaImagemRedimensionada(self, imagem, porcentagem):
         return cv2.resize(imagem,(0,0),fx=porcentagem,fy=porcentagem)
 
-    def retornaReferencia(self, imagem):
+    def retornaReferencia(self, imagem: np.ndarray) -> tuple | None:
         print(f'Buscando referência "PEGAR"...')
         imagem = imagem[0:imagem.shape[0], 0:imagem.shape[1]//2]
-        imagemCinza = self.retornaImagemCinza(imagem)
-        imagemLimiarizada = cv2.Canny(imagemCinza,143,255)
-        contornos, h1 = cv2.findContours(imagemLimiarizada,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
-        for contorno in contornos:
-            x, y, l, a = cv2.boundingRect(contorno)
-            proporcao = l/a
-            if l > a and x >=340 and x+l <= 490  and proporcao>2.9 and proporcao<=3.2 and l >= 123 and l <=130:
+        imagemTratada = self.retornaImagemCinza(imagem= imagem)
+        imagemTratada = self.retornaImagemBinarizada(imagem= imagemTratada, limiteMinimo=150)
+        resultado: dict = self.retornaImagemParaDicionario(imagem= imagemTratada)
+        for i in range(len(resultado['text'])):
+            if not tamanhoIgualZero(limpaRuidoTexto(texto= resultado["text"][i])) and texto1PertenceTexto2(texto1= resultado["text"][i], texto2= 'Pegar') and resultado["conf"][i] > 90:
+                x = resultado["left"][i]
+                y = resultado["top"][i]
+                l = resultado["width"][i]
+                a = resultado["height"][i]
                 centroX = x+(l/2)
                 centroY = y+(a/2)
-                return [centroX, centroY]
+                return (centroX, centroY)
         return None
     
     def verificaRecompensaDisponivel(self):
@@ -242,11 +254,14 @@ class ManipulaImagem:
         return
 
 if __name__=='__main__':
-    from teclado import clickAtalhoEspecifico
+    from teclado import clickAtalhoEspecifico, posicionaMouseEsquerdo
     clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
     sleep(1)
     imagem = ManipulaImagem()
     while True:
-        for x in range(2):
-            print(imagem.retornaTextoNomePersonagemReconhecido(posicao= x))
+        resultado: tuple = imagem.verificaRecompensaDisponivel()
+        if resultado is None:
+            posicionaMouseEsquerdo(x_tela= 10, y_tela= 10)
+            continue
+        posicionaMouseEsquerdo(x_tela= resultado[0], y_tela= resultado[1])
         sleep(1)
