@@ -139,8 +139,8 @@ class ManipulaImagem:
     def reconheceTextoMenu(self, tela) -> str | None:
         frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
         frameTelaTratado = self.retornaImagemCinza(frameTela)
-        frameTelaTratado = self.retornaImagemBinarizada(imagem= frameTelaTratado, limiteMinimo= 160)
-        return self.reconheceTexto(imagem= frameTelaTratado, confianca= 70)
+        frameTelaTratado = self.retornaImagemBinarizada(imagem= frameTelaTratado, limiteMinimo= 150)
+        return self.reconheceTexto(imagem= frameTelaTratado, confianca= 50)
 
     def retornaTextoMenuReconhecido(self) -> str | None:        
         return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
