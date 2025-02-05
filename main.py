@@ -1857,18 +1857,19 @@ class Aplicacao:
         Esta função é responsável por redefinir a lista de personagens ativos, verificando a lista de personagens já verificados
         """        
         self.defineListaPersonagensAtivos()
-        novaListaPersonagensAtivos: list[Personagem] = []
-        print(f'{CHAVE_NOME.ljust(17).upper()} | {CHAVE_ESPACO_BOLSA.ljust(11).upper()} | {CHAVE_ESTADO.ljust(10).upper()} | {CHAVE_USO.ljust(10).upper()} | {CHAVE_AUTO_PRODUCAO.ljust(10).upper()}')
-        for personagemAtivo in self.__listaPersonagemAtivo:
-            for personagemRemovido in self.__listaPersonagemJaVerificado:
-                if textoEhIgual(personagemAtivo.nome, personagemRemovido.nome):
-                    break
-            else:
-                estado = 'Verdadeiro' if personagemAtivo.estado else 'Falso'
-                uso = 'Verdadeiro' if personagemAtivo.uso else 'Falso'
-                autoProducao = 'Verdadeiro' if personagemAtivo.autoProducao else 'Falso'
-                print(f'{(personagemAtivo.nome).ljust(17)} | {str(personagemAtivo.espacoProducao).ljust(11)} | {estado.ljust(10)} | {uso.ljust(10)} | {autoProducao.ljust(10)}')
-                novaListaPersonagensAtivos.append(personagemAtivo)
+        if not tamanhoIgualZero(self.__listaPersonagemAtivo):
+            novaListaPersonagensAtivos: list[Personagem] = []
+            print(f'{CHAVE_NOME.ljust(17).upper()} | {CHAVE_ESPACO_BOLSA.ljust(11).upper()} | {CHAVE_ESTADO.ljust(10).upper()} | {CHAVE_USO.ljust(10).upper()} | {CHAVE_AUTO_PRODUCAO.ljust(10).upper()}')
+            for personagemAtivo in self.__listaPersonagemAtivo:
+                for personagemRemovido in self.__listaPersonagemJaVerificado:
+                    if textoEhIgual(personagemAtivo.nome, personagemRemovido.nome):
+                        break
+                else:
+                    estado = 'Verdadeiro' if personagemAtivo.estado else 'Falso'
+                    uso = 'Verdadeiro' if personagemAtivo.uso else 'Falso'
+                    autoProducao = 'Verdadeiro' if personagemAtivo.autoProducao else 'Falso'
+                    print(f'{(personagemAtivo.nome).ljust(17)} | {str(personagemAtivo.espacoProducao).ljust(11)} | {estado.ljust(10)} | {uso.ljust(10)} | {autoProducao.ljust(10)}')
+                    novaListaPersonagensAtivos.append(personagemAtivo)
         self.__listaPersonagemAtivo = novaListaPersonagensAtivos
 
     def entraContaPersonagem(self) -> bool:

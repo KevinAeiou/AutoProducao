@@ -92,7 +92,8 @@ class ManipulaImagem:
         arrayFrames: tuple = ((169, 285, 303, 33), (183, 200, 318, 31)) # [x, y, altura, largura]
         posicao: int = arrayFrames[tipoTrabalho]
         frameNomeTrabalho: np.ndarray = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
-        frameNomeTrabalhoBinarizado: np.ndarray = self.retornaImagemBinarizada(frameNomeTrabalho)
+        frameNomeTrabalhoCinza: np.ndarray = self.retornaImagemCinza(imagem= frameNomeTrabalho)
+        frameNomeTrabalhoBinarizado: np.ndarray = self.retornaImagemBinarizada(imagem= frameNomeTrabalhoCinza, limiteMinimo= 140)
         return self.reconheceTexto(frameNomeTrabalhoBinarizado)
 
     def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho: int) -> str | None:
@@ -209,6 +210,8 @@ class ManipulaImagem:
     
     def desenhaRetangulo(self, imagem, contorno, cor = (0,255,0)):
         x,y,l,a=cv2.boundingRect(contorno)
+        area = l * a
+        self.escreveTexto(str(area), imagem, contorno)
         return cv2.rectangle(imagem,(x,y),(x+l,y+a), cor ,2)
 
     def retonaImagemRedimensionada(self, imagem, porcentagem):
@@ -279,7 +282,7 @@ if __name__=='__main__':
     imagem = ManipulaImagem()
     while True:
         sleep(1)
-        print(imagem.retornaTextoMenuReconhecido())
+        print(imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho= 0))
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:
