@@ -207,7 +207,7 @@ class Aplicacao:
             clickEspecifico(1,'f1')
             clickContinuo(8,'up')
             return CODIGO_ERRO
-        if ehErroMoedasMilagrosasInsuficientes(CODIGO_ERRO):
+        if ehErroMoedasMilagrosasInsuficientes(CODIGO_ERRO) or ehErroItemAVenda(erro= CODIGO_ERRO):
             clickEspecifico(1,'f1')
             return CODIGO_ERRO
         if ehErroUsuarioOuSenhaInvalida(CODIGO_ERRO):
@@ -273,9 +273,15 @@ class Aplicacao:
         if texto1PertenceTexto2('Recompensa',textoMenu):
             print(f'Menu trabalho específico...')
             return MENU_TRABALHO_ESPECIFICO
-        if texto1PertenceTexto2('meu',textoMenu):
-            print(f'Menu meu perfil...')
-            return MENU_MEU_PERFIL           
+        if texto1PertenceTexto2(texto1= 'Mercado', texto2= textoMenu) and texto1PertenceTexto2(texto1= 'Fechar', texto2= textoMenu):
+            print(f'Menu mercado...')
+            return MENU_MERCADO
+        if texto1PertenceTexto2(texto1= 'Anuncio', texto2= textoMenu) and texto1PertenceTexto2(texto1= 'Cancelar', texto2= textoMenu):
+            print(f'Menu anuncio...')
+            return MENU_ANUNCIO        
+        if texto1PertenceTexto2(texto1= 'Meus anuncios', texto2= textoMenu) and texto1PertenceTexto2(texto1= 'Voltar', texto2= textoMenu):
+            print(f'Menu meus anuncios...')
+            return MENU_MEUS_ANUNCIOS        
         if texto1PertenceTexto2('Bolsa',textoMenu):
             print(f'Menu bolsa...')
             return MENU_BOLSA
@@ -391,7 +397,31 @@ class Aplicacao:
                 return
         self.__loggerEstoqueDao.warning(f'({trabalho}) não encontrado no estoque.')
 
-    def recuperaCorrespondencia(self, ):
+    def ofertaTrabalho(self) -> None:
+        for x in range(10):
+            resultado: tuple = self._imagem.retornaReferenciaLeiloeiro()
+            if resultado is None: return
+            clickMouseEsquerdo(clicks= 1, xTela= resultado[0], yTela= resultado[1] + 100)
+            sleep(3)
+            if ehMenuMercado(menu= self.retornaMenu()):
+                clickEspecifico(cliques= 1, teclaEspecifica= 'down')
+                clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
+                for y in range(15):
+                    clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+                    clickEspecifico(cliques= 1, teclaEspecifica= '6')
+                    if ehErroItemAVenda(self.verificaErro()):
+                        clickEspecifico(cliques= 2, teclaEspecifica= 'f1')
+                        return
+                    clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+                    codigoMenu = self.retornaMenu()
+                    if ehMenuAnuncio(menu = codigoMenu):
+                        clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
+                        return
+                    if not ehMenuMeusAnuncios(menu= codigoMenu):
+                        return
+                return
+
+    def recuperaCorrespondencia(self):
         while self._imagem.existeCorrespondencia():
             clickEspecifico(1, 'enter')
             trabalhoVendido = self.retornaConteudoCorrespondencia()
@@ -865,6 +895,7 @@ class Aplicacao:
                 if self._imagem.retornaExistePixelCorrespondencia():
                     vaiParaMenuCorrespondencia()
                     self.recuperaCorrespondencia()
+                    self.ofertaTrabalho()
                 print(f'Lista: {listaPersonagemPresenteRecuperado}.')
                 self.deslogaPersonagem()
                 if self.entraPersonagem(listaPersonagemPresenteRecuperado):
@@ -943,6 +974,7 @@ class Aplicacao:
                 if self._imagem.retornaExistePixelCorrespondencia():
                     vaiParaMenuCorrespondencia()
                     self.recuperaCorrespondencia()
+                    self.ofertaTrabalho()
             while not ehMenuProduzir(menu):
                 self.trataMenu(menu)
                 if not self.__confirmacao:

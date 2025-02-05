@@ -19,7 +19,7 @@ def variavelExiste(variavel):
 
 def limpaRuidoTexto(texto: str) -> str:
     texto = '' if texto is None else texto
-    padrao: str = '[^a-zA-Z0-9áãâéêíîóõôúûç_]'
+    padrao: str = '[^a-zA-Z0-9àáãâéêíîóõôúûç_]'
     expressao = re.compile(padrao)
     novaStringPalavras: str = expressao.sub('', texto)
     return unidecode(novaStringPalavras).lower()
@@ -129,6 +129,9 @@ def ehErroUsuarioOuSenhaInvalida(erro: int) -> bool:
 def ehErroMoedasMilagrosasInsuficientes(erro):
     return erro == CODIGO_ERRO_MOEDAS_MILAGROSAS_INSUFICIENTES
 
+def ehErroItemAVenda(erro: int) -> bool:
+    return erro == CODIGO_ITEM_A_VENDA
+
 def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
     return dicionarioPersonagem[CHAVE_ESPACO_BOLSA]
 
@@ -194,6 +197,15 @@ def ehMenuEscolhaEquipamento(menu: int) -> bool:
 
 def ehMenuAtributosEquipamento(menu: int) -> bool:
     return menu == MENU_TRABALHOS_ATRIBUTOS
+
+def ehMenuMercado(menu: int) -> bool:
+    return menu == MENU_MERCADO
+
+def ehMenuAnuncio(menu: int) -> bool:
+    return menu == MENU_ANUNCIO
+
+def ehMenuMeusAnuncios(menu: int) -> bool:
+    return menu == MENU_MEUS_ANUNCIOS
 
 def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
     listaDicionarioProfissaoRecursos = []

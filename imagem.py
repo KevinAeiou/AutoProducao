@@ -234,6 +234,28 @@ class ManipulaImagem:
     def verificaRecompensaDisponivel(self):
         return self.retornaReferencia(self.retornaAtualizacaoTela())
 
+    def verificaReferenciaLeiloeiro(self, imagem: np.ndarray) -> tuple | None:
+        imagem = imagem[0:imagem.shape[0], 0:imagem.shape[1]//2]
+        imagemTratada = self.retornaImagemCinza(imagem= imagem)
+        imagemTratada = self.retornaImagemBinarizada(imagem= imagemTratada, limiteMinimo=130)
+        resultado: dict = self.retornaImagemParaDicionario(imagem= imagemTratada)
+        for i in range(len(resultado['text'])):
+            # if resultado["conf"][i] > 0:
+            if resultado["conf"][i] > 0 and 'iloei' in resultado["text"][i]:
+                print(f'{resultado["text"][i]} | {resultado["conf"][i]}')
+                x = resultado["left"][i]
+                y = resultado["top"][i]
+                l = resultado["width"][i]
+                a = resultado["height"][i]
+                centroX = x+(l/2)
+                centroY = y+(a/2)
+                return (centroX, centroY)
+        # self.mostraImagem(0, imagemTratada)
+        return None
+    
+    def retornaReferenciaLeiloeiro(self):
+        return self.verificaReferenciaLeiloeiro(self.retornaAtualizacaoTela())
+
     def escreveTexto(self, texto, frameTela, contorno):
         x,y,l,a=cv2.boundingRect(contorno)
         posicao = (x, y+20)
@@ -256,5 +278,10 @@ if __name__=='__main__':
     sleep(1)
     imagem = ManipulaImagem()
     while True:
-        print(imagem.retornaTextoNomePersonagemReconhecido(0))
         sleep(1)
+        print(imagem.retornaTextoMenuReconhecido())
+        # resultado = imagem.retornaReferenciaLeiloeiro()
+        # print(resultado)
+        # if resultado is None:
+        #     continue
+        # posicionaMouseEsquerdo(x_tela= resultado[0], y_tela= resultado[1]+ 100)
