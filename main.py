@@ -48,7 +48,7 @@ class Aplicacao:
         self.__repositorioTrabalho = RepositorioTrabalho()
         self.__repositorioPersonagem = RepositorioPersonagem()
 
-    def personagemEmUso(self, personagem):
+    def personagemEmUso(self, personagem: Personagem = None) -> None:
         self.__personagemEmUso = personagem
 
     def defineListaPersonagemMesmoEmail(self) -> list[Personagem]:
@@ -1269,6 +1269,7 @@ class Aplicacao:
 
     def padronizaTexto(self, texto: str) -> str:
         textoPadronizado: str = texto.replace('-','')
+        textoPadronizado = limpaRuidoTexto(texto= textoPadronizado)
         textoPadronizado = textoPadronizado[:28] if len(textoPadronizado) >= 29 else textoPadronizado
         return textoPadronizado
 
@@ -1890,6 +1891,7 @@ class Aplicacao:
             erro = self.verificaErro()
 
     def entraPersonagemAtivo(self) -> None:
+        self.__personagemEmUso = None
         for x in range(5):
             codigoMenu: int = self.retornaMenu()
             if ehMenuDesconhecido(menu= codigoMenu) or ehMenuProduzir(menu= codigoMenu) or ehMenuTrabalhosDisponiveis(menu= codigoMenu) or ehMenuTrabalhosAtuais(menu= codigoMenu): 
@@ -1914,29 +1916,30 @@ class Aplicacao:
                 personagemReconhecido: str = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
                 while variavelExiste(variavel= personagemReconhecido) and contadorPersonagem < 13:
                     self.confirmaNomePersonagem(personagemReconhecido= personagemReconhecido)
-                    if variavelExiste(variavel= self.__personagemEmUso):
-                        clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
-                        sleep(1)
-                        print(f'Personagem ({self.__personagemEmUso.nome}) encontrado.')
-                        tentativas: int = 1
-                        erro: int = self.verificaErro()
-                        while erroEncontrado(erro= erro):
-                            if ehErroOutraConexao(erro= erro):
-                                self.__unicaConexao = False
-                                contadorPersonagem = 14
-                                return
-                            if ehErroConectando(erro= erro):
-                                if tentativas > 10:
-                                    clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
-                                    tentativas = 0
-                                tentativas += 1
-                            erro = self.verificaErro()
-                            continue
-                        print(f'Login efetuado com sucesso!')
-                        return
-                    clickEspecifico(cliques= 1, teclaEspecifica= 'right')
-                    personagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
-                    contadorPersonagem += 1
+                    if self.__personagemEmUso is None:
+                        clickEspecifico(cliques= 1, teclaEspecifica= 'right')
+                        personagemReconhecido = self._imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
+                        contadorPersonagem += 1
+                        continue
+                    clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+                    sleep(1)
+                    print(f'Personagem ({self.__personagemEmUso.nome}) encontrado.')
+                    tentativas: int = 1
+                    erro: int = self.verificaErro()
+                    while erroEncontrado(erro= erro):
+                        if ehErroOutraConexao(erro= erro):
+                            self.__unicaConexao = False
+                            contadorPersonagem = 14
+                            return
+                        if ehErroConectando(erro= erro):
+                            if tentativas > 10:
+                                clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
+                                tentativas = 0
+                            tentativas += 1
+                        erro = self.verificaErro()
+                        continue
+                    print(f'Login efetuado com sucesso!')
+                    return
                 print(f'Personagem não encontrado!')
                 if ehMenuEscolhaPersonagem(menu= self.retornaMenu()):
                     clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
