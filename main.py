@@ -1274,7 +1274,7 @@ class Aplicacao:
             self.__loggerTrabalhoProducaoDao.info(f'Trabalho negado: Não reconhecido')
             return dicionarioTrabalho
         if CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionarioTrabalho:
-            nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:28] if len(nomeTrabalhoReconhecido) >= 29 else nomeTrabalhoReconhecido
+            nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:27] if len(nomeTrabalhoReconhecido) >= 28 else nomeTrabalhoReconhecido
             listaTrabalhoProducaoPriorizada: list[TrabalhoProducao] = dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]
             for trabalhoProducao in listaTrabalhoProducaoPriorizada:
                 trabalhoEncontrado: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
@@ -1283,16 +1283,16 @@ class Aplicacao:
                 nomeTrabalho = self.padronizaTexto(trabalhoEncontrado.nome)
                 nomeProducaoTrabalho: str = self.padronizaTexto(trabalhoEncontrado.nomeProducao)
                 if trabalhoEhProducaoRecursos(trabalhoEncontrado):
-                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeProducaoTrabalho)):
+                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
                         return dicionarioTrabalho
                     continue
-                if textoEhIgual(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeTrabalho)):
+                if textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalho):
                     dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeTrabalho.ljust(30)}')
                     return dicionarioTrabalho
-                if textoEhIgual(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeProducaoTrabalho)):
+                if textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
                     dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
                     return dicionarioTrabalho
@@ -1302,7 +1302,7 @@ class Aplicacao:
     def padronizaTexto(self, texto: str) -> str:
         textoPadronizado: str = texto.replace('-','')
         textoPadronizado = limpaRuidoTexto(texto= textoPadronizado)
-        textoPadronizado = textoPadronizado[:28] if len(textoPadronizado) >= 29 else textoPadronizado
+        textoPadronizado = textoPadronizado[:27] if len(textoPadronizado) >= 28 else textoPadronizado
         return textoPadronizado
 
     def incrementaChavePosicaoTrabalho(self, dicionarioTrabalho):
