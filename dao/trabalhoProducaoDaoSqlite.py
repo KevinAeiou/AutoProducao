@@ -1,6 +1,7 @@
 __author__ = 'Kevin Amazonas'
 
 from modelos.trabalhoProducao import TrabalhoProducao
+from modelos.personagem import Personagem
 from db.db import MeuBanco
 import logging
 from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
@@ -8,10 +9,10 @@ from constantes import *
 
 class TrabalhoProducaoDaoSqlite:
     logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
-    def __init__(self, personagem = None):
+    def __init__(self, personagem: Personagem = None):
         self.__conexao = None
         self.__erro = None
-        self.__personagem = personagem
+        self.__personagem: Personagem = personagem
         self.__logger = logging.getLogger('trabalhoProducaoDao')
         try:
             self.__meuBanco = MeuBanco()
@@ -209,6 +210,32 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.estado = linha[4]
             self.__meuBanco.desconecta()
             return trabalhoProducao
+        except Exception as e:
+            self.__erro = str(e)
+        self.__meuBanco.desconecta()
+        return None
+    
+    def pegaTrabalhosProducaoPorIdTrabalho(self, id: str) -> list[TrabalhoProducao] | None:
+        trabalhosProducaoEncontrados: list[TrabalhoProducao] = []
+        sql = f"""
+            SELECT {CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_RECORRENCIA}, tipoLicenca, {CHAVE_ESTADO}
+            FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO}
+            WHERE {CHAVE_ID_TRABALHO} == ?
+            AND {CHAVE_ID_PERSONAGEM} == ?;"""
+        try:
+            cursor = self.__conexao.cursor()
+            cursor.execute(sql, (id, self.__personagem.id))
+            for linha in cursor.fetchall():
+                trabalhoProducao = TrabalhoProducao()
+                recorrencia = True if linha[2] == 1 else False
+                trabalhoProducao.id = linha[0]
+                trabalhoProducao.idTrabalho = linha[1]
+                trabalhoProducao.recorrencia = recorrencia
+                trabalhoProducao.tipo_licenca = linha[3]
+                trabalhoProducao.estado = linha[4]
+                trabalhosProducaoEncontrados.append(trabalhoProducao)
+            self.__meuBanco.desconecta()
+            return trabalhosProducaoEncontrados
         except Exception as e:
             self.__erro = str(e)
         self.__meuBanco.desconecta()

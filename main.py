@@ -1309,7 +1309,7 @@ class Aplicacao:
         dicionarioTrabalho[CHAVE_POSICAO] += 1
         return dicionarioTrabalho
 
-    def reconheceTextoTrabalhoComumMelhorado(self, trabalho: dict, contadorParaBaixo: int):
+    def reconheceTextoTrabalhoComumMelhorado(self, trabalho: dict, contadorParaBaixo: int) -> str | None:
         yinicialNome: int = (2 * 70) + 285
         if primeiraBusca(trabalho):
             clickEspecifico(cliques= 3, teclaEspecifica= 'down')
@@ -1986,13 +1986,13 @@ class Aplicacao:
                 return profissao
         return None
     
-    def pegaTrabalhosComumProfissaoNivelEspecifico(self, trabalho: Trabalho) -> list[Trabalho]:
-        trabalhoDao = TrabalhoDaoSqlite()
-        trabalhosComunsProfissaoNivelExpecifico = trabalhoDao.pegaTrabalhosComumProfissaoNivelEspecifico(trabalho)
-        if trabalhosComunsProfissaoNivelExpecifico is None:
+    def pegaTrabalhosPorProfissaoRaridadeNivel(self, trabalho: Trabalho) -> list[Trabalho]:
+        trabalhoDao: TrabalhoDaoSqlite = TrabalhoDaoSqlite()
+        trabalhosProfissaoRaridadeNivelExpecifico: list[Trabalho] = trabalhoDao.pegaTrabalhosPorProfissaoRaridadeNivel(trabalho)
+        if trabalhosProfissaoRaridadeNivelExpecifico is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos específicos no banco: {trabalhoDao.pegaErro()}')
             return []
-        return trabalhosComunsProfissaoNivelExpecifico
+        return trabalhosProfissaoRaridadeNivelExpecifico
     
     def retornaListaIdsRecursosNecessarios(self, trabalho: Trabalho) -> list[str]:
         trabalhoDao = TrabalhoDaoSqlite()
@@ -2035,16 +2035,42 @@ class Aplicacao:
                     return False
             return True
         return False
+    
+    def defineTrabalhoProducaoRecursosProfissaoPriorizada(self, trabalho: Trabalho) -> None:
+        nivel: int = 3 if trabalho.nivel < 16 else 10
+        trabalho.raridade = CHAVE_RARIDADE_RARO
+        trabalho.nivel = nivel
+        trabalhosProducaoRecursosEncontrados: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalho= trabalho)
+        trabalhoProducaoRecursosEncontrado: Trabalho = None
+        for trabalho in trabalhosProducaoRecursosEncontrados:
+            if trabalhoEhProducaoRecursos(trabalho= trabalho):
+                trabalhoProducaoRecursosEncontrado = trabalho
+                break
+        print(trabalhoProducaoRecursosEncontrado)
+        if trabalhoProducaoRecursosEncontrado is None:
+            self.__loggerTrabalhoProducaoDao.warning(f'Trabalho para produção de recursos (nível {nivel}, profissão {trabalho.profissao}, raridade {trabalho.raridade}) não encontrado!')
+            return
+        trabalhosProducaoEncontrados: list[TrabalhoProducao] = self.pegaTrabalhosProducaoPorIdTrabalho(id= trabalhoProducaoRecursosEncontrado.id)
+        if tamanhoIgualZero(trabalhosProducaoEncontrados):
+            self.__loggerTrabalhoProducaoDao.warning(f'{trabalhoProducaoRecursosEncontrado.nome} não encontrado na lista para produção.')
+        for trabalhoEncontrado in trabalhosProducaoEncontrados:
+            if trabalhoEncontrado.ehParaProduzir(): return
+        trabalhoProducao: TrabalhoProducao = TrabalhoProducao()
+        trabalhoProducao.idTrabalho = trabalhoProducaoRecursosEncontrado.id
+        trabalhoProducao.recorrencia = True
+        trabalhoProducao.tipo_licenca = CHAVE_LICENCA_APRENDIZ
+        trabalhoProducao.estado = CODIGO_PARA_PRODUZIR
+        self.insereTrabalhoProducao(trabalho= trabalhoProducao)
 
     def defineTrabalhoComumProfissaoPriorizada(self):
-        profissaoPriorizada = self.retornaProfissaoPriorizada()
+        profissaoPriorizada: Profissao = self.retornaProfissaoPriorizada()
         if variavelExiste(profissaoPriorizada):
-            nivelProfissao = profissaoPriorizada.pegaNivel()
+            nivelProfissao: int = profissaoPriorizada.pegaNivel()
             if nivelProfissao == 1 or nivelProfissao == 8:
                 self.__loggerProfissaoDao.warning(f'Nível de produção é 1 ou 8')
                 return 
-            trabalhoBuscado:Trabalho = self.defineTrabalhoComumBuscado(profissaoPriorizada, nivelProfissao)
-            trabalhosComunsProfissaoNivelExpecifico:list[Trabalho] = self.pegaTrabalhosComumProfissaoNivelEspecifico(trabalhoBuscado)
+            trabalhoBuscado: Trabalho = self.defineTrabalhoComumBuscado(profissaoPriorizada, nivelProfissao)
+            trabalhosComunsProfissaoNivelExpecifico: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalhoBuscado)
             if tamanhoIgualZero(trabalhosComunsProfissaoNivelExpecifico):
                 self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade (comum) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
                 return
@@ -2061,6 +2087,7 @@ class Aplicacao:
                 if existeRecursosNecessarios:
                     self.insereTrabalhoProducao(trabalhoComum)
                     continue
+                self.defineTrabalhoProducaoRecursosProfissaoPriorizada(trabalho= trabalhoBuscado)
                 return
         self.__loggerProfissaoDao.warning(f'Nem uma profissão priorizada encontrada!')
         return
@@ -2462,6 +2489,15 @@ class Aplicacao:
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho para produção por id ({id}) no banco: {trabalhoProducaoDao.pegaErro()}')
             return None
         return trabalhoProducaoEncontrado
+    
+    def pegaTrabalhosProducaoPorIdTrabalho(self, id:  str, personagem: Personagem = None) -> list[TrabalhoProducao]:
+        personagem: Personagem = self.__personagemEmUso if personagem is None else personagem
+        trabalhoProducaoDao: TrabalhoDaoSqlite = TrabalhoProducaoDaoSqlite(personagem= personagem)
+        trabalhosProducaoEncontrados: list[TrabalhoProducao] = trabalhoProducaoDao.pegaTrabalhosProducaoPorIdTrabalho(id= id)
+        if trabalhosProducaoEncontrados is None:
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos para produção por id ({id}) no banco: {trabalhoProducaoDao.pegaErro()}')
+            return []
+        return trabalhosProducaoEncontrados
 
     def sincronizaTrabalhosProducao(self):
         personagens: list[Personagem] = self.pegaPersonagens()

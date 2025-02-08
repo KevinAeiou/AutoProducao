@@ -4,7 +4,7 @@ from modelos.trabalho import Trabalho
 from db.db import MeuBanco
 from repositorio.repositorioTrabalho import RepositorioTrabalho
 import logging
-from constantes import CHAVE_ID, CHAVE_PROFISSAO, CHAVE_NIVEL, CHAVE_TRABALHOS
+from constantes import CHAVE_ID, CHAVE_PROFISSAO, CHAVE_NIVEL, CHAVE_TRABALHOS, CHAVE_RARIDADE
 
 class TrabalhoDaoSqlite():
     logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
@@ -51,14 +51,14 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
         return None
     
-    def pegaTrabalhosComumProfissaoNivelEspecifico(self, trabalhoBuscado):
-        trabalhos = []
-        sql = """
+    def pegaTrabalhosPorProfissaoRaridadeNivel(self, trabalhoBuscado: Trabalho) -> list[Trabalho] | None:
+        trabalhos: list[Trabalho] = []
+        sql = f"""
             SELECT * 
-            FROM trabalhos
-            WHERE profissao = ? 
-            AND raridade == ? 
-            AND nivel == ?;
+            FROM {CHAVE_TRABALHOS}
+            WHERE {CHAVE_PROFISSAO} = ? 
+            AND {CHAVE_RARIDADE} == ? 
+            AND {CHAVE_NIVEL} == ?;
             """
         try:
             if self.__fabrica == 1:
