@@ -478,29 +478,6 @@ class Aplicacao:
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao bucar trabalhos para produção com estado para produzir ou produzindo: {trabalhoProducaoDao.pegaErro()}')
             return None
         return trabalhosProducaoProduzirProduzindo
-
-    def retornaTrabalhoConcluido(self, nomeTrabalhoConcluido: str) -> TrabalhoProducao:
-        listaPossiveisTrabalhos = self.retornaListaPossiveisTrabalhoRecuperado(nomeTrabalhoConcluido)
-        if tamanhoIgualZero(listaPossiveisTrabalhos):
-            return None
-        for possivelTrabalho in listaPossiveisTrabalhos:
-            trabalhosProducao = self.pegaTrabalhosProducaoParaProduzirProduzindo()
-            if variavelExiste(trabalhosProducao):
-                for trabalhoProduzirProduzindo in trabalhosProducao:
-                    nomeEhIgualEEstadoEhProduzindo = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalho.nome)
-                    if nomeEhIgualEEstadoEhProduzindo:
-                        trabalhoProduzirProduzindo.estado = CODIGO_CONCLUIDO
-                        self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProduzirProduzindo}) encontrado na lista de produção')
-                        return trabalhoProduzirProduzindo
-        else:
-            self.__loggerTrabalhoProducaoDao.warning(f'({nomeTrabalhoConcluido}) concluido não encontrado na lista de produção...')
-            trabalhoProducaoConcluido = TrabalhoProducao()
-            trabalhoProducaoConcluido.idTrabalho = listaPossiveisTrabalhos[0].id
-            trabalhoProducaoConcluido.recorrencia = False
-            trabalhoProducaoConcluido.tipo_licenca = CHAVE_LICENCA_NOVATO
-            trabalhoProducaoConcluido.estado = CODIGO_CONCLUIDO
-            self.insereTrabalhoProducao(trabalhoProducaoConcluido)
-            return trabalhoProducaoConcluido
         
     def removeTrabalhoProducao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
@@ -911,9 +888,9 @@ class Aplicacao:
         elif menu == MENU_TRABALHOS_ATUAIS:
             estadoTrabalho = self._imagem.retornaEstadoTrabalho()
             if estadoTrabalho == CODIGO_CONCLUIDO:
-                nomeTrabalhoConcluido = self.reconheceRecuperaTrabalhoConcluido()
-                if variavelExiste(nomeTrabalhoConcluido):
-                    trabalhoProducaoConcluido = self.retornaTrabalhoConcluido(nomeTrabalhoConcluido)
+                nomeTrabalhoConcluido: str = self.reconheceRecuperaTrabalhoConcluido()
+                if variavelExiste(variavel= nomeTrabalhoConcluido):
+                    trabalhoProducaoConcluido: TrabalhoProducao = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= nomeTrabalhoConcluido)
                     if variavelExiste(trabalhoProducaoConcluido):
                         self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
                         self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
@@ -1274,7 +1251,7 @@ class Aplicacao:
             self.__loggerTrabalhoProducaoDao.info(f'Trabalho negado: Não reconhecido')
             return dicionarioTrabalho
         if CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionarioTrabalho:
-            nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:28] if len(nomeTrabalhoReconhecido) >= 29 else nomeTrabalhoReconhecido
+            nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:27] if len(nomeTrabalhoReconhecido) >= 28 else nomeTrabalhoReconhecido
             listaTrabalhoProducaoPriorizada: list[TrabalhoProducao] = dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]
             for trabalhoProducao in listaTrabalhoProducaoPriorizada:
                 trabalhoEncontrado: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
@@ -1283,16 +1260,16 @@ class Aplicacao:
                 nomeTrabalho = self.padronizaTexto(trabalhoEncontrado.nome)
                 nomeProducaoTrabalho: str = self.padronizaTexto(trabalhoEncontrado.nomeProducao)
                 if trabalhoEhProducaoRecursos(trabalhoEncontrado):
-                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeProducaoTrabalho)):
+                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
                         return dicionarioTrabalho
                     continue
-                if textoEhIgual(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeTrabalho)):
+                if textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalho):
                     dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeTrabalho.ljust(30)}')
                     return dicionarioTrabalho
-                if textoEhIgual(nomeTrabalhoReconhecido, limpaRuidoTexto(nomeProducaoTrabalho)):
+                if textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
                     dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
                     return dicionarioTrabalho
@@ -1302,7 +1279,7 @@ class Aplicacao:
     def padronizaTexto(self, texto: str) -> str:
         textoPadronizado: str = texto.replace('-','')
         textoPadronizado = limpaRuidoTexto(texto= textoPadronizado)
-        textoPadronizado = textoPadronizado[:28] if len(textoPadronizado) >= 29 else textoPadronizado
+        textoPadronizado = textoPadronizado[:27] if len(textoPadronizado) >= 28 else textoPadronizado
         return textoPadronizado
 
     def incrementaChavePosicaoTrabalho(self, dicionarioTrabalho):
@@ -1658,7 +1635,7 @@ class Aplicacao:
         erro: int = self.verificaErro()
         while erroEncontrado(erro= erro):
             if ehErroRecursosInsuficiente(erro= erro):
-                self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalho.id} | {trabalho})')
+                self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalho})')
                 self.__confirmacao = False
                 self.removeTrabalhoProducao(trabalho= trabalho)
                 erro = self.verificaErro()
@@ -1706,7 +1683,6 @@ class Aplicacao:
         else:
             print(f'Trabalho concluído ({listaPossiveisTrabalhosProducao[0].nome}) não encontrado na lista produzindo...')
             return listaPossiveisTrabalhosProducao[0]
-
     
     def existeEspacoProducao(self) -> bool:
         espacoProducao: int = self.__personagemEmUso.espacoProducao
