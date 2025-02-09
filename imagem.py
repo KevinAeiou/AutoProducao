@@ -119,7 +119,7 @@ class ManipulaImagem:
         posicaoNome = [[2,33,210,45], [x,y,200,40]] # [x, y, altura, largura]
         frameNomePersonagem = tela[posicaoNome[posicao][1]:posicaoNome[posicao][1]+posicaoNome[posicao][3], posicaoNome[posicao][0]:posicaoNome[posicao][0]+posicaoNome[posicao][2]]
         frameCinza = self.retornaImagemCinza(frameNomePersonagem)
-        frameBinarizado = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 140)
+        frameBinarizado = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 150)
         return self.reconheceTexto(imagem= frameBinarizado, confianca= 40)
     
     def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
@@ -282,7 +282,7 @@ if __name__=='__main__':
     imagem = ManipulaImagem()
     while True:
         sleep(1)
-        print(imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho= 0))
+        print(imagem.retornaTextoNomePersonagemReconhecido(posicao= 1))
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:
