@@ -509,6 +509,7 @@ class Aplicacao:
             self.removeTrabalhoProducao(trabalhoProducaoConcluido)
             return
         print(f'Trabalho sem recorrencia.')
+        trabalhoProducaoConcluido.estado = CODIGO_CONCLUIDO
         self.modificaTrabalhoProducao(trabalhoProducaoConcluido)
 
     def insereListaProfissoes(self, personagem: Personagem =None) -> bool:
