@@ -93,7 +93,7 @@ class ManipulaImagem:
         posicao: int = arrayFrames[tipoTrabalho]
         frameNomeTrabalho: np.ndarray = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
         frameNomeTrabalhoCinza: np.ndarray = self.retornaImagemCinza(imagem= frameNomeTrabalho)
-        frameNomeTrabalhoBinarizado: np.ndarray = self.retornaImagemBinarizada(imagem= frameNomeTrabalhoCinza, limiteMinimo= 140)
+        frameNomeTrabalhoBinarizado: np.ndarray = self.retornaImagemBinarizada(imagem= frameNomeTrabalhoCinza, limiteMinimo= 115)
         return self.reconheceTexto(frameNomeTrabalhoBinarizado)
 
     def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho: int) -> str | None:
@@ -282,7 +282,7 @@ if __name__=='__main__':
     imagem = ManipulaImagem()
     while True:
         sleep(1)
-        print(imagem.retornaTextoMenuReconhecido())
+        print(imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho= 0))
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:
