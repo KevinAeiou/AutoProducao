@@ -176,9 +176,9 @@ class Aplicacao:
             if ehErroLicencaNecessaria(CODIGO_ERRO):
                 self.verificaLicenca(None)
             return CODIGO_ERRO
-        if ehErroOutraConexao(CODIGO_ERRO) or ehErroRecursosInsuficiente(CODIGO_ERRO) or ehErroTempoDeProducaoExpirada(CODIGO_ERRO) or ehErroExperienciaInsuficiente(CODIGO_ERRO) or ehErroEspacoProducaoInsuficiente(CODIGO_ERRO):
+        if ehErroOutraConexao(CODIGO_ERRO) or ehErroRecursosInsuficiente(CODIGO_ERRO) or ehErroTempoDeProducaoExpirada(CODIGO_ERRO) or ehErroExperienciaInsuficiente(CODIGO_ERRO) or ehErroEspacoProducaoInsuficiente(CODIGO_ERRO) or ehErroFalhaAoIniciarConexao(erro= CODIGO_ERRO):
             clickEspecifico(1,'enter')
-            if ehErroOutraConexao(CODIGO_ERRO):
+            if ehErroOutraConexao(CODIGO_ERRO) or ehErroFalhaAoIniciarConexao(erro= CODIGO_ERRO):
                 return CODIGO_ERRO
             clickEspecifico(2,'f1')
             clickContinuo(9,'up')

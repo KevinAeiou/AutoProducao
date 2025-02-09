@@ -132,6 +132,9 @@ def ehErroMoedasMilagrosasInsuficientes(erro):
 def ehErroItemAVenda(erro: int) -> bool:
     return erro == CODIGO_ITEM_A_VENDA
 
+def ehErroFalhaAoIniciarConexao(erro: int) -> bool:
+    return erro == CODIGO_FALHA_AO_INICIAR_CONEXAO
+
 def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
     return dicionarioPersonagem[CHAVE_ESPACO_BOLSA]
 
