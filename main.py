@@ -1301,7 +1301,6 @@ class Aplicacao:
             return self._imagem.retornaNomeTrabalhoReconhecido(530, 1)
 
     def defineDicionarioTrabalhoComumMelhorado(self, dicionarioTrabalho: dict) -> dict:
-        nomeTrabalhoReconhecidoAux: str = ''
         nomeTrabalhoReconhecido: str = ''
         print(f'Buscando trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].raridade}.')
         contadorParaBaixo: int = 0
@@ -1315,10 +1314,9 @@ class Aplicacao:
                 break
             nomeTrabalhoReconhecido = self.reconheceTextoTrabalhoComumMelhorado(dicionarioTrabalho, contadorParaBaixo)
             contadorParaBaixo = 3 if primeiraBusca(dicionarioTrabalho) else contadorParaBaixo
-            nomeReconhecidoNaoEstaVazioEnomeReconhecidoNaoEhIgualAoAnterior = (
-                variavelExiste(nomeTrabalhoReconhecido) and not textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalhoReconhecidoAux))
-            if nomeReconhecidoNaoEstaVazioEnomeReconhecidoNaoEhIgualAoAnterior:
-                nomeTrabalhoReconhecidoAux = nomeTrabalhoReconhecido
+            fimLista: bool = False if contadorParaBaixo < 110 else True
+            nomeReconhecidoNaoEstaVazioEnaoEhFimLista = (variavelExiste(nomeTrabalhoReconhecido) and not fimLista)
+            if nomeReconhecidoNaoEstaVazioEnaoEhFimLista:
                 print(f'Trabalho reconhecido: {nomeTrabalhoReconhecido}')
                 for trabalhoProducao in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
                     print(f'Trabalho na lista: {trabalhoProducao.nome}')
