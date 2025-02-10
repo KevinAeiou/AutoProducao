@@ -85,7 +85,6 @@ class ManipulaImagem:
         return self.reconheceTexto(frameNomeTrabalhoTratado) if existePixelPreto(frameNomeTrabalhoTratado) else None
     
     def retornaNomeTrabalhoReconhecido(self, yinicialNome, identificador):
-        sleep(1.5)
         return self.reconheceNomeTrabalho(self.retornaAtualizacaoTela(), yinicialNome, identificador)
 
     def reconheceNomeConfirmacaoTrabalhoProducao(self, tela: np.ndarray, tipoTrabalho: int) -> str | None:
