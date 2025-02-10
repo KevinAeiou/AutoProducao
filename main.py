@@ -1950,7 +1950,7 @@ class Aplicacao:
                     clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
                     return
             if ehMenuInicial(codigoMenu): self.deslogaPersonagem(menu= codigoMenu)
-            if ehMenuNoticias(menu= codigoMenu): clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+            if ehMenuNoticias(menu= codigoMenu) or ehMenuEscolhaPersonagem(menu= codigoMenu): clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
 
     def retornaProfissaoPriorizada(self) -> Profissao | None:
         profissoes: list[Profissao] = self.pegaProfissoes()
