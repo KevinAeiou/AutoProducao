@@ -1241,19 +1241,19 @@ class Aplicacao:
         clickEspecifico(1, 'up')
         return nomeTrabalhoReconhecido
 
-    def confirmaNomeTrabalhoProducao(self, dicionarioTrabalho: dict, tipoTrabalho: int):
+    def confirmaNomeTrabalhoProducao(self, dicionario: dict, tipo: int):
         print(f'Confirmando nome do trabalho...')
-        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = None
-        if tipoTrabalho == 0:
+        dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = None
+        if tipo == 0:
             nomeTrabalhoReconhecido: str = self.retornaFrameTelaTrabalhoEspecifico()
         else:
-            nomeTrabalhoReconhecido: str = self._imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho= tipoTrabalho)
+            nomeTrabalhoReconhecido: str = self._imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho= tipo)
         if nomeTrabalhoReconhecido is None:
             self.__loggerTrabalhoProducaoDao.info(f'Trabalho negado: Não reconhecido')
-            return dicionarioTrabalho
-        if CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionarioTrabalho:
+            return dicionario
+        if CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionario:
             nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:27] if len(nomeTrabalhoReconhecido) >= 28 else nomeTrabalhoReconhecido
-            listaTrabalhoProducaoPriorizada: list[TrabalhoProducao] = dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]
+            listaTrabalhoProducaoPriorizada: list[TrabalhoProducao] = dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]
             for trabalhoProducao in listaTrabalhoProducaoPriorizada:
                 trabalhoEncontrado: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
                 if trabalhoEncontrado is None:
@@ -1262,20 +1262,20 @@ class Aplicacao:
                 nomeProducaoTrabalho: str = self.padronizaTexto(trabalhoEncontrado.nomeProducao)
                 if trabalhoEhProducaoRecursos(trabalhoEncontrado):
                     if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
-                        dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
+                        dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
-                        return dicionarioTrabalho
+                        return dicionario
                     continue
                 if textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalho):
-                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
+                    dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeTrabalho.ljust(30)}')
-                    return dicionarioTrabalho
+                    return dicionario
                 if textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
-                    dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
+                    dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
-                    return dicionarioTrabalho
+                    return dicionario
         self.__loggerTrabalhoProducaoDao.info(f'Trabalho negado: {nomeTrabalhoReconhecido.ljust(30)}')
-        return dicionarioTrabalho
+        return dicionario
 
     def padronizaTexto(self, texto: str) -> str:
         textoPadronizado: str = texto.replace('-','')
@@ -1301,44 +1301,41 @@ class Aplicacao:
             return self._imagem.retornaNomeTrabalhoReconhecido(530, 1)
 
     def defineDicionarioTrabalhoComumMelhorado(self, dicionarioTrabalho: dict) -> dict:
-        nomeTrabalhoReconhecido: str = ''
         print(f'Buscando trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].raridade}.')
-        contadorParaBaixo: int = 0
-        if not primeiraBusca(dicionarioTrabalho):
+        contadorParaBaixo: int= 0
+        if not primeiraBusca(dicionarioTrabalho= dicionarioTrabalho):
             contadorParaBaixo = dicionarioTrabalho[CHAVE_POSICAO]
-            clickEspecifico(contadorParaBaixo, 'down')
+            clickEspecifico(cliques= contadorParaBaixo, teclaEspecifica= 'down')
         while not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
-            erro = self.verificaErro()
-            if erroEncontrado(erro):
+            if erroEncontrado(erro= self.verificaErro()):
                 self.__confirmacao = False
-                break
-            nomeTrabalhoReconhecido = self.reconheceTextoTrabalhoComumMelhorado(dicionarioTrabalho, contadorParaBaixo)
+                return dicionarioTrabalho
+            nomeTrabalhoReconhecido: str = self.reconheceTextoTrabalhoComumMelhorado(trabalho= dicionarioTrabalho, contadorParaBaixo= contadorParaBaixo)
             contadorParaBaixo = 3 if primeiraBusca(dicionarioTrabalho) else contadorParaBaixo
-            fimLista: bool = False if contadorParaBaixo < 110 else True
-            nomeReconhecidoNaoEstaVazioEnaoEhFimLista = (variavelExiste(nomeTrabalhoReconhecido) and not fimLista)
+            fimLista: bool= False if contadorParaBaixo < 110 else True
+            nomeReconhecidoNaoEstaVazioEnaoEhFimLista: bool= nomeTrabalhoReconhecido is not None and not fimLista
             if nomeReconhecidoNaoEstaVazioEnaoEhFimLista:
                 print(f'Trabalho reconhecido: {nomeTrabalhoReconhecido}')
                 for trabalhoProducao in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
                     print(f'Trabalho na lista: {trabalhoProducao.nome}')
-                    if texto1PertenceTexto2(nomeTrabalhoReconhecido, trabalhoProducao.nomeProducao):
-                        clickEspecifico(1, 'enter')
+                    if texto1PertenceTexto2(texto1= nomeTrabalhoReconhecido, texto2= trabalhoProducao.nomeProducao):
+                        clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
                         dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo - 1
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
-                        contadorParaBaixo += 1
-                        tipoTrabalho: int = 1 if trabalhoEhProducaoRecursos(dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]) else 0
-                        dicionarioTrabalho = self.confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
-                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
-                            break
-                        clickEspecifico(1, 'f1')
-                else:
-                    clickEspecifico(1, 'down')
-                    dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
-                    contadorParaBaixo += 1
+                        contadorParaBaixo+= 1
+                        tipoTrabalho: int= 1 if trabalhoEhProducaoRecursos(trabalho= dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]) else 0
+                        dicionarioTrabalho= self.confirmaNomeTrabalhoProducao(dicionario= dicionarioTrabalho, tipo= tipoTrabalho)
+                        if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho= dicionarioTrabalho):
+                            return dicionarioTrabalho
+                        clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
+                clickEspecifico(cliques= 1, teclaEspecifica= 'down')
+                dicionarioTrabalho[CHAVE_POSICAO]= contadorParaBaixo
+                contadorParaBaixo+= 1
                 continue
             if not primeiraBusca(dicionarioTrabalho) and dicionarioTrabalho[CHAVE_POSICAO] > 5:
-                print(f'Trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].raridade} não reconhecido!')
-                break
-            clickEspecifico(1, 'down')
+                self.__loggerTrabalhoProducaoDao.warning(f'Trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].raridade} não reconhecido!')
+                return dicionarioTrabalho
+            clickEspecifico(cliques= 1, teclaEspecifica= 'down')
             dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo
             contadorParaBaixo += 1
         return dicionarioTrabalho
@@ -1768,7 +1765,7 @@ class Aplicacao:
     def veficaTrabalhosProducaoListaDesejos(self, dicionarioTrabalho: dict) -> dict:
         listaDeListasTrabalhosProducao: list[list[TrabalhoProducao]] = self.retornaListaDeListasTrabalhosProducao(dicionarioTrabalho)
         for listaTrabalhosProducao in listaDeListasTrabalhosProducao:
-            dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA] = listaTrabalhosProducao
+            dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]= listaTrabalhosProducao
             for trabalhoProducaoPriorizado in listaTrabalhosProducao:
                 if trabalhoProducaoPriorizado.ehEspecial() or trabalhoProducaoPriorizado.ehRaro():
                     print(f'Trabalho desejado: {trabalhoProducaoPriorizado.nome}.')
@@ -1807,7 +1804,7 @@ class Aplicacao:
                     dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
                     continue
                 if trabalhoProducaoPriorizado.ehMelhorado() or trabalhoProducaoPriorizado.ehComum():
-                    dicionarioTrabalho = self.defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho)
+                    dicionarioTrabalho: dict = self.defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho= dicionarioTrabalho)
                     if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
                         return dicionarioTrabalho
                     if listaDeListasTrabalhosProducao.index(listaTrabalhosProducao) + 1 >= len(listaDeListasTrabalhosProducao):
@@ -1996,13 +1993,17 @@ class Aplicacao:
         return trabalhosProduzindo
 
     def verificaRecursosNecessarios(self, trabalho: Trabalho) -> bool:
-        if trabalho.ehComum():
+        trabalhoBuscado: Trabalho= Trabalho()
+        trabalhoBuscado.nivel = trabalho.nivel
+        trabalhoBuscado.profissao = trabalho.profissao
+        trabalhoBuscado.raridade = trabalho.raridade
+        if trabalhoBuscado.ehComum():
             quantidadeRecursosContingencia: int = 0
-            for trabalhoParaProduzir in self.pegaTrabalhosParaProduzirPorProfissaoRaridade(trabalho):
+            for trabalhoParaProduzir in self.pegaTrabalhosParaProduzirPorProfissaoRaridade(trabalhoBuscado):
                 quantidadeRecursosContingencia += trabalhoParaProduzir.pegaQuantidadeRecursosNecessarios() + 2
-            quantidadeRecursosContingencia += trabalho.pegaQuantidadeRecursosNecessarios() + 2
-            trabalho.nivel = 1 if trabalho.nivel < 16 else 8
-            idsRecursosNecessarios: list[str] = self.retornaListaIdsRecursosNecessarios(trabalho)
+            quantidadeRecursosContingencia += trabalhoBuscado.pegaQuantidadeRecursosNecessarios() + 2
+            trabalhoBuscado.nivel = 1 if trabalhoBuscado.nivel < 16 else 8
+            idsRecursosNecessarios: list[str] = self.retornaListaIdsRecursosNecessarios(trabalhoBuscado)
             if len(idsRecursosNecessarios) < 3:
                 return False
             dicionariosRecursosNecessarios: list[dict] = self.retornaListaDicionariosRecursosNecessarios(idsRecursosNecessarios)
@@ -2059,7 +2060,7 @@ class Aplicacao:
                 if quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns:
                     return
                 trabalhoComum = self.defineTrabalhoProducaoComum(trabalhosQuantidade)
-                existeRecursosNecessarios = self.verificaRecursosNecessarios(trabalhoBuscado)
+                existeRecursosNecessarios = self.verificaRecursosNecessarios(trabalho= trabalhoBuscado)
                 if existeRecursosNecessarios:
                     self.insereTrabalhoProducao(trabalhoComum)
                     continue
