@@ -1259,8 +1259,8 @@ class Aplicacao:
                 if trabalhoEncontrado is None:
                     continue
                 nomeTrabalho = self.padronizaTexto(trabalhoEncontrado.nome)
-                nomeProducaoTrabalho: str = self.padronizaTexto(trabalhoEncontrado.nomeProducao)
                 if trabalhoEhProducaoRecursos(trabalhoEncontrado):
+                    nomeProducaoTrabalho: str = limpaRuidoTexto(trabalhoEncontrado.nomeProducao)
                     if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
                         dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
@@ -1270,6 +1270,7 @@ class Aplicacao:
                     dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeTrabalho.ljust(30)}')
                     return dicionario
+                nomeProducaoTrabalho: str = self.padronizaTexto(trabalhoEncontrado.nomeProducao)
                 if textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
                     dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__loggerTrabalhoProducaoDao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
