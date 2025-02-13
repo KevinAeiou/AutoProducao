@@ -884,7 +884,12 @@ class CRUD:
         self.__aplicacao.abreStreamPersonagens()
         
     def testeFuncao(self):
-        self.__aplicacao.ofertaTrabalho()
+        while True:
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
+                print(self.__aplicacao.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= 'cajadododefensorlend'))
+                continue
+            break
         
     def menu(self):
         while True:

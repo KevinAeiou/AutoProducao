@@ -1678,9 +1678,10 @@ class Aplicacao:
     def retornaTrabalhoProducaoConcluido(self, nomeTrabalhoReconhecido: str) -> TrabalhoProducao | None:
         listaPossiveisTrabalhosProducao: list[TrabalhoProducao] = self.retornaListaPossiveisTrabalhos(nomeTrabalhoReconhecido= nomeTrabalhoReconhecido)
         if tamanhoIgualZero(listaPossiveisTrabalhosProducao):
+            self.__loggerTrabalhoProducaoDao.warning(f'Falha ao criar lista de possíveis trabalhos concluídos ({nomeTrabalhoReconhecido})...')
             return None
-        trabalhosProducao = self.pegaTrabalhosProducaoParaProduzirProduzindo()
-        if not variavelExiste(trabalhosProducao):
+        trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
+        if trabalhosProducao is None:
             return listaPossiveisTrabalhosProducao[0]
         for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
             for trabalhoProduzirProduzindo in trabalhosProducao:
@@ -1688,7 +1689,8 @@ class Aplicacao:
                 if condicoes:
                     return trabalhoProduzirProduzindo
         else:
-            print(f'Trabalho concluído ({listaPossiveisTrabalhosProducao[0].nome}) não encontrado na lista produzindo...')
+            for trabalhoProducao in listaPossiveisTrabalhosProducao:
+                self.__loggerTrabalhoProducaoDao.warning(f'Possível trabalho concluído ({trabalhoProducao.nome}) não encontrado na lista produzindo...')
             return listaPossiveisTrabalhosProducao[0]
     
     def existeEspacoProducao(self) -> bool:
