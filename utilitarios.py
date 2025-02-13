@@ -210,6 +210,21 @@ def ehMenuAnuncio(menu: int) -> bool:
 def ehMenuMeusAnuncios(menu: int) -> bool:
     return menu == MENU_MEUS_ANUNCIOS
 
+def ehMenuOfertaDiaria(menu: int) -> bool:
+    return menu == MENU_OFERTA_DIARIA
+
+def ehMenuPersonagem(menu: int) -> bool:
+    return menu == MENU_PERSONAGEM
+
+def ehMenuPrincipal(menu: int) -> bool:
+    return menu == MENU_PRINCIPAL
+
+def ehMenuRecompensasDiarias(menu: int) -> bool:
+    return menu == MENU_RECOMPENSAS_DIARIAS
+
+def ehMenuLojaMilagrosa(menu: int) -> bool:
+    return menu == MENU_LOJA_MILAGROSA
+
 def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
     listaDicionarioProfissaoRecursos = []
     if nivelProduzTrabalhoComum == 1:

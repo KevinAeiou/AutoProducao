@@ -185,20 +185,22 @@ class ManipulaImagem:
     def retornaTextoCorrespondenciaReconhecido(self):
         return self.reconheceTextoCorrespondencia(self.retornaAtualizacaoTela())
     
-    def reconheceEstadoTrabalho(self, tela):
-        texto = self.reconheceTexto(tela[311:311+43, 233:486])
-        if variavelExiste(texto):
-            if texto1PertenceTexto2("pedidoconcluido", texto):
-                print(f'Pedido concluído!')
-                return CODIGO_CONCLUIDO
-            if texto1PertenceTexto2('adicionarumnovopedido', texto):
-                print(f'Nem um trabalho!')
-                return CODIGO_PARA_PRODUZIR
+    def reconheceEstadoTrabalho(self, tela) -> int:
+        texto: str = self.reconheceTexto(tela[311:311+43, 233:486])
+        if texto is None:
+            print(f'Em produção...')
+            return CODIGO_PRODUZINDO
+        if texto1PertenceTexto2(texto1= STRING_PEDIDO_CONCLUIDO, texto2= texto):
+            print(f'Pedido concluído!')
+            return CODIGO_CONCLUIDO
+        if texto1PertenceTexto2(texto1= STRING_ADICIONAR_NOVO_PEDIDO, texto2= texto):
+            print(f'Nem um trabalho!')
+            return CODIGO_PARA_PRODUZIR
         print(f'Em produção...')
         return CODIGO_PRODUZINDO
     
-    def retornaEstadoTrabalho(self):
-        return self.reconheceEstadoTrabalho(self.retornaAtualizacaoTela())
+    def retornaEstadoTrabalho(self) -> int:
+        return self.reconheceEstadoTrabalho(tela= self.retornaAtualizacaoTela())
 
     def reconheceNomeTrabalhoFrameProducao(self, tela):
         tela = self.retornaImagemBinarizada(tela[285:285+37, 233:486])

@@ -432,24 +432,25 @@ class Aplicacao:
         print(f'Caixa de correio vazia!')
         clickMouseEsquerdo(1, 2, 35)
 
-    def reconheceRecuperaTrabalhoConcluido(self):
-        erro = self.verificaErro()
-        if nenhumErroEncontrado(erro):
-            nomeTrabalhoConcluido = self._imagem.retornaNomeTrabalhoFrameProducaoReconhecido()
-            clickEspecifico(1, 'down')
-            clickEspecifico(1, 'f2')
+    def reconheceRecuperaTrabalhoConcluido(self) -> str | None:
+        erro: int = self.verificaErro()
+        if nenhumErroEncontrado(erro= erro):
+            nomeTrabalhoConcluido: str = self._imagem.retornaNomeTrabalhoFrameProducaoReconhecido()
+            clickEspecifico(cliques= 1, teclaEspecifica= 'down')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
             self.__loggerTrabalhoProducaoDao.info(f'Trabalho concluido reconhecido: {nomeTrabalhoConcluido}')
-            if variavelExiste(nomeTrabalhoConcluido):
-                erro = self.verificaErro()
-                if nenhumErroEncontrado(erro):
-                    if not self.listaProfissoesFoiModificada():
-                        self.__profissaoModificada = True
-                    clickContinuo(3, 'up')
-                    return nomeTrabalhoConcluido
-                if ehErroEspacoBolsaInsuficiente(erro):
-                    self.__espacoBolsa = False
-                    clickContinuo(1, 'up')
-                    clickEspecifico(1, 'left')
+            if nomeTrabalhoConcluido is None:
+                return None
+            erro: int = self.verificaErro()
+            if nenhumErroEncontrado(erro= erro):
+                if not self.listaProfissoesFoiModificada():
+                    self.__profissaoModificada = True
+                clickContinuo(cliques= 3, teclaEspecifica= 'up')
+                return nomeTrabalhoConcluido
+            if ehErroEspacoBolsaInsuficiente(erro= erro):
+                self.__espacoBolsa = False
+                clickContinuo(cliques= 1, teclaEspecifica= 'up')
+                clickEspecifico(cliques= 1, teclaEspecifica= 'left')
         return None
 
     def retornaListaPossiveisTrabalhoRecuperado(self, nomeTrabalhoConcluido):
@@ -883,36 +884,39 @@ class Aplicacao:
                     break
             menu: int = self.retornaMenu()
 
-    def trataMenu(self, menu):
+    def trataMenu(self, menu) -> None:
         if menu == MENU_DESCONHECIDO:
-            pass
-        elif menu == MENU_TRABALHOS_ATUAIS:
-            estadoTrabalho = self._imagem.retornaEstadoTrabalho()
+            return
+        if ehMenuTrabalhosAtuais(menu= menu):
+            estadoTrabalho: int = self._imagem.retornaEstadoTrabalho()
             if estadoTrabalho == CODIGO_CONCLUIDO:
                 nomeTrabalhoConcluido: str = self.reconheceRecuperaTrabalhoConcluido()
-                if variavelExiste(variavel= nomeTrabalhoConcluido):
-                    trabalhoProducaoConcluido: TrabalhoProducao = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= nomeTrabalhoConcluido)
-                    if variavelExiste(trabalhoProducaoConcluido):
-                        self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
-                        self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
-                        self.atualizaEstoquePersonagem(trabalhoProducaoConcluido)
-                        trabalhoProducaoRaro = self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
-                        self.insereTrabalhoProducao(trabalhoProducaoRaro)
-                    else:
-                        print(f'Trabalho produção concluido não reconhecido.')
-                else:
-                    print(f'Nome trabalho concluído não reconhecido.')
-            elif estadoTrabalho == CODIGO_PRODUZINDO:
-                if not self.existeEspacoProducao():
-                    print(f'Todos os espaços de produção ocupados.')
-                    self.__confirmacao = False
-                else:
-                    clickContinuo(3,'up')
-                    clickEspecifico(1,'left')
-            elif estadoTrabalho == CODIGO_PARA_PRODUZIR:
-                clickContinuo(3,'up')
-                clickEspecifico(1,'left')
-        elif menu == MENU_RECOMPENSAS_DIARIAS or menu == MENU_LOJA_MILAGROSA:
+                if nomeTrabalhoConcluido is None:
+                    self.__loggerTrabalhoProducaoDao.warning(f'Nome trabalho concluído não reconhecido.')
+                    return
+                trabalhoProducaoConcluido: TrabalhoProducao = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= nomeTrabalhoConcluido)
+                if trabalhoProducaoConcluido is None:
+                    self.__loggerTrabalhoProducaoDao.warning(f'Trabalho produção concluido ({nomeTrabalhoConcluido}) não encontrado.')
+                    return
+                self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido= trabalhoProducaoConcluido)
+                self.modificaExperienciaProfissao(trabalho= trabalhoProducaoConcluido)
+                self.atualizaEstoquePersonagem(trabalhoEstoqueConcluido= trabalhoProducaoConcluido)
+                trabalhoProducaoRaro = self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido= trabalhoProducaoConcluido)
+                self.insereTrabalhoProducao(trabalho= trabalhoProducaoRaro)
+                return
+            if estadoTrabalho == CODIGO_PRODUZINDO:
+                if self.existeEspacoProducao():
+                    clickContinuo(cliques= 3, teclaEspecifica= 'up')
+                    clickEspecifico(cliques= 1, teclaEspecifica= 'left')
+                    return
+                print(f'Todos os espaços de produção ocupados.')
+                self.__confirmacao = False
+                return
+            if estadoTrabalho == CODIGO_PARA_PRODUZIR:
+                clickContinuo(cliques= 3, teclaEspecifica= 'up')
+                clickEspecifico(cliques= 1, teclaEspecifica= 'left')
+            return
+        if ehMenuRecompensasDiarias(menu= menu) or ehMenuLojaMilagrosa(menu= menu):
             self.recebeTodasRecompensas(menu)
             for personagem in self.pegaPersonagens():
                 if personagem.estado:
@@ -920,29 +924,32 @@ class Aplicacao:
                 personagem.alternaEstado()
                 self.modificaPersonagem(personagem)
             self.__confirmacao = False
-        elif menu == MENU_PRINCIPAL:
+            return
+        if ehMenuPrincipal(menu= menu):
             clickEspecifico(1,'num1')
             clickEspecifico(1,'num7')
-        elif menu == MENU_PERSONAGEM:
+            return
+        if ehMenuPersonagem(menu= menu):
             clickEspecifico(1,'num7')
-        elif menu == MENU_TRABALHOS_DISPONIVEIS:
+            return
+        if ehMenuTrabalhosDisponiveis(menu= menu):
             clickEspecifico(1,'up')
             clickEspecifico(2,'left')
-        elif menu == MENU_TRABALHO_ESPECIFICO:
+            return
+        if ehMenuTrabalhoEspecifico(maenu= menu):
             clickEspecifico(1,'f1')
             clickContinuo(3,'up')
             clickEspecifico(2,'left')
-        elif menu == MENU_OFERTA_DIARIA:
+            return
+        if ehMenuOfertaDiaria(menu= menu):
             clickEspecifico(1,'f1')
-        elif ehMenuInicial(menu):
+            return
+        if ehMenuInicial(menu= menu):
             clickEspecifico(1,'f2')
             clickEspecifico(1,'num1')
             clickEspecifico(1,'num7')
-        else:
-            self.__confirmacao = False
-        if ehErroOutraConexao(self.verificaErro()):
-            self.__confirmacao = False
-            self.__unicaConexao = False
+            return
+        self.__confirmacao = False
 
     def vaiParaMenuProduzir(self) -> bool:
         erro = self.verificaErro()
@@ -955,6 +962,9 @@ class Aplicacao:
                     self.ofertaTrabalho()
             while not ehMenuProduzir(menu):
                 self.trataMenu(menu)
+                if ehErroOutraConexao(self.verificaErro()):
+                    self.__confirmacao = False
+                    self.__unicaConexao = False
                 if not self.__confirmacao:
                     return False
                 menu = self.retornaMenu()
