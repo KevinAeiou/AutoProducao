@@ -936,7 +936,7 @@ class Aplicacao:
             clickEspecifico(1,'up')
             clickEspecifico(2,'left')
             return
-        if ehMenuTrabalhoEspecifico(maenu= menu):
+        if ehMenuTrabalhoEspecifico(menu== menu):
             clickEspecifico(1,'f1')
             clickContinuo(3,'up')
             clickEspecifico(2,'left')
