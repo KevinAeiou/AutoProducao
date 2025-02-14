@@ -2565,7 +2565,7 @@ class Aplicacao:
         except Exception as e:
             print(e)
             if input(f'Tentar novamente? (S/N) \n').lower() == 's':
-                self.preparaPersonagem()
+                self.iniciaProcessoBusca()
 
     def sincronizaListas(self) -> None:
         sincroniza = input(f'Sincronizar listas? (S/N) ')
