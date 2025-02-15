@@ -1908,7 +1908,7 @@ class Aplicacao:
                 tentativas += 1
             erro = self.verificaErro()
 
-    def entraPersonagemAtivo(self) -> None:
+    def entraPersonagemAtivo(self) -> bool:
         self.__personagemEmUso = None
         for x in range(5):
             codigoMenu: int = self.retornaMenu()
@@ -1948,7 +1948,7 @@ class Aplicacao:
                         if ehErroOutraConexao(erro= erro):
                             self.__unicaConexao = False
                             contadorPersonagem = 14
-                            return
+                            return False
                         if ehErroConectando(erro= erro):
                             if tentativas > 10:
                                 clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
@@ -1957,13 +1957,14 @@ class Aplicacao:
                         erro = self.verificaErro()
                         continue
                     print(f'Login efetuado com sucesso!')
-                    return
+                    return True
                 print(f'Personagem não encontrado!')
                 if ehMenuEscolhaPersonagem(menu= self.retornaMenu()):
                     clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
-                    return
-            if ehMenuInicial(codigoMenu): self.deslogaPersonagem(menu= codigoMenu)
+                    return False
+            if ehMenuInicial(menu= codigoMenu): self.deslogaPersonagem(menu= codigoMenu)
             if ehMenuNoticias(menu= codigoMenu) or ehMenuEscolhaPersonagem(menu= codigoMenu): clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
+        return False
 
     def retornaProfissaoPriorizada(self) -> Profissao | None:
         profissoes: list[Profissao] = self.pegaProfissoes()
@@ -2140,8 +2141,7 @@ class Aplicacao:
     
     def listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(self) -> bool:
         if not tamanhoIgualZero(self.__listaPersonagemJaVerificado) and textoEhIgual(self.__listaPersonagemJaVerificado[-1].email, self.__listaPersonagemAtivo[0].email):
-            self.entraPersonagemAtivo()
-            return True
+            return self.entraPersonagemAtivo()
         return False
     
     def listaPersonagensAtivosEstaVazia(self) -> bool:
