@@ -1617,7 +1617,7 @@ class Aplicacao:
         trabalhoProducaoEncontrado: TrabalhoProducao = dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]
         while True:
             self.trataErrosProcessoDeProducao(trabalho= trabalhoProducaoEncontrado)
-            if not self.__confirmacao:
+            if not self.__confirmacao or self.verificaNovamente:
                 break
             menu: int = self.retornaMenu()
             if ehMenuTrabalhosAtuais(menu= menu): 
@@ -1644,7 +1644,7 @@ class Aplicacao:
         while erroEncontrado(erro= erro):
             if ehErroRecursosInsuficiente(erro= erro):
                 self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalho})')
-                self.__confirmacao = False
+                self.verificaNovamente = True
                 self.removeTrabalhoProducao(trabalho= trabalho)
                 erro = self.verificaErro()
                 continue
