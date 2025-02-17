@@ -447,6 +447,7 @@ class Aplicacao:
                     self.__profissaoModificada = True
                 clickContinuo(cliques= 3, teclaEspecifica= 'up')
                 return nomeTrabalhoConcluido
+            self.__loggerTrabalhoProducaoDao.warning(f'Codigo erro: {erro}')
             if ehErroEspacoBolsaInsuficiente(erro= erro):
                 self.__espacoBolsa = False
                 clickContinuo(cliques= 1, teclaEspecifica= 'up')
