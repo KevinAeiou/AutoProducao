@@ -1263,13 +1263,14 @@ class Aplicacao:
             self.__loggerTrabalhoProducaoDao.info(f'Trabalho negado: Não reconhecido')
             return dicionario
         if CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA in dicionario:
-            nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:26] if len(nomeTrabalhoReconhecido) >= 27 else nomeTrabalhoReconhecido
+            nomeTrabalhoReconhecido = nomeTrabalhoReconhecido[:24] if len(nomeTrabalhoReconhecido) >= 25 else nomeTrabalhoReconhecido
             listaTrabalhoProducaoPriorizada: list[TrabalhoProducao] = dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]
             for trabalhoProducao in listaTrabalhoProducaoPriorizada:
                 trabalhoEncontrado: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
                 if trabalhoEncontrado is None:
                     continue
                 nomeTrabalho = self.padronizaTexto(trabalhoEncontrado.nome)
+
                 if trabalhoEhProducaoRecursos(trabalhoEncontrado):
                     nomeProducaoTrabalho: str = limpaRuidoTexto(trabalhoEncontrado.nomeProducao)
                     if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
@@ -1292,7 +1293,7 @@ class Aplicacao:
     def padronizaTexto(self, texto: str) -> str:
         textoPadronizado: str = texto.replace('-','')
         textoPadronizado = limpaRuidoTexto(texto= textoPadronizado)
-        textoPadronizado = textoPadronizado[:26] if len(textoPadronizado) >= 27 else textoPadronizado
+        textoPadronizado = textoPadronizado[:24] if len(textoPadronizado) >= 25 else textoPadronizado
         return textoPadronizado
 
     def incrementaChavePosicaoTrabalho(self, dicionarioTrabalho):
