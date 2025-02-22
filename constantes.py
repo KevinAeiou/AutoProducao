@@ -164,9 +164,9 @@ STRING_VERSAO_JOGO_DESATUALIZADA = 'Versão do jogo desatualizada'
 STRING_FALHA_CONECTAR_SERVIDOR = 'Falha ao se conectar ao servidor'
 STRING_JOGO_ESTA_MANUTENCAO = 'O jogo esta em manutencao'
 STRING_DESEJA_SAIR_WARSPEAR_ONLINE = 'Deseja sair do Warspear Online'
-STRING_TEM_CERTEZA_DESEJA_CONCLUIR_PRODUCAO = 'Tem certeza de que deseja concluir a produção'
+STRING_DESEJA_CONCLUIR_PRODUCAO = 'Deseja mesmo concluir a produção'
 STRING_PRECISA_LICENCA_INICIAR_PEDIDO = 'Você precisa de uma licença'
-STRING_PRECISA_RECURSOS_INICIAR_PEDIDO = 'Você precisa de mais recursos parainiciar este pedido'
+STRING_PRECISA_RECURSOS_INICIAR_PEDIDO = 'Você precisa de mais recursos para iniciar este pedido'
 STRING_SELECIONE_ITEM_INICIAR_PEDIDO = 'Selecione um item para iniciar um pedido de artesanato'
 STRING_CONECTANDO = 'Conectando'
 STRING_PRECISA_EXPERIENCIA_INICIAR_PEDIDO = 'Você precisa de mais experiência de produção para iniciar este pedido'
@@ -193,7 +193,7 @@ CHAVE_LISTA_ERROS = [
     STRING_PRECISA_EXPERIENCIA_INICIAR_PEDIDO,
     STRING_RECEBEU_NOVO_PRESENTE,
     STRING_ESPACOS_ARTESANATO_OCUPADOS,
-    STRING_TEM_CERTEZA_DESEJA_CONCLUIR_PRODUCAO,
+    STRING_DESEJA_CONCLUIR_PRODUCAO,
     STRING_JOGO_ESTA_MANUTENCAO,
     STRING_CONTA_USADA_OUTRO_DISPOSITIVO,
     STRING_GOSTARIA_COMPRAR,

@@ -1634,7 +1634,7 @@ class Aplicacao:
             if ehMenuEscolhaEquipamento(menu= menu) or ehMenuAtributosEquipamento(menu= menu):
                 clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
                 continue
-            if ehMenuInicial(menu= menu):
+            if ehMenuInicial(menu= menu) or ehMenuJogar(menu= menu):
                 self.__confirmacao = False
         return dicionarioTrabalho
 
