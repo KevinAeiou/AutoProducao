@@ -93,7 +93,8 @@ class ManipulaImagem:
         frameNomeTrabalho: np.ndarray = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
         frameNomeTrabalhoCinza: np.ndarray = self.retornaImagemCinza(imagem= frameNomeTrabalho)
         frameNomeTrabalhoBinarizado: np.ndarray = self.retornaImagemBinarizada(imagem= frameNomeTrabalhoCinza, limiteMinimo= 115)
-        return self.reconheceTexto(frameNomeTrabalhoBinarizado, confianca=55)
+        self.mostraImagem(0, frameNomeTrabalhoBinarizado)
+        return self.reconheceTexto(frameNomeTrabalhoBinarizado, confianca=50)
 
     def retornaNomeConfirmacaoTrabalhoProducaoReconhecido(self, tipoTrabalho: int) -> str | None:
         return self.reconheceNomeConfirmacaoTrabalhoProducao(self.retornaAtualizacaoTela(), tipoTrabalho= tipoTrabalho)
