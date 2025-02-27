@@ -2058,36 +2058,38 @@ class Aplicacao:
 
     def defineTrabalhoComumProfissaoPriorizada(self):
         profissoesPriorizadas: list[Profissao] = self.retornaProfissoesPriorizadas()
+        if tamanhoIgualZero(profissoesPriorizadas):
+            self.__loggerProfissaoDao.warning(f'Nem uma profissão priorizada encontrada!')
+            return
         for profissaoPriorizada in profissoesPriorizadas:
-            if variavelExiste(profissaoPriorizada):
-                nivelProfissao: int = profissaoPriorizada.pegaNivel()
-                if nivelProfissao == 1 or nivelProfissao == 8:
-                    self.__loggerProfissaoDao.warning(f'Nível de produção é 1 ou 8')
-                    continue 
-                trabalhoBuscado: Trabalho = self.defineTrabalhoComumBuscado(profissaoPriorizada, nivelProfissao)
-                trabalhosComunsProfissaoNivelExpecifico: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalhoBuscado)
-                if tamanhoIgualZero(trabalhosComunsProfissaoNivelExpecifico):
-                    self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade (comum) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
-                    continue
-                while True:
-                    trabalhosQuantidade = self.defineListaTrabalhosQuantidade(trabalhosComunsProfissaoNivelExpecifico)
-                    trabalhosQuantidade = self.atualizaListaTrabalhosQuantidadeEstoque(trabalhosQuantidade)
-                    trabalhosQuantidade, quantidadeTotalTrabalhoProducao = self.atualizaListaTrabalhosQuantidadeTrabalhosProducao(trabalhosQuantidade)
-                    trabalhosQuantidade = sorted(trabalhosQuantidade, key=lambda trabalho: trabalho.quantidade)
-                    quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns = quantidadeTotalTrabalhoProducao >= len(trabalhosComunsProfissaoNivelExpecifico)
-                    if quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns:
-                        break
-                    trabalhoComum = self.defineTrabalhoProducaoComum(trabalhosQuantidade)
-                    existeRecursosNecessarios = self.verificaRecursosNecessarios(trabalho= trabalhoBuscado)
-                    if existeRecursosNecessarios:
-                        self.insereTrabalhoProducao(trabalhoComum)
-                        continue
-                    self.defineTrabalhoProducaoRecursosProfissaoPriorizada(trabalho= trabalhoBuscado)
+            nivelProfissao: int = profissaoPriorizada.pegaNivel()
+            trabalhoBuscado: Trabalho = self.defineTrabalhoComumBuscado(profissaoPriorizada, nivelProfissao)
+            trabalhosComunsProfissaoNivelExpecifico: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalhoBuscado)
+            if tamanhoIgualZero(trabalhosComunsProfissaoNivelExpecifico):
+                self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade (comum) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
+                continue
+            while True:
+                trabalhosQuantidade: int= self.defineListaTrabalhosQuantidade(trabalhosComunsProfissaoNivelExpecifico)
+                trabalhosQuantidade= self.atualizaListaTrabalhosQuantidadeEstoque(trabalhosQuantidade)
+                trabalhosQuantidade, quantidadeTotalTrabalhoProducao= self.atualizaListaTrabalhosQuantidadeTrabalhosProducao(trabalhosQuantidade)
+                trabalhosQuantidade= sorted(trabalhosQuantidade, key=lambda trabalho: trabalho.quantidade)
+                quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns = quantidadeTotalTrabalhoProducao >= len(trabalhosComunsProfissaoNivelExpecifico)
+                if quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns:
                     break
-        self.__loggerProfissaoDao.warning(f'Nem uma profissão priorizada encontrada!')
-        return
+                trabalhoComum = self.defineTrabalhoProducaoComum(trabalhosQuantidade)
+                if nivelProfissao == 1 or nivelProfissao == 8:
+                    self.__loggerProfissaoDao.warning(f'Nível de produção de ({profissaoPriorizada.nome}) é 1 ou 8')
+                    trabalhoComum.tipo_licenca = CHAVE_LICENCA_APRENDIZ
+                    self.insereTrabalhoProducao(trabalhoComum)
+                    continue
+                existeRecursosNecessarios = self.verificaRecursosNecessarios(trabalho= trabalhoBuscado)
+                if existeRecursosNecessarios:
+                    self.insereTrabalhoProducao(trabalhoComum)
+                    continue
+                self.defineTrabalhoProducaoRecursosProfissaoPriorizada(trabalho= trabalhoBuscado)
+                break
 
-    def defineTrabalhoComumBuscado(self, profissaoPriorizada, nivelProfissao):
+    def defineTrabalhoComumBuscado(self, profissaoPriorizada: Profissao, nivelProfissao: int) -> Trabalho:
         trabalhoBuscado = Trabalho()
         trabalhoBuscado.profissao = profissaoPriorizada.nome
         trabalhoBuscado.nivel = trabalhoBuscado.pegaNivel(nivelProfissao)
