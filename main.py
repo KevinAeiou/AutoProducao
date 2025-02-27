@@ -1325,7 +1325,7 @@ class Aplicacao:
                 return dicionarioTrabalho
             nomeTrabalhoReconhecido: str = self.reconheceTextoTrabalhoComumMelhorado(trabalho= dicionarioTrabalho, contadorParaBaixo= contadorParaBaixo)
             contadorParaBaixo = 3 if primeiraBusca(dicionarioTrabalho) else contadorParaBaixo
-            fimLista: bool= False if contadorParaBaixo < 110 else True
+            fimLista: bool= False if contadorParaBaixo < 133 else True
             nomeReconhecidoNaoEstaVazioEnaoEhFimLista: bool= nomeTrabalhoReconhecido is not None and not fimLista
             if nomeReconhecidoNaoEstaVazioEnaoEhFimLista:
                 print(f'Trabalho reconhecido: {nomeTrabalhoReconhecido}')
