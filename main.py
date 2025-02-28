@@ -15,6 +15,7 @@ from modelos.trabalhoProducao import TrabalhoProducao
 from modelos.trabalhoEstoque import TrabalhoEstoque
 from modelos.personagem import Personagem
 from modelos.profissao import Profissao
+from modelos.logger import MeuLogger
 
 from dao.personagemDaoSqlite import PersonagemDaoSqlite
 from dao.trabalhoDaoSqlite import TrabalhoDaoSqlite
@@ -30,16 +31,15 @@ from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
 
 class Aplicacao:
     def __init__(self) -> None:
-        logging.basicConfig(level = logging.DEBUG, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
-        self.__loggerRepositorioTrabalho = logging.getLogger('repositorioTrabalho')
-        self.__loggerRepositorioPersonagem = logging.getLogger('repositorioPersonagem')
-        self.__loggerRepositorioProfissao = logging.getLogger('repositorioProfissao')
-        self.__loggerPersonagemDao = logging.getLogger('personagemDao')
-        self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
-        self.__loggerTrabalhoDao = logging.getLogger('trabalhoDao')
-        self.__loggerVendaDao = logging.getLogger('vendaDao')
-        self.__loggerProfissaoDao = logging.getLogger('profissaoDao')
-        self.__loggerEstoqueDao = logging.getLogger('estoqueDao')
+        self.__loggerRepositorioTrabalho: MeuLogger = MeuLogger(nome= 'repositorioTrabalho')
+        self.__loggerRepositorioPersonagem: MeuLogger = MeuLogger(nome= 'repositorioPersonagem')
+        self.__loggerRepositorioProfissao: MeuLogger = MeuLogger(nome= 'repositorioProfissao')
+        self.__loggerPersonagemDao: MeuLogger = MeuLogger(nome= 'personagemDao')
+        self.__loggerTrabalhoProducaoDao: MeuLogger = MeuLogger(nome= 'trabalhoProducaoDao')
+        self.__loggerTrabalhoDao: MeuLogger = MeuLogger(nome= 'trabalhoDao')
+        self.__loggerVendaDao: MeuLogger = MeuLogger(nome= 'vendaDao')
+        self.__loggerProfissaoDao: MeuLogger = MeuLogger(nome= 'profissaoDao')
+        self.__loggerEstoqueDao: MeuLogger = MeuLogger(nome= 'estoqueDao')
         self._imagem = ManipulaImagem()
         self.__listaPersonagemJaVerificado: list[Personagem] = []
         self.__listaPersonagemAtivo: list[Personagem] = []
@@ -2030,7 +2030,7 @@ class Aplicacao:
             return True
         return False
     
-    def defineTrabalhoProducaoRecursosProfissaoPriorizada(self, trabalho: Trabalho) -> None:
+    def defineTrabalhoProducaoRecursosProfissaoPriorizada(self, trabalho: Trabalho):
         nivel: int = 3 if trabalho.nivel < 16 else 10
         trabalho.raridade = CHAVE_RARIDADE_RARO
         trabalho.nivel = nivel
@@ -2040,13 +2040,13 @@ class Aplicacao:
             if trabalhoEhProducaoRecursos(trabalho= trabalho):
                 trabalhoProducaoRecursosEncontrado = trabalho
                 break
-        print(trabalhoProducaoRecursosEncontrado)
         if trabalhoProducaoRecursosEncontrado is None:
             self.__loggerTrabalhoProducaoDao.warning(f'Trabalho para produção de recursos (nível {nivel}, profissão {trabalho.profissao}, raridade {trabalho.raridade}) não encontrado!')
             return
+        self.__loggerTrabalhoProducaoDao.debug(f'Trabalho para produção de recusos ({trabalhoProducaoRecursosEncontrado.nome}) encontrado!')
         trabalhosProducaoEncontrados: list[TrabalhoProducao] = self.pegaTrabalhosProducaoPorIdTrabalho(id= trabalhoProducaoRecursosEncontrado.id)
         if tamanhoIgualZero(trabalhosProducaoEncontrados):
-            self.__loggerTrabalhoProducaoDao.warning(f'{trabalhoProducaoRecursosEncontrado.nome} não encontrado na lista para produção.')
+            self.__loggerTrabalhoProducaoDao.debug(f'{trabalhoProducaoRecursosEncontrado.nome} não encontrado na lista para produção.')
         for trabalhoEncontrado in trabalhosProducaoEncontrados:
             if trabalhoEncontrado.ehParaProduzir(): return
         trabalhoProducao: TrabalhoProducao = TrabalhoProducao()
@@ -2062,6 +2062,7 @@ class Aplicacao:
             self.__loggerProfissaoDao.warning(f'Nem uma profissão priorizada encontrada!')
             return
         for profissaoPriorizada in profissoesPriorizadas:
+            self.__loggerProfissaoDao.debug(menssagem= f'Verificando profissão priorizada: {profissaoPriorizada.nome}')
             nivelProfissao: int = profissaoPriorizada.pegaNivel()
             trabalhoBuscado: Trabalho = self.defineTrabalhoComumBuscado(profissaoPriorizada, nivelProfissao)
             trabalhosComunsProfissaoNivelExpecifico: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalhoBuscado)
@@ -2075,8 +2076,9 @@ class Aplicacao:
                 trabalhosQuantidade= sorted(trabalhosQuantidade, key=lambda trabalho: trabalho.quantidade)
                 quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns = quantidadeTotalTrabalhoProducao >= len(trabalhosComunsProfissaoNivelExpecifico)
                 if quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns:
+                    self.__loggerProfissaoDao.debug(menssagem= f'Existem ({quantidadeTotalTrabalhoProducao}) ou mais trabalhos sendo produzidos!')
                     break
-                trabalhoComum = self.defineTrabalhoProducaoComum(trabalhosQuantidade)
+                trabalhoComum: TrabalhoProducao = self.defineTrabalhoProducaoComum(trabalhosQuantidade)
                 if nivelProfissao == 1 or nivelProfissao == 8:
                     self.__loggerProfissaoDao.warning(f'Nível de produção de ({profissaoPriorizada.nome}) é 1 ou 8')
                     trabalhoComum.tipo_licenca = CHAVE_LICENCA_APRENDIZ
@@ -2086,6 +2088,7 @@ class Aplicacao:
                 if existeRecursosNecessarios:
                     self.insereTrabalhoProducao(trabalhoComum)
                     continue
+                self.__loggerProfissaoDao.debug(f'Recursos necessários insuficientes para produzir {trabalhoBuscado.nome}')
                 self.defineTrabalhoProducaoRecursosProfissaoPriorizada(trabalho= trabalhoBuscado)
                 break
 
@@ -2099,7 +2102,7 @@ class Aplicacao:
     def defineTrabalhoProducaoComum(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> TrabalhoProducao:
         trabalhoComum = TrabalhoProducao()
         trabalhoComum.idTrabalho = trabalhosQuantidade[0].trabalhoId
-        trabalhoComum.estado = 0
+        trabalhoComum.estado = CODIGO_PARA_PRODUZIR
         trabalhoComum.recorrencia = False
         trabalhoComum.tipo_licenca = CHAVE_LICENCA_NOVATO
         return trabalhoComum
