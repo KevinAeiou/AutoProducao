@@ -2539,8 +2539,8 @@ class Aplicacao:
         return personagens
 
     def pegaTrabalhosBanco(self) -> list[Trabalho]:
-        trabalhoDao = TrabalhoDaoSqlite()
-        trabalhos = trabalhoDao.pegaTrabalhos()
+        trabalhoDao: TrabalhoDaoSqlite = TrabalhoDaoSqlite()
+        trabalhos: list[Trabalho] = trabalhoDao.pegaTrabalhos()
         if trabalhos is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
             return []
