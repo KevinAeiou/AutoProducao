@@ -2210,6 +2210,7 @@ class Aplicacao:
         return False
 
     def verificaAlteracaoListaTrabalhos(self):
+        self.__loggerTrabalhoDao.debug(f'Verificando alterações na lista de trabalhos...')
         if self.__repositorioTrabalho.estaPronto:
             for trabalho in self.__repositorioTrabalho.pegaDadosModificados():
                 if trabalho.nome is None:
@@ -2318,6 +2319,7 @@ class Aplicacao:
         return trabalhoEstoque
 
     def verificaAlteracaoPersonagem(self):
+        self.__loggerProfissaoDao.debug(f'Verificando alterações na lista de personagens...')
         if self.__repositorioPersonagem.estaPronto:
             dicionarios = self.__repositorioPersonagem.pegaDadosModificados()
             for dicionario in dicionarios:
@@ -2377,9 +2379,9 @@ class Aplicacao:
                         continue
                     personagemEncontrado.dicionarioParaObjeto(dicionario)
                     self.modificaPersonagem(personagemEncontrado, False)
-                else:
-                    personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
-                    self.inserePersonagem(personagemModificado, False)
+                    continue
+                personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
+                self.inserePersonagem(personagemModificado, False)
             self.__repositorioPersonagem.limpaLista()
         
     def sincronizaListaTrabalhos(self):
