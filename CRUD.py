@@ -13,6 +13,7 @@ from modelos.personagem import Personagem
 from modelos.trabalhoEstoque import TrabalhoEstoque
 from modelos.trabalhoVendido import TrabalhoVendido
 from modelos.profissao import Profissao
+from modelos.aplicacaoCRUD import AplicacaoCRUD
 
 from main import Aplicacao
 
@@ -884,6 +885,20 @@ class CRUD:
         self.__aplicacao.abreStreamPersonagens()
         
     def testeFuncao(self):
+        from modelos.logger import MeuLogger
+        from repositorio.repositorioTrabalho import RepositorioTrabalho
+        from constantes import CHAVE_PROFISSAO_ARMADURAS_DE_TECIDO, CHAVE_PROFISSAO_ARMADURAS_PESADAS
+
+        trabalhos: list[Trabalho]= self.__aplicacao.pegaTrabalhosBanco()
+        for trabalho in trabalhos:
+            if trabalho.profissao == 'Armadura de Tecido':
+                trabalho.profissao= CHAVE_PROFISSAO_ARMADURAS_DE_TECIDO
+                self.__aplicacao.modificaTrabalho(trabalho= trabalho)
+                continue
+            if trabalho.profissao == 'Armadura Pesada':
+                trabalho.profissao= CHAVE_PROFISSAO_ARMADURAS_PESADAS
+                self.__aplicacao.modificaTrabalho(trabalho= trabalho)
+        return
         while True:
             personagens = self.mostraListaPersonagens()
             if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
@@ -995,4 +1010,7 @@ class CRUD:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    CRUD()
+    crud: CRUD= CRUD()
+    crud.menu()
+    # aplicacaoCRUD: AplicacaoCRUD= AplicacaoCRUD()
+    # aplicacaoCRUD.mainloop()
