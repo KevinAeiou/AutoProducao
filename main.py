@@ -1973,6 +1973,7 @@ class Aplicacao:
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
             if profissao.prioridade:
+                self.__loggerProfissaoDao.debug(menssagem= f'Profissão priorizada encontrada: ({profissao.nome})')
                 profissoesPriorizadas.append(profissao)
         return profissoesPriorizadas
     
@@ -1982,6 +1983,8 @@ class Aplicacao:
         if trabalhosProfissaoRaridadeNivelExpecifico is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos específicos no banco: {trabalhoDao.pegaErro()}')
             return []
+        for trabalho in trabalhosProfissaoRaridadeNivelExpecifico:
+            self.__loggerTrabalhoDao.debug(menssagem= f'{trabalho.nome} encontrado!')
         return trabalhosProfissaoRaridadeNivelExpecifico
     
     def retornaListaIdsRecursosNecessarios(self, trabalho: Trabalho) -> list[str]:
@@ -2070,7 +2073,7 @@ class Aplicacao:
                 self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade (comum) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
                 continue
             while True:
-                trabalhosQuantidade: int= self.defineListaTrabalhosQuantidade(trabalhosComunsProfissaoNivelExpecifico)
+                trabalhosQuantidade: list[TrabalhoEstoque]= self.defineListaTrabalhosQuantidade(trabalhosComunsProfissaoNivelExpecifico)
                 trabalhosQuantidade= self.atualizaListaTrabalhosQuantidadeEstoque(trabalhosQuantidade)
                 trabalhosQuantidade, quantidadeTotalTrabalhoProducao= self.atualizaListaTrabalhosQuantidadeTrabalhosProducao(trabalhosQuantidade)
                 trabalhosQuantidade= sorted(trabalhosQuantidade, key=lambda trabalho: trabalho.quantidade)
@@ -2088,7 +2091,7 @@ class Aplicacao:
                 if existeRecursosNecessarios:
                     self.insereTrabalhoProducao(trabalhoComum)
                     continue
-                self.__loggerProfissaoDao.debug(f'Recursos necessários insuficientes para produzir {trabalhoBuscado.nome}')
+                self.__loggerProfissaoDao.debug(f'Recursos necessários insuficientes para produzir {trabalhosComunsProfissaoNivelExpecifico[0].nome}')
                 self.defineTrabalhoProducaoRecursosProfissaoPriorizada(trabalho= trabalhoBuscado)
                 break
 
@@ -2116,8 +2119,8 @@ class Aplicacao:
             return 0
         return quantidade
 
-    def atualizaListaTrabalhosQuantidadeTrabalhosProducao(self, trabalhosQuantidade: list[TrabalhoProducao]):
-        quantidadeTotalTrabalhoProducao = 0
+    def atualizaListaTrabalhosQuantidadeTrabalhosProducao(self, trabalhosQuantidade: list[TrabalhoEstoque]):
+        quantidadeTotalTrabalhoProducao: int= 0
         for trabalhoQuantidade in trabalhosQuantidade:
             quantidade = self.pegaQuantidadeTrabalhoProducaoProduzirProduzindo(trabalhoQuantidade.trabalhoId)
             trabalhoQuantidade.quantidade += quantidade
@@ -2133,13 +2136,14 @@ class Aplicacao:
             return 0
         return quantidade
 
-    def atualizaListaTrabalhosQuantidadeEstoque(self, trabalhosQuantidade: list[TrabalhoProducao]):
+    def atualizaListaTrabalhosQuantidadeEstoque(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> list[TrabalhoEstoque]:
         for trabalhoQuantidade in trabalhosQuantidade:
-            quantidade = self.pegaQuantidadeTrabalhoEstoque(trabalhoQuantidade.trabalhoId)
+            quantidade: int= self.pegaQuantidadeTrabalhoEstoque(idTrabalho= trabalhoQuantidade.trabalhoId)
             trabalhoQuantidade.quantidade += quantidade
+            self.__loggerEstoqueDao.debug(menssagem= f'Quantidade de ({trabalhoQuantidade.trabalhoId}) encontrada: ({trabalhoQuantidade.quantidade})')
         return trabalhosQuantidade
 
-    def defineListaTrabalhosQuantidade(self, trabalhosComunsProfissaoNivelExpecifico) -> list[TrabalhoEstoque]:
+    def defineListaTrabalhosQuantidade(self, trabalhosComunsProfissaoNivelExpecifico: list[Trabalho]) -> list[TrabalhoEstoque]:
         trabalhosQuantidade: list[TrabalhoEstoque] = []
         for trabalhoComum in trabalhosComunsProfissaoNivelExpecifico:
             trabalhoQuantidade = TrabalhoEstoque()
@@ -2539,8 +2543,8 @@ class Aplicacao:
         return personagens
 
     def pegaTrabalhosBanco(self) -> list[Trabalho]:
-        trabalhoDao: TrabalhoDaoSqlite = TrabalhoDaoSqlite()
-        trabalhos: list[Trabalho] = trabalhoDao.pegaTrabalhos()
+        trabalhoDao = TrabalhoDaoSqlite()
+        trabalhos = trabalhoDao.pegaTrabalhos()
         if trabalhos is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
             return []
