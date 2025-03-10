@@ -2212,12 +2212,12 @@ class Aplicacao:
             self.verificaAlteracaoProfissoes()
             self.verificaAlteracaoEstoque()
             self.verificaAlteracaoVendas()
-            # self.retiraPersonagemJaVerificadoListaAtivo()
-            # if self.listaPersonagensAtivosEstaVazia(): continue
-            # self.definePersonagemEmUso()
-            # if self.personagemEmUsoExiste(): continue
-            # if self.listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(): continue
-            # if self.configuraEntraPersonagem(): self.entraPersonagemAtivo()
+            self.retiraPersonagemJaVerificadoListaAtivo()
+            if self.listaPersonagensAtivosEstaVazia(): continue
+            self.definePersonagemEmUso()
+            if self.personagemEmUsoExiste(): continue
+            if self.listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(): continue
+            if self.configuraEntraPersonagem(): self.entraPersonagemAtivo()
 
     def insereTrabalho(self, trabalho: Trabalho, modificaServidor: bool = True) -> bool:
         trabalhoDao = TrabalhoDaoSqlite()
