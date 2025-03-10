@@ -486,7 +486,7 @@ class Aplicacao:
         
     def pegaTrabalhosProducaoParaProduzirProduzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao] | None:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
+        trabalhoProducaoDao: TrabalhoProducaoDaoSqlite= TrabalhoProducaoDaoSqlite(personagem= personagem)
         trabalhosProducaoProduzirProduzindo = trabalhoProducaoDao.pegaTrabalhosProducaoParaProduzirProduzindo()
         if trabalhosProducaoProduzirProduzindo is None:
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao bucar trabalhos para produção com estado para produzir ou produzindo: {trabalhoProducaoDao.pegaErro()}')
@@ -1179,6 +1179,9 @@ class Aplicacao:
     def defineListaProfissoesNecessarias(self) -> None:
         profissoes: list[Profissao] = self.pegaProfissoes()
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducao()
+        if tamanhoIgualZero(profissoes):
+            self.__loggerProfissaoDao.warning(menssagem= f'Lista de profissões está vazia!')
+            return
         for profissao in profissoes:
             for trabalhoProducao in trabalhosProducao:
                 chaveProfissaoEhIgualEEstadoEhParaProduzir: bool = textoEhIgual(profissao.nome, trabalhoProducao.profissao) and trabalhoProducao.ehParaProduzir()
@@ -1190,12 +1193,15 @@ class Aplicacao:
         self.__listaProfissoesNecessarias = sorted(self.__listaProfissoesNecessarias, key=lambda profissao: profissao.prioridade, reverse= True)
 
     def mostraListaProfissoesNecessarias(self) -> None:
-        print(f'{CHAVE_NOME.upper().ljust(22)} | {"EXP".ljust(6)} | {CHAVE_PRIORIDADE.upper().ljust(10)}')
+        if tamanhoIgualZero(self.__listaProfissoesNecessarias):
+            self.__loggerProfissaoDao.debug(menssagem= f'Lista de profissões necessárias está vazia!')
+            return
+        self.__loggerProfissaoDao.debug(menssagem= f'{CHAVE_NOME.upper().ljust(22)} | {"EXP".ljust(6)} | {CHAVE_PRIORIDADE.upper().ljust(10)}')
         for profissaoNecessaria in self.__listaProfissoesNecessarias:
-            nome = 'Indefinido' if profissaoNecessaria.nome is None else profissaoNecessaria.nome
-            experiencia = 'Indefinido' if profissaoNecessaria.experiencia is None else str(profissaoNecessaria.experiencia)
-            prioridade = 'Verdadeiro' if profissaoNecessaria.prioridade else 'Falso'
-            print(f'{(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}')
+            nome: str= 'Indefinido' if profissaoNecessaria.nome is None else profissaoNecessaria.nome
+            experiencia: str= 'Indefinido' if profissaoNecessaria.experiencia is None else str(profissaoNecessaria.experiencia)
+            prioridade: str= 'Verdadeiro' if profissaoNecessaria.prioridade else 'Falso'
+            self.__loggerProfissaoDao.debug(menssagem= f'{(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}')
 
     def insereItemListaProfissoesNecessarias(self, profissao: Profissao) -> None:
         self.__listaProfissoesNecessarias.append(profissao)
@@ -2183,7 +2189,7 @@ class Aplicacao:
         print('Inicia busca...')
         if self.vaiParaMenuProduzir():
             self.defineTrabalhoComumProfissaoPriorizada()
-            trabalhosProducao = self.pegaTrabalhosProducaoParaProduzirProduzindo()
+            trabalhosProducao: list[TrabalhoProducao]= self.pegaTrabalhosProducaoParaProduzirProduzindo()
             if trabalhosProducao is None: return True
             if tamanhoIgualZero(trabalhosProducao):
                 print(f'Lista de trabalhos desejados vazia.')
