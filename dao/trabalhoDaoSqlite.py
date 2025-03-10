@@ -42,6 +42,8 @@ class TrabalhoDaoSqlite():
                     trabalho.profissao = linha[5]
                     trabalho.raridade = linha[6]
                     trabalho.trabalhoNecessario = linha[7]
+                    if trabalho.profissao is None:
+                        trabalho.profissao= ''
                     trabalhos.append(trabalho)
                 trabalhos = sorted(trabalhos, key= lambda trabalho: (trabalho.profissao, trabalho.raridade, trabalho.nivel))
                 self.__meuBanco.desconecta()

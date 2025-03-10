@@ -58,7 +58,8 @@ class ProfissaoDaoSqlite:
                 profissao: Profissao = Profissao()
                 profissao.id = linha[0]
                 profissao.idPersonagem = linha[1]
-                profissao.nome = linha[2]
+                nome: str= '' if linha[2] is None else linha[2]
+                profissao.nome = nome
                 profissao.experiencia = linha[3]
                 profissao.prioridade = prioridade
                 profissoes.append(profissao)

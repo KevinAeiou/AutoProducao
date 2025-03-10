@@ -21,9 +21,10 @@ class RepositorioVendas(Stream):
             trabalhoVendido: TrabalhoVendido= TrabalhoVendido()
             dicionarioVenda: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if menssagem['data'] is None:
-                trabalhoVendido.id= ids[2]
-                dicionarioVenda[CHAVE_TRABALHOS]= trabalhoVendido
-                super().insereDadosModificados(dado= dicionarioVenda)
+                if len(ids) > 2:
+                    trabalhoVendido.id= ids[2]
+                    dicionarioVenda[CHAVE_TRABALHOS]= trabalhoVendido
+                    super().insereDadosModificados(dado= dicionarioVenda)
                 return
             trabalhoVendido.dicionarioParaObjeto(dicionario= menssagem['data'])
             dicionarioVenda[CHAVE_TRABALHOS]= trabalhoVendido

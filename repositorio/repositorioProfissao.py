@@ -24,10 +24,11 @@ class RepositorioProfissao(Stream):
             profissao: Profissao= Profissao()
             dicionarioProfissao: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if menssagem['data'] is None:
-                profissao.id= ids[2]
-                profissao.experiencia= None
-                dicionarioProfissao[CHAVE_TRABALHOS]= profissao
-                super().insereDadosModificados(dado= dicionarioProfissao)
+                if len(ids) > 2:
+                    profissao.id= ids[2]
+                    profissao.experiencia= None
+                    dicionarioProfissao[CHAVE_TRABALHOS]= profissao
+                    super().insereDadosModificados(dado= dicionarioProfissao)
                 return
             profissao.dicionarioParaObjeto(dicionario= menssagem['data'])
             dicionarioProfissao[CHAVE_TRABALHOS]= profissao

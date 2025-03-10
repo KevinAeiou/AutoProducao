@@ -24,9 +24,10 @@ class RepositorioTrabalhoProducao(Stream):
             trabalho: TrabalhoProducao= TrabalhoProducao()
             dicionarioTrabalho: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if menssagem['data'] is None:
-                trabalho.id= ids[2]
-                dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
-                super().insereDadosModificados(dado= dicionarioTrabalho)
+                if len(ids) > 2:
+                    trabalho.id= ids[2]
+                    dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+                    super().insereDadosModificados(dado= dicionarioTrabalho)
                 return
             trabalho.dicionarioParaObjeto(dicionario= menssagem['data'])
             dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
