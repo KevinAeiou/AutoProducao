@@ -4,6 +4,7 @@ from modelos.personagem import Personagem
 from db.db import MeuBanco
 from repositorio.repositorioPersonagem import RepositorioPersonagem
 import logging
+from constantes import CHAVE_ID, CHAVE_NOME, CHAVE_EMAIL, CHAVE_SENHA, CHAVE_AUTO_PRODUCAO, CHAVE_ESPACO_PRODUCAO, CHAVE_ESTADO, CHAVE_USO, CHAVE_PERSONAGENS, CHAVE_LISTA_ESTOQUE, CHAVE_ID_PERSONAGEM, CHAVE_PROFISSOES, CHAVE_LISTA_TRABALHOS_PRODUCAO, CHAVE_LISTA_VENDAS
 
 class PersonagemDaoSqlite():
     logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
@@ -107,27 +108,35 @@ class PersonagemDaoSqlite():
             self.__erro = str(e)
         return None
     
-    def modificaPersonagem(self, personagem, modificaServidor = True):
-        estado = 1 if personagem.estado else 0
-        uso = 1 if personagem.uso else 0
-        autoProducao = 1 if personagem.autoProducao else 0
-        sql = """
-            UPDATE personagens SET id = ?, nome = ?, email = ?, senha = ?, espacoProducao = ?, estado = ?, uso = ?, autoProducao = ?
-            WHERE id == ?"""
+    def modificaPersonagem(self, personagem: Personagem, modificaServidor: bool= True) -> bool:
+        estado: int = 1 if personagem.estado else 0
+        uso: int= 1 if personagem.uso else 0
+        autoProducao: int= 1 if personagem.autoProducao else 0
+        sql = f"""
+            UPDATE {CHAVE_PERSONAGENS.lower()} 
+            SET {CHAVE_ID} = ?, {CHAVE_NOME} = ?, {CHAVE_EMAIL} = ?, {CHAVE_SENHA} = ?, {CHAVE_ESPACO_PRODUCAO} = ?, {CHAVE_ESTADO} = ?, {CHAVE_USO} = ?, {CHAVE_AUTO_PRODUCAO} = ?
+            WHERE {CHAVE_ID} == ?"""
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
+                cursor.execute('BEGIN')
                 cursor.execute(sql, (personagem.id, personagem.nome, personagem.email, personagem.senha, personagem.espacoProducao, estado, uso, autoProducao, personagem.id))
-                self.__conexao.commit()
-            self.__meuBanco.desconecta()
             if modificaServidor:
-                if self.__repositorioPersonagem.modificaPersonagem(personagem):
+                if self.__repositorioPersonagem.modificaPersonagem(personagem= personagem):
                     self.__logger.info(f'({personagem}) modificado no servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao modificar ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro()}')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__logger.error(f'Erro ao modificar ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro()}')
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                return False
+            self.__conexao.commit()
+            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
+        self.__conexao.rollback()
         self.__meuBanco.desconecta()
         return False
     
@@ -150,45 +159,80 @@ class PersonagemDaoSqlite():
         self.__meuBanco.desconecta()
         return False
     
-    def inserePersonagem(self, personagem, modificaServidor = True):
-        estado = 1 if personagem.estado else 0
-        uso = 1 if personagem.uso else 0
-        autoProducao = 1 if personagem.autoProducao else 0
-        sql = """
-            INSERT INTO personagens (id, nome, email, senha, espacoProducao, estado, uso, autoProducao)
+    def inserePersonagem(self, personagem: Personagem, modificaServidor: bool = True) -> bool:
+        estado: int = 1 if personagem.estado else 0
+        uso: int = 1 if personagem.uso else 0
+        autoProducao: int = 1 if personagem.autoProducao else 0
+        sql = f"""
+            INSERT INTO personagens ({CHAVE_ID}, {CHAVE_NOME}, {CHAVE_EMAIL}, {CHAVE_SENHA}, {CHAVE_ESPACO_PRODUCAO}, {CHAVE_ESTADO}, {CHAVE_USO}, {CHAVE_AUTO_PRODUCAO})
             VALUES (?,?,?,?,?,?,?,?)
             """
         try:
             cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
             cursor.execute(sql, (personagem.id, personagem.nome, personagem.email, personagem.senha, personagem.espacoProducao, estado, uso, autoProducao))
+            if modificaServidor:
+                if self.__repositorioPersonagem.inserePersonagem(personagem= personagem):
+                    self.__logger.info(f'({personagem}) inserido com sucesso no servidor!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__erro= self.__repositorioPersonagem.pegaErro()
+                self.__logger.error(f'Erro ao inserir ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro()}')
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioPersonagem.inserePersonagem(personagem):
-                    self.__logger.info(f'({personagem}) inserido com sucesso no servidor!')
-                else:
-                    self.__logger.error(f'Erro ao inserir ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
         except Exception as e:
+            self.__conexao.rollback()
             self.__erro = str(e)
-        self.__meuBanco.desconecta()
+        finally:
+            self.__meuBanco.desconecta()
         return False
     
-    def removePersonagem(self, personagem, modificaServidor = True):
-        sql = """DELETE FROM personagens WHERE id == ?;"""
+    def removePersonagem(self, personagem: Personagem, modificaServidor: bool = True) -> bool:
+        sqlRemovePersonagem = f"""
+            DELETE FROM {CHAVE_PERSONAGENS.lower()}
+            WHERE {CHAVE_ID} == ?;"""
+        sqlRemoveEstoque= f"""
+            DELETE FROM {CHAVE_LISTA_ESTOQUE}
+            WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+        sqlRemoveProfissoes= f"""
+            DELETE FROM {CHAVE_PROFISSOES.lower()}
+            WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+        sqlRemoveProducao= f"""
+            DELETE FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO}
+            WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+        sqlRemoveVendas=f"""
+            DELETE FROM {CHAVE_LISTA_VENDAS}
+            WHERE {CHAVE_ID_PERSONAGEM} == ?;
+            """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [personagem.id])
+            cursor.execute('BEGIN')
+            cursor.execute(sqlRemovePersonagem, [personagem.id])
+            cursor.execute(sqlRemoveEstoque, [personagem.id])
+            cursor.execute(sqlRemoveProducao, [personagem.id])
+            cursor.execute(sqlRemoveProfissoes, [personagem.id])
+            cursor.execute(sqlRemoveVendas, [personagem.id])
+            if modificaServidor:
+                if self.__repositorioPersonagem.removePersonagem(personagem= personagem):
+                    self.__logger.info(f'({personagem}) removido do servidor com sucesso!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                self.__logger.error(f'Erro ao remover ({personagem}) do servidor: {self.__repositorioPersonagem.pegaErro()}')
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioPersonagem.removePersonagem(personagem):
-                    self.__logger.info(f'({personagem}) removido do servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao remover ({personagem}) do servidor: {self.__repositorioPersonagem.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
+        self.__conexao.rollback()
         self.__meuBanco.desconecta()
         return False
         

@@ -46,7 +46,7 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.raridade = linha[7]
                 trabalhoProducao.trabalhoNecessario = linha[8]
                 trabalhoProducao.recorrencia = recorrencia
-                trabalhoProducao.tipo_licenca = linha[10]
+                trabalhoProducao.tipoLicenca = linha[10]
                 trabalhoProducao.estado = linha[11]
                 trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
@@ -80,7 +80,7 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.raridade = linha[7]
                 trabalhoProducao.trabalhoNecessario = linha[8]
                 trabalhoProducao.recorrencia = recorrencia
-                trabalhoProducao.tipo_licenca = linha[10]
+                trabalhoProducao.tipoLicenca = linha[10]
                 trabalhoProducao.estado = linha[11]
                 trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
@@ -115,7 +115,7 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.raridade = linha[7]
                 trabalhoProducao.trabalhoNecessario = linha[8]
                 trabalhoProducao.recorrencia = recorrencia
-                trabalhoProducao.tipo_licenca = linha[10]
+                trabalhoProducao.tipoLicenca = linha[10]
                 trabalhoProducao.estado = linha[11]
                 trabalhosProducao.append(trabalhoProducao)
             self.__meuBanco.desconecta()
@@ -206,7 +206,7 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.id = linha[0]
                 trabalhoProducao.idTrabalho = linha[1]
                 trabalhoProducao.recorrencia = recorrencia
-                trabalhoProducao.tipo_licenca = linha[3]
+                trabalhoProducao.tipoLicenca = linha[3]
                 trabalhoProducao.estado = linha[4]
             self.__meuBanco.desconecta()
             return trabalhoProducao
@@ -231,7 +231,7 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.id = linha[0]
                 trabalhoProducao.idTrabalho = linha[1]
                 trabalhoProducao.recorrencia = recorrencia
-                trabalhoProducao.tipo_licenca = linha[3]
+                trabalhoProducao.tipoLicenca = linha[3]
                 trabalhoProducao.estado = linha[4]
                 trabalhosProducaoEncontrados.append(trabalhoProducao)
             self.__meuBanco.desconecta()
@@ -241,80 +241,104 @@ class TrabalhoProducaoDaoSqlite:
         self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
-        trabalhoProducaoLimpo = TrabalhoProducao()
+    def insereTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao, modificaServidor: bool= True) -> bool:
+        trabalhoProducaoLimpo:TrabalhoProducao = TrabalhoProducao()
         trabalhoProducaoLimpo.id = trabalhoProducao.id
         trabalhoProducaoLimpo.idTrabalho = trabalhoProducao.idTrabalho
         trabalhoProducaoLimpo.recorrencia = trabalhoProducao.recorrencia
-        trabalhoProducaoLimpo.tipo_licenca = trabalhoProducao.tipo_licenca
+        trabalhoProducaoLimpo.tipoLicenca = trabalhoProducao.tipoLicenca
         trabalhoProducaoLimpo.estado = trabalhoProducao.estado
         recorrencia = 1 if trabalhoProducaoLimpo.recorrencia else 0
-        sql = """
-            INSERT INTO Lista_desejo (id, idTrabalho, idPersonagem, recorrencia, tipoLicenca, estado) 
+        sql = f"""
+            INSERT INTO {CHAVE_LISTA_TRABALHOS_PRODUCAO} ({CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_ID_PERSONAGEM}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO}) 
             VALUES (?, ?, ?, ?, ?, ?);
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducaoLimpo.id, trabalhoProducaoLimpo.idTrabalho, self.__personagem.id, recorrencia, trabalhoProducaoLimpo.tipo_licenca, trabalhoProducaoLimpo.estado))
+            cursor.execute('BEGIN')
+            cursor.execute(sql, (trabalhoProducaoLimpo.id, trabalhoProducaoLimpo.idTrabalho, self.__personagem.id, recorrencia, trabalhoProducaoLimpo.tipoLicenca, trabalhoProducaoLimpo.estado))
+            if modificaServidor:
+                if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao= trabalhoProducaoLimpo):
+                    self.__logger.info(f'({trabalhoProducaoLimpo}) inserido no servidor com sucesso!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__logger.error(f'Erro ao inserir ({trabalhoProducaoLimpo}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                self.__erro= self.__repositorioTrabalhoProducao.pegaErro()
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducaoLimpo):
-                    self.__logger.info(f'({trabalhoProducaoLimpo}) inserido no servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao inserir ({trabalhoProducaoLimpo}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
+            self.__conexao.rollback()
         self.__meuBanco.desconecta()
         return False
-        
-    def removeTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
-        sql = """
-            DELETE FROM Lista_desejo
-            WHERE id == ?;"""
+    
+    def removeTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao, modificaServidor: bool= True) -> bool:
+        sql = f"""
+            DELETE FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO}
+            WHERE {CHAVE_ID} == ?;"""
         try:
             cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
             cursor.execute(sql, [trabalhoProducao.id])
+            if modificaServidor:
+                if self.__repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducao= trabalhoProducao):
+                    self.__logger.info(f'({trabalhoProducao}) removido do servidor com sucesso!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__logger.error(f'Erro ao remover ({trabalhoProducao}) do servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                self.__erro= self.__repositorioTrabalhoProducao.pegaErro()
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducao):
-                    self.__logger.info(f'({trabalhoProducao}) removido do servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao remover ({trabalhoProducao}) do servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
+            self.__conexao.rollback()
         self.__meuBanco.desconecta()
         return False
         
-    def modificaTrabalhoProducao(self, trabalhoProducao, modificaServidor = True):
-        trabalhoProducaoLimpo = TrabalhoProducao()
+    def modificaTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao, modificaServidor: bool= True):
+        trabalhoProducaoLimpo: TrabalhoProducao= TrabalhoProducao()
         trabalhoProducaoLimpo.id = trabalhoProducao.id
         trabalhoProducaoLimpo.idTrabalho = trabalhoProducao.idTrabalho
         trabalhoProducaoLimpo.recorrencia = trabalhoProducao.recorrencia
-        trabalhoProducaoLimpo.tipo_licenca = trabalhoProducao.tipo_licenca
+        trabalhoProducaoLimpo.tipoLicenca = trabalhoProducao.tipoLicenca
         trabalhoProducaoLimpo.estado = trabalhoProducao.estado
-        recorrencia = 1 if trabalhoProducaoLimpo.recorrencia else 0
-        sql = """
-            UPDATE Lista_desejo 
-            SET idTrabalho = ?, recorrencia = ?, tipoLicenca = ?, estado = ? 
-            WHERE id == ?;
+        recorrencia: int= 1 if trabalhoProducaoLimpo.recorrencia else 0
+        sql = f"""
+            UPDATE {CHAVE_LISTA_TRABALHOS_PRODUCAO} 
+            SET {CHAVE_ID_TRABALHO} = ?, {CHAVE_RECORRENCIA} = ?, {CHAVE_TIPO_LICENCA} = ?, {CHAVE_ESTADO} = ? 
+            WHERE {CHAVE_ID} == ?;
             """
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, (trabalhoProducaoLimpo.idTrabalho, recorrencia, trabalhoProducaoLimpo.tipo_licenca, trabalhoProducaoLimpo.estado, trabalhoProducaoLimpo.id))
+            cursor.execute('BEGIN')
+            cursor.execute(sql, (trabalhoProducaoLimpo.idTrabalho, recorrencia, trabalhoProducaoLimpo.tipoLicenca, trabalhoProducaoLimpo.estado, trabalhoProducaoLimpo.id))
+            if modificaServidor:
+                if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducao= trabalhoProducaoLimpo):
+                    self.__logger.info(f'({trabalhoProducaoLimpo}) modificado no servidor com sucesso!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__logger.error(f'Erro ao modificar ({trabalhoProducaoLimpo}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
+                self.__erro= self.__repositorioTrabalhoProducao.pegaErro()
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducaoLimpo):
-                    self.__logger.info(f'({trabalhoProducaoLimpo}) modificado no servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao modificar ({trabalhoProducaoLimpo}) no servidor: {self.__repositorioTrabalhoProducao.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
+            self.__conexao.rollback()
         self.__meuBanco.desconecta()
         return False
     

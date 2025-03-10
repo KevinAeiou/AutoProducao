@@ -3,31 +3,63 @@ from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
 from modelos.trabalhoProducao import TrabalhoProducao
 from modelos.personagem import Personagem
 from constantes import *
+from requests.exceptions import HTTPError
+from modelos.logger import MeuLogger
+from repositorio.stream import Stream
 
-class RepositorioTrabalhoProducao:
-    def __init__(self, personagem) -> None:
+class RepositorioTrabalhoProducao(Stream):
+    def __init__(self, personagem: Personagem= None):
+        super().__init__(chave= CHAVE_PRODUCAO, nomeLogger= CHAVE_REPOSITORIO_TRABALHO_PRODUCAO)
+        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_TRABALHO_PRODUCAO)
         self.__erro: str = None
-        self.__meuBanco = FirebaseDatabase().pegaDataBase()
-        self._personagem: Personagem = personagem
+        self.__meuBanco= FirebaseDatabase().pegaMeuBanco()
+        self._personagem: Personagem= personagem
+
+    def streamHandler(self, menssagem: dict):
+        super().streamHandler(menssagem= menssagem)
+        if menssagem['event'] in ('put', 'path'):
+            if menssagem['path'] == '/':
+                return
+            ids: list[str]= menssagem['path'].split('/')
+            trabalho: TrabalhoProducao= TrabalhoProducao()
+            dicionarioTrabalho: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
+            if menssagem['data'] is None:
+                trabalho.id= ids[2]
+                dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+                super().insereDadosModificados(dado= dicionarioTrabalho)
+                return
+            trabalho.dicionarioParaObjeto(dicionario= menssagem['data'])
+            dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+            super().insereDadosModificados(dado= dicionarioTrabalho)
 
     def limpaListaProducao(self):
+        '''
+        Método para limpar lista de trabalhos no servidor
+        '''
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).remove()
-        except:
-            print(f'Erro')
+            self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).remove()
+        except Exception as e:
+            self.__erro= str(e)
 
-    def pegaTodosTrabalhosProducao(self):
-        trabalhosProducao = []
+    def pegaTodosTrabalhosProducao(self) -> list[TrabalhoProducao] | None:
+        '''
+        Retorna uma lista de objetos do tipo TrabalhoProducao encontrados no servidor
+        Returns:
+            trabalhos (list[TrabalhoProducao]): Lista de trabalhos do tipo TrabalhoProducao
+        Raises:
+            None: Se algum erro for encontrado
+        '''
+        trabalhos: list[TrabalhoProducao]= []
         try:
-            todosTrabalhosProducao = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).get()
-            if todosTrabalhosProducao.pyres != None:
-                for trabalhoProducaoEncontrado in todosTrabalhosProducao.each():
-                    trabalhoProducao = TrabalhoProducao()
-                    trabalhoProducao.dicionarioParaObjeto(trabalhoProducaoEncontrado.val())
-                    trabalhoProducao.id = trabalhoProducaoEncontrado.key()
-                    trabalhosProducao.append(trabalhoProducao)
-            trabalhosProducao = sorted(trabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.estado, reverse=True)
-            return trabalhosProducao
+            trabalhosEncontrados= self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).get()
+            if trabalhosEncontrados.pyres == None:
+                return trabalhos
+            for trabalhoEncontrado in trabalhosEncontrados.each():
+                trabalho: TrabalhoProducao= TrabalhoProducao()
+                trabalho.dicionarioParaObjeto(trabalhoEncontrado.val())
+                trabalhos.append(trabalho)
+            trabalhos= sorted(trabalhos, key=lambda trabalhoProducao: trabalhoProducao.estado, reverse= True)
+            return trabalhos
         except Exception as e:
             self.__erro = str(e)
         return None
@@ -49,26 +81,32 @@ class RepositorioTrabalhoProducao:
             self.__erro = str(e)
         return None
     
-    def removeTrabalhoProducao(self, trabalhoProducao):
+    def removeTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.id).remove()
+            self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).child(trabalhoProducao.id).remove()
             return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
         except Exception as e:
             self.__erro = str(e)
         return False
     
-    def insereTrabalhoProducao(self, trabalhoProducao):
+    def insereTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.id).set(trabalhoProducao.__dict__)
+            self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).child(trabalhoProducao.id).set(trabalhoProducao.__dict__)
             return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
         except Exception as e:
             self.__erro = str(e)
         return False
 
-    def modificaTrabalhoProducao(self, trabalhoProducao):
+    def modificaTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_TRABALHOS_PRODUCAO).child(trabalhoProducao.id).update(trabalhoProducao.__dict__)
+            self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).child(trabalhoProducao.id).update(trabalhoProducao.__dict__)
             return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
         except Exception as e:
             self.__erro = str(e)
         return False

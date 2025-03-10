@@ -9,5 +9,5 @@ class TesteProfissaoDaoSqlite:
 
     def testDeveRetornarListaComMaisDeZeroIntens(self):
         esperado = 0
-        recebido = len(self.profissaoDaoSqlite.pegaProfissoes())
+        recebido = len(self.profissaoDaoSqlite.pegaProfissoesPorIdPersonagem())
         assert esperado != recebido

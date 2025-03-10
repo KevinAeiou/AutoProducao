@@ -28,12 +28,19 @@ from repositorio.repositorioPersonagem import RepositorioPersonagem
 from repositorio.repositorioTrabalho import RepositorioTrabalho
 from repositorio.repositorioProfissao import RepositorioProfissao
 from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
-
+from repositorio.repositorioVendas import RepositorioVendas
+from repositorio.repositorioEstoque import RepositorioEstoque
+from repositorio.repositorioEstoque import RepositorioEstoque
+from repositorio.repositorioVendas import RepositorioVendas
+from repositorio.repositorioUsuario import RepositorioUsuario
 class Aplicacao:
     def __init__(self) -> None:
         self.__loggerRepositorioTrabalho: MeuLogger = MeuLogger(nome= 'repositorioTrabalho')
+        self.__loggerRepositorioProducao: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_TRABALHO_PRODUCAO)
         self.__loggerRepositorioPersonagem: MeuLogger = MeuLogger(nome= 'repositorioPersonagem')
         self.__loggerRepositorioProfissao: MeuLogger = MeuLogger(nome= 'repositorioProfissao')
+        self.__loggerRepositorioVendas: MeuLogger = MeuLogger(nome= 'repositorioVendas')
+        self.__loggerRepositorioEstoque: MeuLogger = MeuLogger(nome= 'repositorioEstoque')
         self.__loggerPersonagemDao: MeuLogger = MeuLogger(nome= 'personagemDao')
         self.__loggerTrabalhoProducaoDao: MeuLogger = MeuLogger(nome= 'trabalhoProducaoDao')
         self.__loggerTrabalhoDao: MeuLogger = MeuLogger(nome= 'trabalhoDao')
@@ -46,7 +53,12 @@ class Aplicacao:
         self.__listaProfissoesNecessarias: list[Profissao] = []
         self.__personagemEmUso: Personagem = None
         self.__repositorioTrabalho = RepositorioTrabalho()
-        self.__repositorioPersonagem = RepositorioPersonagem()
+        self.__repositorioPersonagem: RepositorioPersonagem= RepositorioPersonagem()
+        self.__repositorioProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao()
+        self.__repositorioProfissao: RepositorioProfissao= RepositorioProfissao()
+        self.__repositorioEstoque: RepositorioEstoque= RepositorioEstoque()
+        self.__repositorioVendas: RepositorioVendas= RepositorioVendas()
+        self.__repositorioUsuario: RepositorioUsuario= RepositorioUsuario()
 
     def personagemEmUso(self, personagem: Personagem = None) -> None:
         self.__personagemEmUso = personagem
@@ -319,8 +331,8 @@ class Aplicacao:
     
     def insereTrabalhoVendido(self, trabalho: TrabalhoVendido, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        vendaDAO = VendaDaoSqlite(personagem)
-        if vendaDAO.insereTrabalhoVendido(trabalho, modificaServidor):
+        vendaDAO: VendaDaoSqlite = VendaDaoSqlite(personagem)
+        if vendaDAO.insereTrabalhoVendido(trabalho= trabalho, modificaServidor= modificaServidor):
             self.__loggerVendaDao.info(f'({trabalho}) inserido no banco com sucesso!')
             return True
         self.__loggerVendaDao.error(f'Erro ao inserir ({trabalho}) no banco: {vendaDAO.pegaErro()}')
@@ -328,8 +340,8 @@ class Aplicacao:
     
     def modificaTrabalhoVendido(self, trabalho: TrabalhoVendido, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        vendaDAO = VendaDaoSqlite(personagem)
-        if vendaDAO.modificaTrabalhoVendido(trabalho, modificaServidor):
+        vendaDAO: VendaDaoSqlite= VendaDaoSqlite(personagem)
+        if vendaDAO.modificaTrabalhoVendido(trabalho= trabalho, modificaServidor= modificaServidor):
             self.__loggerVendaDao.info(f'({trabalho}) modificado no banco com sucesso!')
             return True
         self.__loggerVendaDao.error(f'Erro ao modificar ({trabalho}) no banco: {vendaDAO.pegaErro()}')
@@ -337,8 +349,8 @@ class Aplicacao:
     
     def removeTrabalhoVendido(self, trabalho: TrabalhoVendido, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        vendaDAO = VendaDaoSqlite(personagem)
-        if vendaDAO.removeTrabalhoVendido(trabalho, modificaServidor):
+        vendaDAO: VendaDaoSqlite= VendaDaoSqlite(personagem)
+        if vendaDAO.removeTrabalhoVendido(trabalho= trabalho, modificaServidor= modificaServidor):
             self.__loggerVendaDao.info(f'({trabalho}) removido do banco com sucesso!')
             return True
         self.__loggerVendaDao.error(f'Erro ao remover ({trabalho}) do banco: {vendaDAO.pegaErro()}')
@@ -346,8 +358,8 @@ class Aplicacao:
     
     def pegaTrabalhosVendidos(self, personagem: Personagem = None) -> list[TrabalhoVendido]:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhoVendidoDao = VendaDaoSqlite(personagem)
-        vendas = trabalhoVendidoDao.pegaTrabalhosVendidos()
+        trabalhoVendidoDao: VendaDaoSqlite= VendaDaoSqlite(personagem= personagem)
+        vendas: list[TrabalhoVendido]= trabalhoVendidoDao.pegaTrabalhosVendidos()
         if vendas is None:
             self.__loggerVendaDao.error(f'Erro ao buscar trabalhos vendidos: {trabalhoVendidoDao.pegaErro()}')
             return []
@@ -379,17 +391,17 @@ class Aplicacao:
     
     def pegaTrabalhosEstoque(self, personagem: Personagem = None) -> list[TrabalhoEstoque]:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        estoqueDao = EstoqueDaoSqlite(personagem)
-        trabalhosEstoque = estoqueDao.pegaTrabalhosEstoque()
+        estoqueDao: EstoqueDaoSqlite= EstoqueDaoSqlite(personagem= personagem)
+        trabalhosEstoque: list[TrabalhoEstoque]= estoqueDao.pegaTrabalhosEstoque()
         if trabalhosEstoque is None:
-            self.__loggerEstoqueDao.error(f'Erro ao buscar trabalhos em estoque: {estoqueDao.pegaErro()}')
+            self.__loggerEstoqueDao.error(f'Erro ao buscar trabalhos em estoque no banco: {estoqueDao.pegaErro()}')
             return []
         return trabalhosEstoque
 
     def atualizaQuantidadeTrabalhoEstoque(self, trabalho: TrabalhoVendido):
         estoque = self.pegaTrabalhosEstoque()
         for trabalhoEstoque in estoque:
-            if textoEhIgual(trabalhoEstoque.trabalhoId, trabalho.idTrabalho):
+            if textoEhIgual(trabalhoEstoque.idTrabalho, trabalho.idTrabalho):
                 novaQuantidade = 0 if trabalhoEstoque.quantidade - trabalho.quantidade < 0 else trabalhoEstoque.quantidade - trabalho.quantidade
                 trabalhoEstoque.quantidade = novaQuantidade
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
@@ -463,10 +475,10 @@ class Aplicacao:
         return listaPossiveisDicionariosTrabalhos
     
     def insereTrabalhoProducao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
-        if variavelExiste(trabalho):
+        if variavelExiste(variavel= trabalho):
             personagem = self.__personagemEmUso if personagem is None else personagem
-            trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-            if trabalhoProducaoDao.insereTrabalhoProducao(trabalho, modificaServidor):
+            trabalhoProducaoDao: TrabalhoProducaoDaoSqlite= TrabalhoProducaoDaoSqlite(personagem= personagem)
+            if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducao= trabalho, modificaServidor= modificaServidor):
                 self.__loggerTrabalhoProducaoDao.info(f'({trabalho}) inserido no banco com sucesso!')
                 return True
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao inserir ({trabalho}) no banco: {trabalhoProducaoDao.pegaErro()}')
@@ -483,8 +495,8 @@ class Aplicacao:
         
     def removeTrabalhoProducao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-        if trabalhoProducaoDao.removeTrabalhoProducao(trabalho, modificaServidor):
+        trabalhoProducaoDao: TrabalhoProducaoDaoSqlite= TrabalhoProducaoDaoSqlite(personagem= personagem)
+        if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducao= trabalho, modificaServidor= modificaServidor):
             self.__loggerTrabalhoProducaoDao.info(f'({trabalho}) removido do banco com sucesso!')
             return True
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover ({trabalho}) do banco: {trabalhoProducaoDao.pegaErro()}')
@@ -492,8 +504,8 @@ class Aplicacao:
     
     def modificaTrabalhoProducao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(personagem)
-        if trabalhoProducaoDao.modificaTrabalhoProducao(trabalho, modificaServidor):
+        trabalhoProducaoDao: TrabalhoProducaoDaoSqlite= TrabalhoProducaoDaoSqlite(personagem= personagem)
+        if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducao= trabalho, modificaServidor= modificaServidor):
             self.__loggerTrabalhoProducaoDao.info(f'({trabalho}) modificado no banco com sucesso!')
             return True
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalho}) no banco: {trabalhoProducaoDao.pegaErro()}')
@@ -514,28 +526,28 @@ class Aplicacao:
         trabalhoProducaoConcluido.estado = CODIGO_CONCLUIDO
         self.modificaTrabalhoProducao(trabalhoProducaoConcluido)
 
-    def insereListaProfissoes(self, personagem: Personagem =None) -> bool:
-        personagem = self.__personagemEmUso if personagem is None else personagem
-        profissaoDao = ProfissaoDaoSqlite(personagem)
+    def insereListaProfissoes(self, personagem: Personagem= None) -> bool:
+        personagem: Personagem = self.__personagemEmUso if personagem is None else personagem
+        profissaoDao: ProfissaoDaoSqlite = ProfissaoDaoSqlite(personagem= personagem)
         if profissaoDao.insereListaProfissoes():
             return True
         return False
 
     def pegaProfissoes(self, personagem: Personagem = None) -> list[Personagem]:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        profissaoDao: ProfissaoDaoSqlite = ProfissaoDaoSqlite(personagem)
-        profissoes: list[Profissao] = profissaoDao.pegaProfissoes()
+        profissaoDao: ProfissaoDaoSqlite = ProfissaoDaoSqlite(personagem= personagem)
+        profissoes: list[Profissao] = profissaoDao.pegaProfissoesPorIdPersonagem()
         if profissoes is None:
-            self.__loggerProfissaoDao.error(f'Erro ao buscar profissões: {profissaoDao.pegaErro()}')
+            self.__loggerProfissaoDao.error(f'Erro ao buscar profissões no banco: {profissaoDao.pegaErro()}')
             return []
         if tamanhoIgualZero(profissoes):
-            self.__loggerProfissaoDao.warning(f'Erro ao buscar profissões ({self.__personagemEmUso}): lista de profissões vazia!')
+            self.__loggerProfissaoDao.warning(f'Erro ao buscar profissões ({self.__personagemEmUso}) no banco: Lista de profissões vazia!')
         return profissoes
     
     def modificaProfissao(self, profissao: Profissao, personagem: Personagem = None, modificaServidor = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        profissaoDao = ProfissaoDaoSqlite(personagem)
-        if profissaoDao.modificaProfissao(profissao, modificaServidor):
+        profissaoDao: ProfissaoDaoSqlite = ProfissaoDaoSqlite(personagem)
+        if profissaoDao.modificaProfissao(profissao= profissao, modificaServidor= modificaServidor):
             self.__loggerProfissaoDao.info(f'({profissao}) modificado no banco com sucesso!')
             return True
         self.__loggerProfissaoDao.error(f'Erro ao modificar ({profissao}) no banco: {profissaoDao.pegaErro()}')
@@ -546,7 +558,7 @@ class Aplicacao:
         trabalhoEncontado: Trabalho = self.pegaTrabalhoPorId(trabalho.idTrabalho)
         if trabalhoEncontado is None or trabalhoEncontado.nome is None:
             return False
-        trabalhoEncontado.experiencia = trabalhoEncontado.experiencia * 1.5 if textoEhIgual(trabalho.tipo_licenca, CHAVE_LICENCA_INICIANTE) else trabalhoEncontado.experiencia
+        trabalhoEncontado.experiencia = trabalhoEncontado.experiencia * 1.5 if textoEhIgual(trabalho.tipoLicenca, CHAVE_LICENCA_INICIANTE) else trabalhoEncontado.experiencia
         for profissao in profissoes:
             if textoEhIgual(profissao.nome, trabalhoEncontado.profissao):
                 experiencia = profissao.experiencia + trabalhoEncontado.experiencia
@@ -576,7 +588,7 @@ class Aplicacao:
                 trabalhoEstoque.nivel = 0
                 trabalhoEstoque.quantidade = 2
                 trabalhoEstoque.raridade = 'Recurso'
-                trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+                trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
             else:
                 if trabalhoEhMelhoriaEssenciaComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
@@ -585,7 +597,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaEssenciaComposta(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Essência de energia'
@@ -593,7 +605,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaSubstanciaComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Substância composta'
@@ -601,7 +613,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaSubstanciaComposta(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Substância energética'
@@ -609,7 +621,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaCatalisadorComum(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Catalisador amplificado'
@@ -617,7 +629,7 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
                 elif trabalhoEhMelhoriaCatalisadorComposto(trabalhoProducaoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Catalisador de energia'
@@ -625,9 +637,9 @@ class Aplicacao:
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
                 if variavelExiste(trabalhoEstoque):
-                    if textoEhIgual(trabalhoProducaoConcluido.tipo_licenca, CHAVE_LICENCA_APRENDIZ):
+                    if textoEhIgual(trabalhoProducaoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                         trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
             if variavelExiste(trabalhoEstoque):
                 listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
@@ -645,7 +657,7 @@ class Aplicacao:
                             trabalhoEstoque.nivel = trabalho.nivel
                             trabalhoEstoque.quantidade = 1
                             trabalhoEstoque.raridade = trabalho.raridade
-                            trabalhoEstoque.trabalhoId = trabalho.id
+                            trabalhoEstoque.idTrabalho = trabalho.id
                             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     for trabalhoEstoque in listaTrabalhoEstoqueConcluido:
                         tipoRecurso = retornaChaveTipoRecurso(trabalhoEstoque)
@@ -658,7 +670,7 @@ class Aplicacao:
                                 trabalhoEstoque.quantidade = 4
                             elif tipoRecurso == CHAVE_RAP:
                                 trabalhoEstoque.quantidade = 5
-                            if textoEhIgual(trabalhoProducaoConcluido.tipo_licenca, CHAVE_LICENCA_APRENDIZ):
+                            if textoEhIgual(trabalhoProducaoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                                 trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         else:
                             print(f'Tipo de recurso não encontrado!')
@@ -669,14 +681,14 @@ class Aplicacao:
                     trabalhoEstoque.nivel = trabalhoProducaoConcluido.nivel
                     trabalhoEstoque.quantidade = 0
                     trabalhoEstoque.raridade = trabalhoProducaoConcluido.raridade
-                    trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
                     tipoRecurso = retornaChaveTipoRecurso(trabalhoEstoque)
                     if variavelExiste(tipoRecurso):
                         if tipoRecurso == CHAVE_RCS or tipoRecurso == CHAVE_RCT:
                             trabalhoEstoque.quantidade = 1
                         elif tipoRecurso == CHAVE_RCP or tipoRecurso == CHAVE_RAP or tipoRecurso == CHAVE_RAS or tipoRecurso == CHAVE_RAT:
                             trabalhoEstoque.quantidade = 2
-                        if textoEhIgual(trabalhoProducaoConcluido.tipo_licenca, CHAVE_LICENCA_APRENDIZ):
+                        if textoEhIgual(trabalhoProducaoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                             trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     else:
@@ -688,7 +700,7 @@ class Aplicacao:
             trabalhoEstoque.nivel = trabalhoProducaoConcluido.nivel
             trabalhoEstoque.quantidade = 1
             trabalhoEstoque.raridade = trabalhoProducaoConcluido.raridade
-            trabalhoEstoque.trabalhoId = trabalhoProducaoConcluido.idTrabalho
+            trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
         print(f'Lista de dicionários trabalhos concluídos:')
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
@@ -748,7 +760,7 @@ class Aplicacao:
         trabalhoProducaoRaro.idTrabalho = trabalho.id
         trabalhoProducaoRaro.experiencia = trabalho.experiencia * 1.5
         trabalhoProducaoRaro.recorrencia = False
-        trabalhoProducaoRaro.tipo_licenca = licencaProducaoIdeal
+        trabalhoProducaoRaro.tipoLicenca = licencaProducaoIdeal
         trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
         return trabalhoProducaoRaro
 
@@ -1108,8 +1120,8 @@ class Aplicacao:
         return trabalhos
 
     def pegaTrabalhoPorId(self, id: str) -> Trabalho | None:
-        trabalhoDao = TrabalhoDaoSqlite()
-        trabalhoEncontrado = trabalhoDao.pegaTrabalhoPorId(id)
+        trabalhoDao: TrabalhoDaoSqlite= TrabalhoDaoSqlite()
+        trabalhoEncontrado: Trabalho= trabalhoDao.pegaTrabalhoPorId(idBuscado= id)
         if trabalhoEncontrado is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalho por id ({id}) no banco: {trabalhoDao.pegaErro()}')
             return None
@@ -1359,7 +1371,7 @@ class Aplicacao:
         cloneTrabalhoProducao.id = str(uuid.uuid4())
         cloneTrabalhoProducao.idTrabalho = trabalhoProducaoEncontrado.idTrabalho
         cloneTrabalhoProducao.recorrencia = False
-        self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoEncontrado.id}|{cloneTrabalhoProducao.idTrabalho}|{cloneTrabalhoProducao.nome}|{cloneTrabalhoProducao.nomeProducao}|{cloneTrabalhoProducao.experiencia}|{cloneTrabalhoProducao.nivel}|{cloneTrabalhoProducao.profissao}|{cloneTrabalhoProducao.raridade}|{cloneTrabalhoProducao.trabalhoNecessario}|{cloneTrabalhoProducao.recorrencia}|{cloneTrabalhoProducao.tipo_licenca}|{cloneTrabalhoProducao.estado}) foi clonado')
+        self.__loggerTrabalhoProducaoDao.info(f'({trabalhoProducaoEncontrado.id}|{cloneTrabalhoProducao.idTrabalho}|{cloneTrabalhoProducao.nome}|{cloneTrabalhoProducao.nomeProducao}|{cloneTrabalhoProducao.experiencia}|{cloneTrabalhoProducao.nivel}|{cloneTrabalhoProducao.profissao}|{cloneTrabalhoProducao.raridade}|{cloneTrabalhoProducao.trabalhoNecessario}|{cloneTrabalhoProducao.recorrencia}|{cloneTrabalhoProducao.tipoLicenca}|{cloneTrabalhoProducao.estado}) foi clonado')
         return cloneTrabalhoProducao
     
 
@@ -1462,10 +1474,10 @@ class Aplicacao:
             trabalhoEncontrado: TrabalhoEstoque = self.pegaTrabalhoEstoquePorIdTrabalho(id= idTrabalhoNecessario)
             if trabalhoEncontrado is None:
                 continue
-            if trabalhoEncontrado.trabalhoId == idTrabalhoNecessario:
+            if trabalhoEncontrado.idTrabalho == idTrabalhoNecessario:
                 trabalhoEncontrado.setQuantidade(trabalhoEncontrado.quantidade - 1)
                 if self.modificaTrabalhoEstoque(trabalhoEncontrado):
-                    print(f'Quantidade do trabalho ({trabalhoEncontrado.trabalhoId}) atualizada para {trabalhoEncontrado.quantidade}.')
+                    print(f'Quantidade do trabalho ({trabalhoEncontrado.idTrabalho}) atualizada para {trabalhoEncontrado.quantidade}.')
                 return
             self.__loggerEstoqueDao.warning(f'({idTrabalhoNecessario}) não encontrado no estoque!')
 
@@ -1506,7 +1518,7 @@ class Aplicacao:
                     trabalhoEstoque.quantidade = novaQuantidade
                     if self.modificaTrabalhoEstoque(trabalhoEstoque):
                         print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipo_licenca):
+            if textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipoLicenca):
                 novaQuantidade = trabalhoEstoque.quantidade - 1
                 print(f'Quantidade de {trabalhoEstoque.nome} atualizada de {trabalhoEstoque.quantidade} para {novaQuantidade}.')
                 trabalhoEstoque.quantidade = novaQuantidade
@@ -1534,20 +1546,20 @@ class Aplicacao:
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipo_licenca):
+            if textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipoLicenca):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - 1)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
 
     def trataMenuLicenca(self, trabalhoProducaoEncontrado: TrabalhoProducao) -> TrabalhoProducao:
-        print(f"Buscando: {trabalhoProducaoEncontrado.tipo_licenca}")
+        print(f"Buscando: {trabalhoProducaoEncontrado.tipoLicenca}")
         textoReconhecido: str = self._imagem.retornaTextoLicencaReconhecida()
         if variavelExiste(variavel= textoReconhecido):
             print(f'Licença reconhecida: {textoReconhecido}')
             if texto1PertenceTexto2(texto1= 'Licença de Artesanato', texto2= textoReconhecido):
                 primeiraBusca: bool = True
                 listaCiclo: list[str] = []
-                while not texto1PertenceTexto2(texto1= textoReconhecido, texto2= trabalhoProducaoEncontrado.tipo_licenca):
+                while not texto1PertenceTexto2(texto1= textoReconhecido, texto2= trabalhoProducaoEncontrado.tipoLicenca):
                     primeiraBusca = False
                     listaCiclo.append(textoReconhecido)
                     clickEspecifico(cliques= 1, teclaEspecifica= "right")
@@ -1555,10 +1567,10 @@ class Aplicacao:
                     if variavelExiste(variavel= textoReconhecido):
                         print(f'Licença reconhecida: {textoReconhecido}.')
                         if textoEhIgual(texto1= textoReconhecido, texto2= 'nenhumitem'):
-                            if textoEhIgual(texto1= trabalhoProducaoEncontrado.tipo_licenca, texto2= CHAVE_LICENCA_NOVATO):
+                            if textoEhIgual(texto1= trabalhoProducaoEncontrado.tipoLicenca, texto2= CHAVE_LICENCA_NOVATO):
                                 if textoEhIgual(texto1= listaCiclo[-1], texto2= 'nenhumitem'):
                                     continue
-                                self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
+                                self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
                                 self.__personagemEmUso.alternaEstado()
                                 self.modificaPersonagem()
                                 clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
@@ -1566,14 +1578,14 @@ class Aplicacao:
                                 clickEspecifico(cliques= 1, teclaEspecifica= 'left')
                                 self.__confirmacao = False
                                 return trabalhoProducaoEncontrado
-                            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
-                            self.__loggerTrabalhoProducaoDao.info(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) modificado para ({CHAVE_LICENCA_NOVATO})')
-                            trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
+                            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
+                            self.__loggerTrabalhoProducaoDao.info(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) modificado para ({CHAVE_LICENCA_NOVATO})')
+                            trabalhoProducaoEncontrado.tipoLicenca = CHAVE_LICENCA_NOVATO
                             continue
                         if len(listaCiclo) > 15:
-                            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
-                            self.__loggerTrabalhoProducaoDao.info(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) modificado para ({CHAVE_LICENCA_NOVATO})')
-                            trabalhoProducaoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
+                            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
+                            self.__loggerTrabalhoProducaoDao.info(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) modificado para ({CHAVE_LICENCA_NOVATO})')
+                            trabalhoProducaoEncontrado.tipoLicenca = CHAVE_LICENCA_NOVATO
                         continue
                     erro: int = self.verificaErro()
                     if ehErroOutraConexao(erro= erro):
@@ -1584,7 +1596,7 @@ class Aplicacao:
                 trabalhoProducaoEncontrado.estado = CODIGO_PRODUZINDO
                 clickEspecifico(cliques= 1, teclaEspecifica= "f1") if primeiraBusca else clickEspecifico(cliques= 1, teclaEspecifica= "f2")
                 return trabalhoProducaoEncontrado
-            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
+            self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
             self.__personagemEmUso.alternaEstado()
             self.modificaPersonagem()
             clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
@@ -1592,7 +1604,7 @@ class Aplicacao:
             clickEspecifico(cliques= 1, teclaEspecifica= 'left')
             self.__confirmacao = False
             return trabalhoProducaoEncontrado
-        self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipo_licenca}) não encontrado')
+        self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
         self.__confirmacao = False
         return trabalhoProducaoEncontrado
     
@@ -1672,7 +1684,7 @@ class Aplicacao:
                 trabalhoEncontrado.id = str(uuid.uuid4())
                 trabalhoEncontrado.idTrabalho = trabalho.id
                 trabalhoEncontrado.recorrencia = False
-                trabalhoEncontrado.tipo_licenca = CHAVE_LICENCA_NOVATO
+                trabalhoEncontrado.tipoLicenca = CHAVE_LICENCA_NOVATO
                 trabalhoEncontrado.estado = CODIGO_CONCLUIDO
                 listaPossiveisTrabalhos.append(trabalhoEncontrado)
         return listaPossiveisTrabalhos
@@ -2055,7 +2067,7 @@ class Aplicacao:
         trabalhoProducao: TrabalhoProducao = TrabalhoProducao()
         trabalhoProducao.idTrabalho = trabalhoProducaoRecursosEncontrado.id
         trabalhoProducao.recorrencia = True
-        trabalhoProducao.tipo_licenca = CHAVE_LICENCA_APRENDIZ
+        trabalhoProducao.tipoLicenca = CHAVE_LICENCA_APRENDIZ
         trabalhoProducao.estado = CODIGO_PARA_PRODUZIR
         self.insereTrabalhoProducao(trabalho= trabalhoProducao)
 
@@ -2084,7 +2096,7 @@ class Aplicacao:
                 trabalhoComum: TrabalhoProducao = self.defineTrabalhoProducaoComum(trabalhosQuantidade)
                 if nivelProfissao == 1 or nivelProfissao == 8:
                     self.__loggerProfissaoDao.warning(f'Nível de produção de ({profissaoPriorizada.nome}) é 1 ou 8')
-                    trabalhoComum.tipo_licenca = CHAVE_LICENCA_APRENDIZ
+                    trabalhoComum.tipoLicenca = CHAVE_LICENCA_APRENDIZ
                     self.insereTrabalhoProducao(trabalhoComum)
                     continue
                 existeRecursosNecessarios = self.verificaRecursosNecessarios(trabalho= trabalhoBuscado)
@@ -2104,10 +2116,10 @@ class Aplicacao:
 
     def defineTrabalhoProducaoComum(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> TrabalhoProducao:
         trabalhoComum = TrabalhoProducao()
-        trabalhoComum.idTrabalho = trabalhosQuantidade[0].trabalhoId
+        trabalhoComum.idTrabalho = trabalhosQuantidade[0].idTrabalho
         trabalhoComum.estado = CODIGO_PARA_PRODUZIR
         trabalhoComum.recorrencia = False
-        trabalhoComum.tipo_licenca = CHAVE_LICENCA_NOVATO
+        trabalhoComum.tipoLicenca = CHAVE_LICENCA_NOVATO
         return trabalhoComum
     
     def pegaQuantidadeTrabalhoProducaoProduzirProduzindo(self, idTrabalho: str, personagem: Personagem = None) -> int:
@@ -2122,7 +2134,7 @@ class Aplicacao:
     def atualizaListaTrabalhosQuantidadeTrabalhosProducao(self, trabalhosQuantidade: list[TrabalhoEstoque]):
         quantidadeTotalTrabalhoProducao: int= 0
         for trabalhoQuantidade in trabalhosQuantidade:
-            quantidade = self.pegaQuantidadeTrabalhoProducaoProduzirProduzindo(trabalhoQuantidade.trabalhoId)
+            quantidade = self.pegaQuantidadeTrabalhoProducaoProduzirProduzindo(trabalhoQuantidade.idTrabalho)
             trabalhoQuantidade.quantidade += quantidade
             quantidadeTotalTrabalhoProducao += quantidade
         return trabalhosQuantidade, quantidadeTotalTrabalhoProducao
@@ -2138,16 +2150,16 @@ class Aplicacao:
 
     def atualizaListaTrabalhosQuantidadeEstoque(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> list[TrabalhoEstoque]:
         for trabalhoQuantidade in trabalhosQuantidade:
-            quantidade: int= self.pegaQuantidadeTrabalhoEstoque(idTrabalho= trabalhoQuantidade.trabalhoId)
+            quantidade: int= self.pegaQuantidadeTrabalhoEstoque(idTrabalho= trabalhoQuantidade.idTrabalho)
             trabalhoQuantidade.quantidade += quantidade
-            self.__loggerEstoqueDao.debug(menssagem= f'Quantidade de ({trabalhoQuantidade.trabalhoId}) encontrada: ({trabalhoQuantidade.quantidade})')
+            self.__loggerEstoqueDao.debug(menssagem= f'Quantidade de ({trabalhoQuantidade.idTrabalho}) encontrada: ({trabalhoQuantidade.quantidade})')
         return trabalhosQuantidade
 
     def defineListaTrabalhosQuantidade(self, trabalhosComunsProfissaoNivelExpecifico: list[Trabalho]) -> list[TrabalhoEstoque]:
         trabalhosQuantidade: list[TrabalhoEstoque] = []
         for trabalhoComum in trabalhosComunsProfissaoNivelExpecifico:
             trabalhoQuantidade = TrabalhoEstoque()
-            trabalhoQuantidade.trabalhoId = trabalhoComum.id
+            trabalhoQuantidade.idTrabalho = trabalhoComum.id
             trabalhoQuantidade.quantidade = 0
             trabalhosQuantidade.append(trabalhoQuantidade)
         return trabalhosQuantidade
@@ -2188,14 +2200,18 @@ class Aplicacao:
 
     def iniciaProcessoBusca(self):
         while True:
-            self.verificaAlteracaoListaTrabalhos()
-            self.verificaAlteracaoPersonagem()
-            self.retiraPersonagemJaVerificadoListaAtivo()
-            if self.listaPersonagensAtivosEstaVazia(): continue
-            self.definePersonagemEmUso()
-            if self.personagemEmUsoExiste(): continue
-            if self.listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(): continue
-            if self.configuraEntraPersonagem(): self.entraPersonagemAtivo()
+            self.verificaAlteracaoTrabalhos()
+            self.verificaAlteracaoProducao()
+            self.verificaAlteracaoPersonagens()
+            self.verificaAlteracaoProfissoes()
+            self.verificaAlteracaoEstoque()
+            self.verificaAlteracaoVendas()
+            # self.retiraPersonagemJaVerificadoListaAtivo()
+            # if self.listaPersonagensAtivosEstaVazia(): continue
+            # self.definePersonagemEmUso()
+            # if self.personagemEmUsoExiste(): continue
+            # if self.listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(): continue
+            # if self.configuraEntraPersonagem(): self.entraPersonagemAtivo()
 
     def insereTrabalho(self, trabalho: Trabalho, modificaServidor: bool = True) -> bool:
         trabalhoDao = TrabalhoDaoSqlite()
@@ -2206,41 +2222,144 @@ class Aplicacao:
         return False
 
     def removeTrabalho(self, trabalho: Trabalho, modificaServidor: bool = True) -> bool:
-        trabalhoDao = TrabalhoDaoSqlite()
-        if trabalhoDao.removeTrabalho(trabalho, modificaServidor):
+        trabalhoDao: TrabalhoDaoSqlite= TrabalhoDaoSqlite()
+        if trabalhoDao.removeTrabalho(trabalho= trabalho, modificaServidor= modificaServidor):
             self.__loggerTrabalhoDao.info(f'({trabalho.id.ljust(36)} | {trabalho}) removido do banco com sucesso!')
             return True
         self.__loggerTrabalhoDao.error(f'Erro ao remover ({trabalho.id.ljust(36)} | {trabalho}) do banco: {trabalhoDao.pegaErro()}')
         return False
 
-    def verificaAlteracaoListaTrabalhos(self):
-        self.__loggerTrabalhoDao.debug(f'Verificando alterações na lista de trabalhos...')
+    def verificaAlteracaoTrabalhos(self):
+        # self.__loggerTrabalhoDao.debug(f'Verificando alterações na lista de trabalhos...')
         if self.__repositorioTrabalho.estaPronto:
-            for trabalho in self.__repositorioTrabalho.pegaDadosModificados():
+            trabalhos: list[Trabalho]= self.__repositorioTrabalho.pegaDadosModificados()
+            for trabalho in trabalhos:
                 if trabalho.nome is None:
-                    self.removeTrabalho(trabalho, False)
+                    self.removeTrabalho(trabalho= trabalho, modificaServidor= False)
                     continue
-                trabalhoEncontrado = self.pegaTrabalhoPorId(trabalho.id)
+                trabalhoEncontrado = self.pegaTrabalhoPorId(id= trabalho.id)
                 if trabalhoEncontrado is None:
                     continue
                 if trabalhoEncontrado.id == trabalho.id:
-                    self.modificaTrabalho(trabalho, False)
+                    self.modificaTrabalho(trabalho= trabalho, modificaServidor= False)
                     continue
-                self.insereTrabalho(trabalho, False)
-            self.__repositorioTrabalho.limpaLista()
+                self.insereTrabalho(trabalho= trabalho, modificaServidor= False)
+            self.__repositorioTrabalho.limpaLista
+            
+    def verificaAlteracaoPersonagens(self):
+        # self.__loggerProfissaoDao.debug(f'Verificando alterações na lista de personagens...')
+        if self.__repositorioPersonagem.estaPronto:
+            personagens: list[Personagem]= self.__repositorioPersonagem.pegaDadosModificados()
+            for personagem in personagens:
+                if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
+                    if personagem.nome is None:
+                        self.removePersonagem(personagem= personagem, modificaServidor= False)
+                        continue
+                    personagemEncontrado: Personagem= self.pegaPersonagemPorId(id= personagem.id)
+                    if personagemEncontrado is None:
+                        continue
+                    if personagemEncontrado.id == personagem.id:
+                        self.modificaPersonagem(personagem= personagem, modificaServidor= False)
+                        continue
+                    self.inserePersonagem(personagem= personagem, modificaServidor= False)
+            self.__repositorioPersonagem.limpaLista
+    
+    def verificaAlteracaoProfissoes(self):
+        # self.__loggerRepositorioProducao.debug(f'Verificando alterações na lista de trabalhos de produção...')
+        if self.__repositorioProfissao.estaPronto:
+            dicionariosProfissoes: list[dict]= self.__repositorioProfissao.pegaDadosModificados()
+            for dicionario in dicionariosProfissoes:
+                personagem: Personagem= Personagem()
+                personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
+                if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
+                    profissao: Profissao= dicionario[CHAVE_TRABALHOS]
+                    if profissao.experiencia is None:
+                        self.removeProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
+                        continue
+                    profissaoEncontrada: Profissao= self.pegaProfissaoPorId(id= profissao.id)
+                    if profissaoEncontrada is None:
+                        continue
+                    if profissaoEncontrada.id == profissao.id:
+                        self.modificaProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
+                        continue
+                    self.insereProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
+            self.__repositorioProfissao.limpaLista
+    
+    def verificaAlteracaoEstoque(self):
+        # self.__loggerRepositorioEstoque.debug(f'Verificando alterações na lista de trabalhos de produção...')
+        if self.__repositorioEstoque.estaPronto:
+            dicionariosEstoque: list[dict]= self.__repositorioEstoque.pegaDadosModificados()
+            for dicionario in dicionariosEstoque:
+                personagem: Personagem= Personagem()
+                personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
+                if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
+                    trabalhoEstoque: TrabalhoEstoque= dicionario[CHAVE_TRABALHOS]
+                    if trabalhoEstoque.idTrabalho is None:
+                        self.removeTrabalhoEstoque(trabalho= trabalhoEstoque, personagem= personagem, modificaServidor= False)
+                        continue
+                    trabalhoEstoqueEncontrada: TrabalhoEstoque= self.pegaTrabalhoEstoquePorId(id= trabalhoEstoque.id)
+                    if trabalhoEstoqueEncontrada is None:
+                        continue
+                    if trabalhoEstoqueEncontrada.id == trabalhoEstoque.id:
+                        self.modificaTrabalhoEstoque(trabalho= trabalhoEstoque, personagem= personagem, modificaServidor= False)
+                        continue
+                    self.insereTrabalhoEstoque(trabalho= trabalhoEstoque, personagem= personagem, modificaServidor= False)
+            self.__repositorioEstoque.limpaLista
+    
+    def verificaAlteracaoProducao(self):
+        # self.__loggerRepositorioProducao.debug(f'Verificando alterações na lista de trabalhos de produção...')
+        if self.__repositorioProducao.estaPronto:
+            dicionariosProducoes: list[dict]= self.__repositorioProducao.pegaDadosModificados()
+            for dicionario in dicionariosProducoes:
+                personagem: Personagem= Personagem()
+                personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
+                if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
+                    trabalho: TrabalhoProducao= dicionario[CHAVE_TRABALHOS]
+                    if trabalho.idTrabalho is None:
+                        self.removeTrabalhoProducao(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+                        continue
+                    trabalhoEncontrado: TrabalhoProducao= self.pegaTrabalhoProducaoPorId(id= trabalho.id)
+                    if trabalhoEncontrado is None:
+                        continue
+                    if trabalhoEncontrado.id == trabalho.id:
+                        self.modificaTrabalhoProducao(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+                        continue
+                    self.insereTrabalhoProducao(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+            self.__repositorioProducao.limpaLista
+    
+    def verificaAlteracaoVendas(self):
+        # self.__loggerRepositorioVendas.debug(f'Verificando alterações na lista de trabalhos de produção...')
+        if self.__repositorioVendas.estaPronto:
+            dicionariosVendas: list[dict]= self.__repositorioVendas.pegaDadosModificados()
+            for dicionario in dicionariosVendas:
+                personagem: Personagem= Personagem()
+                personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
+                if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
+                    trabalho: TrabalhoVendido= dicionario[CHAVE_TRABALHOS]
+                    if trabalho.idTrabalho is None:
+                        self.removeTrabalhoVendido(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+                        continue
+                    trabalhoEncontrado: TrabalhoVendido= self.pegaTrabalhoVendidoPorId(id= trabalho.id)
+                    if trabalhoEncontrado is None:
+                        continue
+                    if trabalhoEncontrado.id == trabalho.id:
+                        self.modificaTrabalhoVendido(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+                        continue
+                    self.insereTrabalhoVendido(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+            self.__repositorioVendas.limpaLista
     
     def modificaPersonagem(self, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        personagemDao = PersonagemDaoSqlite()
-        if personagemDao.modificaPersonagem(personagem, modificaServidor):
+        personagemDao: PersonagemDaoSqlite= PersonagemDaoSqlite()
+        if personagemDao.modificaPersonagem(personagem= personagem, modificaServidor= modificaServidor):
             self.__loggerPersonagemDao.info(f'({personagem}) modificado no banco com sucesso!')
             return True
         self.__loggerPersonagemDao.error(f'Erro ao modificar ({personagem}) no banco: {personagemDao.pegaErro()}')
         return False
 
     def inserePersonagem(self, personagem: Personagem, modificaServidor: bool = True) -> bool:
-        personagemDao = PersonagemDaoSqlite()
-        if personagemDao.inserePersonagem(personagem, modificaServidor):
+        personagemDao: PersonagemDaoSqlite= PersonagemDaoSqlite()
+        if personagemDao.inserePersonagem(personagem= personagem, modificaServidor= modificaServidor):
             self.__loggerPersonagemDao.info(f'({personagem}) inserido no banco com sucesso!')
             return True
         self.__loggerPersonagemDao.error(f'Erro ao inserir ({personagem}) no banco: {personagemDao.pegaErro()}')
@@ -2248,8 +2367,8 @@ class Aplicacao:
         
     def removeTrabalhoEstoque(self, trabalho: TrabalhoEstoque, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
-        if trabalhoEstoqueDao.removeTrabalhoEstoque(trabalho, modificaServidor):
+        trabalhoEstoqueDao: EstoqueDaoSqlite= EstoqueDaoSqlite(personagem= personagem)
+        if trabalhoEstoqueDao.removeTrabalhoEstoque(trabalhoEstoque= trabalho, modificaServidor= modificaServidor):
             self.__loggerEstoqueDao.info(f'({trabalho}) removido do banco com sucesso!')
             return True
         self.__loggerEstoqueDao.error(f'Erro ao remover ({trabalho}) do banco: {trabalhoEstoqueDao.pegaErro()}')
@@ -2257,8 +2376,8 @@ class Aplicacao:
 
     def modificaTrabalhoEstoque(self, trabalho: TrabalhoEstoque, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        estoqueDao = EstoqueDaoSqlite(personagem)
-        if estoqueDao.modificaTrabalhoEstoque(trabalho, modificaServidor):
+        estoqueDao: EstoqueDaoSqlite= EstoqueDaoSqlite(personagem)
+        if estoqueDao.modificaTrabalhoEstoque(trabalho= trabalho, modificaServidor= modificaServidor):
             self.__loggerEstoqueDao.info(f'({trabalho}) modificado no banco com sucesso!')
             return True
         self.__loggerEstoqueDao.error(f'Erro ao modificar ({trabalho}) no banco: {estoqueDao.pegaErro()}')
@@ -2266,16 +2385,16 @@ class Aplicacao:
         
     def insereTrabalhoEstoque(self, trabalho: TrabalhoEstoque, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhoEstoqueDao = EstoqueDaoSqlite(personagem)
-        if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalho, modificaServidor):
+        trabalhoEstoqueDao: EstoqueDaoSqlite= EstoqueDaoSqlite(personagem= personagem)
+        if trabalhoEstoqueDao.insereTrabalhoEstoque(trabalho= trabalho, modificaServidor= modificaServidor):
             self.__loggerEstoqueDao.info(f'({trabalho}) inserido no banco com sucesso!')
             return True
         self.__loggerEstoqueDao.error(f'Erro ao inserir ({trabalho}) no banco: {trabalhoEstoqueDao.pegaErro()}')
         return False
     
-    def removePersonagem(self, personagem: Personagem, modificaServirdor: bool = True) -> bool:
-        personagemDao = PersonagemDaoSqlite()
-        if personagemDao.removePersonagem(personagem, modificaServirdor):
+    def removePersonagem(self, personagem: Personagem, modificaServidor: bool = True) -> bool:
+        personagemDao: PersonagemDaoSqlite= PersonagemDaoSqlite()
+        if personagemDao.removePersonagem(personagem= personagem, modificaServidor= modificaServidor):
             self.__loggerPersonagemDao.info(f'({personagem}) removido no banco com sucesso!')
             return True
         self.__loggerPersonagemDao.error(f'Erro ao remover ({personagem}) do banco: {personagemDao.pegaErro()}')
@@ -2291,16 +2410,16 @@ class Aplicacao:
         return False
 
     def pegaPersonagemPorId(self, id: str) -> Personagem | None:
-        persoangemDao = PersonagemDaoSqlite()
-        personagemEncontrado = persoangemDao.pegaPersonagemPorId(id)
+        persoangemDao: PersonagemDaoSqlite= PersonagemDaoSqlite()
+        personagemEncontrado: Personagem= persoangemDao.pegaPersonagemPorId(id)
         if personagemEncontrado is None:
             self.__loggerPersonagemDao.error(f'Erro ao buscar personagem por id ({id}): {persoangemDao.pegaErro()}')
             return None
         return personagemEncontrado
     
     def pegaProfissaoPorId(self, id: str) -> Profissao | None:
-        profissaoDao = ProfissaoDaoSqlite()
-        profissaoEncontrada = profissaoDao.pegaProfissaoPorId(id)
+        profissaoDao: ProfissaoDaoSqlite= ProfissaoDaoSqlite()
+        profissaoEncontrada: Profissao= profissaoDao.pegaProfissaoPorId(id= id)
         if profissaoEncontrada is None:
             self.__loggerProfissaoDao.error(f'Erro ao buscar por id ({id}): {profissaoDao.pegaErro()}')
             return None
@@ -2308,7 +2427,7 @@ class Aplicacao:
 
     def pegaTrabalhoEstoquePorId(self, id: str) -> TrabalhoEstoque | None:
         trabalhoEstoqueDao: EstoqueDaoSqlite = EstoqueDaoSqlite()
-        trabalhoEstoque: TrabalhoEstoque = trabalhoEstoqueDao.pegaTrabalhoEstoquePorId(id)
+        trabalhoEstoque: TrabalhoEstoque = trabalhoEstoqueDao.pegaTrabalhoEstoquePorId(id= id)
         if trabalhoEstoque is None:
             self.__loggerEstoqueDao.error(f'Erro ao buscar no trabalho no estoque por id ({id}): {trabalhoEstoqueDao.pegaErro()}')
             return None
@@ -2321,99 +2440,34 @@ class Aplicacao:
             self.__loggerEstoqueDao.error(f'Erro ao buscar no trabalho no estoque por idTrabalho ({id}): {trabalhoEstoqueDao.pegaErro()}')
             return None
         return trabalhoEstoque
-
-    def verificaAlteracaoPersonagem(self):
-        self.__loggerProfissaoDao.debug(f'Verificando alterações na lista de personagens...')
-        if self.__repositorioPersonagem.estaPronto:
-            dicionarios = self.__repositorioPersonagem.pegaDadosModificados()
-            for dicionario in dicionarios:
-                personagemModificado = Personagem()
-                personagemModificado.id = dicionario[CHAVE_ID_PERSONAGEM]
-                if CHAVE_LISTA_TRABALHOS_PRODUCAO in dicionario:
-                    trabalhoProducao = TrabalhoProducao()
-                    trabalhoProducao.id = dicionario[CHAVE_ID_TRABALHO]
-                    if dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO] == None:
-                        self.removeTrabalhoProducao(trabalhoProducao, personagemModificado, False)
-                        continue
-                    trabalhoProducaoEncontrado = self.pegaTrabalhoProducaoPorId(trabalhoProducao.id)
-                    if variavelExiste(trabalhoProducaoEncontrado):
-                        if trabalhoProducaoEncontrado.id == trabalhoProducao.id:
-                            trabalhoProducaoEncontrado.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
-                            self.modificaTrabalhoProducao(trabalhoProducaoEncontrado, personagemModificado, False)
-                            continue
-                        trabalhoProducao.dicionarioParaObjeto(dicionario[CHAVE_LISTA_TRABALHOS_PRODUCAO])
-                        self.insereTrabalhoProducao(trabalhoProducao, personagemModificado, False)
-                    continue
-                if CHAVE_LISTA_ESTOQUE in dicionario:
-                    trabalhoEstoque = TrabalhoEstoque()
-                    trabalhoEstoque.id = dicionario[CHAVE_ID_TRABALHO]
-                    if dicionario[CHAVE_LISTA_ESTOQUE] == None:
-                        trabalhoEstoqueEncontrado = self.pegaTrabalhoEstoquePorId(trabalhoEstoque.id)
-                        if trabalhoEstoqueEncontrado.id == trabalhoEstoque.id:
-                            self.removeTrabalhoEstoque(trabalhoEstoqueEncontrado, personagemModificado, False)
-                            continue
-                        self.__loggerEstoqueDao.warning(f'({trabalhoEstoque.id}) não foi encontrado no banco!')
-                        continue
-                    trabalhoEstoqueEncontrado: TrabalhoEstoque = self.pegaTrabalhoEstoquePorId(trabalhoEstoque.id)
-                    if trabalhoEstoqueEncontrado is None:
-                        continue
-                    if trabalhoEstoqueEncontrado.id == trabalhoEstoque.id:
-                        trabalhoEstoqueEncontrado.dicionarioParaObjeto(dicionario[CHAVE_LISTA_ESTOQUE])
-                        self.modificaTrabalhoEstoque(trabalhoEstoqueEncontrado, personagemModificado, False)
-                        continue
-                    trabalhoEstoque.dicionarioParaObjeto(dicionario[CHAVE_LISTA_ESTOQUE])
-                    self.insereTrabalhoEstoque(trabalhoEstoque, personagemModificado, False)
-                    continue
-                if CHAVE_LISTA_PROFISSAO in dicionario:
-                    profissao = Profissao()
-                    profissao.id = dicionario[CHAVE_ID_TRABALHO]
-                    profissaoEncontrada = self.pegaProfissaoPorId(profissao.id)
-                    if profissaoEncontrada is None:
-                        continue
-                    if profissaoEncontrada.id == profissao.id:
-                        profissaoEncontrada.dicionarioParaObjeto(dicionario[CHAVE_LISTA_PROFISSAO])
-                        self.modificaProfissao(profissaoEncontrada, personagemModificado, False)
-                    continue
-                if dicionario['novoPersonagem'] is None:
-                    personagemEncontrado = self.pegaPersonagemPorId(personagemModificado.id)
-                    if personagemEncontrado is None:
-                        continue
-                    if personagemEncontrado.nome is None:
-                        self.__loggerPersonagemDao.warning(f'({personagemModificado}) não encontrado no banco!')
-                        continue
-                    personagemEncontrado.dicionarioParaObjeto(dicionario)
-                    self.modificaPersonagem(personagemEncontrado, False)
-                    continue
-                personagemModificado.dicionarioParaObjeto(dicionario['novoPersonagem'])
-                self.inserePersonagem(personagemModificado, False)
-            self.__repositorioPersonagem.limpaLista()
         
     def sincronizaListaTrabalhos(self):
-        repositorioTrabalho = RepositorioTrabalho()        
-        trabalhosServidor = repositorioTrabalho.pegaTodosTrabalhos()
-        if variavelExiste(trabalhosServidor):
-            for trabalhoServidor in trabalhosServidor:
-                limpaTela()
-                print(f'Sincronizando trabalhos...')
-                print(f'Trabalhos: {(trabalhosServidor.index(trabalhoServidor)+1)/len(trabalhosServidor):.2%}')
-                trabalhoEncontradoBanco = self.pegaTrabalhoPorId(trabalhoServidor.id)
-                if variavelExiste(trabalhoEncontradoBanco):
-                    if trabalhoEncontradoBanco.id == trabalhoServidor.id:
-                        self.modificaTrabalho(trabalhoServidor, False)
-                        continue
-                    self.insereTrabalho(trabalhoServidor, False)  
-            trabalhosBanco = self.pegaTrabalhosBanco()
-            novaLista = []
-            for trabalhoBanco in trabalhosBanco:
-                for trabalhoServidor in trabalhosServidor:
-                    if trabalhoBanco.id == trabalhoServidor.id:
-                        break
-                else:
-                    novaLista.append(trabalhoBanco)
-            for trabalhoBanco in novaLista:
-                self.removeTrabalho(trabalhoBanco, False)
+        repositorioTrabalho: RepositorioTrabalho= RepositorioTrabalho()        
+        trabalhosServidor: list[Trabalho]= repositorioTrabalho.pegaTodosTrabalhos()
+        if trabalhosServidor is None:
+            self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
             return
-        self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
+        for trabalhoServidor in trabalhosServidor:
+            limpaTela()
+            print(f'Sincronizando trabalhos...')
+            print(f'Trabalhos: {(trabalhosServidor.index(trabalhoServidor)+1)/len(trabalhosServidor):.2%}')
+            trabalhoEncontradoBanco: Trabalho= self.pegaTrabalhoPorId(id= trabalhoServidor.id)
+            if trabalhoEncontradoBanco is None:
+                continue
+            if trabalhoEncontradoBanco.id == trabalhoServidor.id:
+                self.modificaTrabalho(trabalho= trabalhoServidor, modificaServidor= False)
+                continue
+            self.insereTrabalho(trabalho= trabalhoServidor, modificaServidor= False)  
+        trabalhosBanco: list[Trabalho]= self.pegaTrabalhosBanco()
+        novaLista: list[Trabalho]= []
+        for trabalhoBanco in trabalhosBanco:
+            for trabalhoServidor in trabalhosServidor:
+                if trabalhoBanco.id == trabalhoServidor.id:
+                    break
+            else:
+                novaLista.append(trabalhoBanco)
+        for trabalhoBanco in novaLista:
+            self.removeTrabalho(trabalho= trabalhoBanco, modificaServidor= False)
 
     def pegaPersonagens(self) -> list[Personagem]:
         personagemDao: PersonagemDaoSqlite = PersonagemDaoSqlite()
@@ -2429,14 +2483,14 @@ class Aplicacao:
             limpaTela()
             print(f'Sincronizando personagens...')
             print(f'Personagens: {(personagensServidor.index(personagemServidor)+1)/len(personagensServidor):.2%}')
-            personagemEncontradoBanco = self.pegaPersonagemPorId(personagemServidor.id)
-            if variavelExiste(personagemEncontradoBanco):
-                if personagemEncontradoBanco.id == personagemServidor.id:
-                    self.modificaPersonagem(personagemServidor, False)
-                    continue
-                self.inserePersonagem(personagemServidor, False)
+            personagemEncontradoBanco: Personagem= self.pegaPersonagemPorId(id= personagemServidor.id)
+            if personagemEncontradoBanco is None:
                 continue
-        novaLista = []
+            if personagemEncontradoBanco.id == personagemServidor.id:
+                self.modificaPersonagem(personagem= personagemServidor, modificaServidor= False)
+                continue
+            self.inserePersonagem(personagem= personagemServidor, modificaServidor= False)
+        novaLista: list[Personagem]= []
         for personagemBanco in self.pegaPersonagens():
             for personagemServidor in personagensServidor:
                 if personagemBanco.id == personagemServidor.id:
@@ -2444,12 +2498,12 @@ class Aplicacao:
             else:
                 novaLista.append(personagemBanco)
         for personagemBanco in novaLista:
-            self.removePersonagem(personagemBanco, False)                    
+            self.removePersonagem(personagem= personagemBanco, modificaServidor= False)                    
 
     def removeProfissao(self, profissao: Profissao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        profissaoDao = ProfissaoDaoSqlite(personagem)
-        if profissaoDao.removeProfissao(profissao, modificaServidor):
+        profissaoDao: ProfissaoDaoSqlite= ProfissaoDaoSqlite(personagem)
+        if profissaoDao.removeProfissao(profissao= profissao, modificaServidor= modificaServidor):
             self.__loggerProfissaoDao.info(f'({profissao}) removido do banco com sucesso!')
             return True
         self.__loggerProfissaoDao.error(f'Erro ao remover ({profissao}) do banco: {profissaoDao.pegaErro()}')
@@ -2458,34 +2512,34 @@ class Aplicacao:
     def sincronizaListaProfissoes(self):
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            repositorioProfissao = RepositorioProfissao(personagem)
-            profissoesServidor = repositorioProfissao.pegaTodasProfissoes()
-            if variavelExiste(profissoesServidor):
-                for profissaoServidor in profissoesServidor:
-                    limpaTela()
-                    print(f'Sincronizando profissões...')
-                    print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
-                    print(f'Profissões: {(profissoesServidor.index(profissaoServidor)+1)/len(profissoesServidor):.2%}')
-                    profissaoEncontrada = self.pegaProfissaoPorId(profissaoServidor.id)
-                    if profissaoEncontrada is None:
-                        continue
-                    if profissaoEncontrada.id == profissaoServidor.id:
-                        if self.modificaProfissao(profissaoServidor, personagem, False):
-                            self.__loggerProfissaoDao.info(f'({profissaoServidor}) sincronizado com sucesso!')
-                        continue
-                    self.insereProfissao(profissaoServidor, personagem, False)
-                profissoesBanco: list[Profissao] = self.pegaProfissoes()
-                novaLista = []
-                for profissaoBanco in profissoesBanco:
-                    for profissaoServidor in profissoesServidor:
-                        if profissaoBanco.id == profissaoServidor.id:
-                            break
-                    else:
-                        novaLista.append(profissaoBanco)
-                for profissaoBanco in novaLista:
-                    self.removeProfissao(profissaoBanco, personagem, False)
+            repositorioProfissao: RepositorioProfissao= RepositorioProfissao(personagem= personagem)
+            profissoesServidor: list[Profissao]= repositorioProfissao.pegaProfissoesPersonagem()
+            if profissoesServidor is None:
+                self.__loggerRepositorioProfissao.error(f'Erro ao buscar profissões no servidor: {repositorioProfissao.pegaErro()}')
                 continue
-            self.__loggerRepositorioProfissao.error(f'Erro ao buscar profissões: {repositorioProfissao.pegaErro()}')
+            for profissaoServidor in profissoesServidor:
+                limpaTela()
+                print(f'Sincronizando profissões...')
+                print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
+                print(f'Profissões: {(profissoesServidor.index(profissaoServidor)+1)/len(profissoesServidor):.2%}')
+                profissaoEncontrada: Profissao= self.pegaProfissaoPorId(id= profissaoServidor.id)
+                if profissaoEncontrada is None:
+                    continue
+                if profissaoEncontrada.id == profissaoServidor.id:
+                    if self.modificaProfissao(profissao= profissaoServidor, personagem= personagem, modificaServidor= False):
+                        self.__loggerProfissaoDao.info(f'({profissaoServidor}) sincronizado com sucesso!')
+                    continue
+                self.insereProfissao(profissao= profissaoServidor, personagem= personagem, modificaServidor= False)
+            profissoesBanco: list[Profissao] = self.pegaProfissoes(personagem= personagem)
+            novaLista: list[Profissao]= []
+            for profissaoBanco in profissoesBanco:
+                for profissaoServidor in profissoesServidor:
+                    if profissaoBanco.id == profissaoServidor.id:
+                        break
+                else:
+                    novaLista.append(profissaoBanco)
+            for profissaoBanco in novaLista:
+                self.removeProfissao(profissao= profissaoBanco, personagem= personagem, modificaServidor= False)
     
     def pegaTrabalhoProducaoPorId(self, id:  str) -> TrabalhoProducao:
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite()
@@ -2494,6 +2548,14 @@ class Aplicacao:
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho para produção por id ({id}) no banco: {trabalhoProducaoDao.pegaErro()}')
             return None
         return trabalhoProducaoEncontrado
+    
+    def pegaTrabalhoVendidoPorId(self, id:  str) -> TrabalhoProducao | None:
+        trabalhoVendidoDao: VendaDaoSqlite= VendaDaoSqlite()
+        trabalhoVendidoEncontrado: TrabalhoVendido= trabalhoVendidoDao.pegaTrabalhoVendidoPorId(idBuscado= id)
+        if trabalhoVendidoEncontrado is None:
+            self.__loggerVendaDao.error(f'Erro ao buscar trabalho vendido por id ({id}) no banco: {trabalhoVendidoDao.pegaErro()}')
+            return None
+        return trabalhoVendidoEncontrado
     
     def pegaTrabalhosProducaoPorIdTrabalho(self, id:  str, personagem: Personagem = None) -> list[TrabalhoProducao]:
         personagem: Personagem = self.__personagemEmUso if personagem is None else personagem
@@ -2535,6 +2597,72 @@ class Aplicacao:
                     self.removeTrabalhoProducao(trabalhoProducaoBanco, personagem, False)
                 continue
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+            
+    def sincronizaTrabalhosVendidos(self):
+        personagens: list[Personagem] = self.pegaPersonagens()
+        for personagem in personagens:
+            self.personagemEmUso(personagem)
+            repositorioTrabalhoVendido = RepositorioVendas(self.__personagemEmUso)
+            trabalhosVendidosServidor = repositorioTrabalhoVendido.pegaTrabalhosVendidos()
+            if trabalhosVendidosServidor is None:
+                self.__loggerRepositorioVendas.error(menssagem= f'Erro ao buscar trabalhos no servidor: {repositorioTrabalhoVendido.pegaErro()}')
+                continue
+            for trabalhoVendidoServidor in trabalhosVendidosServidor:
+                limpaTela()
+                print(f'Sincronizando trabalhos para vendidos...')
+                print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
+                print(f'Trabalhos: {(trabalhosVendidosServidor.index(trabalhoVendidoServidor)+1)/len(trabalhosVendidosServidor):.2%}')
+                trabalhoVendidoEncontradoBanco = self.pegaTrabalhoVendidoPorId(id= trabalhoVendidoServidor.id)
+                if trabalhoVendidoEncontradoBanco is None:
+                    continue
+                if trabalhoVendidoEncontradoBanco.id == trabalhoVendidoServidor.id:
+                    self.modificaTrabalhoVendido(trabalho= trabalhoVendidoServidor, personagem= personagem, modificaServidor= False)
+                    continue
+                self.insereTrabalhoVendido(trabalho= trabalhoVendidoServidor, personagem= personagem, modificaServidor= False)
+                continue
+            trabalhosVendidosBanco: list[TrabalhoVendido]= self.pegaTrabalhosVendidos(personagem= personagem)
+            novaLista: list[TrabalhoVendido]= []
+            for trabalhoVendidoBanco in trabalhosVendidosBanco:
+                for trabalhoVendidoServidor in trabalhosVendidosServidor:
+                    if trabalhoVendidoBanco.id == trabalhoVendidoServidor.id:
+                        break
+                else:
+                    novaLista.append(trabalhoVendidoBanco)
+            for trabalhoVendidoBanco in novaLista:
+                self.removeTrabalhoVendido(trabalho= trabalhoVendidoBanco, personagem= personagem, modificaServidor= False)
+            
+    def sincronizaTrabalhosEstoque(self):
+        personagens: list[Personagem] = self.pegaPersonagens()
+        for personagem in personagens:
+            self.personagemEmUso(personagem)
+            repositorioTrabalhoEstoque: RepositorioEstoque= RepositorioEstoque(personagem= self.__personagemEmUso)
+            trabalhosEstoqueServidor: list[TrabalhoEstoque]= repositorioTrabalhoEstoque.pegaTodosTrabalhosEstoque()
+            if trabalhosEstoqueServidor is None:
+                self.__loggerRepositorioEstoque.error(menssagem= f'Erro ao buscar trabalhos no servidor: {repositorioTrabalhoEstoque.pegaErro()}')
+                continue
+            for trabalhoEstoqueServidor in trabalhosEstoqueServidor:
+                limpaTela()
+                print(f'Sincronizando trabalhos em estoque...')
+                print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
+                print(f'Trabalhos: {(trabalhosEstoqueServidor.index(trabalhoEstoqueServidor)+1)/len(trabalhosEstoqueServidor):.2%}')
+                trabalhoEstoqueEncontradoBanco: TrabalhoEstoque= self.pegaTrabalhoEstoquePorId(id= trabalhoEstoqueServidor.id)
+                if trabalhoEstoqueEncontradoBanco is None:
+                    continue
+                if trabalhoEstoqueEncontradoBanco.id == trabalhoEstoqueServidor.id:
+                    self.modificaTrabalhoEstoque(trabalho= trabalhoEstoqueServidor, personagem= personagem, modificaServidor= False)
+                    continue
+                self.insereTrabalhoEstoque(trabalho= trabalhoEstoqueServidor, personagem= personagem, modificaServidor= False)
+                continue
+            trabalhosEstoqueBanco: list[TrabalhoEstoque]= self.pegaTrabalhosEstoque(personagem= personagem)
+            novaLista: list[TrabalhoEstoque]= []
+            for trabalhoEstoqueBanco in trabalhosEstoqueBanco:
+                for trabalhoEstoqueServidor in trabalhosEstoqueServidor:
+                    if trabalhoEstoqueBanco.id == trabalhoEstoqueServidor.id:
+                        break
+                else:
+                    novaLista.append(trabalhoEstoqueBanco)
+            for trabalhoEstoqueBanco in novaLista:
+                self.removeTrabalhoEstoque(trabalho= trabalhoEstoqueBanco, personagem= personagem, modificaServidor= False)
 
     def pegaPersonagensServidor(self) -> list[Personagem]:
         repositorioPersonagem: RepositorioPersonagem = RepositorioPersonagem()
@@ -2545,8 +2673,8 @@ class Aplicacao:
         return personagens
 
     def pegaTrabalhosBanco(self) -> list[Trabalho]:
-        trabalhoDao = TrabalhoDaoSqlite()
-        trabalhos = trabalhoDao.pegaTrabalhos()
+        trabalhoDao: TrabalhoDaoSqlite= TrabalhoDaoSqlite()
+        trabalhos: list[Trabalho]= trabalhoDao.pegaTrabalhos()
         if trabalhos is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {trabalhoDao.pegaErro()}')
             return []
@@ -2563,16 +2691,14 @@ class Aplicacao:
             return None
         return trabalhoEncontrado
 
-    def sincronizaTrabalhosVendidos(self):
-        personagens = self.pegaPersonagens()
-        for personagem in personagens:
-
-            pass
-
     def preparaPersonagem(self):
         try:
+            self.abreStreamEstoque()
             self.abreStreamTrabalhos()
             self.abreStreamPersonagens()
+            self.abreStreamProducao()
+            self.abreStreamProfissoes()
+            self.abreStreamVendas()
             self.sincronizaListas()
             clickAtalhoEspecifico('alt', 'tab')
             clickAtalhoEspecifico('win', 'left')
@@ -2589,6 +2715,8 @@ class Aplicacao:
             self.sincronizaListaPersonagens()
             self.sincronizaListaProfissoes()
             self.sincronizaTrabalhosProducao()
+            self.sincronizaTrabalhosVendidos()
+            self.sincronizaTrabalhosEstoque()
 
     def abreStreamPersonagens(self) -> bool:
         if self.__repositorioPersonagem.abreStream():
@@ -2596,12 +2724,40 @@ class Aplicacao:
             return True
         self.__loggerRepositorioPersonagem.error(f'Erro ao iniciar stream repositório personagem: {self.__repositorioPersonagem.pegaErro()}')
         return False
+    
+    def abreStreamProducao(self) -> bool:
+        if self.__repositorioProducao.abreStream():
+            self.__loggerRepositorioProducao.info(f'Stream repositório produção iniciada!')
+            return True
+        self.__loggerRepositorioProducao.error(f'Erro ao iniciar stream repositório personagem: {self.__repositorioProducao.pegaErro()}')
+        return False
 
     def abreStreamTrabalhos(self) -> bool:
         if self.__repositorioTrabalho.abreStream():
             self.__loggerRepositorioTrabalho.info(f'Stream repositório trabalhos iniciada!')
             return True
         self.__loggerRepositorioTrabalho.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioTrabalho.pegaErro()}')
+        return False
+
+    def abreStreamProfissoes(self) -> bool:
+        if self.__repositorioProfissao.abreStream():
+            self.__loggerRepositorioProfissao.info(f'Stream repositório profissões iniciada!')
+            return True
+        self.__loggerRepositorioProfissao.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioProfissao.pegaErro()}')
+        return False
+
+    def abreStreamEstoque(self) -> bool:
+        if self.__repositorioEstoque.abreStream():
+            self.__loggerRepositorioEstoque.info(f'Stream repositório estoque iniciada!')
+            return True
+        self.__loggerRepositorioEstoque.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioEstoque.pegaErro()}')
+        return False
+
+    def abreStreamVendas(self) -> bool:
+        if self.__repositorioVendas.abreStream():
+            self.__loggerRepositorioVendas.info(f'Stream repositório estoque iniciada!')
+            return True
+        self.__loggerRepositorioVendas.error(f'Erro ao iniciar stream repositório trabalhos: {self.__repositorioVendas.pegaErro()}')
         return False
 
     def modificaTrabalho(self, trabalho: Trabalho, modificaServidor: bool = True) -> bool:

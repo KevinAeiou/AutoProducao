@@ -22,8 +22,8 @@ class VendaDaoSqlite:
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaTrabalhosVendidos(self):
-        vendas = []
+    def pegaTrabalhosVendidos(self) -> list[TrabalhoVendido] | None:
+        vendas: list[TrabalhoVendido]= []
         sql = f"""
             SELECT {CHAVE_LISTA_VENDAS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_NOME}, {CHAVE_TRABALHOS}.{CHAVE_NIVEL}, {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO}, {CHAVE_TRABALHOS}.{CHAVE_RARIDADE}, {CHAVE_TRABALHOS}.{CHAVE_TRABALHO_NECESSARIO}, {CHAVE_LISTA_VENDAS}.{CHAVE_DESCRICAO}, {CHAVE_LISTA_VENDAS}.{CHAVE_DATA_VENDA}, {CHAVE_LISTA_VENDAS}.{CHAVE_QUANTIDADE}, {CHAVE_LISTA_VENDAS}.{CHAVE_VALOR}
             FROM {CHAVE_LISTA_VENDAS}
@@ -35,7 +35,7 @@ class VendaDaoSqlite:
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [self.__personagem.id])
             for linha in cursor.fetchall():
-                trabalho = TrabalhoVendido()
+                trabalho: TrabalhoVendido= TrabalhoVendido()
                 trabalho.id = linha[0]
                 trabalho.idTrabalho = linha[1]
                 trabalho.nome = linha[2]
@@ -56,15 +56,16 @@ class VendaDaoSqlite:
         self.__meuBanco.desconecta()
         return None
 
-    def pegaTrabalhoVendidoPorId(self, trabalhoVendidoBuscado):
-        trabalho = TrabalhoVendido()
+    def pegaTrabalhoVendidoPorId(self, idBuscado: str) -> TrabalhoVendido | None:
+        trabalho: TrabalhoVendido= TrabalhoVendido()
         sql = f"""
             SELECT * 
             FROM {CHAVE_LISTA_VENDAS} 
-            WHERE {CHAVE_ID} == ?;"""
+            WHERE {CHAVE_ID} == ?
+            LIMIT 1;"""
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [trabalhoVendidoBuscado.id])
+            cursor.execute(sql, [idBuscado])
             for linha in cursor.fetchall():
                 trabalho.id = linha[0]
                 trabalho.descricao = linha[1]
@@ -148,36 +149,55 @@ class VendaDaoSqlite:
             """
         try:
             cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
             cursor.execute(sql, (trabalho.id, trabalho.descricao, trabalho.dataVenda, self.__personagem.id, trabalho.quantidade, trabalho.idTrabalho, trabalho.valor))
+            if modificaServidor:
+                if self.__repositorioVendas.insereTrabalhoVendido(trabalho= trabalho):
+                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {self.__repositorioVendas.pegaErro()}')
+                self.__erro= self.__repositorioVendas.pegaErro()
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioVendas.insereTrabalhoVendido(trabalho):
-                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
+            self.__conexao.rollback()
+        self.__meuBanco.desconecta()
         return False
     
     def removeTrabalhoVendido(self, trabalho: TrabalhoVendido, modificaServidor: bool = True) -> bool:
         sql = f"""
             DELETE FROM {CHAVE_LISTA_VENDAS}
-            WHERE {CHAVE_ID} == ?;"""
+            WHERE {CHAVE_ID} == ?;
+            """
         try:
             cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
             cursor.execute(sql, [trabalho.id])
+            if modificaServidor:
+                if self.__repositorioVendas.removeTrabalhoVendido(trabalho= trabalho):
+                    self.__logger.info(f'({trabalho}) removido do servidor com sucesso!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__logger.error(f'Erro ao remover ({trabalho}) do servidor: {self.__repositorioVendas.pegaErro()}')
+                self.__erro= self.__repositorioVendas.pegaErro()
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioVendas.removeTrabalhoVendido(trabalho):
-                    self.__logger.info(f'({trabalho}) removido do servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao remover ({trabalho}) do servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
+            self.__conexao.rollback()
+        self.__meuBanco.desconecta()
         return False
     
     def modificaTrabalhoVendido(self, trabalho: TrabalhoVendido, modificaServidor: bool = True):
@@ -194,17 +214,26 @@ class VendaDaoSqlite:
             WHERE {CHAVE_ID} == ?;"""
         try:
             cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
             cursor.execute(sql, (trabalhoModificado.descricao, trabalhoModificado.dataVenda, trabalhoModificado.quantidade, trabalhoModificado.idTrabalho, trabalhoModificado.valor, trabalhoModificado.id))
+            if modificaServidor:
+                if self.__repositorioVendas.modificaTrabalhoVendido(trabalho= trabalhoModificado):
+                    self.__logger.info(f'({trabalhoModificado}) modificado no servidor com sucesso!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__logger.error(f'Erro ao modificar ({trabalhoModificado}) no servidor: {self.__repositorioVendas.pegaErro()}')
+                self.__erro= self.__repositorioVendas.pegaErro()
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioVendas.modificaTrabalhoVendido(trabalhoModificado):
-                    self.__logger.info(f'({trabalhoModificado}) modificado no servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao modificar ({trabalhoModificado}) no servidor: {self.__repositorioVendas.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
+            self.__conexao.rollback()
+        self.__meuBanco.desconecta()
         return False
     
     def modificaIdTrabalhoVendido(self, idTrabalhoNovo, idTrabalhoAntigo):

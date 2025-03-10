@@ -8,7 +8,7 @@ class TestRepositorioEstoque:
     _personagemTeste = _repositorioPersonagem.pegaTodosPersonagens()[0]
     _repositorioEstoque = RepositorioEstoque(_personagemTeste)
     _trabalhoTeste = TrabalhoEstoque()
-    _trabalhoTeste.trabalhoId = 'IdTrabalhoTeste'
+    _trabalhoTeste.idTrabalho = 'IdTrabalhoTeste'
     _trabalhoTeste.quantidade = 1
 
     def testDeveInserirTrabalhoAoEstoque(self):

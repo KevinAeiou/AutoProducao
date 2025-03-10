@@ -2,55 +2,32 @@ from repositorio.firebaseDatabase import FirebaseDatabase
 from modelos.trabalho import Trabalho
 from constantes import *
 from time import time
-import logging
+from modelos.logger import MeuLogger
+from repositorio.stream import Stream
 
-class RepositorioTrabalho:
+class RepositorioTrabalho(Stream):
     def __init__(self) -> None:
-        logging.basicConfig(level = logging.debug, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
-        self.__logger = logging.getLogger('repositorioTrabalho')
-        self.__erro = None
-        self.__meuBanco = FirebaseDatabase().pegaDataBase()
-        self.__dadosModificados: list[Trabalho] = []
-
-    def abreStream(self):
-        try:
-            self.__inicio = time()
-            self.__logger.info(f'Tempo de inicio da stream: {self.__inicio}')
-            self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).stream(self.stream_handler)
-            return True
-        except Exception as e:
-            self.__erro = str(e)
-            return False
-
-    @property
-    def estaPronto(self) -> bool:
-        """
-        Returns:
-            bool: True if my stuff is ready for use
-        """
-        return len(self.__dadosModificados) != 0
+        super().__init__(chave= CHAVE_LISTA_TRABALHOS, nomeLogger= CHAVE_REPOSITORIO_TRABALHO)
+        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_TRABALHO)
+        self.__erro: str= None
+        self.__meuBanco = FirebaseDatabase().pegaMeuBanco()
     
-    def pegaDadosModificados(self):
-        return self.__dadosModificados
-    
-    def limpaLista(self):
-        self.__dadosModificados.clear()
-    
-    def stream_handler(self, message):
+    def streamHandler(self, message: dict):
+        super().streamHandler(menssagem= message)
         if message["event"] in ("put", "patch"):
             if message["path"] == "/":
-                self.__logger.info(f'Tempo final da stream pronta: {time() - self.__inicio}')
                 return
-            trabalho = Trabalho()
+            trabalho: Trabalho= Trabalho()
             if message['data'] is None:
                 # Algum trabalho foi removido do servidor
-                idTrabalhoDeletado = message['path'].replace('/','').strip()
+                caminho: str= message['path']
+                idTrabalhoDeletado: str= caminho.replace('/','').strip()
                 trabalho.id = idTrabalhoDeletado
-                self.__dadosModificados.append(trabalho)
+                super().insereDadosModificados(dado= trabalho)
                 return
             # Algum trabalho foi modificado/inserido no servidor
             trabalho.dicionarioParaObjeto(message['data'])
-            self.__dadosModificados.append(trabalho)
+            super().insereDadosModificados(dado= trabalho)
 
     def pegaTodosTrabalhos(self):
         trabalhos = []
@@ -82,7 +59,7 @@ class RepositorioTrabalho:
             self.__erro = str(e)
         return False
     
-    def removeTrabalho(self, trabalho):
+    def removeTrabalho(self, trabalho: Trabalho) -> bool:
         try:
             self.__meuBanco.child(CHAVE_LISTA_TRABALHOS).child(trabalho.id).remove()
             return True

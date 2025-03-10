@@ -1,9 +1,8 @@
-from uuid import uuid4
+from modelos.usuario import Usuario
 
-class Personagem:
+class Personagem(Usuario):
     def __init__(self):
-        self.id = str(uuid4())
-        self.nome = None
+        super().__init__()
         self.email = None
         self.senha = None
         self.espacoProducao = 1

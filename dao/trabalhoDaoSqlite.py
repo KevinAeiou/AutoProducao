@@ -22,12 +22,11 @@ class TrabalhoDaoSqlite():
         except Exception as e:
             self.__erro = str(e)
 
-    def pegaTrabalhos(self):
-        trabalhos = []
-        sql = """
+    def pegaTrabalhos(self) -> list[Trabalho]:
+        trabalhos: list[Trabalho]= []
+        sql = f"""
             SELECT *
-            FROM trabalhos
-            WHERE id IS NOT NULL AND nome IS NOT NULL AND nomeProducao IS NOT NULL AND experiencia IS NOT NULL AND nivel IS NOT NULL AND profissao IS NOT NULL AND raridade IS NOT NULL AND trabalhoNecessario IS NOT NULL;
+            FROM {CHAVE_TRABALHOS};
             """
         try:
             if self.__fabrica == 1:
@@ -112,12 +111,12 @@ class TrabalhoDaoSqlite():
             self.__erro = str(e)
         return None
 
-    def pegaTrabalhoPorId(self, idBuscado):
-        trabalho = Trabalho()
-        sql = """
+    def pegaTrabalhoPorId(self, idBuscado: str) -> Trabalho | None:
+        trabalho: Trabalho= Trabalho()
+        sql = f"""
             SELECT * 
-            FROM trabalhos
-            WHERE id == ?;"""
+            FROM {CHAVE_TRABALHOS}
+            WHERE {CHAVE_ID} == ?;"""
         try:
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
@@ -261,21 +260,31 @@ class TrabalhoDaoSqlite():
         self.__meuBanco.desconecta()
         return False
         
-    def removeTrabalho(self, trabalho, modificaServidor = True):
-        sql = """DELETE FROM trabalhos WHERE id == ?;"""
+    def removeTrabalho(self, trabalho: Trabalho, modificaServidor: bool= True) -> bool:
+        sql = f"""
+            DELETE FROM {CHAVE_TRABALHOS}
+            WHERE {CHAVE_ID} == ?;"""
         try:
             cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
             cursor.execute(sql, [trabalho.id])
+            if modificaServidor:
+                if self.__repositorioTrabalho.removeTrabalho(trabalho= trabalho):
+                    self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) removido do servidor com sucesso!')
+                    self.__conexao.commit()
+                    self.__meuBanco.desconecta()
+                    return True
+                self.__logger.error(f'Erro ao remover ({trabalho.id.ljust(36)} | {trabalho}) do servidor: {self.__repositorioTrabalho.pegaErro()}')
+                self.__erro= self.__repositorioTrabalho.pegaErro()
+                self.__conexao.rollback()
+                self.__meuBanco.desconecta()
+                return False
             self.__conexao.commit()
             self.__meuBanco.desconecta()
-            if modificaServidor:
-                if self.__repositorioTrabalho.removeTrabalho(trabalho):
-                    self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) removido do servidor com sucesso!')
-                else:
-                    self.__logger.error(f'Erro ao remover ({trabalho.id.ljust(36)} | {trabalho}) do servidor: {self.__repositorioTrabalho.pegaErro()}')
             return True
         except Exception as e:
             self.__erro = str(e)
+            self.__conexao.rollback()
         self.__meuBanco.desconecta()
         return False
     

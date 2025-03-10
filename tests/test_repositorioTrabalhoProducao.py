@@ -9,7 +9,7 @@ class TestRepositorioTrabalhoProducao:
     _trabalhoProducaoTeste = TrabalhoProducao()
     _trabalhoProducaoTeste.idTrabalho = 'IdTrabalhoTeste'
     _trabalhoProducaoTeste.recorrencia = True
-    _trabalhoProducaoTeste.tipo_licenca = 'LicencaTeste'
+    _trabalhoProducaoTeste.tipoLicenca = 'LicencaTeste'
     _trabalhoProducaoTeste.estado = 0
 
     def testDeveRetornarListaComMaisDeZeroItens(self):

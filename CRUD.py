@@ -1,7 +1,8 @@
 import logging
 from uuid import uuid4
 from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero, textoEhIgual
-from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO
+# from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO
+from constantes import *
 
 from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 
@@ -14,6 +15,7 @@ from modelos.trabalhoEstoque import TrabalhoEstoque
 from modelos.trabalhoVendido import TrabalhoVendido
 from modelos.profissao import Profissao
 from modelos.aplicacaoCRUD import AplicacaoCRUD
+from modelos.logger import MeuLogger
 
 from main import Aplicacao
 
@@ -197,7 +199,10 @@ class CRUD:
             novoPersonagem.nome = nome
             novoPersonagem.email = email
             novoPersonagem.senha = senha
-            self.__aplicacao.inserePersonagem(novoPersonagem)
+            if self.__aplicacao.inserePersonagem(novoPersonagem):
+                self.__aplicacao.insereListaProfissoes(personagem= novoPersonagem)
+                continue
+            input(f'Clique para continuar...')
 
     def modificaPersonagem(self):
         while True:
@@ -239,7 +244,9 @@ class CRUD:
             personagem.email = novoEmail
             personagem.senha = novasenha
             personagem.setEspacoProducao(novoEspaco)
-            self.__aplicacao.modificaPersonagem(personagem)
+            if self.__aplicacao.modificaPersonagem(personagem= personagem):
+                continue
+            input(f'Clique para continuar...')
     
     def removePersonagem(self):
         while True:
@@ -256,7 +263,9 @@ class CRUD:
             if int(opcaoPersonagem) == 0:
                 break
             personagem = personagens[int(opcaoPersonagem) - 1]
-            self.__aplicacao.removePersonagem(personagem)
+            if self.__aplicacao.removePersonagem(personagem= personagem):
+                continue
+            input(f'Clique para continuar...')
 
     def mostraListaTrabalhosProducao(self):
         limpaTela()
@@ -268,7 +277,7 @@ class CRUD:
             for trabalhoProducao in trabalhos:
                 estado = 'Produzir' if trabalhoProducao.estado == 0 else 'Produzindo' if trabalhoProducao.estado == 1 else 'Feito'
                 recorrencia = 'Recorrente' if trabalhoProducao.recorrencia else 'Único'
-                print(f'{str(trabalhos.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao.nome.ljust(44)} | {trabalhoProducao.profissao.ljust(22)} | {str(trabalhoProducao.nivel).ljust(5)} | {estado.ljust(10)} | {trabalhoProducao.tipo_licenca.ljust(34)} | {recorrencia}')
+                print(f'{str(trabalhos.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao.nome.ljust(44)} | {trabalhoProducao.profissao.ljust(22)} | {str(trabalhoProducao.nivel).ljust(5)} | {estado.ljust(10)} | {trabalhoProducao.tipoLicenca.ljust(34)} | {recorrencia}')
         return trabalhos
     
     def mostraListaTrabalhosPorProfissaoRaridade(self, trabalhoBuscado):
@@ -316,7 +325,9 @@ class CRUD:
                         trabalhoSelecionado = self.defineNovoTrabalhoProducao(trabalhosEncontrados)
                         if variavelExiste(trabalhosEncontrados) and variavelExiste(trabalhoSelecionado):
                             novoTrabalhoProducao = self.defineNovoTrabalhoProducaoSelecionado(trabalhoSelecionado)
-                            self.__aplicacao.insereTrabalhoProducao(novoTrabalhoProducao)
+                            if self.__aplicacao.insereTrabalhoProducao(trabalho= novoTrabalhoProducao):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -332,7 +343,7 @@ class CRUD:
         novoTrabalhoProducao.id = str(uuid4())
         novoTrabalhoProducao.idTrabalho = trabalhoSelecionado.id
         novoTrabalhoProducao.recorrencia = recorrencia
-        novoTrabalhoProducao.tipo_licenca = licenca
+        novoTrabalhoProducao.tipoLicenca = licenca
         novoTrabalhoProducao.estado = CODIGO_PARA_PRODUZIR
         return novoTrabalhoProducao
 
@@ -362,7 +373,7 @@ class CRUD:
                         self.mostraListaLicencas()
                         novaLicenca = self.defineLicencaSelecionada()
                         if variavelExiste(novaLicenca):
-                            trabalhoProducaoSelecionado.tipo_licenca = novaLicenca
+                            trabalhoProducaoSelecionado.tipoLicenca = novaLicenca
                             novaRecorrencia = input(f'Alterna recorrencia? (S/N) ')
                             if novaRecorrencia.lower() == 's':
                                 trabalhoProducaoSelecionado.alternaRecorrencia()
@@ -372,7 +383,9 @@ class CRUD:
                                 novoEstado = trabalhoProducaoSelecionado.estado 
                             else:
                                 trabalhoProducaoSelecionado.estado = int(novoEstado)
-                            self.__aplicacao.modificaTrabalhoProducao(trabalhoProducaoSelecionado)
+                            if self.__aplicacao.modificaTrabalhoProducao(trabalho= trabalhoProducaoSelecionado):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -388,7 +401,9 @@ class CRUD:
                     trabalhoRemovido = self.defineTrabalhoProducaoSelecionado(trabalhosProducao)
                     if trabalhoRemovido is None:
                         break
-                    self.__aplicacao.removeTrabalhoProducao(trabalhoRemovido)
+                    if self.__aplicacao.removeTrabalhoProducao(trabalho= trabalhoRemovido):
+                        continue
+                    input('Clique para continuar...')
                 continue
             break
 
@@ -409,19 +424,22 @@ class CRUD:
             while True:
                 limpaTela()
                 self.__aplicacao.personagemEmUso(personagens[int(opcaoPersonagem) - 1])
-                profissoes = self.__aplicacao.pegaProfissoes()
+                profissoes: list[Profissao] = self.__aplicacao.pegaProfissoes()
                 if tamanhoIgualZero(profissoes):
                     self.__aplicacao.insereListaProfissoes()
                     continue
-                print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'ID PERSONAGEM'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE")
+                print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE")
                 for profissao in profissoes:
-                    print(f'{str(profissoes.index(profissao) + 1).ljust(6)} - {profissao}')
+                    prioridade: str= 'Ativa' if profissao.prioridade == 1 else 'Inativa'
+                    print(f'{str(profissoes.index(profissao) + 1).ljust(6)} - {profissao.id.ljust(40)} | {profissao.nome.ljust(22)} | {str(profissao.experiencia).ljust(6)} | {prioridade}')
                 print(f'{"0".ljust(6)} - Voltar')
                 opcaoProfissao = input(f'Opção: ')
                 if int(opcaoProfissao) == 0:
                     break
                 profissaoRemovida = profissoes[int(opcaoProfissao)-1]
-                self.__aplicacao.removeProfissao(profissaoRemovida)
+                if self.__aplicacao.removeProfissao(profissao= profissaoRemovida):
+                    continue
+                input(f'Clique para continuar...')
 
     def insereProfissao(self):
         while True:
@@ -487,7 +505,9 @@ class CRUD:
                 profissaoModificado.setExperiencia(novaExperiencia)
                 if alternaPrioridade.lower() == 's':
                     profissaoModificado.alternaPrioridade()
-                self.__aplicacao.modificaProfissao(profissaoModificado)
+                if self.__aplicacao.modificaProfissao(profissaoModificado):
+                    continue
+                input(f'Clique para continuar...')
 
     def pegaTodosTrabalhosProducao(self):
         limpaTela()
@@ -530,7 +550,9 @@ class CRUD:
                                 trabalho = self.defineTrabalhoEstoqueSelecionado(trabalhos)
                                 if variavelExiste(trabalho):
                                     trabalhoEstoque = self.defineNovoTrabalhoEstoque(trabalho)
-                                    self.__aplicacao.insereTrabalhoEstoque(trabalhoEstoque)
+                                    if self.__aplicacao.insereTrabalhoEstoque(trabalho= trabalhoEstoque):
+                                        continue
+                                    input('Clique para continuar...')
                                     continue
                                 break
                             break
@@ -551,7 +573,7 @@ class CRUD:
         trabalhoEstoque = TrabalhoEstoque()
         trabalhoEstoque.dicionarioParaObjeto(trabalho.__dict__)
         trabalhoEstoque.id = str(uuid4())
-        trabalhoEstoque.trabalhoId = trabalho.id
+        trabalhoEstoque.idTrabalho = trabalho.id
         trabalhoEstoque.setQuantidade(quantidadeTrabalho)
         return trabalhoEstoque
 
@@ -593,7 +615,9 @@ class CRUD:
                         trabalhoEstoque = self.defineTrabalhoEstoqueSelecionado(estoque)
                         if variavelExiste(trabalhoEstoque):
                             trabalhoEstoque = self.defineTrabalhoEstoqueModificado(trabalhoEstoque)
-                            self.__aplicacao.modificaTrabalhoEstoque(trabalhoEstoque)
+                            if self.__aplicacao.modificaTrabalhoEstoque(trabalhoEstoque):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -615,7 +639,9 @@ class CRUD:
                     if variavelExiste(estoque):
                         trabalhoEstoque = self.defineTrabalhoEstoqueSelecionado(estoque)
                         if variavelExiste(trabalhoEstoque):
-                            self.__aplicacao.removeTrabalhoEstoque(trabalhoEstoque)
+                            if self.__aplicacao.removeTrabalhoEstoque(trabalho= trabalhoEstoque):
+                                continue
+                            input('Cliue para continuar...')
                             continue
                         break
                     break
@@ -637,7 +663,7 @@ class CRUD:
         else:
             print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(40)} | {"PROFISSÃO".ljust(25)} | {"QNT".ljust(3)} | {"NÍVEL".ljust(5)} | {"RARIDADE".ljust(10)} | ID TRABALHO')
             for trabalhoEstoque in estoque:
-                print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} - {trabalhoEstoque.nome.ljust(40)} | {trabalhoEstoque.profissao.ljust(25)} | {str(trabalhoEstoque.quantidade).ljust(3)} | {str(trabalhoEstoque.nivel).ljust(5)} | {trabalhoEstoque.raridade.ljust(10)} | {trabalhoEstoque.trabalhoId}')
+                print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} - {trabalhoEstoque.nome.ljust(40)} | {trabalhoEstoque.profissao.ljust(25)} | {str(trabalhoEstoque.quantidade).ljust(3)} | {str(trabalhoEstoque.nivel).ljust(5)} | {trabalhoEstoque.raridade.ljust(10)} | {trabalhoEstoque.idTrabalho}')
         print(f'{"0".ljust(6)} - Voltar')
         return estoque
 
@@ -708,7 +734,9 @@ class CRUD:
                                     if variavelExiste(trabalhoSelecionado):
                                         novoTrabalhoVendido = self.defineNovoTrabalhoVendido(trabalhoSelecionado)
                                         if variavelExiste(novoTrabalhoVendido):
-                                            self.__aplicacao.insereTrabalhoVendido(novoTrabalhoVendido)
+                                            if self.__aplicacao.insereTrabalhoVendido(trabalho= novoTrabalhoVendido):
+                                                continue
+                                            input('Clique para continuar...')
                                             continue
                                         break
                                     break
@@ -758,7 +786,9 @@ class CRUD:
                         trabalhoVendidoModificado = self.defineVendaEscolhida(vendas)
                         if variavelExiste(trabalhoVendidoModificado):
                             trabalhoVendidoModificado = self.defineTrabalhoVendidoModificado(trabalhoVendidoModificado)
-                            self.__aplicacao.modificaTrabalhoVendido(trabalhoVendidoModificado)
+                            if self.__aplicacao.modificaTrabalhoVendido(trabalho= trabalhoVendidoModificado):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -775,7 +805,9 @@ class CRUD:
                         print(f'{"0".ljust(6)} - Voltar')
                         trabalhoVendidoSelecionado = self.defineVendaEscolhida(vendas)
                         if variavelExiste(trabalhoVendidoSelecionado):
-                            self.__aplicacao.removeTrabalhoVendido(trabalhoVendidoSelecionado)
+                            if self.__aplicacao.removeTrabalhoVendido(trabalho= trabalhoVendidoSelecionado):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -803,7 +835,7 @@ class CRUD:
         trabalho: TrabalhoProducao = trabalhos[int(opcaoTrabalho) - 1]
         trabalhoProducao.id = trabalho.id
         trabalhoProducao.idTrabalho = trabalho.idTrabalho
-        trabalhoProducao.tipo_licenca = trabalho.tipo_licenca
+        trabalhoProducao.tipoLicenca = trabalho.tipoLicenca
         trabalhoProducao.recorrencia = trabalho.recorrencia
         trabalhoProducao.estado = trabalho.estado
         return trabalhoProducao
@@ -819,11 +851,12 @@ class CRUD:
         return trabalhoVendido
 
     def sincronizaDados(self):
-        # self.sincronizaListaTrabalhos()
+        self.__aplicacao.sincronizaListaTrabalhos()
         self.__aplicacao.sincronizaListaPersonagens()
         self.__aplicacao.sincronizaListaProfissoes()
+        self.__aplicacao.sincronizaTrabalhosEstoque()
         self.__aplicacao.sincronizaTrabalhosProducao()
-        # self.__aplicacao.sincronizaTrabalhosVendidos()
+        self.__aplicacao.sincronizaTrabalhosVendidos()
     
     def verificaTrabalhoRaroMaisVendido(self):
         vendas = self.__aplicacao.pegaTrabalhosRarosVendidos()
@@ -885,31 +918,79 @@ class CRUD:
         self.__aplicacao.abreStreamPersonagens()
         
     def testeFuncao(self):
-        from modelos.logger import MeuLogger
-        from repositorio.repositorioTrabalho import RepositorioTrabalho
-        from constantes import CHAVE_PROFISSAO_ARMADURAS_DE_TECIDO, CHAVE_PROFISSAO_ARMADURAS_PESADAS
+        # self.testeStream()
+        self.migraDadosNovoServidor()
 
-        trabalhos: list[Trabalho]= self.__aplicacao.pegaTrabalhosBanco()
-        for trabalho in trabalhos:
-            if trabalho.profissao == 'Armadura de Tecido':
-                trabalho.profissao= CHAVE_PROFISSAO_ARMADURAS_DE_TECIDO
-                self.__aplicacao.modificaTrabalho(trabalho= trabalho)
-                continue
-            if trabalho.profissao == 'Armadura Pesada':
-                trabalho.profissao= CHAVE_PROFISSAO_ARMADURAS_PESADAS
-                self.__aplicacao.modificaTrabalho(trabalho= trabalho)
-        return
+    def testeStream(self):
+        from repositorio.repositorioTrabalho import RepositorioTrabalho
+        from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
+        repositorioTrabalho: RepositorioTrabalho= RepositorioTrabalho()
+        repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao()
+        if not repositorioTrabalhoProducao.abreStream():
+            print(repositorioTrabalhoProducao.pegaErro())
+        if not repositorioTrabalho.abreStream():
+            print(repositorioTrabalho.pegaErro())
         while True:
-            personagens = self.mostraListaPersonagens()
-            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-                print(self.__aplicacao.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= 'cajadododefensorlend'))
-                continue
-            break
+            if repositorioTrabalho.estaPronto:
+                trabalhos: list[Trabalho]= repositorioTrabalho.pegaDadosModificados()
+                print(f'{CHAVE_NOME.upper().ljust(44)} | {CHAVE_PROFISSAO.upper().ljust(22)} | {CHAVE_RARIDADE.upper().ljust(9)} | {CHAVE_NIVEL.upper().ljust(5)}')
+                for trabalho in trabalhos:
+                    print(trabalho)
+                repositorioTrabalho.limpaLista
+            if repositorioTrabalhoProducao.estaPronto:
+                dicionariosTrabalhoProducao: list[dict]= repositorioTrabalhoProducao.pegaDadosModificados()
+                for dicionarioTrabalho in dicionariosTrabalhoProducao:
+                    for atributo in dicionarioTrabalho:
+                        print(f'{atributo} | {dicionarioTrabalho[atributo]}')
+                repositorioTrabalhoProducao.limpaLista
+
+    def migraDadosNovoServidor(self):
+        from pyrebase.pyrebase import Database
+        from pyrebase.pyrebase import PyreResponse
+        from repositorio.firebaseDatabase import FirebaseDatabase
+        from modelos.usuario import Usuario
+
+        logger= MeuLogger(nome= 'novoServidor')
+        firebase: FirebaseDatabase= FirebaseDatabase()
+        meuBanco: Database= firebase.pegaMeuBanco()
+        referenciaUsuarios: PyreResponse= meuBanco.child(CHAVE_USUARIOS).get()
+        for usuarioEncontrado in referenciaUsuarios.each():
+            usuario: Usuario= Usuario()
+            dicionarioUsuario: dict= usuarioEncontrado.val()
+            usuario.dicionarioParaObjeto(dicionario= dicionarioUsuario)
+            meuBanco.child(CHAVE_USUARIOS2).child(usuario.id).update({CHAVE_ID: usuario.id, CHAVE_NOME: usuario.nome})
+            for idpersonagem in dicionarioUsuario[CHAVE_LISTA_PERSONAGEM]:
+                meuBanco.child(CHAVE_USUARIOS2).child(usuario.id).child(CHAVE_PERSONAGENS).update({idpersonagem: True})
+                dicionarioPersonagem: dict= dicionarioUsuario[CHAVE_LISTA_PERSONAGEM][idpersonagem]
+                personagem: Personagem= Personagem()
+                personagem.dicionarioParaObjeto(dicionario= dicionarioPersonagem)
+                meuBanco.child(CHAVE_PERSONAGENS).child(personagem.id).update({CHAVE_ID: personagem.id, CHAVE_NOME: personagem.nome, CHAVE_AUTO_PRODUCAO: personagem.autoProducao, CHAVE_EMAIL: personagem.email, CHAVE_ESPACO_PRODUCAO: personagem.espacoProducao, CHAVE_ESTADO: personagem.estado, CHAVE_SENHA: personagem.senha, CHAVE_USO: personagem.uso})
+                dicionarioPersonagem: dict= dicionarioUsuario[CHAVE_LISTA_PERSONAGEM][idpersonagem]
+                if CHAVE_LISTA_TRABALHOS_PRODUCAO in dicionarioPersonagem:
+                    for idTrabalhoProducao in dicionarioPersonagem[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
+                        dicionarioTrabalhoProducao: dict= dicionarioPersonagem[CHAVE_LISTA_TRABALHOS_PRODUCAO][idTrabalhoProducao]
+                        if CHAVE_ID_TRABALHO in dicionarioTrabalhoProducao:
+                            meuBanco.child(CHAVE_PRODUCAO).child(idpersonagem).child(idTrabalhoProducao).update({CHAVE_ESTADO: dicionarioTrabalhoProducao[CHAVE_ESTADO], CHAVE_ID: dicionarioTrabalhoProducao[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoProducao[CHAVE_ID_TRABALHO], CHAVE_RECORRENCIA: dicionarioTrabalhoProducao[CHAVE_RECORRENCIA], CHAVE_TIPO_LICENCA: dicionarioTrabalhoProducao['tipo_licenca']})
+                            continue
+                        logger.error(menssagem= f'Erro ao inserir trabalho de produção: {idTrabalhoProducao} não possue atributo idTrabalho')
+                if CHAVE_LISTA_ESTOQUE in dicionarioPersonagem:
+                    for idTrabalhoEstoque in dicionarioPersonagem[CHAVE_LISTA_ESTOQUE]:
+                        dicionarioTrabalhoEstoque: dict= dicionarioPersonagem[CHAVE_LISTA_ESTOQUE][idTrabalhoEstoque]
+                        if CHAVE_TRABALHO_ID in dicionarioTrabalhoEstoque:
+                            meuBanco.child(CHAVE_ESTOQUE).child(idpersonagem).child(idTrabalhoEstoque).update({CHAVE_ID: dicionarioTrabalhoEstoque[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoEstoque[CHAVE_TRABALHO_ID], CHAVE_QUANTIDADE: dicionarioTrabalhoEstoque[CHAVE_QUANTIDADE]})
+                            continue
+                        logger.error(menssagem= f'Erro ao inserir trabalho de estoque: {idTrabalhoEstoque} não possue atributo trabalhoId')
+                if CHAVE_LISTA_VENDAS in dicionarioPersonagem:
+                    for idTrabalhoVendido in dicionarioPersonagem[CHAVE_LISTA_VENDAS]:
+                        dicionarioTrabalhoVendido: dict= dicionarioPersonagem[CHAVE_LISTA_VENDAS][idTrabalhoVendido]
+                        if CHAVE_ID_TRABALHO in dicionarioTrabalhoVendido:
+                            meuBanco.child(CHAVE_VENDAS).child(idpersonagem).child(idTrabalhoVendido).update({CHAVE_ID: dicionarioTrabalhoVendido[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoVendido[CHAVE_ID_TRABALHO], CHAVE_DATA_VENDA: dicionarioTrabalhoVendido[CHAVE_DATA_VENDA], CHAVE_DESCRICAO: dicionarioTrabalhoVendido[CHAVE_DESCRICAO], CHAVE_QUANTIDADE: dicionarioTrabalhoVendido[CHAVE_QUANTIDADE], CHAVE_VALOR: dicionarioTrabalhoVendido[CHAVE_VALOR]})
+                            continue
+                        logger.error(menssagem= f'Erro ao inserir trabalho de estoque: {idTrabalhoVendido} não possue atributo trabalhoId')
+        input('Clique para continuar...')
         
     def menu(self):
         while True:
-            self.__aplicacao.verificaAlteracaoListaTrabalhos()
-            self.__aplicacao.verificaAlteracaoPersonagem()
             limpaTela()
             print(f'MENU')
             print(f'{"1".ljust(2)} - Insere trabalho')
