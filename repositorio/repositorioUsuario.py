@@ -12,7 +12,10 @@ class RepositorioUsuario:
 
     def verificaIdPersonagem(self, id: str) -> bool:
         try:
-            return self.__meuBanco.child(CHAVE_USUARIOS2).child(CHAVE_ID_USUARIO).child(CHAVE_PERSONAGENS).child(id).get() is not None
+            resultado = self.__meuBanco.child(CHAVE_USUARIOS2).child(CHAVE_ID_USUARIO).child(CHAVE_PERSONAGENS).child(id).get()
+            self.__logger.debug(resultado)
+            self.__logger.debug(type(resultado))
+            return resultado.pyres  is not None
         except Exception as e:
             self.__erro= str(e)
             self.__logger.error(menssagem= f'Erro ao verificar se id de personagem ({id}) pertence ao usuario {CHAVE_ID_USUARIO}')
