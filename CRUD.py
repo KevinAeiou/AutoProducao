@@ -21,10 +21,9 @@ from main import Aplicacao
 
 class CRUD:
     def __init__(self):
-        logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
+        self.__loggerTrabalhoProducaoDao: MeuLogger= MeuLogger(nome= 'trabalhoProducaoDao')
         self.__personagemEmUso = None
-        self.__aplicacao = Aplicacao()
-        self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
+        self.__aplicacao: Aplicacao= Aplicacao()
         self.menu()
     
     def insereNovoTrabalho(self):
@@ -851,12 +850,12 @@ class CRUD:
         return trabalhoVendido
 
     def sincronizaDados(self):
-        self.__aplicacao.sincronizaListaTrabalhos()
+        # self.__aplicacao.sincronizaListaTrabalhos()
         self.__aplicacao.sincronizaListaPersonagens()
         self.__aplicacao.sincronizaListaProfissoes()
-        self.__aplicacao.sincronizaTrabalhosEstoque()
-        self.__aplicacao.sincronizaTrabalhosProducao()
-        self.__aplicacao.sincronizaTrabalhosVendidos()
+        # self.__aplicacao.sincronizaTrabalhosEstoque()
+        # self.__aplicacao.sincronizaTrabalhosProducao()
+        # self.__aplicacao.sincronizaTrabalhosVendidos()
     
     def verificaTrabalhoRaroMaisVendido(self):
         vendas = self.__aplicacao.pegaTrabalhosRarosVendidos()
