@@ -6,6 +6,7 @@ from modelos.personagem import Personagem
 from constantes import *
 from requests.exceptions import HTTPError
 from pyrebase import pyrebase
+from pyrebase.pyrebase import PyreResponse
 
 class RepositorioProfissao(Stream):
     listaProfissoes = []
@@ -34,17 +35,22 @@ class RepositorioProfissao(Stream):
             dicionarioProfissao[CHAVE_TRABALHOS]= profissao
             super().insereDadosModificados(dado= dicionarioProfissao)
 
-    def pegaProfissoesPersonagem(self) -> list[Profissao]:
+    def pegaProfissoesPersonagem(self) -> list[Profissao] | None:
+        '''
+            Função que retorna uma lista de objetos do tipo Profissao do servidor de um personagem específico
+            Returns:
+                profissoes (list[Profissao]): Lista de objetos Profissao.
+        '''
         profissoes: list[Profissao]= []
         try:
             profissoesEncontradas = self.__meuBanco.child(CHAVE_PROFISSOES).child(self.__personagem.id).get()
             if profissoesEncontradas.pyres == None:
-                return profissoes
+                raise Exception(f'Lista de profissões de ({self.__personagem.id}) está vazia!')
             for profissaoEncontrada in profissoesEncontradas.each():
-                profissao = Profissao()
+                profissao: Profissao= Profissao()
                 profissao.dicionarioParaObjeto(profissaoEncontrada.val())
                 profissao.idPersonagem = self.__personagem.id
-                profissaoEncontrada =self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).child(profissao.id).get()
+                profissaoEncontrada: PyreResponse= self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).child(profissao.id).get()
                 if profissaoEncontrada.pyres is None:
                     raise Exception(f'({profissao.id}) não foi encontrado na lista de profissões!')
                 profissao.nome= profissaoEncontrada.pyres[1].val()
