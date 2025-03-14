@@ -400,7 +400,7 @@ class Aplicacao:
     
     def pegaTrabalhosEstoque(self, personagem: Personagem = None) -> list[TrabalhoEstoque]:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhosEstoque: list[TrabalhoEstoque]= self.__estoqueDao.pegaTrabalhosEstoque()
+        trabalhosEstoque: list[TrabalhoEstoque]= self.__estoqueDao.pegaTrabalhosEstoque(personagem= personagem)
         if trabalhosEstoque is None:
             self.__loggerEstoqueDao.error(f'Erro ao buscar trabalhos em estoque no banco: {self.__estoqueDao.pegaErro()}')
             return []

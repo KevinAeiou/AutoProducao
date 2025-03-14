@@ -851,11 +851,11 @@ class CRUD:
 
     def sincronizaDados(self):
         # self.__aplicacao.sincronizaListaTrabalhos()
-        self.__aplicacao.sincronizaListaPersonagens()
-        self.__aplicacao.sincronizaListaProfissoes()
+        # self.__aplicacao.sincronizaListaPersonagens()
+        # self.__aplicacao.sincronizaListaProfissoes()
         # self.__aplicacao.sincronizaTrabalhosEstoque()
-        # self.__aplicacao.sincronizaTrabalhosProducao()
-        # self.__aplicacao.sincronizaTrabalhosVendidos()
+        self.__aplicacao.sincronizaTrabalhosProducao()
+        self.__aplicacao.sincronizaTrabalhosVendidos()
     
     def verificaTrabalhoRaroMaisVendido(self):
         vendas = self.__aplicacao.pegaTrabalhosRarosVendidos()

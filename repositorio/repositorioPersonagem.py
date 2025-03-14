@@ -1,18 +1,17 @@
 from constantes import *
-import logging
 from modelos.personagem import Personagem
 from repositorio.firebaseDatabase import FirebaseDatabase
 from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
 from requests.exceptions import HTTPError
 from repositorio.stream import Stream
+from modelos.logger import MeuLogger
 
 from time import time
 
 class RepositorioPersonagem(Stream):
     def __init__(self):
         super().__init__(chave=CHAVE_PERSONAGENS, nomeLogger= 'repositorioPersonagem')
-        logging.basicConfig(level = logging.debug, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
-        self.__logger = logging.getLogger('repositorioPersonagem')
+        self.__logger: MeuLogger= MeuLogger(nome= 'repositorioPersonagem')
         self.__erro = None
         self.__meuBanco = FirebaseDatabase().pegaMeuBanco()
     
