@@ -93,7 +93,7 @@ class RepositorioTrabalhoProducao(Stream):
     
     def insereTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).child(trabalhoProducao.id).set({CHAVE_ID: trabalhoProducao, CHAVE_ID_TRABALHO: trabalhoProducao.idTrabalho, CHAVE_ESTADO: trabalhoProducao.estado, CHAVE_RECORRENCIA: trabalhoProducao.recorrencia, CHAVE_TIPO_LICENCA: trabalhoProducao.tipoLicenca})
+            self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).child(trabalhoProducao.id).set({CHAVE_ID: trabalhoProducao.id, CHAVE_ID_TRABALHO: trabalhoProducao.idTrabalho, CHAVE_ESTADO: trabalhoProducao.estado, CHAVE_RECORRENCIA: trabalhoProducao.recorrencia, CHAVE_TIPO_LICENCA: trabalhoProducao.tipoLicenca})
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
