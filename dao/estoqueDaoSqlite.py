@@ -117,10 +117,7 @@ class EstoqueDaoSqlite:
     
     def insereTrabalhoEstoque(self, personagem: Personagem, trabalho: TrabalhoEstoque, modificaServidor: bool = True) -> bool:
         try:
-            sql = f"""
-                INSERT INTO {CHAVE_LISTA_ESTOQUE} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_ID_TRABALHO}, {CHAVE_QUANTIDADE})
-                VALUES (?,?,?,?);
-                """
+            sql = f"""INSERT INTO {CHAVE_LISTA_ESTOQUE} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_ID_TRABALHO}, {CHAVE_QUANTIDADE}) VALUES (?,?,?,?);"""
             repositorioEstoque = RepositorioEstoque(personagem)
             self.__conexao = self.__meuBanco.pegaConexao()
             cursor = self.__conexao.cursor()
@@ -198,6 +195,39 @@ class EstoqueDaoSqlite:
         except Exception as e:
             self.__conexao.rollback()
             self.__erro = str(e)
+        finally:
+            self.__meuBanco.desconecta()
+        return False
+    
+    def sincronizaTrabalhosEstoque(self, personagem: Personagem) -> bool:
+        '''
+            Função para sincronizar os trabalhos no estoque no servidor com o banco de dados local
+            Returns:
+                bool: Verdadeiro caso a sincronização seja concluída com sucesso
+        '''
+        try:
+            self.__conexao = self.__meuBanco.pegaConexao()
+            sql = f"""DELETE FROM {CHAVE_LISTA_ESTOQUE} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+            cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
+            cursor.execute(sql, [personagem.id])
+            repositorioTrabalhoEstoque: RepositorioEstoque= RepositorioEstoque(personagem= personagem)
+            trabalhosServidor: list[TrabalhoEstoque]= repositorioTrabalhoEstoque.pegaTodosTrabalhosEstoque()
+            if trabalhosServidor is None:
+                self.__logger.error(f'Erro ao buscar trabalhos no estoque no servidor: {repositorioTrabalhoEstoque.pegaErro()}')
+                raise Exception(repositorioTrabalhoEstoque.pegaErro())
+            for trabalho in trabalhosServidor:
+                sql = f"""INSERT INTO {CHAVE_LISTA_ESTOQUE} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_ID_TRABALHO}, {CHAVE_QUANTIDADE}) VALUES (?,?,?,?);"""
+                try:
+                    cursor.execute(sql, (trabalho.id, personagem.id, trabalho.idTrabalho, trabalho.quantidade))
+                    self.__logger.info(menssagem= f'Trabalho estoque ({trabalho.nome}) inserido com sucesso!')
+                except Exception as e:
+                    raise e
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            self.__conexao.rollback()
         finally:
             self.__meuBanco.desconecta()
         return False

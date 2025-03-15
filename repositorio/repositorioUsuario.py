@@ -13,8 +13,6 @@ class RepositorioUsuario:
     def verificaIdPersonagem(self, id: str) -> bool:
         try:
             resultado = self.__meuBanco.child(CHAVE_USUARIOS2).child(CHAVE_ID_USUARIO).child(CHAVE_PERSONAGENS).child(id).get()
-            self.__logger.debug(resultado)
-            self.__logger.debug(type(resultado))
             return resultado.pyres  is not None
         except Exception as e:
             self.__erro= str(e)

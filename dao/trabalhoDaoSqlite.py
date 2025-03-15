@@ -280,5 +280,38 @@ class TrabalhoDaoSqlite:
             self.__meuBanco.desconecta()
         return False
     
+    def sincronizaTrabalhos(self) -> bool:
+        '''
+            Função para sincronizar os trabalhos no servidor com o banco de dados local
+            Returns:
+                bool: Verdadeiro caso a sincronização seja concluída com sucesso
+        '''
+        try:
+            self.__conexao = self.__meuBanco.pegaConexao()
+            sql = f"""DELETE FROM {CHAVE_TRABALHOS};"""
+            cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
+            cursor.execute(sql)
+            repositorioTrabalho: RepositorioTrabalho= RepositorioTrabalho()
+            trabalhosServidor: list[Trabalho]= repositorioTrabalho.pegaTodosTrabalhos()
+            if trabalhosServidor is None:
+                self.__logger.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
+                raise Exception(repositorioTrabalho.pegaErro())
+            for trabalho in trabalhosServidor:
+                sql= f"""INSERT INTO {CHAVE_TRABALHOS} ({CHAVE_ID}, {CHAVE_NOME}, {CHAVE_NOME_PRODUCAO}, {CHAVE_EXPERIENCIA}, {CHAVE_NIVEL}, {CHAVE_PROFISSAO}, {CHAVE_RARIDADE}, {CHAVE_TRABALHO_NECESSARIO}) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
+                try:
+                    cursor.execute(sql, (trabalho.id, trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario))
+                    self.__logger.info(menssagem= f'Trabalho ({trabalho.nome}) inserido com sucesso!')
+                except Exception as e:
+                    raise e
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            self.__conexao.rollback()
+        finally:
+            self.__meuBanco.desconecta()
+        return False
+    
     def pegaErro(self):
         return self.__erro

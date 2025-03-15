@@ -289,7 +289,41 @@ class TrabalhoProducaoDaoSqlite:
             conexao.rollback()
         finally:
             self.__meuBanco.desconecta()
-        return False    
+        return False
+    
+    def sincronizaTrabalhosProducao(self, personagem: Personagem):
+        '''
+            Função para sincronizar os trabalhos para produção no servidor com o banco de dados local
+            Returns:
+                bool: Verdadeiro caso a sincronização seja concluída com sucesso
+        '''
+        try:
+            self.__conexao = self.__meuBanco.pegaConexao()
+            sql = f"""DELETE FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+            cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
+            cursor.execute(sql, [personagem.id])
+            repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
+            trabalhosServidor: list[TrabalhoProducao]= repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
+            if trabalhosServidor is None:
+                self.__logger.error(f'Erro ao buscar trabalhos para produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+                raise Exception(repositorioTrabalhoProducao.pegaErro())
+            for trabalho in trabalhosServidor:
+                sql = f"""INSERT INTO {CHAVE_LISTA_TRABALHOS_PRODUCAO} ({CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_ID_PERSONAGEM}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO}) VALUES (?, ?, ?, ?, ?, ?);"""
+                try:
+                    recorrencia = 1 if trabalho.recorrencia else 0
+                    cursor.execute(sql, (trabalho.id, trabalho.idTrabalho, personagem.id, recorrencia, trabalho.tipoLicenca, trabalho.estado))
+                    self.__logger.info(menssagem= f'Trabalho para produção ({trabalho.nome}) inserido com sucesso!')
+                except Exception as e:
+                    raise e
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            self.__conexao.rollback()
+        finally:
+            self.__meuBanco.desconecta()
+        return False
     
     def pegaErro(self):
         return self.__erro

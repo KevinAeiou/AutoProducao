@@ -212,6 +212,39 @@ class VendaDaoSqlite:
         finally:
             self.__meuBanco.desconecta()
         return False
+    
+    def sincronizaTrabalhosVendidos(self, personagem: Personagem):
+        '''
+            Função para sincronizar os trabalhos vendidos no servidor com o banco de dados local
+            Returns:
+                bool: Verdadeiro caso a sincronização seja concluída com sucesso
+        '''
+        try:
+            self.__conexao = self.__meuBanco.pegaConexao()
+            sql = f"""DELETE FROM {CHAVE_LISTA_VENDAS} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+            cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
+            cursor.execute(sql, [personagem.id])
+            repositorioTrabalhoVendidos: RepositorioVendas= RepositorioVendas(personagem= personagem)
+            trabalhosServidor: list[TrabalhoVendido]= repositorioTrabalhoVendidos.pegaTrabalhosVendidos()
+            if trabalhosServidor is None:
+                self.__logger.error(f'Erro ao buscar trabalhos vendidos no servidor: {repositorioTrabalhoVendidos.pegaErro()}')
+                raise Exception(repositorioTrabalhoVendidos.pegaErro())
+            for trabalho in trabalhosServidor:
+                sql = f"""INSERT INTO {CHAVE_LISTA_VENDAS} ({CHAVE_ID}, {CHAVE_DESCRICAO}, {CHAVE_DATA_VENDA}, {CHAVE_ID_PERSONAGEM}, {CHAVE_QUANTIDADE}, {CHAVE_ID_TRABALHO}, {CHAVE_VALOR})VALUES (?, ?, ?, ?, ?, ?, ?);"""
+                try:
+                    cursor.execute(sql, (trabalho.id, trabalho.descricao, trabalho.dataVenda, personagem.id, trabalho.quantidade, trabalho.idTrabalho, trabalho.valor))
+                    self.__logger.info(menssagem= f'Trabalho para produção ({trabalho.nome}) inserido com sucesso!')
+                except Exception as e:
+                    raise e
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            self.__conexao.rollback()
+        finally:
+            self.__meuBanco.desconecta()
+        return False
         
     def pegaErro(self):
         return self.__erro

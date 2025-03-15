@@ -2426,32 +2426,12 @@ class Aplicacao:
         return trabalhoEstoque
         
     def sincronizaListaTrabalhos(self):
-        repositorioTrabalho: RepositorioTrabalho= RepositorioTrabalho()        
-        trabalhosServidor: list[Trabalho]= repositorioTrabalho.pegaTodosTrabalhos()
-        if trabalhosServidor is None:
-            self.__loggerRepositorioTrabalho.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
+        limpaTela()
+        self.__loggerTrabalhoDao.debug(menssagem= f'Sincronizando trabalhos...')
+        if self.__trabalhoDao.sincronizaTrabalhos():
+            self.__loggerTrabalhoDao.debug(menssagem= 'Sincronização concluída com sucesso!')
             return
-        for trabalhoServidor in trabalhosServidor:
-            limpaTela()
-            print(f'Sincronizando trabalhos...')
-            print(f'Trabalhos: {(trabalhosServidor.index(trabalhoServidor)+1)/len(trabalhosServidor):.2%}')
-            trabalhoEncontradoBanco: Trabalho= self.pegaTrabalhoPorId(id= trabalhoServidor.id)
-            if trabalhoEncontradoBanco is None:
-                continue
-            if trabalhoEncontradoBanco.id == trabalhoServidor.id:
-                self.modificaTrabalho(trabalho= trabalhoServidor, modificaServidor= False)
-                continue
-            self.insereTrabalho(trabalho= trabalhoServidor, modificaServidor= False)  
-        trabalhosBanco: list[Trabalho]= self.pegaTrabalhosBanco()
-        novaLista: list[Trabalho]= []
-        for trabalhoBanco in trabalhosBanco:
-            for trabalhoServidor in trabalhosServidor:
-                if trabalhoBanco.id == trabalhoServidor.id:
-                    break
-            else:
-                novaLista.append(trabalhoBanco)
-        for trabalhoBanco in novaLista:
-            self.removeTrabalho(trabalho= trabalhoBanco, modificaServidor= False)
+        self.__loggerTrabalhoDao.error(menssagem= f'Sincronização falhou: {self.__trabalhoDao.pegaErro()}')
 
     def pegaPersonagens(self) -> list[Personagem]:
         try:
@@ -2461,7 +2441,7 @@ class Aplicacao:
                 return []
             return personagensBanco
         except Exception as e:
-            self.__loggerPersonagemDao.error(menssagem= f'Erro ao instânciar um objeto PersonagemDaoSqlite')
+            self.__loggerPersonagemDao.error(menssagem= f'Erro ao instânciar um objeto PersonagemDaoSqlite: {e}')
         return []
 
     def sincronizaListaPersonagens(self):
@@ -2481,6 +2461,7 @@ class Aplicacao:
         return False
 
     def sincronizaListaProfissoes(self):
+        limpaTela()
         self.__loggerProfissaoDao.debug(menssagem= f'Sincronizando profissões...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
@@ -2512,102 +2493,37 @@ class Aplicacao:
         return trabalhosProducaoEncontrados
 
     def sincronizaTrabalhosProducao(self):
+        limpaTela()
+        self.__loggerTrabalhoProducaoDao.debug(menssagem= f'Sincronizando trabalhos para produção...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            self.personagemEmUso(personagem)
-            repositorioTrabalhoProducao = RepositorioTrabalhoProducao(self.__personagemEmUso)
-            trabalhosProducaoServidor = repositorioTrabalhoProducao.pegaTrabalhosProducaoEstadoProduzirProduzindo()
-            if variavelExiste(trabalhosProducaoServidor):
-                for trabalhoProducaoServidor in trabalhosProducaoServidor:
-                    limpaTela()
-                    print(f'Sincronizando trabalhos para produção...')
-                    print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
-                    print(f'Trabalhos: {(trabalhosProducaoServidor.index(trabalhoProducaoServidor)+1)/len(trabalhosProducaoServidor):.2%}')
-                    trabalhoProducaoEncontradoBanco = self.pegaTrabalhoProducaoPorId(trabalhoProducaoServidor.id)
-                    if variavelExiste(trabalhoProducaoEncontradoBanco):
-                        if trabalhoProducaoEncontradoBanco.id == trabalhoProducaoServidor.id:
-                            self.modificaTrabalhoProducao(trabalhoProducaoServidor, personagem, False)
-                            continue
-                        self.insereTrabalhoProducao(trabalhoProducaoServidor, personagem, False)
-                    continue
-                trabalhosProducaoBanco = self.pegaTrabalhosProducao(personagem)
-                novaLista = []
-                for trabalhoProducaoBanco in trabalhosProducaoBanco:
-                    for trabalhoProducaoServidor in trabalhosProducaoServidor:
-                        if trabalhoProducaoBanco.id == trabalhoProducaoServidor.id:
-                            break
-                    else:
-                        novaLista.append(trabalhoProducaoBanco)
-                for trabalhoProducaoBanco in novaLista:
-                    self.removeTrabalhoProducao(trabalhoProducaoBanco, personagem, False)
+            if self.__trabalhoProducaoDao.sincronizaTrabalhosProducao(personagem= personagem):
+                self.__loggerTrabalhoProducaoDao.debug(menssagem= 'Sincronização concluída com sucesso!')
                 continue
-            self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos em produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+            self.__loggerTrabalhoProducaoDao.error(menssagem= f'Sincronização falhou: {self.__trabalhoProducaoDao.pegaErro()}')
+            return
             
     def sincronizaTrabalhosVendidos(self):
+        limpaTela()
+        self.__loggerVendaDao.debug(menssagem= f'Sincronizando trabalhos vendidos...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            self.personagemEmUso(personagem)
-            repositorioTrabalhoVendido = RepositorioVendas(self.__personagemEmUso)
-            trabalhosVendidosServidor = repositorioTrabalhoVendido.pegaTrabalhosVendidos()
-            if trabalhosVendidosServidor is None:
-                self.__loggerRepositorioVendas.error(menssagem= f'Erro ao buscar trabalhos no servidor: {repositorioTrabalhoVendido.pegaErro()}')
+            if self.__vendasDao.sincronizaTrabalhosVendidos(personagem= personagem):
+                self.__loggerVendaDao.debug(menssagem= 'Sincronização concluída com sucesso!')
                 continue
-            for trabalhoVendidoServidor in trabalhosVendidosServidor:
-                limpaTela()
-                print(f'Sincronizando trabalhos para vendidos...')
-                print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
-                print(f'Trabalhos: {(trabalhosVendidosServidor.index(trabalhoVendidoServidor)+1)/len(trabalhosVendidosServidor):.2%}')
-                trabalhoVendidoEncontradoBanco = self.pegaTrabalhoVendidoPorId(id= trabalhoVendidoServidor.id)
-                if trabalhoVendidoEncontradoBanco is None:
-                    continue
-                if trabalhoVendidoEncontradoBanco.id == trabalhoVendidoServidor.id:
-                    self.modificaTrabalhoVendido(trabalho= trabalhoVendidoServidor, personagem= personagem, modificaServidor= False)
-                    continue
-                self.insereTrabalhoVendido(trabalho= trabalhoVendidoServidor, personagem= personagem, modificaServidor= False)
-                continue
-            trabalhosVendidosBanco: list[TrabalhoVendido]= self.pegaTrabalhosVendidos(personagem= personagem)
-            novaLista: list[TrabalhoVendido]= []
-            for trabalhoVendidoBanco in trabalhosVendidosBanco:
-                for trabalhoVendidoServidor in trabalhosVendidosServidor:
-                    if trabalhoVendidoBanco.id == trabalhoVendidoServidor.id:
-                        break
-                else:
-                    novaLista.append(trabalhoVendidoBanco)
-            for trabalhoVendidoBanco in novaLista:
-                self.removeTrabalhoVendido(trabalho= trabalhoVendidoBanco, personagem= personagem, modificaServidor= False)
+            self.__loggerVendaDao.error(menssagem= f'Sincronização falhou: {self.__trabalhoProducaoDao.pegaErro()}')
+            return
             
     def sincronizaTrabalhosEstoque(self):
+        limpaTela()
+        self.__loggerEstoqueDao.debug(menssagem= f'Sincronizando trabalhos no estoque...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            self.personagemEmUso(personagem)
-            repositorioTrabalhoEstoque: RepositorioEstoque= RepositorioEstoque(personagem= self.__personagemEmUso)
-            trabalhosEstoqueServidor: list[TrabalhoEstoque]= repositorioTrabalhoEstoque.pegaTodosTrabalhosEstoque()
-            if trabalhosEstoqueServidor is None:
-                self.__loggerRepositorioEstoque.error(menssagem= f'Erro ao buscar trabalhos no servidor: {repositorioTrabalhoEstoque.pegaErro()}')
+            if self.__estoqueDao.sincronizaTrabalhosEstoque(personagem= personagem):
+                self.__loggerEstoqueDao.debug(menssagem= 'Sincronização concluída com sucesso!')
                 continue
-            for trabalhoEstoqueServidor in trabalhosEstoqueServidor:
-                limpaTela()
-                print(f'Sincronizando trabalhos em estoque...')
-                print(f'Personagens: {(personagens.index(personagem)+1)/len(personagens):.2%}')
-                print(f'Trabalhos: {(trabalhosEstoqueServidor.index(trabalhoEstoqueServidor)+1)/len(trabalhosEstoqueServidor):.2%}')
-                trabalhoEstoqueEncontradoBanco: TrabalhoEstoque= self.pegaTrabalhoEstoquePorId(id= trabalhoEstoqueServidor.id)
-                if trabalhoEstoqueEncontradoBanco is None:
-                    continue
-                if trabalhoEstoqueEncontradoBanco.id == trabalhoEstoqueServidor.id:
-                    self.modificaTrabalhoEstoque(trabalho= trabalhoEstoqueServidor, personagem= personagem, modificaServidor= False)
-                    continue
-                self.insereTrabalhoEstoque(trabalho= trabalhoEstoqueServidor, personagem= personagem, modificaServidor= False)
-                continue
-            trabalhosEstoqueBanco: list[TrabalhoEstoque]= self.pegaTrabalhosEstoque(personagem= personagem)
-            novaLista: list[TrabalhoEstoque]= []
-            for trabalhoEstoqueBanco in trabalhosEstoqueBanco:
-                for trabalhoEstoqueServidor in trabalhosEstoqueServidor:
-                    if trabalhoEstoqueBanco.id == trabalhoEstoqueServidor.id:
-                        break
-                else:
-                    novaLista.append(trabalhoEstoqueBanco)
-            for trabalhoEstoqueBanco in novaLista:
-                self.removeTrabalhoEstoque(trabalho= trabalhoEstoqueBanco, personagem= personagem, modificaServidor= False)
+            self.__loggerEstoqueDao.error(menssagem= f'Sincronização falhou: {self.__estoqueDao.pegaErro()}')
+            return
 
     def pegaPersonagensServidor(self) -> list[Personagem]:
         repositorioPersonagem: RepositorioPersonagem = RepositorioPersonagem()
