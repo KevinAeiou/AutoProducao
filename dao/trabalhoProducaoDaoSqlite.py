@@ -201,25 +201,19 @@ class TrabalhoProducaoDaoSqlite:
     
     def insereTrabalhoProducao(self, personagem: Personagem, trabalhoProducao: TrabalhoProducao, modificaServidor: bool= True) -> bool:
         try:
-            trabalhoProducaoLimpo:TrabalhoProducao = TrabalhoProducao()
-            trabalhoProducaoLimpo.id = trabalhoProducao.id
-            trabalhoProducaoLimpo.idTrabalho = trabalhoProducao.idTrabalho
-            trabalhoProducaoLimpo.recorrencia = trabalhoProducao.recorrencia
-            trabalhoProducaoLimpo.tipoLicenca = trabalhoProducao.tipoLicenca
-            trabalhoProducaoLimpo.estado = trabalhoProducao.estado
-            recorrencia = 1 if trabalhoProducaoLimpo.recorrencia else 0
+            recorrencia = 1 if trabalhoProducao.recorrencia else 0
             sql = f"""INSERT INTO {CHAVE_LISTA_TRABALHOS_PRODUCAO} ({CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_ID_PERSONAGEM}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO}) VALUES (?, ?, ?, ?, ?, ?);"""
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
             conexao = self.__meuBanco.pegaConexao()
             cursor = conexao.cursor()
             cursor.execute('BEGIN')
-            cursor.execute(sql, (trabalhoProducaoLimpo.id, trabalhoProducaoLimpo.idTrabalho, personagem.id, recorrencia, trabalhoProducaoLimpo.tipoLicenca, trabalhoProducaoLimpo.estado))
+            cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.idTrabalho, personagem.id, recorrencia, trabalhoProducao.tipoLicenca, trabalhoProducao.estado))
             if modificaServidor:
-                if repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao= trabalhoProducaoLimpo):
-                    self.__logger.info(f'({trabalhoProducaoLimpo}) inserido no servidor com sucesso!')
+                if repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao= trabalhoProducao):
+                    self.__logger.info(f'({trabalhoProducao}) inserido no servidor com sucesso!')
                     conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalhoProducaoLimpo}) no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+                self.__logger.error(f'Erro ao inserir ({trabalhoProducao}) no servidor: {repositorioTrabalhoProducao.pegaErro()}')
                 conexao.rollback()
                 self.__erro= repositorioTrabalhoProducao.pegaErro()
                 return False
@@ -311,9 +305,9 @@ class TrabalhoProducaoDaoSqlite:
             for trabalho in trabalhosServidor:
                 sql = f"""INSERT INTO {CHAVE_LISTA_TRABALHOS_PRODUCAO} ({CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_ID_PERSONAGEM}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO}) VALUES (?, ?, ?, ?, ?, ?);"""
                 try:
-                    recorrencia = 1 if trabalho.recorrencia else 0
-                    cursor.execute(sql, (trabalho.id, trabalho.idTrabalho, personagem.id, recorrencia, trabalho.tipoLicenca, trabalho.estado))
-                    self.__logger.info(menssagem= f'Trabalho para produção ({trabalho.nome}) inserido com sucesso!')
+                    recorrencia: int= 1 if trabalho.recorrencia else 0
+                    licenca: str= '' if trabalho.tipoLicenca is None else trabalho.tipoLicenca
+                    cursor.execute(sql, (trabalho.id, trabalho.idTrabalho, personagem.id, recorrencia, licenca, trabalho.estado))
                 except Exception as e:
                     raise e
             self.__conexao.commit()

@@ -213,7 +213,7 @@ class VendaDaoSqlite:
             self.__meuBanco.desconecta()
         return False
     
-    def sincronizaTrabalhosVendidos(self, personagem: Personagem):
+    def sincronizaTrabalhosVendidos(self, personagem: Personagem) -> bool:
         '''
             Função para sincronizar os trabalhos vendidos no servidor com o banco de dados local
             Returns:
@@ -234,7 +234,6 @@ class VendaDaoSqlite:
                 sql = f"""INSERT INTO {CHAVE_LISTA_VENDAS} ({CHAVE_ID}, {CHAVE_DESCRICAO}, {CHAVE_DATA_VENDA}, {CHAVE_ID_PERSONAGEM}, {CHAVE_QUANTIDADE}, {CHAVE_ID_TRABALHO}, {CHAVE_VALOR})VALUES (?, ?, ?, ?, ?, ?, ?);"""
                 try:
                     cursor.execute(sql, (trabalho.id, trabalho.descricao, trabalho.dataVenda, personagem.id, trabalho.quantidade, trabalho.idTrabalho, trabalho.valor))
-                    self.__logger.info(menssagem= f'Trabalho para produção ({trabalho.nome}) inserido com sucesso!')
                 except Exception as e:
                     raise e
             self.__conexao.commit()

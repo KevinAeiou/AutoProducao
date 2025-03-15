@@ -39,16 +39,16 @@ class MeuBanco:
     def criaTabelas(self):
         try:
             cursor = self.__conexao.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS trabalhos(
-                id VARCHAR(30) PRIMARY KEY NOT NULL, 
-                nome TEXT NOT NULL, 
-                nomeProducao TEXT NOT NULL, 
-                experiencia INTEGER NOT NULL, 
-                nivel INTEGER NOT NULL, 
-                profissao TEXT NOT NULL, 
-                raridade TEXT NOT NULL, 
-                trabalhoNecessario TEXT NOT NULL);
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {CHAVE_TRABALHOS}(
+                {CHAVE_ID} VARCHAR(30) PRIMARY KEY NOT NULL, 
+                {CHAVE_NOME} TEXT NOT NULL, 
+                {CHAVE_NOME_PRODUCAO} TEXT NOT NULL, 
+                {CHAVE_EXPERIENCIA} INTEGER NOT NULL, 
+                {CHAVE_NIVEL} INTEGER NOT NULL, 
+                {CHAVE_PROFISSAO} TEXT NOT NULL, 
+                {CHAVE_RARIDADE} TEXT NOT NULL, 
+                {CHAVE_TRABALHO_NECESSARIO} TEXT);
                 """)
 
             cursor.execute("""
@@ -94,13 +94,14 @@ class MeuBanco:
                 estado INTEGER NOT NULL);
                 """)
 
-            cursor.execute(""" 
-                CREATE TABLE IF NOT EXISTS Lista_estoque(
-                id VARCHAR(30) PRIMARY KEY NOT NULL, 
-                idPersonagem VARCHAR(30) NOT NULL, 
-                idTrabalho VARCHAR(30) NOT NULL, 
-                quantidade INTEGER NOT NULL);
-                """)
+            cursor.execute(f""" 
+                CREATE TABLE IF NOT EXISTS {CHAVE_LISTA_ESTOQUE}(
+                {CHAVE_ID} VARCHAR(30) NOT NULL, 
+                {CHAVE_ID_PERSONAGEM} VARCHAR(30) NOT NULL, 
+                {CHAVE_ID_TRABALHO} VARCHAR(30) NOT NULL, 
+                {CHAVE_QUANTIDADE} INTEGER NOT NULL,
+                PRIMARY KEY ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM})
+                );""")
         except Exception as e:
             self.__erroConexao= str(e)
             self.__logger.error(menssagem= f'Erro ao criar tabelas: {e}')

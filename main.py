@@ -2465,10 +2465,11 @@ class Aplicacao:
         self.__loggerProfissaoDao.debug(menssagem= f'Sincronizando profissões...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
+            self.__loggerProfissaoDao.debug(menssagem= f'Personagem: {personagem.nome}')
             if self.__profissaoDao.sincronizaProfissoesPorId(personagem= personagem):
+                self.__loggerProfissaoDao.debug(menssagem= f'Sincronização concluída com sucesso!')
                 continue
             self.__loggerProfissaoDao.error(menssagem= f'Erro ao sincronizar profissões: {self.__profissaoDao.pegaErro()}')
-            return
     
     def pegaTrabalhoProducaoPorId(self, id:  str) -> TrabalhoProducao:
         trabalhoProducaoEncontrado = self.__trabalhoProducaoDao.pegaTrabalhoProducaoPorId(id= id)
@@ -2497,33 +2498,33 @@ class Aplicacao:
         self.__loggerTrabalhoProducaoDao.debug(menssagem= f'Sincronizando trabalhos para produção...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
+            self.__loggerTrabalhoProducaoDao.debug(menssagem= f'Personagem: {personagem.nome}')
             if self.__trabalhoProducaoDao.sincronizaTrabalhosProducao(personagem= personagem):
                 self.__loggerTrabalhoProducaoDao.debug(menssagem= 'Sincronização concluída com sucesso!')
                 continue
             self.__loggerTrabalhoProducaoDao.error(menssagem= f'Sincronização falhou: {self.__trabalhoProducaoDao.pegaErro()}')
-            return
             
     def sincronizaTrabalhosVendidos(self):
         limpaTela()
         self.__loggerVendaDao.debug(menssagem= f'Sincronizando trabalhos vendidos...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
+            self.__loggerVendaDao.debug(menssagem= f'Personagem: {personagem.nome}')
             if self.__vendasDao.sincronizaTrabalhosVendidos(personagem= personagem):
                 self.__loggerVendaDao.debug(menssagem= 'Sincronização concluída com sucesso!')
                 continue
             self.__loggerVendaDao.error(menssagem= f'Sincronização falhou: {self.__trabalhoProducaoDao.pegaErro()}')
-            return
             
     def sincronizaTrabalhosEstoque(self):
         limpaTela()
         self.__loggerEstoqueDao.debug(menssagem= f'Sincronizando trabalhos no estoque...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
+            self.__loggerEstoqueDao.debug(menssagem= f'Personagem: {personagem.nome}')
             if self.__estoqueDao.sincronizaTrabalhosEstoque(personagem= personagem):
                 self.__loggerEstoqueDao.debug(menssagem= 'Sincronização concluída com sucesso!')
                 continue
             self.__loggerEstoqueDao.error(menssagem= f'Sincronização falhou: {self.__estoqueDao.pegaErro()}')
-            return
 
     def pegaPersonagensServidor(self) -> list[Personagem]:
         repositorioPersonagem: RepositorioPersonagem = RepositorioPersonagem()

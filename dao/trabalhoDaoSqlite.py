@@ -301,8 +301,8 @@ class TrabalhoDaoSqlite:
                 sql= f"""INSERT INTO {CHAVE_TRABALHOS} ({CHAVE_ID}, {CHAVE_NOME}, {CHAVE_NOME_PRODUCAO}, {CHAVE_EXPERIENCIA}, {CHAVE_NIVEL}, {CHAVE_PROFISSAO}, {CHAVE_RARIDADE}, {CHAVE_TRABALHO_NECESSARIO}) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
                 try:
                     cursor.execute(sql, (trabalho.id, trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario))
-                    self.__logger.info(menssagem= f'Trabalho ({trabalho.nome}) inserido com sucesso!')
                 except Exception as e:
+                    self.__logger.error(f'Erro ao inserir trabalho no banco ({trabalho.id}, {trabalho.nome}, {trabalho.nomeProducao}, {trabalho.experiencia}, {trabalho.nivel}, {trabalho.profissao}, {trabalho.raridade}, {trabalho.trabalhoNecessario}): {repositorioTrabalho.pegaErro()}')
                     raise e
             self.__conexao.commit()
             return True

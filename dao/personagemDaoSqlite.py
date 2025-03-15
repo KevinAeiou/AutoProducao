@@ -222,7 +222,6 @@ class PersonagemDaoSqlite():
                     """
                 try:
                     cursor.execute(sql, (personagemServidor.id, personagemServidor.nome, personagemServidor.email, personagemServidor.senha, personagemServidor.espacoProducao, estado, uso, autoProducao))
-                    self.__logger.info(menssagem= f'Personagem ({personagemServidor.nome}) inserido no banco com sucesso!')
                 except Exception as e:
                     raise e
             self.__conexao.commit()

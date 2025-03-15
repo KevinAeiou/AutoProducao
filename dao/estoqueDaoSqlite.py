@@ -220,7 +220,6 @@ class EstoqueDaoSqlite:
                 sql = f"""INSERT INTO {CHAVE_LISTA_ESTOQUE} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_ID_TRABALHO}, {CHAVE_QUANTIDADE}) VALUES (?,?,?,?);"""
                 try:
                     cursor.execute(sql, (trabalho.id, personagem.id, trabalho.idTrabalho, trabalho.quantidade))
-                    self.__logger.info(menssagem= f'Trabalho estoque ({trabalho.nome}) inserido com sucesso!')
                 except Exception as e:
                     raise e
             self.__conexao.commit()

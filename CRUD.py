@@ -850,10 +850,10 @@ class CRUD:
         return trabalhoVendido
 
     def sincronizaDados(self):
-        # self.__aplicacao.sincronizaListaTrabalhos()
-        # self.__aplicacao.sincronizaListaPersonagens()
-        # self.__aplicacao.sincronizaListaProfissoes()
-        # self.__aplicacao.sincronizaTrabalhosEstoque()
+        self.__aplicacao.sincronizaListaTrabalhos()
+        self.__aplicacao.sincronizaListaPersonagens()
+        self.__aplicacao.sincronizaListaProfissoes()
+        self.__aplicacao.sincronizaTrabalhosEstoque()
         self.__aplicacao.sincronizaTrabalhosProducao()
         self.__aplicacao.sincronizaTrabalhosVendidos()
     

@@ -10,7 +10,7 @@ from constantes import CHAVE_ID, CHAVE_ID_PERSONAGEM, CHAVE_NOME, CHAVE_EXPERIEN
 class ProfissaoDaoSqlite:
     def __init__(self, banco: MeuBanco):
         self.__meuBanco: MeuBanco= banco
-        self.__meuLogger: MeuLogger= MeuLogger(nome= 'repositorioProfissao')
+        self.__meuLogger: MeuLogger= MeuLogger(nome= 'profissaoDao')
         self.__conexao = None
         self.__erro = None
 
@@ -190,7 +190,6 @@ class ProfissaoDaoSqlite:
                     VALUES (?, ?, ?, ?, ?)"""
                 try:
                     cursor.execute(sql, (profissao.id, personagem.id, profissao.nome, profissao.experiencia, prioridade))
-                    self.__meuLogger.info(menssagem= f'Profissão ({profissao.nome}) inserido com sucesso!')
                 except Exception as e:
                     raise e
             self.__conexao.commit()
