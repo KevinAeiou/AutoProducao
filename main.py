@@ -36,7 +36,7 @@ from repositorio.repositorioVendas import RepositorioVendas
 from repositorio.repositorioUsuario import RepositorioUsuario
 class Aplicacao:
     def __init__(self) -> None:
-        self.loggerAplicacao: MeuLogger = MeuLogger(nome= 'aplicacao')
+        self.__loggerAplicacao: MeuLogger = MeuLogger(nome= 'aplicacao')
         self.__loggerRepositorioTrabalho: MeuLogger = MeuLogger(nome= 'repositorioTrabalho')
         self.__loggerRepositorioProducao: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_TRABALHO_PRODUCAO)
         self.__loggerRepositorioPersonagem: MeuLogger = MeuLogger(nome= 'repositorioPersonagem')
@@ -72,7 +72,7 @@ class Aplicacao:
             self.__trabalhoProducaoDao: TrabalhoProducaoDaoSqlite= TrabalhoProducaoDaoSqlite(banco= __meuBanco)
             self.__vendasDao: VendaDaoSqlite= VendaDaoSqlite(banco= __meuBanco)
         except Exception as e:
-            self.loggerAplicacao.critical(menssagem= f'Erro: {e}')
+            self.__loggerAplicacao.critical(menssagem= f'Erro: {e}')
 
     def personagemEmUso(self, personagem: Personagem = None) -> None:
         self.__personagemEmUso = personagem
@@ -538,12 +538,13 @@ class Aplicacao:
 
     def pegaProfissoes(self, personagem: Personagem = None) -> list[Personagem]:
         personagem = self.__personagemEmUso if personagem is None else personagem
+        self.__loggerAplicacao.debug(menssagem= f'Pegando profissões de ({personagem.nome})')
         profissoes: list[Profissao] = self.__profissaoDao.pegaProfissoesPorIdPersonagem(personagem= personagem)
         if profissoes is None:
-            self.__loggerProfissaoDao.error(f'Erro ao buscar profissões no banco: {self.__profissaoDao.pegaErro()}')
+            self.__loggerProfissaoDao.error(f'Erro ao buscar profissões no banco ({self.__personagemEmUso.nome}): {self.__profissaoDao.pegaErro()}')
             return []
         if tamanhoIgualZero(profissoes):
-            self.__loggerProfissaoDao.warning(f'Erro ao buscar profissões ({self.__personagemEmUso}) no banco: Lista de profissões vazia!')
+            self.__loggerProfissaoDao.warning(f'Erro ao buscar profissões ({self.__personagemEmUso.nome}) no banco: Profissões está vazia!')
         return profissoes
     
     def modificaProfissao(self, profissao: Profissao, personagem: Personagem = None, modificaServidor = True) -> bool:
@@ -1166,17 +1167,18 @@ class Aplicacao:
         return trabalhosProducao
 
     def defineChaveListaProfissoesNecessarias(self) -> None:
-        print(f'Verificando profissões necessárias...')
+        self.__loggerAplicacao.debug(f'Verificando profissões necessárias...')
         self.limpaListaProfissoesNecessarias()
         self.defineListaProfissoesNecessarias()
         self.ordenaListaProfissoesNecessarias()
         self.mostraListaProfissoesNecessarias()
 
     def defineListaProfissoesNecessarias(self) -> None:
+        self.__loggerAplicacao.debug(f'Definindo profissões necessárias...')
         profissoes: list[Profissao] = self.pegaProfissoes()
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducao()
         if tamanhoIgualZero(profissoes):
-            self.__loggerProfissaoDao.warning(menssagem= f'Lista de profissões está vazia!')
+            self.__loggerProfissaoDao.warning(menssagem= f'Profissões está vazia!')
             return
         for profissao in profissoes:
             for trabalhoProducao in trabalhosProducao:
@@ -1190,19 +1192,21 @@ class Aplicacao:
 
     def mostraListaProfissoesNecessarias(self) -> None:
         if tamanhoIgualZero(self.__listaProfissoesNecessarias):
-            self.__loggerProfissaoDao.debug(menssagem= f'Lista de profissões necessárias está vazia!')
+            self.__loggerAplicacao.debug(menssagem= f'Profissões necessárias está vazia!')
             return
-        self.__loggerProfissaoDao.debug(menssagem= f'{CHAVE_NOME.upper().ljust(22)} | {"EXP".ljust(6)} | {CHAVE_PRIORIDADE.upper().ljust(10)}')
+        self.__loggerAplicacao.debug(menssagem= f'Profissões necessárias:')
         for profissaoNecessaria in self.__listaProfissoesNecessarias:
             nome: str= 'Indefinido' if profissaoNecessaria.nome is None else profissaoNecessaria.nome
             experiencia: str= 'Indefinido' if profissaoNecessaria.experiencia is None else str(profissaoNecessaria.experiencia)
             prioridade: str= 'Verdadeiro' if profissaoNecessaria.prioridade else 'Falso'
-            self.__loggerProfissaoDao.debug(menssagem= f'{(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}')
+            self.__loggerAplicacao.debug(menssagem= f'{(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}')
 
     def insereItemListaProfissoesNecessarias(self, profissao: Profissao) -> None:
+        self.__loggerAplicacao.debug(menssagem= f'({profissao.nome}) foi adicionado a lista de profissões necessárias')
         self.__listaProfissoesNecessarias.append(profissao)
 
     def limpaListaProfissoesNecessarias(self) -> None:
+        self.__loggerAplicacao.debug(menssagem= f'Profissões necessárias foi limpa')
         self.__listaProfissoesNecessarias.clear()
 
     def retornaContadorEspacosProducao(self, contadorEspacosProducao: int, nivel: int):
@@ -1726,22 +1730,23 @@ class Aplicacao:
         for profissaoNecessaria in self.__listaProfissoesNecessarias:
             if not self.__confirmacao or not self.__unicaConexao:
                 return False
-            if not self.existeEspacoProducao():
-                return True
-            dicionarioTrabalho[CHAVE_POSICAO] = -1
-            self.verificaProfissaoNecessaria(dicionarioTrabalho, profissaoNecessaria)
+            if self.existeEspacoProducao():
+                dicionarioTrabalho[CHAVE_POSICAO] = -1
+                self.verificaProfissaoNecessaria(dicionarioTrabalho= dicionarioTrabalho, profissao= profissaoNecessaria)
+                continue
+            return True
 
-    def verificaProfissaoNecessaria(self, dicionarioTrabalho: dict, profissaoNecessaria: Profissao) -> None:
+    def verificaProfissaoNecessaria(self, dicionarioTrabalho: dict, profissao: Profissao):
         while self.__confirmacao:
             self.verificaNovamente: bool = False
             self.vaiParaMenuProduzir()
             if not self.__confirmacao or not self.__unicaConexao or not self.existeEspacoProducao(): break
             if self.listaProfissoesFoiModificada(): self.verificaEspacoProducao()
-            posicao = self.retornaPosicaoProfissaoNecessaria(profissaoNecessaria)
+            posicao: int= self.retornaPosicaoProfissaoNecessaria(profissaoNecessaria= profissao)
             if posicao == 0: break
             entraProfissaoEspecifica(posicao)
-            print(f'Verificando profissão: {profissaoNecessaria.nome}')
-            dicionarioTrabalho[CHAVE_PROFISSAO] = profissaoNecessaria.nome
+            self.__loggerAplicacao.debug(menssagem= f'Verificando profissão: {profissao.nome}')
+            dicionarioTrabalho[CHAVE_PROFISSAO] = profissao.nome
             dicionarioTrabalho = self.veficaTrabalhosProducaoListaDesejos(dicionarioTrabalho)
             if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
                 dicionarioTrabalho = self.iniciaProcessoDeProducao(dicionarioTrabalho)
