@@ -69,10 +69,10 @@ class ProfissaoDaoSqlite:
             repositorioProfissao: RepositorioProfissao= RepositorioProfissao(personagem= personagem)
             self.__conexao = self.__meuBanco.pegaConexao()
             prioridade: int= 1 if profissao.prioridade else 0
-            sql = f"""UPDATE {CHAVE_PROFISSOES.lower()} SET {CHAVE_EXPERIENCIA} = ?, {CHAVE_PRIORIDADE} = ? WHERE {CHAVE_ID} == ?"""
+            sql = f"""UPDATE {CHAVE_PROFISSOES.lower()} SET {CHAVE_EXPERIENCIA} = ?, {CHAVE_PRIORIDADE} = ? WHERE {CHAVE_ID} == ? AND {CHAVE_ID_PERSONAGEM} == ?"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
-            cursor.execute(sql, (profissao.experiencia, prioridade, profissao.id))
+            cursor.execute(sql, (profissao.experiencia, prioridade, profissao.id, personagem.id))
             if modificaServidor:
                 if repositorioProfissao.modificaProfissao(profissao= profissao):
                     self.__meuLogger.info(f'({profissao}) modificado no servidor com sucesso!')
