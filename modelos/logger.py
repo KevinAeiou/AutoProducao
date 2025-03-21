@@ -14,6 +14,8 @@ class MeuLogger:
             os.makedirs(caminhoLogger)
             with open(arquivoLogger, 'w', encoding= 'utf-8') as arquivo:
                 arquivo.write('')
+        if self.__logger.handlers:
+            self.__logger.handlers.clear()
         file_handler = RotatingFileHandler(arquivoLogger, maxBytes= bytesMax, backupCount=contadorBackup, encoding= 'utf-8')
         file_handler.setFormatter(formatador)
         self.__logger.addHandler(file_handler)
