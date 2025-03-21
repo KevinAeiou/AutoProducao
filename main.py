@@ -1244,12 +1244,12 @@ class Aplicacao:
         self.__personagemEmUso.setEspacoProducao(quantidadeEspacoProducao)
         self.modificaPersonagem()
 
-    def retornaListaTrabalhosProducaoRaridadeEspecifica(self, dicionarioTrabalho: dict, raridade: str) -> list[TrabalhoProducao]:
+    def retornaListaTrabalhosProducaoRaridadeEspecifica(self, nomeProfissao: str, raridade: str) -> list[TrabalhoProducao]:
         listaTrabalhosProducaoRaridadeEspecifica: list[TrabalhoProducao] = []
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
         if trabalhosProducao is None: return listaTrabalhosProducaoRaridadeEspecifica
         for trabalhoProducao in trabalhosProducao:
-            raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, dicionarioTrabalho[CHAVE_PROFISSAO]) and trabalhoProducao.ehParaProduzir()
+            raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, nomeProfissao) and trabalhoProducao.ehParaProduzir()
             if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
                 for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
                     if textoEhIgual(trabalhoProducaoRaridadeEspecifica.nome, trabalhoProducao.nome): break
@@ -1797,7 +1797,7 @@ class Aplicacao:
         return self.__profissaoModificada
 
     def veficaTrabalhosProducaoListaDesejos(self, dicionarioTrabalho: dict) -> dict:
-        listaDeListasTrabalhosProducao: list[list[TrabalhoProducao]] = self.retornaListaDeListasTrabalhosProducao(dicionarioTrabalho)
+        listaDeListasTrabalhosProducao: list[list[TrabalhoProducao]] = self.retornaListaDeListasTrabalhosProducao(nomeProfissao= dicionarioTrabalho[CHAVE_PROFISSAO])
         for listaTrabalhosProducao in listaDeListasTrabalhosProducao:
             dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]= listaTrabalhosProducao
             for trabalhoProducaoPriorizado in listaTrabalhosProducao:
@@ -1849,10 +1849,19 @@ class Aplicacao:
                     break
         return dicionarioTrabalho
 
-    def retornaListaDeListasTrabalhosProducao(self, dicionarioTrabalho: dict) -> list[list[TrabalhoProducao]]:
+    def retornaListaDeListasTrabalhosProducao(self, nomeProfissao: str) -> list[list[TrabalhoProducao]]:
+        '''
+            Função para definir as listas de trabalhos a serem verificados, separados por raridade.
+            Returns:
+                listaDeListaTrabalhos (list[list[TrabalhoProducao]]): Lista de raridades que contêm uma lista de objetos do tipo TrabalhoProducao
+            Args:
+                nomeProfissao (str): Nome da profissão à ser verificada no momento
+        '''
         listaDeListaTrabalhos: list[list[TrabalhoProducao]] = []
-        for raridade in LISTA_RARIDADES:
-            listaTrabalhosProducao: list[TrabalhoProducao] = self.retornaListaTrabalhosProducaoRaridadeEspecifica(dicionarioTrabalho= dicionarioTrabalho, raridade= raridade)
+        raridades: list[str]= LISTA_RARIDADES
+        raridades.reverse()
+        for raridade in raridades:
+            listaTrabalhosProducao: list[TrabalhoProducao] = self.retornaListaTrabalhosProducaoRaridadeEspecifica(nomeProfissao= nomeProfissao, raridade= raridade)
             if tamanhoIgualZero(listaTrabalhosProducao):
                 continue
             listaDeListaTrabalhos.append(listaTrabalhosProducao)
@@ -2180,7 +2189,7 @@ class Aplicacao:
     def personagemEmUsoExiste(self) -> bool:
         if self.__personagemEmUso is None: return False
         self.modificaAtributoUso()
-        print(f'Personagem ({self.__personagemEmUso.nome}) ESTÁ EM USO.')
+        self.__loggerAplicacao.debug(f'Personagem ({self.__personagemEmUso.id.ljust(36)} | {self.__personagemEmUso.nome}) ESTÁ EM USO.')
         self.inicializaChavesPersonagem()
         print('Inicia busca...')
         if self.vaiParaMenuProduzir():
