@@ -74,7 +74,7 @@ class Aplicacao:
         except Exception as e:
             self.__loggerAplicacao.critical(menssagem= f'Erro: {e}')
 
-    def personagemEmUso(self, personagem: Personagem = None) -> None:
+    def personagemEmUso(self, personagem: Personagem = None):
         self.__personagemEmUso = personagem
 
     def defineListaPersonagemMesmoEmail(self) -> list[Personagem]:
@@ -103,36 +103,33 @@ class Aplicacao:
 
     def confirmaNomePersonagem(self, personagemReconhecido: str) -> None:
         '''
-        Esta função é responsável por confirmar se o nome do personagem reconhecido está na lista de personagens ativos atual
-        Argumentos:
-            personagemReconhecido {string} -- Valor reconhecido via processamento de imagem
+            Função para verificar o nome do personagem reconhecido está na lista atual de personagens ativos
+            Args:
+                personagemReconhecido (str): Valor reconhecido via processamento de imagem
         '''
+        self.personagemEmUso()
         for personagemAtivo in self.__listaPersonagemAtivo:
             if texto1PertenceTexto2(texto1= personagemAtivo.nome, texto2= personagemReconhecido):
-                print(f'Personagem {personagemReconhecido.upper()} confirmado!')
-                self.personagemEmUso(personagemAtivo)
+                self.__loggerAplicacao.debug(f'Personagem {personagemReconhecido.upper()} confirmado!')
+                self.personagemEmUso(personagem= personagemAtivo)
                 return
-        print(f'Personagem {personagemReconhecido} não encontrado na lista de personagens ativos atual!')
+        self.__loggerAplicacao.debug(f'Personagem {personagemReconhecido} não encontrado na lista de personagens ativos atual!')
 
     def definePersonagemEmUso(self):
         '''
-        Esta função é responsável por atribuir ao atributo __personagemEmUso o objeto da classe Personagem que foi reconhecida 
+            Função para reconhecer o nome do personagem atual na posição 0
         '''
-        self.__personagemEmUso = None
-        nomePersonagemReconhecido = self.__imagem.retornaTextoNomePersonagemReconhecido(0)
-        if variavelExiste(nomePersonagemReconhecido):
-            self.confirmaNomePersonagem(nomePersonagemReconhecido)
+        nomeReconhecido: str= self.__imagem.retornaTextoNomePersonagemReconhecido(0)
+        if nomeReconhecido is None:
+            self.__loggerAplicacao.debug(f'Nome personagem não reconhecido na posição {0}!')
             return
-        if nomePersonagemReconhecido == 'provisorioatecair':
-            print(f'Nome personagem diferente!')
-            return
-        print(f'Nome personagem não reconhecido!')
+        self.confirmaNomePersonagem(personagemReconhecido= nomeReconhecido)
 
-    def defineListaPersonagensAtivos(self) -> None:
+    def defineListaPersonagensAtivos(self):
         '''
-        Esta função é responsável por preencher a lista de personagens ativos, recuperando os dados do banco
+            Função para preencher a lista de personagens ativos
         '''
-        print(f'Definindo lista de personagem ativo')
+        self.__loggerAplicacao.debug(f'Definindo lista de personagens ativos')
         personagens: list[Personagem] = self.pegaPersonagens()
         self.__listaPersonagemAtivo.clear()
         for personagem in personagens:
@@ -1867,10 +1864,10 @@ class Aplicacao:
             listaDeListaTrabalhos.append(listaTrabalhosProducao)
         return listaDeListaTrabalhos
 
-    def retiraPersonagemJaVerificadoListaAtivo(self) -> None:
-        """
-        Esta função é responsável por redefinir a lista de personagens ativos, verificando a lista de personagens já verificados
-        """        
+    def retiraPersonagemJaVerificadoListaAtivo(self):
+        '''
+            Esta função é responsável por redefinir a lista de personagens ativos, verificando a lista de personagens já verificados
+        '''        
         self.defineListaPersonagensAtivos()
         if not tamanhoIgualZero(self.__listaPersonagemAtivo):
             novaListaPersonagensAtivos: list[Personagem] = []
@@ -2176,7 +2173,13 @@ class Aplicacao:
         return trabalhosQuantidade
     
     def listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(self) -> bool:
-        if not tamanhoIgualZero(self.__listaPersonagemJaVerificado) and textoEhIgual(self.__listaPersonagemJaVerificado[-1].email, self.__listaPersonagemAtivo[0].email):
+        '''
+            Função para verificar se o email do último personagem que foi verificado é igual ao email do próximo personagem na lista de ativos
+            Returns:
+                bool: Verdadeiro caso o último email verificado seja igual ao próximo email a ser verificado
+        '''
+        peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos = not tamanhoIgualZero(self.__listaPersonagemJaVerificado) and textoEhIgual(self.__listaPersonagemJaVerificado[-1].email, self.__listaPersonagemAtivo[0].email)
+        if peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos:
             return self.entraPersonagemAtivo()
         return False
     
