@@ -2184,7 +2184,6 @@ class Aplicacao:
         resultado: str= 'Igual' if peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos else 'Diferente'
         self.__loggerAplicacao.debug(menssagem= f'Resultado: {resultado}. Email personagem anterior | próximo: ({emailAnterior}) | ({emailProximo})')
         if peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos:
-            self.retiraPersonagemJaVerificadoListaAtivo()
             return self.entraPersonagemAtivo()
         return False
     
@@ -2229,6 +2228,7 @@ class Aplicacao:
             if self.listaPersonagensAtivosEstaVazia(): continue
             self.definePersonagemEmUso()
             if self.personagemEmUsoExiste(): continue
+            self.retiraPersonagemJaVerificadoListaAtivo()
             if self.listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(): continue
             if self.configuraEntraPersonagem(): self.entraPersonagemAtivo()
 
