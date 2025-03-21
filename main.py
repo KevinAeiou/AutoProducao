@@ -2178,7 +2178,11 @@ class Aplicacao:
             Returns:
                 bool: Verdadeiro caso o último email verificado seja igual ao próximo email a ser verificado
         '''
-        peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos = not tamanhoIgualZero(self.__listaPersonagemJaVerificado) and textoEhIgual(self.__listaPersonagemJaVerificado[-1].email, self.__listaPersonagemAtivo[0].email)
+        emailAnterior: str= self.__listaPersonagemJaVerificado[-1].email
+        emailProximo: str= self.__listaPersonagemAtivo[0].email
+        peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos = not tamanhoIgualZero(self.__listaPersonagemJaVerificado) and textoEhIgual(texto1= emailAnterior, texto2= emailProximo)
+        resultado: str= 'Igual' if peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos else 'Diferente'
+        self.__loggerAplicacao.debug(menssagem= f'Resultado: {resultado}. Email personagem anterior | próximo: ({emailAnterior}) | ({emailProximo})')
         if peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos:
             self.retiraPersonagemJaVerificadoListaAtivo()
             return self.entraPersonagemAtivo()
