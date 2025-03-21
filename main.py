@@ -509,7 +509,7 @@ class Aplicacao:
     
     def modificaTrabalhoProducao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        if self.__trabalhoProducaoDao.modificaTrabalhoProducao(personagem= personagem, trabalhoProducao= trabalho, modificaServidor= modificaServidor):
+        if self.__trabalhoProducaoDao.modificaTrabalhoProducao(personagem= personagem, trabalho= trabalho, modificaServidor= modificaServidor):
             self.__loggerTrabalhoProducaoDao.info(f'({trabalho}) modificado no banco com sucesso!')
             return True
         self.__loggerTrabalhoProducaoDao.error(f'Erro ao modificar ({trabalho}) no banco: {self.__trabalhoProducaoDao.pegaErro()}')

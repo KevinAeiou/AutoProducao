@@ -101,9 +101,9 @@ class RepositorioTrabalhoProducao(Stream):
             self.__erro = str(e)
         return False
 
-    def modificaTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao) -> bool:
+    def modificaTrabalhoProducao(self, trabalho: TrabalhoProducao) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).child(trabalhoProducao.id).update(trabalhoProducao.__dict__)
+            self.__meuBanco.child(CHAVE_PRODUCAO).child(self._personagem.id).child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_ESTADO: trabalho.estado, CHAVE_RECORRENCIA: trabalho.recorrencia, CHAVE_TIPO_LICENCA: trabalho.tipoLicenca})
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)

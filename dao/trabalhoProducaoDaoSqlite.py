@@ -252,27 +252,21 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
         return False
         
-    def modificaTrabalhoProducao(self, personagem: Personagem, trabalhoProducao: TrabalhoProducao, modificaServidor: bool= True):
+    def modificaTrabalhoProducao(self, personagem: Personagem, trabalho: TrabalhoProducao, modificaServidor: bool= True):
         try:
-            trabalhoProducaoLimpo: TrabalhoProducao= TrabalhoProducao()
-            trabalhoProducaoLimpo.id = trabalhoProducao.id
-            trabalhoProducaoLimpo.idTrabalho = trabalhoProducao.idTrabalho
-            trabalhoProducaoLimpo.recorrencia = trabalhoProducao.recorrencia
-            trabalhoProducaoLimpo.tipoLicenca = trabalhoProducao.tipoLicenca
-            trabalhoProducaoLimpo.estado = trabalhoProducao.estado
-            recorrencia: int= 1 if trabalhoProducaoLimpo.recorrencia else 0
             sql = f"""UPDATE {CHAVE_LISTA_TRABALHOS_PRODUCAO} SET {CHAVE_ID_TRABALHO} = ?, {CHAVE_RECORRENCIA} = ?, {CHAVE_TIPO_LICENCA} = ?, {CHAVE_ESTADO} = ? WHERE {CHAVE_ID} == ?;"""
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
             conexao = self.__meuBanco.pegaConexao()
             cursor = conexao.cursor()
             cursor.execute('BEGIN')
-            cursor.execute(sql, (trabalhoProducaoLimpo.idTrabalho, recorrencia, trabalhoProducaoLimpo.tipoLicenca, trabalhoProducaoLimpo.estado, trabalhoProducaoLimpo.id))
+            recorrencia: int= 1 if trabalho.recorrencia else 0
+            cursor.execute(sql, (trabalho.idTrabalho, recorrencia, trabalho.tipoLicenca, trabalho.estado, trabalho.id))
             if modificaServidor:
-                if repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalhoProducao= trabalhoProducaoLimpo):
-                    self.__logger.info(f'({trabalhoProducaoLimpo}) modificado no servidor com sucesso!')
+                if repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalho= trabalho):
+                    self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
                     conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({trabalhoProducaoLimpo}) no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+                self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {repositorioTrabalhoProducao.pegaErro()}')
                 self.__erro= repositorioTrabalhoProducao.pegaErro()
                 conexao.rollback()
                 return False
