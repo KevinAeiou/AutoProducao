@@ -57,11 +57,11 @@ class ProfissaoDaoSqlite:
                 profissoes.append(profissao)
             profissoes = sorted(profissoes, key=lambda profissao: profissao.nome)
             profissoes = sorted(profissoes, key=lambda profissao: profissao.experiencia, reverse=True)
-            self.__meuBanco.desconecta()
             return profissoes
         except Exception as e:
             self.__erro = str(e)
-        self.__meuBanco.desconecta()
+        finally:
+            self.__meuBanco.desconecta()
         return None
     
     def modificaProfissao(self, personagem: Personagem, profissao: Profissao, modificaServidor: bool = True):
@@ -77,19 +77,17 @@ class ProfissaoDaoSqlite:
                 if repositorioProfissao.modificaProfissao(profissao= profissao):
                     self.__meuLogger.info(f'({profissao}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
-                    self.__meuBanco.desconecta()
                     return True
                 self.__meuLogger.error(f'Erro ao modificar ({profissao}) no servidor: {repositorioProfissao.pegaErro()}')
                 self.__conexao.rollback()
-                self.__meuBanco.desconecta()
                 return False
             self.__conexao.commit()
-            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-        self.__conexao.rollback()
-        self.__meuBanco.desconecta()
+            self.__conexao.rollback()
+        finally:
+            self.__meuBanco.desconecta()
         return False
     
     def removeProfissao(self, personagem: Personagem, profissao: Profissao, modificaServidor: bool = True) -> bool:
@@ -104,19 +102,17 @@ class ProfissaoDaoSqlite:
                 if repositorioProfissao.removeProfissao(profissao= profissao):
                     self.__meuLogger.info(f'({profissao}) removido do servidor com sucesso!')
                     self.__conexao.commit()
-                    self.__meuBanco.desconecta()
                     return True
                 self.__meuLogger.error(f'Erro ao remover ({profissao}) do servidor: {repositorioProfissao.pegaErro()}')
                 self.__conexao.rollback()
-                self.__meuBanco.desconecta()
                 return False
             self.__conexao.commit()
-            self.__meuBanco.desconecta()
             return True
         except Exception as e:
             self.__erro = str(e)
-        self.__conexao.rollback()
-        self.__meuBanco.desconecta()
+            self.__conexao.rollback()
+        finally:
+            self.__meuBanco.desconecta()
         return False
     
     def insereListaProfissoes(self, personagem: Personagem):
