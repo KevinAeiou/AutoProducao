@@ -122,7 +122,7 @@ class ManipulaImagem:
         return self.reconheceTexto(imagem= frameBinarizado, confianca= 40)
     
     def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
-        print(f'Verificando nome personagem...')
+        print(f'Reconhecendo nome do personagem na posição {posicao}')
         return self.reconheceTextoNomePersonagem(self.retornaAtualizacaoTela(), posicao)
     
     def reconheceTextoErro(self, tela):

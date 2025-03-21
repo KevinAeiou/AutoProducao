@@ -2180,6 +2180,7 @@ class Aplicacao:
         '''
         peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos = not tamanhoIgualZero(self.__listaPersonagemJaVerificado) and textoEhIgual(self.__listaPersonagemJaVerificado[-1].email, self.__listaPersonagemAtivo[0].email)
         if peloMenosUmPersonagemJaVerificadoEEmailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos:
+            self.retiraPersonagemJaVerificadoListaAtivo()
             return self.entraPersonagemAtivo()
         return False
     
