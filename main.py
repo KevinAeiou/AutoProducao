@@ -2178,7 +2178,7 @@ class Aplicacao:
             Returns:
                 bool: Verdadeiro caso o último email verificado seja igual ao próximo email a ser verificado
         '''
-        if tamanhoIgualZero(self.__listaPersonagemJaVerificado):
+        if tamanhoIgualZero(self.__listaPersonagemJaVerificado) or tamanhoIgualZero(self.__listaPersonagemAtivo):
             return False
         emailAnterior: str= self.__listaPersonagemJaVerificado[-1].email
         emailProximo: str= self.__listaPersonagemAtivo[0].email
