@@ -1909,7 +1909,7 @@ class Aplicacao:
         return self.entraContaPersonagem()
 
 
-    def vaiParaMenuJogar(self) -> None:
+    def vaiParaMenuJogar(self):
         menu: int = self.retornaMenu()
         while not ehMenuJogar(menu):
             self.verificaErroEncontrado()
@@ -2231,6 +2231,7 @@ class Aplicacao:
             self.definePersonagemEmUso()
             if self.personagemEmUsoExiste(): continue
             self.retiraPersonagemJaVerificadoListaAtivo()
+            if self.listaPersonagensAtivosEstaVazia(): continue
             if self.listaPersonagemJaVerificadoEPersonagemAnteriorEAtualMesmoEmail(): continue
             if self.configuraEntraPersonagem(): self.entraPersonagemAtivo()
 
