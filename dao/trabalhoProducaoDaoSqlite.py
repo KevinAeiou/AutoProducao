@@ -204,24 +204,24 @@ class TrabalhoProducaoDaoSqlite:
             recorrencia = 1 if trabalhoProducao.recorrencia else 0
             sql = f"""INSERT INTO {CHAVE_LISTA_TRABALHOS_PRODUCAO} ({CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_ID_PERSONAGEM}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO}) VALUES (?, ?, ?, ?, ?, ?);"""
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
-            conexao = self.__meuBanco.pegaConexao()
-            cursor = conexao.cursor()
+            self.__conexao = self.__meuBanco.pegaConexao()
+            cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.idTrabalho, personagem.id, recorrencia, trabalhoProducao.tipoLicenca, trabalhoProducao.estado))
             if modificaServidor:
                 if repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao= trabalhoProducao):
                     self.__logger.info(f'({trabalhoProducao}) inserido no servidor com sucesso!')
-                    conexao.commit()
+                    self.__conexao.commit()
                     return True
                 self.__logger.error(f'Erro ao inserir ({trabalhoProducao}) no servidor: {repositorioTrabalhoProducao.pegaErro()}')
-                conexao.rollback()
+                self.__conexao.rollback()
                 self.__erro= repositorioTrabalhoProducao.pegaErro()
                 return False
-            conexao.commit()
+            self.__conexao.commit()
             return True
         except Exception as e:
             self.__erro = str(e)
-            conexao.rollback()
+            self.__conexao.rollback()
         finally:
             self.__meuBanco.desconecta()
         return False
@@ -230,24 +230,24 @@ class TrabalhoProducaoDaoSqlite:
         try:
             sql = f"""DELETE FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO} WHERE {CHAVE_ID} == ?;"""
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
-            conexao = self.__meuBanco.pegaConexao()
-            cursor = conexao.cursor()
+            self.__conexao = self.__meuBanco.pegaConexao()
+            cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, [trabalhoProducao.id])
             if modificaServidor:
                 if repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducao= trabalhoProducao):
                     self.__logger.info(f'({trabalhoProducao}) removido do servidor com sucesso!')
-                    conexao.commit()
+                    self.__conexao.commit()
                     return True
                 self.__logger.error(f'Erro ao remover ({trabalhoProducao}) do servidor: {repositorioTrabalhoProducao.pegaErro()}')
                 self.__erro= repositorioTrabalhoProducao.pegaErro()
-                conexao.rollback()
+                self.__conexao.rollback()
                 return False
-            conexao.commit()
+            self.__conexao.commit()
             return True
         except Exception as e:
             self.__erro = str(e)
-            conexao.rollback()
+            self.__conexao.rollback()
         finally:
             self.__meuBanco.desconecta()
         return False
@@ -256,25 +256,25 @@ class TrabalhoProducaoDaoSqlite:
         try:
             sql = f"""UPDATE {CHAVE_LISTA_TRABALHOS_PRODUCAO} SET {CHAVE_ID_TRABALHO} = ?, {CHAVE_RECORRENCIA} = ?, {CHAVE_TIPO_LICENCA} = ?, {CHAVE_ESTADO} = ? WHERE {CHAVE_ID} == ?;"""
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
-            conexao = self.__meuBanco.pegaConexao()
-            cursor = conexao.cursor()
+            self.__conexao = self.__meuBanco.pegaConexao()
+            cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             recorrencia: int= 1 if trabalho.recorrencia else 0
             cursor.execute(sql, (trabalho.idTrabalho, recorrencia, trabalho.tipoLicenca, trabalho.estado, trabalho.id))
             if modificaServidor:
                 if repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalho= trabalho):
                     self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
-                    conexao.commit()
+                    self.__conexao.commit()
                     return True
                 self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {repositorioTrabalhoProducao.pegaErro()}')
                 self.__erro= repositorioTrabalhoProducao.pegaErro()
-                conexao.rollback()
+                self.__conexao.rollback()
                 return False
-            conexao.commit()
+            self.__conexao.commit()
             return True
         except Exception as e:
             self.__erro = str(e)
-            conexao.rollback()
+            self.__conexao.rollback()
         finally:
             self.__meuBanco.desconecta()
         return False
@@ -303,7 +303,8 @@ class TrabalhoProducaoDaoSqlite:
                     licenca: str= '' if trabalho.tipoLicenca is None else trabalho.tipoLicenca
                     cursor.execute(sql, (trabalho.id, trabalho.idTrabalho, personagem.id, recorrencia, licenca, trabalho.estado))
                 except Exception as e:
-                    raise e
+                    self.__logger.error(f'Erro ao inserir ({trabalho}) no banco: {e}')
+                    continue
             self.__conexao.commit()
             return True
         except Exception as e:

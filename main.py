@@ -489,6 +489,8 @@ class Aplicacao:
             Returns:
                 bool: Verdadeiro caso o trabalho seja inserido com sucesso
         '''
+        if trabalho is None:
+            return True
         personagem = self.__personagemEmUso if personagem is None else personagem
         if self.__trabalhoProducaoDao.insereTrabalhoProducao(personagem= personagem, trabalhoProducao= trabalho, modificaServidor= modificaServidor):
             self.__loggerTrabalhoProducaoDao.info(f'({personagem.id.ljust(36)} | {trabalho}) inserido no banco com sucesso!')
@@ -2642,12 +2644,12 @@ class Aplicacao:
     def sincronizaListas(self) -> None:
         sincroniza = input(f'Sincronizar listas? (S/N) ')
         if sincroniza is not None and sincroniza.lower() == 's':
-            self.sincronizaListaTrabalhos()
-            self.sincronizaListaPersonagens()
-            self.sincronizaListaProfissoes()
+            # self.sincronizaListaTrabalhos()
+            # self.sincronizaListaPersonagens()
+            # self.sincronizaListaProfissoes()
             self.sincronizaTrabalhosProducao()
-            self.sincronizaTrabalhosVendidos()
-            self.sincronizaTrabalhosEstoque()
+            # self.sincronizaTrabalhosVendidos()
+            # self.sincronizaTrabalhosEstoque()
 
     def abreStreamPersonagens(self) -> bool:
         if self.__repositorioPersonagem.abreStream():
