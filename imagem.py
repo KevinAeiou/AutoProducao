@@ -31,7 +31,7 @@ class ManipulaImagem:
             if resultado['conf'][i] > confianca:
                 listaPalavras.append(resultado['text'][i])
         stringPalavras: str = ''.join(listaPalavras)
-        return None if tamanhoIgualZero(lista= stringPalavras) else limpaRuidoTexto(texto= stringPalavras)
+        return None if ehVazia(lista= stringPalavras) else limpaRuidoTexto(texto= stringPalavras)
 
     def retornaImagemBinarizadaOtsu(self, imagemDesfocada):
         ret, thresh = cv2.threshold(imagemDesfocada, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
@@ -225,7 +225,7 @@ class ManipulaImagem:
         imagemTratada = self.retornaImagemBinarizada(imagem= imagemTratada, limiteMinimo=150)
         resultado: dict = self.retornaImagemParaDicionario(imagem= imagemTratada)
         for i in range(len(resultado['text'])):
-            if not tamanhoIgualZero(limpaRuidoTexto(texto= resultado["text"][i])) and texto1PertenceTexto2(texto1= resultado["text"][i], texto2= 'Pegar') and resultado["conf"][i] > 90:
+            if not ehVazia(limpaRuidoTexto(texto= resultado["text"][i])) and texto1PertenceTexto2(texto1= resultado["text"][i], texto2= 'Pegar') and resultado["conf"][i] > 90:
                 x = resultado["left"][i]
                 y = resultado["top"][i]
                 l = resultado["width"][i]

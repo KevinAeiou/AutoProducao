@@ -11,7 +11,14 @@ def textoEhIgual(texto1, texto2):
 def texto1PertenceTexto2(texto1, texto2):
     return limpaRuidoTexto(texto1) in limpaRuidoTexto(texto2)
 
-def tamanhoIgualZero(lista):
+def ehVazia(lista: list) -> bool:
+    '''
+        Função para verificar se uma lista está vazia
+        Args:
+            lista (list): Lista a ser verificada
+        Returns:
+            bool: Verdadeiro caso a lista esteja vazia
+    '''
     return len(lista) == 0
 
 def variavelExiste(variavel):
