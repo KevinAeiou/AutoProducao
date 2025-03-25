@@ -25,6 +25,9 @@ class RepositorioVendas(Stream):
                     trabalhoVendido.id= ids[2]
                     dicionarioVenda[CHAVE_TRABALHOS]= trabalhoVendido
                     super().insereDadosModificados(dado= dicionarioVenda)
+                    return
+                dicionarioVenda[CHAVE_TRABALHOS]= None
+                super().insereDadosModificados(dado= dicionarioVenda)
                 return
             trabalhoVendido.dicionarioParaObjeto(dicionario= menssagem['data'])
             dicionarioVenda[CHAVE_TRABALHOS]= trabalhoVendido

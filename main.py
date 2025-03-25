@@ -2359,6 +2359,9 @@ class Aplicacao:
             for dicionario in dicionariosEstoque:
                 personagem: Personagem= Personagem()
                 personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
+                if dicionario[CHAVE_TRABALHOS] is None:
+                    self.removeEstoquePorIdPersonagem(personagem= personagem)
+                    continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
                     trabalhoEstoque: TrabalhoEstoque= dicionario[CHAVE_TRABALHOS]
                     if trabalhoEstoque.idTrabalho is None:
@@ -2380,6 +2383,9 @@ class Aplicacao:
             for dicionario in dicionariosProducoes:
                 personagem: Personagem= Personagem()
                 personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
+                if dicionario[CHAVE_TRABALHOS] is None:
+                    self.removeProducoesPorIdPersonagem(personagem= personagem)
+                    continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
                     trabalho: TrabalhoProducao= dicionario[CHAVE_TRABALHOS]
                     if trabalho.idTrabalho is None:
@@ -2401,6 +2407,9 @@ class Aplicacao:
             for dicionario in dicionariosVendas:
                 personagem: Personagem= Personagem()
                 personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
+                if dicionario[CHAVE_TRABALHOS] is None:
+                    self.removeVendasPorIdPersonagem(personagem= personagem)
+                    continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
                     trabalho: TrabalhoVendido= dicionario[CHAVE_TRABALHOS]
                     if trabalho.idTrabalho is None:
@@ -2556,6 +2565,30 @@ class Aplicacao:
             self.__loggerProfissaoDao.info(f'Profissões de ({personagem.id}) removidas do banco com sucesso!')
             return True
         self.__loggerProfissaoDao.error(f'Erro ao remover profissões de ({personagem.id}) do banco: {self.__profissaoDao.pegaErro()}')
+        return False
+
+    def removeProducoesPorIdPersonagem(self, personagem: Personagem = None) -> bool:
+        personagem = self.__personagemEmUso if personagem is None else personagem
+        if self.__trabalhoProducaoDao.removeProducoesPorIdPersonagem(personagem= personagem):
+            self.__loggerTrabalhoProducaoDao.info(f'Produções de ({personagem.id}) removidas do banco com sucesso!')
+            return True
+        self.__loggerTrabalhoProducaoDao.error(f'Erro ao remover produções de ({personagem.id}) do banco: {self.__trabalhoProducaoDao.pegaErro()}')
+        return False
+
+    def removeEstoquePorIdPersonagem(self, personagem: Personagem = None) -> bool:
+        personagem = self.__personagemEmUso if personagem is None else personagem
+        if self.__estoqueDao.removeEstoquePorIdPersonagem(personagem= personagem):
+            self.__loggerEstoqueDao.info(f'Estoque de ({personagem.id}) removidas do banco com sucesso!')
+            return True
+        self.__loggerEstoqueDao.error(f'Erro ao remover estoque de ({personagem.id}) do banco: {self.__estoqueDao.pegaErro()}')
+        return False
+
+    def removeVendasPorIdPersonagem(self, personagem: Personagem = None) -> bool:
+        personagem = self.__personagemEmUso if personagem is None else personagem
+        if self.__vendasDao.removeEstoquePorIdPersonagem(personagem= personagem):
+            self.__loggerVendaDao.info(f'Vendas de ({personagem.id}) removidas do banco com sucesso!')
+            return True
+        self.__loggerVendaDao.error(f'Erro ao remover vendas de ({personagem.id}) do banco: {self.__vendasDao.pegaErro()}')
         return False
 
     def sincronizaListaProfissoes(self):

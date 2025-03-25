@@ -177,6 +177,23 @@ class VendaDaoSqlite:
             self.__meuBanco.desconecta()
         return False
     
+    
+    def removeEstoquePorIdPersonagem(self, personagem: Personagem) -> bool:
+        try:
+            sql = f"""DELETE FROM {CHAVE_LISTA_VENDAS} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+            conexao = self.__meuBanco.pegaConexao()
+            cursor = conexao.cursor()
+            cursor.execute('BEGIN')
+            cursor.execute(sql, [personagem.id])
+            conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            conexao.rollback()
+        finally:
+            self.__meuBanco.desconecta()
+        return False
+    
     def modificaTrabalhoVendido(self, personagem: Personagem, trabalho: TrabalhoVendido, modificaServidor: bool = True):
         try:
             trabalhoModificado: TrabalhoVendido= TrabalhoVendido()

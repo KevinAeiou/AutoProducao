@@ -28,6 +28,9 @@ class RepositorioTrabalhoProducao(Stream):
                     trabalho.id= ids[2]
                     dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
                     super().insereDadosModificados(dado= dicionarioTrabalho)
+                    return
+                dicionarioTrabalho[CHAVE_TRABALHOS]= None
+                super().insereDadosModificados(dado= dicionarioTrabalho)
                 return
             trabalho.dicionarioParaObjeto(dicionario= menssagem['data'])
             dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho

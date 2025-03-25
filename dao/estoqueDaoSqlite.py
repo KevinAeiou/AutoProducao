@@ -199,6 +199,24 @@ class EstoqueDaoSqlite:
             self.__meuBanco.desconecta()
         return False
     
+    
+    def removeEstoquePorIdPersonagem(self, personagem: Personagem) -> bool:
+        try:
+            sql = f"""DELETE FROM {CHAVE_LISTA_ESTOQUE} WHERE {CHAVE_ID_PERSONAGEM} == ?;
+                """
+            self.__conexao = self.__meuBanco.pegaConexao()
+            cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
+            cursor.execute(sql, [personagem.id])
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__conexao.rollback()
+            self.__erro = str(e)
+        finally:
+            self.__meuBanco.desconecta()
+        return False
+    
     def sincronizaTrabalhosEstoque(self, personagem: Personagem) -> bool:
         '''
             Função para sincronizar os trabalhos no estoque no servidor com o banco de dados local

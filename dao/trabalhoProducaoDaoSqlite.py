@@ -251,6 +251,22 @@ class TrabalhoProducaoDaoSqlite:
         finally:
             self.__meuBanco.desconecta()
         return False
+    
+    def removeProducoesPorIdPersonagem(self, personagem: Personagem) -> bool:
+        try:
+            self.__conexao = self.__meuBanco.pegaConexao()
+            sql = f"""DELETE FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+            cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
+            cursor.execute(sql, [personagem.id])
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            self.__conexao.rollback()
+        finally:
+            self.__meuBanco.desconecta()
+        return False
         
     def modificaTrabalhoProducao(self, personagem: Personagem, trabalho: TrabalhoProducao, modificaServidor: bool= True):
         try:
