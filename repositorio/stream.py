@@ -13,10 +13,9 @@ class Stream:
     @property
     def estaPronto(self) -> bool:
         '''
-        Retorna a comparação do tamanho da lista com o número zero
-
-        Returns:
-            bool: Verdadeiro se pelo menos um dado foi modificado no servidor
+            Função que verifica se a lista de dados modificados têm pelo menos um item.
+            Returns:
+                bool: Verdadeiro se pelo menos um dado foi modificado no servidor
         '''
         return len(self.__dadosModificados) != 0
 
