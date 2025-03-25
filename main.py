@@ -2311,10 +2311,10 @@ class Aplicacao:
         if self.__repositorioPersonagem.estaPronto:
             personagens: list[Personagem]= self.__repositorioPersonagem.pegaDadosModificados()
             for personagem in personagens:
+                if personagem.nome is None:
+                    self.removePersonagem(personagem= personagem, modificaServidor= False)
+                    continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
-                    if personagem.nome is None:
-                        self.removePersonagem(personagem= personagem, modificaServidor= False)
-                        continue
                     personagemEncontrado: Personagem= self.pegaPersonagemPorId(id= personagem.id)
                     if personagemEncontrado is None:
                         continue
@@ -2331,17 +2331,24 @@ class Aplicacao:
             for dicionario in dicionariosProfissoes:
                 personagem: Personagem= Personagem()
                 personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
+                if dicionario[CHAVE_TRABALHOS] is None:
+                    self.removeProfissoesPorIdPersonagem(personagem= personagem)
+                    continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
                     profissao: Profissao= dicionario[CHAVE_TRABALHOS]
                     if profissao.experiencia is None:
+                        profissao.idPersonagem= personagem.id
                         self.removeProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
                         continue
-                    profissaoEncontrada: Profissao= self.pegaProfissaoPorId(id= profissao.id)
+                    profissaoEncontrada: Profissao= self.pegaProfissaoPorId(id= profissao.id, personagem= personagem)
                     if profissaoEncontrada is None:
                         continue
                     if profissaoEncontrada.id == profissao.id:
+                        profissao.nome= profissaoEncontrada.nome
+                        profissao.idPersonagem= profissaoEncontrada.idPersonagem
                         self.modificaProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
                         continue
+                    profissao.nome= self.pegaNomeProfissaoPorId(id= profissao.id)
                     self.insereProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
             self.__repositorioProfissao.limpaLista
     
@@ -2457,10 +2464,19 @@ class Aplicacao:
     def insereProfissao(self, profissao: Profissao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
         if self.__profissaoDao.insereProfissao(personagem= personagem, profissao= profissao, modificaServidor= modificaServidor):
+            profissao.idPersonagem= personagem.id
             self.__loggerProfissaoDao.info(f'({profissao}) inserido no banco com sucesso!')
             return True
         self.__loggerProfissaoDao.error(f'Erro ao inserir ({profissao}) no banco: {self.__profissaoDao.pegaErro()}')
         return False
+    
+    def pegaNomeProfissaoPorId(self, id: str) -> str:
+        nomeProfissao: str= self.__profissaoDao.pegaNomeProfissaoPorId(id= id)
+        if nomeProfissao is None:
+            self.__loggerProfissaoDao.error(f'Erro ao buscar o nome da profissão ({id}) no servidor: {self.__profissaoDao.pegaErro()}')
+            return None
+        self.__loggerProfissaoDao.info(f'Profissão ({nomeProfissao}) foi encontrado!')
+        return nomeProfissao
 
     def pegaPersonagemPorId(self, id: str) -> Personagem | None:
         personagemEncontrado: Personagem= self.__personagemDao.pegaPersonagemPorId(id)
@@ -2469,8 +2485,17 @@ class Aplicacao:
             return None
         return personagemEncontrado
     
-    def pegaProfissaoPorId(self, id: str) -> Profissao | None:
-        profissaoEncontrada: Profissao= self.__profissaoDao.pegaProfissaoPorId(id= id)
+    def pegaProfissaoPorId(self, id: str, personagem: Personagem= None) -> Profissao | None:
+        '''
+            Função que busca uma profissão específica do personagem atual no banco de dados local
+            Args:
+                id (str): String que contêm o "id" da profissão a ser buscada
+                personagem (Personagem): Objeto da classe Personagem que contêm o "id" do personagem atual
+            Returns:
+                profissaoEncontrada (Profissao): Objeto da classe Profisssao que contêm os dados encontrados
+        '''
+        personagem= self.__personagemEmUso if personagem is None else personagem
+        profissaoEncontrada: Profissao= self.__profissaoDao.pegaProfissaoPorId(personagem= personagem, id= id)
         if profissaoEncontrada is None:
             self.__loggerProfissaoDao.error(f'Erro ao buscar por id ({id}): {self.__profissaoDao.pegaErro()}')
             return None
@@ -2523,6 +2548,14 @@ class Aplicacao:
             self.__loggerProfissaoDao.info(f'({profissao}) removido do banco com sucesso!')
             return True
         self.__loggerProfissaoDao.error(f'Erro ao remover ({profissao}) do banco: {self.__profissaoDao.pegaErro()}')
+        return False
+
+    def removeProfissoesPorIdPersonagem(self, personagem: Personagem = None) -> bool:
+        personagem = self.__personagemEmUso if personagem is None else personagem
+        if self.__profissaoDao.removeProfissoesPorIdPersonagem(personagem= personagem):
+            self.__loggerProfissaoDao.info(f'Profissões de ({personagem.id}) removidas do banco com sucesso!')
+            return True
+        self.__loggerProfissaoDao.error(f'Erro ao remover profissões de ({personagem.id}) do banco: {self.__profissaoDao.pegaErro()}')
         return False
 
     def sincronizaListaProfissoes(self):

@@ -30,6 +30,9 @@ class RepositorioProfissao(Stream):
                     profissao.experiencia= None
                     dicionarioProfissao[CHAVE_TRABALHOS]= profissao
                     super().insereDadosModificados(dado= dicionarioProfissao)
+                    return
+                dicionarioProfissao[CHAVE_TRABALHOS]= None
+                super().insereDadosModificados(dado= dicionarioProfissao)
                 return
             profissao.dicionarioParaObjeto(dicionario= menssagem['data'])
             dicionarioProfissao[CHAVE_TRABALHOS]= profissao
@@ -50,10 +53,7 @@ class RepositorioProfissao(Stream):
                 profissao: Profissao= Profissao()
                 profissao.dicionarioParaObjeto(profissaoEncontrada.val())
                 profissao.idPersonagem = self.__personagem.id
-                profissaoEncontrada: PyreResponse= self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).child(profissao.id).get()
-                if profissaoEncontrada.pyres is None:
-                    raise Exception(f'({profissao.id}) não foi encontrado na lista de profissões!')
-                profissao.nome= profissaoEncontrada.pyres[1].val()
+                profissao.nome= self.pegaNomeProfissaoPorId(id= profissao.id)
                 profissoes.append(profissao)
             profissoes = sorted(profissoes, key = lambda profissao: profissao.nome)
             profissoes = sorted(profissoes, key = lambda profissao: profissao.experiencia, reverse = True)
@@ -61,6 +61,12 @@ class RepositorioProfissao(Stream):
         except Exception as e:
             self.__erro = str(e)
         return None
+
+    def pegaNomeProfissaoPorId(self, id: str) -> str:
+        profissaoEncontrada: PyreResponse= self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).child(id).get()
+        if profissaoEncontrada.pyres is None:
+            raise Exception(f'({id}) não foi encontrado na lista de profissões!')
+        return profissaoEncontrada.pyres[1].val()
     
     def pegaListaProfissoes(self) -> list[Profissao]:
         profissoes: list[Profissao]= []

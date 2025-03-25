@@ -14,28 +14,50 @@ class ProfissaoDaoSqlite:
         self.__conexao = None
         self.__erro = None
 
-    def pegaProfissaoPorId(self, id : str) -> Profissao | None:
+    def pegaProfissaoPorId(self, personagem: Personagem, id: str) -> Profissao | None:
+        '''
+            Função para buscar uma profissão específica no banco de dados local
+            Args:
+                personagem (Personagem): Objeto da classe Personagem que contêm o "id" do personagem atual
+                id (str): String que contêm o "id" da profissão específica
+            Returns:
+                profissao (Profissao): Objeto da classe Profissao com os dados encontrados no banco
+        '''
         try:
             self.__conexao = self.__meuBanco.pegaConexao()
-            sql = f"""
-                SELECT * 
-                FROM {CHAVE_PROFISSOES.lower()}
-                WHERE {CHAVE_ID} == ?;
-                """
+            sql = f"""SELECT * FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID} == ? AND {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [id])
-            profissao = Profissao()
+            cursor.execute(sql, (id, personagem.id))
+            profissao: Profissao= Profissao()
             for linha in cursor.fetchall():
                 profissao.id = linha[0]
                 profissao.idPersonagem = linha[1]
                 profissao.nome = linha[2]
                 profissao.experiencia = linha[3]
                 profissao.prioridade = True if linha[4] == 1 else False
-            self.__meuBanco.desconecta()
             return profissao
         except Exception as e:
             self.__erro = str(e)
-        self.__meuBanco.desconecta()
+        finally:
+            self.__meuBanco.desconecta()
+        return None
+
+    def pegaNomeProfissaoPorId(self, id: str) -> str | None:
+        '''
+            Função para buscar o atributo "nome" de uma profissão específica no servidor
+            Args:
+                id (str): String que contêm o "id" da profissão específica
+            Returns:
+                nomeProfissao (str): String que contêm o dado encontrado no servidor
+        '''
+        try:
+            repositorioProfissao: RepositorioProfissao= RepositorioProfissao()
+            nomeProfissao: str= repositorioProfissao.pegaNomeProfissaoPorId(id= id)
+            return nomeProfissao
+        except Exception as e:
+            self.__erro = str(e)
+        finally:
+            self.__meuBanco.desconecta()
         return None
     
     def pegaProfissoesPorIdPersonagem(self, personagem: Personagem) -> list[Profissao]:
@@ -94,10 +116,10 @@ class ProfissaoDaoSqlite:
         try:
             repositorioProfissao: RepositorioProfissao = RepositorioProfissao(personagem= personagem)
             self.__conexao = self.__meuBanco.pegaConexao()
-            sql = f"""DELETE FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID} == ?;"""
+            sql = f"""DELETE FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID} == ? AND {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
-            cursor.execute(sql, [profissao.id])
+            cursor.execute(sql, (profissao.id, personagem.id))
             if modificaServidor:
                 if repositorioProfissao.removeProfissao(profissao= profissao):
                     self.__meuLogger.info(f'({profissao}) removido do servidor com sucesso!')
@@ -106,6 +128,22 @@ class ProfissaoDaoSqlite:
                 self.__meuLogger.error(f'Erro ao remover ({profissao}) do servidor: {repositorioProfissao.pegaErro()}')
                 self.__conexao.rollback()
                 return False
+            self.__conexao.commit()
+            return True
+        except Exception as e:
+            self.__erro = str(e)
+            self.__conexao.rollback()
+        finally:
+            self.__meuBanco.desconecta()
+        return False
+    
+    def removeProfissoesPorIdPersonagem(self, personagem: Personagem) -> bool:
+        try:
+            self.__conexao = self.__meuBanco.pegaConexao()
+            sql = f"""DELETE FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
+            cursor = self.__conexao.cursor()
+            cursor.execute('BEGIN')
+            cursor.execute(sql, [personagem.id])
             self.__conexao.commit()
             return True
         except Exception as e:
