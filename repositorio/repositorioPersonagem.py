@@ -26,6 +26,7 @@ class RepositorioPersonagem(Stream):
                 idPersonagemDeletado: str= caminho.replace('/', '').strip()
                 personagem.id= idPersonagemDeletado
                 super().insereDadosModificados(dado= personagem)
+                return
             personagem.dicionarioParaObjeto(dicionario= menssagem['data'])
             super().insereDadosModificados(dado= personagem)
     
