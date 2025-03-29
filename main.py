@@ -1880,8 +1880,8 @@ class Aplicacao:
             Esta função é responsável por redefinir a lista de personagens ativos, verificando a lista de personagens já verificados
         '''        
         self.defineListaPersonagensAtivos()
+        novaListaPersonagensAtivos: list[Personagem] = []
         if not ehVazia(self.__listaPersonagemAtivo):
-            novaListaPersonagensAtivos: list[Personagem] = []
             print(f'{CHAVE_NOME.ljust(17).upper()} | {CHAVE_ESPACO_BOLSA.ljust(11).upper()} | {CHAVE_ESTADO.ljust(10).upper()} | {CHAVE_USO.ljust(10).upper()} | {CHAVE_AUTO_PRODUCAO.ljust(10).upper()}')
             for personagemAtivo in self.__listaPersonagemAtivo:
                 for personagemRemovido in self.__listaPersonagemJaVerificado:
@@ -2710,12 +2710,12 @@ class Aplicacao:
     def sincronizaListas(self) -> None:
         sincroniza = input(f'Sincronizar listas? (S/N) ')
         if sincroniza is not None and sincroniza.lower() == 's':
-            # self.sincronizaListaTrabalhos()
-            # self.sincronizaListaPersonagens()
-            # self.sincronizaListaProfissoes()
+            self.sincronizaListaTrabalhos()
+            self.sincronizaListaPersonagens()
+            self.sincronizaListaProfissoes()
             self.sincronizaTrabalhosProducao()
-            # self.sincronizaTrabalhosVendidos()
-            # self.sincronizaTrabalhosEstoque()
+            self.sincronizaTrabalhosVendidos()
+            self.sincronizaTrabalhosEstoque()
 
     def abreStreamPersonagens(self) -> bool:
         if self.__repositorioPersonagem.abreStream():
