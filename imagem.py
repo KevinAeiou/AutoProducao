@@ -2,6 +2,7 @@ from teclado import tiraScreenshot
 import cv2
 import os
 import numpy as np
+from numpy import ndarray
 import pytesseract
 from time import sleep
 from utilitarios import *
@@ -131,19 +132,40 @@ class ManipulaImagem:
     def retornaErroReconhecido(self):
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
-    def verificaMenuReferenciaInicial(self, tela):
-        posicaoMenu = [[703,627],[712,1312]]
+    def verificaMenuReferenciaInicial(self, tela: ndarray):
+        posicaoMenu: tuple= ([717,633],[717,1317])
+        altura: int= 49
+        largura: int= 49
+        if tela.shape[0] != 768 or tela.shape[1] != 1366:
+            razao: tuple= self.retornaRazaoEntreTelas(tela)
+            posicaoMenu2: tuple= ([int(posicaoMenu[0][0] * razao[0]), int(posicaoMenu[0][1] * razao[1])], [int(posicaoMenu[1][0] * razao[0]), int(posicaoMenu[1][1] * razao[1])])
+            altura= int(altura * razao[0])
+            largura= int(largura * razao[1])
+            posicaoMenu= posicaoMenu2
         for posicao in posicaoMenu:
-            frameTela = tela[posicao[0]:posicao[0] + 53, posicao[1]:posicao[1] + 53]
+            frameTela: ndarray= tela[posicao[0]:posicao[0] + altura, posicao[1]:posicao[1] + largura]
+            self.mostraImagem(0, frameTela)
             contadorPixelPreto = np.sum(frameTela == (85,204,255))
-            if contadorPixelPreto == 1720:
+            if contadorPixelPreto == 1720 or contadorPixelPreto == 2045 or contadorPixelPreto == 2046:
                 return True
         return False
+
+    def retornaRazaoEntreTelas(self, tela: ndarray) -> tuple:
+        '''
+            Função para encontrar as razões entre alturas e larguras da resolução de tela atual e resolução (1366x768)
+            Args:
+                tela (ndarray): Imagem da tela atual a ser encontrada as razões
+            Returns:
+                tuple: Tupla de valores encontrados (y, x)
+        '''
+        razaoX: float= tela.shape[1] / 1366
+        razaoY: float= tela.shape[0] / 768
+        return (razaoY, razaoX)
     
     def verificaMenuReferencia(self):
         return self.verificaMenuReferenciaInicial(self.retornaAtualizacaoTela())
     
-    def reconheceTextoMenu(self, tela) -> str | None:
+    def reconheceTextoMenu(self, tela: ndarray) -> str | None:
         frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
         frameTelaTratado = self.retornaImagemCinza(frameTela)
         frameTelaTratado = self.retornaImagemBinarizada(imagem= frameTelaTratado, limiteMinimo= 155)
@@ -281,9 +303,10 @@ if __name__=='__main__':
     clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
     sleep(1)
     imagem = ManipulaImagem()
+    telaMenuInicial: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testeMenuInicial.png')
     while True:
         sleep(1)
-        print(imagem.retornaNomeConfirmacaoTrabalhoProducaoReconhecido(tipoTrabalho= 0))
+        print(imagem.verificaMenuReferenciaInicial(tela= telaMenuInicial))
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:
