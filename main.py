@@ -1252,6 +1252,14 @@ class Aplicacao:
         self.modificaPersonagem()
 
     def retornaListaTrabalhosProducaoRaridadeEspecifica(self, nomeProfissao: str, raridade: str) -> list[TrabalhoProducao]:
+        '''
+            Função para definir a lista de trabalhos para produção com estado PARA_PRODUZIR(0), profissão e raridade recebidos por parâmetro
+            Args:
+                nomeProfissao (str): String que contêm o nome da profissão a ser verificada
+                raridade (str): String que contêm a raridade a ser verificada
+            Returns:
+                listaTrabalhosProducaoRaridadeEspecifica (list[TrabalhoProducao]): Lista de trabalhos para produzir definida
+        '''
         listaTrabalhosProducaoRaridadeEspecifica: list[TrabalhoProducao] = []
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
         if trabalhosProducao is None: return listaTrabalhosProducaoRaridadeEspecifica
@@ -1259,11 +1267,13 @@ class Aplicacao:
             raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, nomeProfissao) and trabalhoProducao.ehParaProduzir()
             if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
                 for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
-                    if textoEhIgual(trabalhoProducaoRaridadeEspecifica.nome, trabalhoProducao.nome): break
+                    if textoEhIgual(texto1= trabalhoProducaoRaridadeEspecifica.idTrabalho, texto2= trabalhoProducao.idTrabalho): 
+                        self.__loggerAplicacao.debug(f'Trabalho {trabalhoProducao.nome} já está na lista!')
+                        break
                 else:
-                    print(f'Trabalho {raridade} encontado: {trabalhoProducao.nome}')
+                    self.__loggerAplicacao.debug(f'Trabalho {raridade} inserido na lista: {trabalhoProducao.id.ljust(36)} | {trabalhoProducao.nome}')
                     listaTrabalhosProducaoRaridadeEspecifica.append(trabalhoProducao)
-        if ehVazia(listaTrabalhosProducaoRaridadeEspecifica): print(f'Nem um trabalho {raridade} na lista!')
+        if ehVazia(listaTrabalhosProducaoRaridadeEspecifica): self.__loggerAplicacao.debug(f'Nem um trabalho {raridade} na lista!')
         return listaTrabalhosProducaoRaridadeEspecifica
 
     def retornaNomeTrabalhoPosicaoTrabalhoRaroEspecial(self, dicionarioTrabalho):
@@ -1339,7 +1349,8 @@ class Aplicacao:
             return self.__imagem.retornaNomeTrabalhoReconhecido(530, 1)
 
     def defineDicionarioTrabalhoComumMelhorado(self, dicionarioTrabalho: dict) -> dict:
-        print(f'Buscando trabalho {dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA][0].raridade}.')
+        trabalhosProducaoPriorizado: list[TrabalhoProducao]= dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]
+        self.__loggerAplicacao.debug(f'Buscando trabalho {trabalhosProducaoPriorizado[0].raridade}.')
         contadorParaBaixo: int= 0
         if not primeiraBusca(dicionarioTrabalho= dicionarioTrabalho):
             contadorParaBaixo = dicionarioTrabalho[CHAVE_POSICAO]
@@ -1353,9 +1364,9 @@ class Aplicacao:
             fimLista: bool= False if contadorParaBaixo < 133 else True
             nomeReconhecidoNaoEstaVazioEnaoEhFimLista: bool= nomeTrabalhoReconhecido is not None and not fimLista
             if nomeReconhecidoNaoEstaVazioEnaoEhFimLista:
-                print(f'Trabalho reconhecido: {nomeTrabalhoReconhecido}')
-                for trabalhoProducao in dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]:
-                    print(f'Trabalho na lista: {trabalhoProducao.nome}')
+                self.__loggerAplicacao.debug(f'Trabalho reconhecido: {nomeTrabalhoReconhecido}')
+                for trabalhoProducao in trabalhosProducaoPriorizado:
+                    self.__loggerAplicacao.debug(f'Trabalho na lista: {trabalhoProducao.id.ljust(36)} | {trabalhoProducao.nome}')
                     if texto1PertenceTexto2(texto1= nomeTrabalhoReconhecido, texto2= trabalhoProducao.nomeProducao):
                         clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
                         dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo - 1

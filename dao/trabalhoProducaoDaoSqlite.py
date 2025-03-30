@@ -270,7 +270,7 @@ class TrabalhoProducaoDaoSqlite:
         
     def modificaTrabalhoProducao(self, personagem: Personagem, trabalho: TrabalhoProducao, modificaServidor: bool= True):
         try:
-            sql = f"""UPDATE {CHAVE_LISTA_TRABALHOS_PRODUCAO} SET {CHAVE_ID_TRABALHO} = ?, {CHAVE_RECORRENCIA} = ?, {CHAVE_TIPO_LICENCA} = ?, {CHAVE_ESTADO} = ? WHERE {CHAVE_ID} == ?;"""
+            sql: str= f"""UPDATE {CHAVE_LISTA_TRABALHOS_PRODUCAO} SET {CHAVE_ID_TRABALHO} = ?, {CHAVE_RECORRENCIA} = ?, {CHAVE_TIPO_LICENCA} = ?, {CHAVE_ESTADO} = ? WHERE {CHAVE_ID} == ?;"""
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
             self.__conexao = self.__meuBanco.pegaConexao()
             cursor = self.__conexao.cursor()
