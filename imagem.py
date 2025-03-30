@@ -78,14 +78,22 @@ class ManipulaImagem:
             os.makedirs('tests/imagemTeste')
             cv2.imwrite('tests/imagemTeste/{}'.format(nomeImagem),imagem)
 
-    def reconheceNomeTrabalho(self, tela: np.ndarray, y: int, identificador: int) -> str | None:
-        altura: int = 68 if identificador == 1 else 34
-        frameTrabalho: np.ndarray = tela[y : y + altura, 233 : 478]
+    def reconheceNomeTrabalho(self, tela: ndarray, y: int, identificador: int) -> str | None:
+        altura: int = 70 if identificador == 1 else 34
+        x1: int= 233
+        x2: int= 478
+        if not self.resolucaoEh1366x768(tela= tela):
+            razao: tuple= self.retornaRazaoEntreTelas(tela= tela)
+            altura= int(altura * razao[0])
+            y= int(y * razao[0])
+            x1= int(x1 * razao[1])
+            x2= int(x2 * razao[1])
+        frameTrabalho: np.ndarray = tela[y : y + altura, x1 : x2]
         frameNomeTrabalhoTratado: np.ndarray = self.retornaImagemCinza(frameTrabalho)
         frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalhoTratado)
         return self.reconheceTexto(frameNomeTrabalhoTratado) if existePixelPreto(frameNomeTrabalhoTratado) else None
     
-    def retornaNomeTrabalhoReconhecido(self, yinicialNome, identificador):
+    def retornaNomeTrabalhoReconhecido(self, yinicialNome: int, identificador: int):
         return self.reconheceNomeTrabalho(self.retornaAtualizacaoTela(), yinicialNome, identificador)
 
     def reconheceNomeConfirmacaoTrabalhoProducao(self, tela: np.ndarray, tipoTrabalho: int) -> str | None:
@@ -136,7 +144,7 @@ class ManipulaImagem:
         posicaoMenu: tuple= ([717,633],[717,1317])
         altura: int= 49
         largura: int= 49
-        if tela.shape[0] != 768 or tela.shape[1] != 1366:
+        if not self.resolucaoEh1366x768(tela):
             razao: tuple= self.retornaRazaoEntreTelas(tela)
             posicaoMenu2: tuple= ([int(posicaoMenu[0][0] * razao[0]), int(posicaoMenu[0][1] * razao[1])], [int(posicaoMenu[1][0] * razao[0]), int(posicaoMenu[1][1] * razao[1])])
             altura= int(altura * razao[0])
@@ -149,6 +157,9 @@ class ManipulaImagem:
             if contadorPixelPreto == 1720 or contadorPixelPreto == 2045 or contadorPixelPreto == 2046:
                 return True
         return False
+
+    def resolucaoEh1366x768(self, tela: ndarray):
+        return tela.shape[0] == 768 and tela.shape[1] == 1366
 
     def retornaRazaoEntreTelas(self, tela: ndarray) -> tuple:
         '''
@@ -303,10 +314,11 @@ if __name__=='__main__':
     clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
     sleep(1)
     imagem = ManipulaImagem()
-    telaMenuInicial: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testeMenuInicial.png')
+    telaMenuInicial: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testeTrabalhoAnelDeJadeBrutaY530Identificador1.png')
     while True:
         sleep(1)
-        print(imagem.verificaMenuReferenciaInicial(tela= telaMenuInicial))
+        print(imagem.reconheceNomeTrabalho(tela= telaMenuInicial, y= 524, identificador= 1))
+        print(imagem.retornaNomeTrabalhoReconhecido(yinicialNome= 524, identificador= 1))
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:
