@@ -141,9 +141,9 @@ class ManipulaImagem:
         return self.reconheceTextoErro(self.retornaAtualizacaoTela())
     
     def verificaMenuReferenciaInicial(self, tela: ndarray):
-        posicaoMenu: tuple= ([717,633],[717,1317])
-        altura: int= 49
-        largura: int= 49
+        posicaoMenu: tuple= ([tela.shape[0], int(tela.shape[1]//2)],[tela.shape[0], tela.shape[1]])
+        altura: int= 55
+        largura: int= 55
         if not self.resolucaoEh1366x768(tela):
             razao: tuple= self.retornaRazaoEntreTelas(tela)
             posicaoMenu2: tuple= ([int(posicaoMenu[0][0] * razao[0]), int(posicaoMenu[0][1] * razao[1])], [int(posicaoMenu[1][0] * razao[0]), int(posicaoMenu[1][1] * razao[1])])
@@ -151,10 +151,9 @@ class ManipulaImagem:
             largura= int(largura * razao[1])
             posicaoMenu= posicaoMenu2
         for posicao in posicaoMenu:
-            frameTela: ndarray= tela[posicao[0]:posicao[0] + altura, posicao[1]:posicao[1] + largura]
-            self.mostraImagem(0, frameTela)
+            frameTela: ndarray= tela[posicao[0] - altura:posicao[0], posicao[1] - largura:posicao[1]]
             contadorPixelPreto = np.sum(frameTela == (85,204,255))
-            if contadorPixelPreto == 1720 or contadorPixelPreto == 2045 or contadorPixelPreto == 2046:
+            if contadorPixelPreto >= 1720:
                 return True
         return False
 
@@ -317,8 +316,9 @@ if __name__=='__main__':
     telaMenuInicial: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testeTrabalhoAnelDeJadeBrutaY530Identificador1.png')
     while True:
         sleep(1)
-        print(imagem.reconheceNomeTrabalho(tela= telaMenuInicial, y= 524, identificador= 1))
-        print(imagem.retornaNomeTrabalhoReconhecido(yinicialNome= 524, identificador= 1))
+        # print(imagem.reconheceNomeTrabalho(tela= telaMenuInicial, y= 524, identificador= 1))
+        # print(imagem.retornaNomeTrabalhoReconhecido(yinicialNome= 524, identificador= 1))
+        print(imagem.verificaMenuReferencia())
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:
