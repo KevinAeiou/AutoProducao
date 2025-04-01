@@ -20,6 +20,7 @@ class RepositorioTrabalhoProducao(Stream):
         if menssagem['event'] in ('put', 'path'):
             if menssagem['path'] == '/':
                 return
+            self.__logger.debug(menssagem= menssagem)
             ids: list[str]= menssagem['path'].split('/')
             trabalho: TrabalhoProducao= TrabalhoProducao()
             dicionarioTrabalho: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
@@ -35,6 +36,7 @@ class RepositorioTrabalhoProducao(Stream):
             trabalho.dicionarioParaObjeto(dicionario= menssagem['data'])
             dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
             super().insereDadosModificados(dado= dicionarioTrabalho)
+            pass
 
     def limpaListaProducao(self):
         '''
