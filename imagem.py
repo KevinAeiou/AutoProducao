@@ -146,10 +146,8 @@ class ManipulaImagem:
         largura: int= 55
         if not self.resolucaoEh1366x768(tela):
             razao: tuple= self.retornaRazaoEntreTelas(tela)
-            posicaoMenu2: tuple= ([int(posicaoMenu[0][0] * razao[0]), int(posicaoMenu[0][1] * razao[1])], [int(posicaoMenu[1][0] * razao[0]), int(posicaoMenu[1][1] * razao[1])])
             altura= int(altura * razao[0])
             largura= int(largura * razao[1])
-            posicaoMenu= posicaoMenu2
         for posicao in posicaoMenu:
             frameTela: ndarray= tela[posicao[0] - altura:posicao[0], posicao[1] - largura:posicao[1]]
             contadorPixelPreto = np.sum(frameTela == (85,204,255))
