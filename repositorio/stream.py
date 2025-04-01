@@ -7,6 +7,7 @@ class Stream:
         self.__meuBanco= FirebaseDatabase().pegaMeuBanco()
         self.__erro: str = None
         self.__chave: str= chave
+        self.__streamPronta= False
         self.__dadosModificados: list= []
         self.__logger: MeuLogger= MeuLogger(nome= nomeLogger)
 
@@ -18,6 +19,15 @@ class Stream:
                 bool: Verdadeiro se pelo menos um dado foi modificado no servidor
         '''
         return len(self.__dadosModificados) != 0
+    
+    @property
+    def streamPronta(self) -> bool:
+        '''
+            Função que verifca se a stream foi iniciada com sucesso.
+            Returns:
+                bool: Verdadeiro caso a stream tenha sida aberta.
+        '''
+        return self.__streamPronta
 
     def pegaDadosModificados(self) -> list:
         '''
@@ -60,6 +70,7 @@ class Stream:
     def streamHandler(self, menssagem: dict):
         if menssagem['event'] in ('put', 'path'):
             if menssagem['path'] == '/':
+                self.__streamPronta= True
                 diferenca: int= time() - self.__inicio
                 minutos: int= int(diferenca // 60)
                 segundos: int= int(diferenca % 60)
