@@ -2709,13 +2709,15 @@ class Aplicacao:
             self.abreStreamProducao()
             self.abreStreamProfissoes()
             self.abreStreamVendas()
-            while not self.__repositorioEstoque.streamPronta and not self.__repositorioTrabalho.streamPronta and not self.__repositorioPersonagem.streamPronta and not self.__repositorioPersonagem.streamPronta and not self.__repositorioProducao.streamPronta and not self.__repositorioProfissao.streamPronta and not self.__repositorioVendas.streamPronta:
+            while not self.__repositorioEstoque.streamPronta or not self.__repositorioTrabalho.streamPronta or not self.__repositorioPersonagem.streamPronta or not self.__repositorioPersonagem.streamPronta or not self.__repositorioProducao.streamPronta or not self.__repositorioProfissao.streamPronta or not self.__repositorioVendas.streamPronta:
+                limpaTela()
                 self.mostraResultadoStreamEstoque()
                 self.mostraResultadoStreamTrabalhos()
                 self.mostraResultadoStreamPersonagens()
                 self.mostraResultadoStreamProducao()
                 self.mostraResultadoStreamProfissoes()
                 self.mostraResultadoStreamVendas()
+                sleep(1.5)
                 continue
             self.sincronizaListas()
             clickAtalhoEspecifico('alt', 'tab')
@@ -2728,39 +2730,39 @@ class Aplicacao:
 
     def mostraResultadoStreamEstoque(self):
         if self.__repositorioEstoque.streamPronta:
-            self.__loggerAplicacao.debug(menssagem= f'✅ Repositório estoque')
+            print(f'✅ Repositório estoque')
             return
-        self.__loggerAplicacao.debug(menssagem= f'❌ Repositório estoque')
+        print(f'❌ Repositório estoque')
 
     def mostraResultadoStreamTrabalhos(self):
-        if self.__repositorioEstoque.streamPronta:
-            self.__loggerAplicacao.debug(menssagem= f'✅ Repositório trabalhos')
+        if self.__repositorioTrabalho.streamPronta:
+            print(f'✅ Repositório trabalhos')
             return
-        self.__loggerAplicacao.debug(menssagem= f'❌ Repositório trabalhos')
+        print(f'❌ Repositório trabalhos')
 
     def mostraResultadoStreamPersonagens(self):
-        if self.__repositorioEstoque.streamPronta:
-            self.__loggerAplicacao.debug(menssagem= f'✅ Repositório personagens')
+        if self.__repositorioPersonagem.streamPronta:
+            print(f'✅ Repositório personagens')
             return
-        self.__loggerAplicacao.debug(menssagem= f'❌ Repositório personagens')
+        print(f'❌ Repositório personagens')
 
     def mostraResultadoStreamProducao(self):
-        if self.__repositorioEstoque.streamPronta:
-            self.__loggerAplicacao.debug(menssagem= f'✅ Repositório produções')
+        if self.__repositorioProducao.streamPronta:
+            print(f'✅ Repositório produções')
             return
-        self.__loggerAplicacao.debug(menssagem= f'❌ Repositório produções')
+        print(f'❌ Repositório produções')
 
     def mostraResultadoStreamProfissoes(self):
-        if self.__repositorioEstoque.streamPronta:
-            self.__loggerAplicacao.debug(menssagem= f'✅ Repositório profissões')
+        if self.__repositorioProfissao.streamPronta:
+            print(f'✅ Repositório profissões')
             return
-        self.__loggerAplicacao.debug(menssagem= f'❌ Repositório profissões')
+        print(f'❌ Repositório profissões')
 
     def mostraResultadoStreamVendas(self):
         if self.__repositorioEstoque.streamPronta:
-            self.__loggerAplicacao.debug(menssagem= f'✅ Repositório vendas')
+            print(f'✅ Repositório vendas')
             return
-        self.__loggerAplicacao.debug(menssagem= f'❌ Repositório vendas')
+        print(f'❌ Repositório vendas')
 
     def sincronizaListas(self) -> None:
         sincroniza = input(f'Sincronizar listas? (S/N) ')
