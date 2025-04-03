@@ -5,34 +5,43 @@ class TrabalhoProducao(Trabalho):
     def __init__(self):
         super().__init__()
         self.idTrabalho = None
-        self.recorrencia = None
+        self.recorrencia = False
         self.tipoLicenca = None
-        self.estado = None
+        self.estado = 0
 
+    @property
     def ehParaProduzir(self):
         return self.estado == CODIGO_PARA_PRODUZIR
     
+    @property
     def ehProduzindo(self):
         return self.estado == CODIGO_PRODUZINDO
     
+    @property
     def ehConcluido(self):
         return self.estado == CODIGO_CONCLUIDO
 
+    @property
     def ehEspecial(self):
         return self.raridade == CHAVE_RARIDADE_ESPECIAL
     
+    @property
     def ehRaro(self):
         return self.raridade == CHAVE_RARIDADE_RARO
     
+    @property
     def ehMelhorado(self):
         return self.raridade == CHAVE_RARIDADE_MELHORADO
     
+    @property
     def ehComum(self):
         return self.raridade == CHAVE_RARIDADE_COMUM
     
+    @property
     def ehRecorrente(self):
         return self.recorrencia
     
+    @property
     def alternaRecorrencia(self):
         self.recorrencia = not self.recorrencia
     
