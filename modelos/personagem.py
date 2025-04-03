@@ -13,15 +13,19 @@ class Personagem(Usuario):
     def setEspacoProducao(self, espacoProducao):
         self.espacoProducao = int(espacoProducao)
     
+    @property
     def ehAtivo(self):
         return True if self.estado else False
 
+    @property
     def alternaUso(self):
         self.uso = not self.uso
 
+    @property
     def alternaEstado(self):
         self.estado = not self.estado
 
+    @property
     def alternaAutoProducao(self):
         self.autoProducao = not self.autoProducao
 

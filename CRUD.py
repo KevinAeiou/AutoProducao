@@ -232,13 +232,13 @@ class CRUD:
                 novoEspaco = personagem.espacoProducao
             novoEstado = input(f'Modificar estado? (S/N) ')
             if novoEstado.lower() == 's':
-                personagem.alternaEstado()
+                personagem.alternaEstado
             novoUso = input(f'Modificar uso? (S/N) ')
             if novoUso.lower() == 's':
-                personagem.alternaUso()
+                personagem.alternaUso
             novoAutoProducao = input(f'Modificar autoProducao? (S/N) ')
             if novoAutoProducao.lower() == 's':
-                personagem.alternaAutoProducao()
+                personagem.alternaAutoProducao
             personagem.nome = novoNome
             personagem.email = novoEmail
             personagem.senha = novasenha
@@ -1090,7 +1090,7 @@ class CRUD:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    crud: CRUD= CRUD()
+    crud: CRUD = CRUD()
     crud.menu()
     # aplicacaoCRUD: AplicacaoCRUD= AplicacaoCRUD()
     # aplicacaoCRUD.mainloop()
