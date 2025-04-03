@@ -39,14 +39,14 @@ class TrabalhoVendido(Trabalho):
         self.idPersonagem = None
         self.descricao = None
         self.dataVenda = None
-        self.quantidade = None
-        self.valor = None
+        self.quantidade = 1
+        self.valor = 0
 
-    def setQuantidade(self, quantidade):
+    def setQuantidade(self, quantidade: int):
         quantidade = 0 if int(quantidade) < 0 else int(quantidade)
         self.quantidade = quantidade
 
-    def setValor(self, valor):
+    def setValor(self, valor: int):
         valor = 0 if int(valor) < 0 else int(valor)
         self.valor = valor
 
