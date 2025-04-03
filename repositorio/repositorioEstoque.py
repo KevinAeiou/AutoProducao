@@ -1,61 +1,115 @@
 from constantes import *
 from modelos.trabalhoEstoque import TrabalhoEstoque
 from repositorio.firebaseDatabase import FirebaseDatabase
-from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
+from repositorio.stream import Stream
+from modelos.personagem import Personagem
+from requests.exceptions import HTTPError
+from firebase_admin import db
+from firebase_admin.db import Event
+from modelos.logger import MeuLogger
 
-class RepositorioEstoque:
-    def __init__(self, personagem):
-        self._meuBanco = FirebaseDatabase().pegaDataBase()
-        self._personagem = personagem
-        self.__erro = None
+class RepositorioEstoque(Stream):
+    def __init__(self, personagem: Personagem= None):
+        super().__init__(chave= CHAVE_ESTOQUE, nomeLogger= CHAVE_REPOSITORIO_ESTOQUE)
+        personagem = Personagem() if personagem is None else personagem
+        self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_ESTOQUE, arquivoLogger= f'{CHAVE_REPOSITORIO_ESTOQUE}.log')
+        firebaseDb: FirebaseDatabase = FirebaseDatabase()
+        self.__personagem: Personagem= personagem
+        self.__erro: str= None
+        try:
+            meuBanco: db = firebaseDb.banco
+            self.__minhaReferencia: db.Reference = meuBanco.reference(CHAVE_ESTOQUE).child(self.__personagem.id)
+        except Exception as e:
+            self.__logger.error(menssagem= f'Erro: {e}')
+        
+    def streamHandler(self, evento: Event):
+        super().streamHandler(evento= evento)
+        if evento.event_type in ('put', 'path'):
+            if evento.path == '/':
+                return
+            self.__logger.debug(menssagem= evento.path)
+            self.__logger.debug(menssagem= evento.data)
+            ids: list[str]= evento.path.split('/')
+            trabalho: TrabalhoEstoque= TrabalhoEstoque()
+            dicionarioTrabalho: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
+            if evento.data is None:
+                if len(ids) > 2:
+                    trabalho.id= ids[2]
+                    dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+                    super().insereDadosModificados(dado= dicionarioTrabalho)
+                    return
+                dicionarioTrabalho[CHAVE_TRABALHOS]= None
+                super().insereDadosModificados(dado= dicionarioTrabalho)
+                return
+            trabalho.dicionarioParaObjeto(dicionario= evento.data)
+            dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+            super().insereDadosModificados(dado= dicionarioTrabalho)
 
-    def pegaTodosTrabalhosEstoque(self):
-        listaEstoque = []
+    def pegaTodosTrabalhosEstoque(self) -> list[TrabalhoEstoque] | None:
+        listaEstoque: list[TrabalhoEstoque]= []
         try:
-            todosTrabalhosEstoque = self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_ESTOQUE).get()
-            if todosTrabalhosEstoque.pyres != None:
-                for trabalhoEstoqueEncontrado in todosTrabalhosEstoque.each():
-                    if CHAVE_PROFISSAO in trabalhoEstoqueEncontrado.val():
-                        profissao = trabalhoEstoqueEncontrado.val()[CHAVE_PROFISSAO]
-                    else:
-                        profissao = ''
-                    trabalhoEstoque = TrabalhoEstoque(
-                        trabalhoEstoqueEncontrado.key(),
-                        trabalhoEstoqueEncontrado.val()[CHAVE_NOME],
-                        profissao,
-                        trabalhoEstoqueEncontrado.val()[CHAVE_NIVEL],
-                        trabalhoEstoqueEncontrado.val()[CHAVE_QUANTIDADE],
-                        trabalhoEstoqueEncontrado.val()[CHAVE_RARIDADE],
-                        trabalhoEstoqueEncontrado.val()[CHAVE_TRABALHO_ID])
-                    listaEstoque.append(trabalhoEstoque)
-        except:
-            print(f'Erro')
-        return listaEstoque
-    
-    def insereTrabalhoEstoque(self, trabalho):
-        try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_ESTOQUE).child(trabalho.id).set(trabalho.__dict__)
-            return True
+            trabalhosEstoqueEncontrados: dict= self.__minhaReferencia.get()
+            if trabalhosEstoqueEncontrados is None:
+                return listaEstoque
+            for chave, valor in trabalhosEstoqueEncontrados.items():
+                trabalhoEstoque: TrabalhoEstoque= TrabalhoEstoque()
+                trabalhoEstoque.dicionarioParaObjeto(valor)
+                listaEstoque.append(trabalhoEstoque)
+            self.__logger.debug(menssagem= f'Estoque recuperado com sucesso!')
+            return listaEstoque
+        except HTTPError as e:
+            self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao recuperar trabalhos no estoque: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-        return False
-
-    def modificaTrabalhoEstoque(self, trabalho):
+            self.__logger.error(menssagem= f'Erro ao recuperar trabalhos no estoque: {e}')
+        return None
+        
+    def insereTrabalhoEstoque(self, trabalho: TrabalhoEstoque):
         try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_ESTOQUE).child(trabalho.id).update(trabalho.__dict__)
+            resultado: dict= self.__minhaReferencia.get()
+            if resultado is not None:
+                for chave, valor in resultado.items():
+                    if valor[CHAVE_ID_TRABALHO] == trabalho.idTrabalho:
+                        trabalho.id = chave
+                        break
+            self.__minhaReferencia.child(trabalho.id).set({CHAVE_ID: trabalho.id, CHAVE_QUANTIDADE: trabalho.quantidade, CHAVE_ID_TRABALHO: trabalho.idTrabalho})
+            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) inserido com sucesso!')
             return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao inserir trabalho no estoque: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-        return False
-    
-    def removeTrabalho(self, trabalho):
-        try:
-            self._meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self._personagem.id).child(CHAVE_LISTA_ESTOQUE).child(trabalho.id).remove()
-            return True
-        except Exception as e:
-            self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao inserir trabalho no estoque: {e}')
         return False
 
+    def modificaTrabalhoEstoque(self, trabalho: TrabalhoEstoque) -> bool:
+        try:
+            self.__minhaReferencia.child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_QUANTIDADE: trabalho.quantidade})
+            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) modificado com sucesso!')
+            return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao modificar trabalho no estoque: {e.errno}')
+        except Exception as e:
+            self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao modificar trabalho no estoque: {e}')
+        return False
     
+    def removeTrabalho(self, trabalho: TrabalhoEstoque) -> bool:
+        try:
+            self.__minhaReferencia.child(trabalho.id).delete()
+            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) removido com sucesso!')
+            return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao remover trabalho no estoque: {e.errno}')
+        except Exception as e:
+            self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao remover trabalho no estoque: {e}')
+        return False
+
+    @property
     def pegaErro(self):
         return self.__erro

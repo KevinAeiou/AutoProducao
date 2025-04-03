@@ -1,9 +1,8 @@
-from uuid import uuid4
+from modelos.usuario import Usuario
 
-class Personagem:
+class Personagem(Usuario):
     def __init__(self):
-        self.id = str(uuid4())
-        self.nome = None
+        super().__init__()
         self.email = None
         self.senha = None
         self.espacoProducao = 1
@@ -14,15 +13,19 @@ class Personagem:
     def setEspacoProducao(self, espacoProducao):
         self.espacoProducao = int(espacoProducao)
     
+    @property
     def ehAtivo(self):
         return True if self.estado else False
 
+    @property
     def alternaUso(self):
         self.uso = not self.uso
 
+    @property
     def alternaEstado(self):
         self.estado = not self.estado
 
+    @property
     def alternaAutoProducao(self):
         self.autoProducao = not self.autoProducao
 

@@ -41,7 +41,7 @@ class TesteAplicacao:
         trabalhoTeste.raridade = 'Comum'
         trabalhoTeste.trabalhoNecessario = ''
         trabalhoTeste.recorrencia = False
-        trabalhoTeste.tipo_licenca = 'Licença teste'
+        trabalhoTeste.tipoLicenca = 'Licença teste'
         trabalhoTeste.estado = 0
         cloneTrabalhoTeste = self.__aplicacao.defineCloneTrabalhoProducao(trabalhoTeste)
         idEsperado = trabalhoTeste.id
@@ -57,7 +57,7 @@ class TesteAplicacao:
         self.__aplicacao.personagemEmUso(personagemTeste)
         trabalhoTeste = TrabalhoProducao()
         trabalhoTeste.idTrabalho = '-NdR3aKtc466bwo5L5_-'
-        trabalhoTeste.tipo_licenca = CHAVE_LICENCA_INICIANTE
+        trabalhoTeste.tipoLicenca = CHAVE_LICENCA_INICIANTE
         esperado = True
         recebido = self.__aplicacao.modificaExperienciaProfissao(trabalhoTeste)
         assert esperado == recebido
@@ -68,7 +68,7 @@ class TesteAplicacao:
         self.__aplicacao.personagemEmUso(personagemTeste)
         trabalhoTeste = TrabalhoProducao()
         trabalhoTeste.idTrabalho = ''
-        trabalhoTeste.tipo_licenca = ''
+        trabalhoTeste.tipoLicenca = ''
         esperado = False
         recebido = self.__aplicacao.modificaExperienciaProfissao(trabalhoTeste)
         assert esperado == recebido

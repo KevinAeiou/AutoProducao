@@ -1,107 +1,125 @@
 from constantes import *
-import logging
 from modelos.personagem import Personagem
 from repositorio.firebaseDatabase import FirebaseDatabase
 from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
+from requests.exceptions import HTTPError
+from repositorio.stream import Stream
+from modelos.logger import MeuLogger
+from firebase_admin import db
+from firebase_admin.db import Event
 
 from time import time
 
-class RepositorioPersonagem:
+class RepositorioPersonagem(Stream):
     def __init__(self):
-        logging.basicConfig(level = logging.debug, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
-        self.__logger = logging.getLogger('repositorioPersonagem')
+        super().__init__(chave=CHAVE_PERSONAGENS, nomeLogger= CHAVE_REPOSITORIO_PERSONAGEM)
+        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_PERSONAGEM, arquivoLogger= f'{CHAVE_REPOSITORIO_PERSONAGEM}.log')
         self.__erro = None
-        self.__meuBanco = FirebaseDatabase().pegaDataBase()
-        self.__dadosModificados: list[dict] = []
-
-    def abreStream(self):
+        firebaseDb: FirebaseDatabase = FirebaseDatabase()
         try:
-            self.__inicio = time()
-            self.__logger.info(f'Tempo de inicio da stream: {self.__inicio}')
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).stream(self.stream_handler,  stream_id='teste2')
-            return True
+            meuBanco: db = firebaseDb.banco
+            self.__minhaReferenciaUsuarios: db.Reference = meuBanco.reference(CHAVE_USUARIOS2).child(CHAVE_ID_USUARIO).child(CHAVE_PERSONAGENS)
+            self.__minhaReferenciaPersonagens: db.Reference = meuBanco.reference(CHAVE_PERSONAGENS)
+            self.__minhaReferenciaProfissoes: db.Reference = meuBanco.reference(CHAVE_PROFISSOES)
+            self.__minhaReferenciaProducoes: db.Reference = meuBanco.reference(CHAVE_PRODUCAO)
+            self.__minhaReferenciaEstoque: db.Reference = meuBanco.reference(CHAVE_ESTOQUE)
+            self.__minhaReferenciaVendas: db.Reference = meuBanco.reference(CHAVE_VENDAS)
         except Exception as e:
-            self.__erro = str(e)
-        return False
+            self.__logger.error(menssagem= f'Erro: {e}')
     
-    @property
-    def estaPronto(self) -> bool:
-        """
-        Returns:
-            bool: True if my stuff is ready for use
-        """
-        return len(self.__dadosModificados) != 0
-    
-    def pegaDadosModificados(self) -> list:
-        '''
-        Returns:
-            list: Lista de personagens modificados
-        '''
-        return self.__dadosModificados
-    
-    def limpaLista(self):
-        '''
-        Limpa lista __dadosModificados
-        '''
-        self.__dadosModificados.clear()
-    
-    def stream_handler(self, message):
-        if message["event"] in ("put", "patch"):
-            if message["path"] == "/":
-                self.__logger.info(f'Tempo final da stream pronta: {time() - self.__inicio}')
+    def streamHandler(self, evento: Event):
+        super().streamHandler(evento= evento)
+        if evento.event_type in ("put", "patch"):
+            if evento.path == "/":
                 return
-            listaChaves = message["path"].split("/")
-            idPersonagemModificado = listaChaves[1]
-            chavePersonagemModificado = None
-            novoPersonagem = None
-            if len(listaChaves) == 2:
-                novoPersonagem = message['data']
-            else:
-                chavePersonagemModificado = listaChaves[2]
-            idTrabalhoProducaoModificado = None
-            if chavePersonagemModificado == CHAVE_LISTA_TRABALHOS_PRODUCAO or chavePersonagemModificado == CHAVE_LISTA_ESTOQUE or chavePersonagemModificado == CHAVE_LISTA_PROFISSAO or chavePersonagemModificado == CHAVE_LISTA_VENDAS:
-                idTrabalhoProducaoModificado = listaChaves[3]
-            dicionarioPersonagemModificado = {CHAVE_ID_PERSONAGEM : idPersonagemModificado, CHAVE_ID_TRABALHO : idTrabalhoProducaoModificado,chavePersonagemModificado : message['data'], 'novoPersonagem' : novoPersonagem}
-            self.__dadosModificados.append(dicionarioPersonagemModificado)
+            self.__logger.debug(menssagem= evento.path)
+            self.__logger.debug(menssagem= evento.data)
+            caminho: str= evento.path
+            idPersonagem: str= caminho.replace('/', '').strip()
+            dicionarioPersonagem: dict= {CHAVE_ID: idPersonagem}
+            if evento.data is None:
+                super().insereDadosModificados(dado= dicionarioPersonagem)
+                return
+            dicionarioPersonagem = evento.data
+            dicionarioPersonagem[CHAVE_ID] = idPersonagem
+            super().insereDadosModificados(dado= dicionarioPersonagem)
+            return
     
-    def pegaTodosPersonagens(self):
-        personagens = []
+    def pegaTodosPersonagens(self) -> list[Personagem] | None:
+        personagens: list[Personagem]= []
         try:
-            todosPersonagens = self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).get()
-            if todosPersonagens.pyres != None:
-                for personagemEncontrado in todosPersonagens.each():
-                    personagem = Personagem()
-                    personagem.dicionarioParaObjeto(personagemEncontrado.val())
-                    personagem.id = personagemEncontrado.key()
-                    personagens.append(personagem)
+            idPersonagensEncontrados: dict= self.__minhaReferenciaUsuarios.get()
+            if idPersonagensEncontrados is None:
                 return personagens
+            for chave, valor in idPersonagensEncontrados.items():
+                resultadoPersonagem: dict= self.__minhaReferenciaPersonagens.order_by_key().equal_to(chave).get()
+                if resultadoPersonagem is None:
+                    continue
+                for chave2, valor2 in resultadoPersonagem.items():
+                    personagem: Personagem= Personagem()
+                    personagem.dicionarioParaObjeto(valor2)
+                    break
+                personagens.append(personagem)
+            self.__logger.debug(menssagem= f'Personagens recuperados com sucesso!')
+            return personagens
+        except HTTPError as e:
+            self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao pegar personagens: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao pegar personagens: {e}')
         return None
     
-    def inserePersonagem(self, personagem):
+    def inserePersonagem(self, personagem: Personagem) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.id).set(personagem.__dict__)
+            self.__minhaReferenciaUsuarios.update({personagem.id: True})
+            self.__minhaReferenciaPersonagens.child(personagem.id).set(personagem.__dict__)
+            self.__logger.debug(menssagem= f'Personagem ({personagem}) inserido com sucesso!')
             return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao inserir personagem: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao inserir personagem: {e}')
         return False
     
-    def modificaPersonagem(self, personagem):
+    def modificaPersonagem(self, personagem: Personagem) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.id).update(personagem.__dict__)
+            self.__minhaReferenciaPersonagens.child(personagem.id).update(personagem.__dict__)
+            self.__logger.debug(menssagem= f'Personagem ({personagem}) modificado com sucesso!')
             return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao modificar personagem: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao modificar personagem: {e}')
         return False
     
-    def removePersonagem(self, personagem):
+    def removePersonagem(self, personagem: Personagem) -> bool:
         try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(personagem.id).remove()
+            self.__minhaReferenciaPersonagens.child(personagem.id).delete()
+            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de personagens.')
+            self.__minhaReferenciaUsuarios.child(personagem.id).delete()
+            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de usuários.')
+            self.__minhaReferenciaProfissoes.child(personagem.id).delete()
+            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de profissões.')
+            self.__minhaReferenciaProducoes.child(personagem.id).delete()
+            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de produções.')
+            self.__minhaReferenciaEstoque.child(personagem.id).delete()
+            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de estoque.')
+            self.__minhaReferenciaVendas.child(personagem.id).delete()
+            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de vendas.')
             return True
+        except HTTPError as e:
+            self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao remover personagem: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao remover personagem: {e}')
         return False
 
+    @property
     def pegaErro(self):
         return self.__erro

@@ -3,22 +3,48 @@ from constantes import *
 from modelos.trabalho import Trabalho
 import numpy as np
 import os
+import re
 
 def textoEhIgual(texto1, texto2):
     return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
 
-def texto1PertenceTexto2(texto1, texto2):
-    return limpaRuidoTexto(texto1) in limpaRuidoTexto(texto2)
+def texto1PertenceTexto2(texto1: str, texto2: str) -> bool:
+    '''
+        Função para verificar caso texto1 está contido no texto2
+        Args:
+            texto1 (str): String que contêm o texto a ser verificado
+            texto2 (str): String que contêm o texto a ser verificado
+        Returns:
+            bool: Verdadeiro caso o texto1 está contido no texto2
+    '''
+    return limpaRuidoTexto(texto= texto1) in limpaRuidoTexto(texto= texto2)
 
-def tamanhoIgualZero(lista):
+def ehVazia(lista: list) -> bool:
+    '''
+        Função para verificar se uma lista está vazia
+        Args:
+            lista (list): Lista a ser verificada
+        Returns:
+            bool: Verdadeiro caso a lista esteja vazia
+    '''
     return len(lista) == 0
 
 def variavelExiste(variavel):
     return variavel != None
 
-def limpaRuidoTexto(texto):
-    texto = '' if texto == None else texto
-    return unidecode(texto).replace(' ','').replace('-','').lower()
+def limpaRuidoTexto(texto: str) -> str:
+    '''
+        Função para retirar caracteres especiais do texto recebido por parâmetro.
+        Args:
+            texto (str): String que contêm o texto a ser higienizado.
+        Returns:
+            str: String que contêm o texto higienizado.
+    '''
+    texto = '' if texto is None else texto
+    padrao: str = '[^a-zA-Z0-9àáãâéêíîóõôúûç_]'
+    expressao = re.compile(padrao)
+    novaStringPalavras: str = expressao.sub('', texto)
+    return unidecode(novaStringPalavras).lower()
 
 def retiraDigitos(texto):
     listaDigitos = ['0','1','2','3','4','5','6','7','8','9']
@@ -125,6 +151,12 @@ def ehErroUsuarioOuSenhaInvalida(erro: int) -> bool:
 def ehErroMoedasMilagrosasInsuficientes(erro):
     return erro == CODIGO_ERRO_MOEDAS_MILAGROSAS_INSUFICIENTES
 
+def ehErroItemAVenda(erro: int) -> bool:
+    return erro == CODIGO_ITEM_A_VENDA
+
+def ehErroFalhaAoIniciarConexao(erro: int) -> bool:
+    return erro == CODIGO_FALHA_AO_INICIAR_CONEXAO
+
 def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
     return dicionarioPersonagem[CHAVE_ESPACO_BOLSA]
 
@@ -176,20 +208,44 @@ def chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
 def primeiraBusca(dicionarioTrabalho):
     return dicionarioTrabalho[CHAVE_POSICAO] == -1
 
-def menuTrabalhosAtuaisReconhecido(menu):
+def ehMenuTrabalhosAtuais(menu: int) -> bool:
     return menu == MENU_TRABALHOS_ATUAIS
 
-def menuTrabalhoEspecificoReconhecido(menu):
+def ehMenuTrabalhoEspecifico(menu: int) -> bool:
     return menu == MENU_TRABALHO_ESPECIFICO
 
-def menuLicencasReconhecido(menu):
+def ehMenuLicenca(menu: int) -> bool:
     return menu == MENU_LICENSAS
 
-def menuEscolhaEquipamentoReconhecido(menu):
+def ehMenuEscolhaEquipamento(menu: int) -> bool:
     return menu == MENU_ESCOLHA_EQUIPAMENTO
 
-def menuAtributosEquipamentoReconhecido(menu):
+def ehMenuAtributosEquipamento(menu: int) -> bool:
     return menu == MENU_TRABALHOS_ATRIBUTOS
+
+def ehMenuMercado(menu: int) -> bool:
+    return menu == MENU_MERCADO
+
+def ehMenuAnuncio(menu: int) -> bool:
+    return menu == MENU_ANUNCIO
+
+def ehMenuMeusAnuncios(menu: int) -> bool:
+    return menu == MENU_MEUS_ANUNCIOS
+
+def ehMenuOfertaDiaria(menu: int) -> bool:
+    return menu == MENU_OFERTA_DIARIA
+
+def ehMenuPersonagem(menu: int) -> bool:
+    return menu == MENU_PERSONAGEM
+
+def ehMenuPrincipal(menu: int) -> bool:
+    return menu == MENU_PRINCIPAL
+
+def ehMenuRecompensasDiarias(menu: int) -> bool:
+    return menu == MENU_RECOMPENSAS_DIARIAS
+
+def ehMenuLojaMilagrosa(menu: int) -> bool:
+    return menu == MENU_LOJA_MILAGROSA
 
 def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
     listaDicionarioProfissaoRecursos = []

@@ -1,7 +1,8 @@
 import logging
 from uuid import uuid4
-from utilitarios import limpaTela, variavelExiste, tamanhoIgualZero, textoEhIgual
-from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO
+from utilitarios import limpaTela, variavelExiste, ehVazia, textoEhIgual
+# from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO
+from constantes import *
 
 from dao.trabalhoProducaoDaoSqlite import TrabalhoProducaoDaoSqlite
 
@@ -13,15 +14,16 @@ from modelos.personagem import Personagem
 from modelos.trabalhoEstoque import TrabalhoEstoque
 from modelos.trabalhoVendido import TrabalhoVendido
 from modelos.profissao import Profissao
+from modelos.aplicacaoCRUD import AplicacaoCRUD
+from modelos.logger import MeuLogger
 
 from main import Aplicacao
 
 class CRUD:
     def __init__(self):
-        logging.basicConfig(level = logging.INFO, filename = 'logs/aplicacao.log', encoding='utf-8', format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s', datefmt = '%d/%m/%Y %I:%M:%S %p')
+        self.__loggerTrabalhoProducaoDao: MeuLogger= MeuLogger(nome= 'trabalhoProducaoDao')
         self.__personagemEmUso = None
-        self.__aplicacao = Aplicacao()
-        self.__loggerTrabalhoProducaoDao = logging.getLogger('trabalhoProducaoDao')
+        self.__aplicacao: Aplicacao= Aplicacao()
         self.menu()
     
     def insereNovoTrabalho(self):
@@ -48,7 +50,7 @@ class CRUD:
             while True:
                 limpaTela()
                 trabalhos = self.__aplicacao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
-                if tamanhoIgualZero(trabalhos):
+                if ehVazia(trabalhos):
                     print('Lista de trabalhos está vazia!')
                 else:
                     print(f'{"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | {"NÍVEL".ljust(5)} | TRABALHOS NECESSÁRIOS')
@@ -98,7 +100,7 @@ class CRUD:
             while True:
                 limpaTela()
                 trabalhos = self.__aplicacao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
-                if tamanhoIgualZero(trabalhos):
+                if ehVazia(trabalhos):
                     print('Lista de trabalhos está vazia!')
                 else:
                     print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'RARIDADE'.ljust(9)} | {'NÍVEL'.ljust(5)} | TRABALHOS NECESSÁRIOS")
@@ -110,25 +112,25 @@ class CRUD:
                     break
                 trabalhoEscolhido = trabalhos[int(opcaoTrabalho) - 1]
                 novoNome = input(f'Novo nome: ')
-                if tamanhoIgualZero(novoNome):
+                if ehVazia(novoNome):
                     novoNome = trabalhoEscolhido.nome
                 novoNomeProducao = input(f'Novo nome de produção: ')
-                if tamanhoIgualZero(novoNomeProducao):
+                if ehVazia(novoNomeProducao):
                     novoNomeProducao = trabalhoEscolhido.nomeProducao
                 novaExperiencia = input(f'Nova experiência: ')
-                if tamanhoIgualZero(novaExperiencia):
+                if ehVazia(novaExperiencia):
                     novaExperiencia = trabalhoEscolhido.experiencia
                 novoNivel = input(f'Novo nível: ')
-                if tamanhoIgualZero(novoNivel):
+                if ehVazia(novoNivel):
                     novoNivel = trabalhoEscolhido.nivel
                 novaProfissao = input(f'Nova profissão: ')
-                if tamanhoIgualZero(novaProfissao):
+                if ehVazia(novaProfissao):
                     novaProfissao = trabalhoEscolhido.profissao
                 novaRaridade = input(f'Nova raridade: ')
-                if tamanhoIgualZero(novaRaridade):
+                if ehVazia(novaRaridade):
                     novaRaridade = trabalhoEscolhido.raridade
                 novoTrabalhoNecessario = input(f'Novo trabalho necessário: ')
-                if tamanhoIgualZero(novoTrabalhoNecessario):
+                if ehVazia(novoTrabalhoNecessario):
                     novoTrabalhoNecessario = trabalhoEscolhido.trabalhoNecessario
                 trabalhoEscolhido.nome = novoNome
                 trabalhoEscolhido.nomeProducao = novoNomeProducao
@@ -164,7 +166,7 @@ class CRUD:
                 limpaTela()
                 trabalhos = self.__aplicacao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
                 print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'RARIDADE'.ljust(9)} | {'NÍVEL'.ljust(5)} | TRABALHOS NECESSÁRIOS")
-                if tamanhoIgualZero(trabalhos):
+                if ehVazia(trabalhos):
                     print('Lista de trabalhos está vazia!')
                 else:
                     for trabalho in trabalhos:
@@ -181,7 +183,7 @@ class CRUD:
             limpaTela()
             print(f"{'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
             personagens = self.__aplicacao.pegaPersonagens()
-            if tamanhoIgualZero(personagens):
+            if ehVazia(personagens):
                 print('Lista de personagens está vazia!')
             else:
                 for personagem in personagens:
@@ -196,13 +198,16 @@ class CRUD:
             novoPersonagem.nome = nome
             novoPersonagem.email = email
             novoPersonagem.senha = senha
-            self.__aplicacao.inserePersonagem(novoPersonagem)
+            if self.__aplicacao.inserePersonagem(novoPersonagem):
+                self.__aplicacao.insereListaProfissoes(personagem= novoPersonagem)
+                continue
+            input(f'Clique para continuar...')
 
     def modificaPersonagem(self):
         while True:
             limpaTela()
             personagens = self.__aplicacao.pegaPersonagens()
-            if tamanhoIgualZero(personagens):
+            if ehVazia(personagens):
                 print('Lista de personagens está vazia!')
             else:
                 print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
@@ -214,37 +219,39 @@ class CRUD:
             limpaTela()
             personagem = personagens[int(opcaoPersonagem) - 1]
             novoNome = input(f'Novo nome: ')
-            if tamanhoIgualZero(novoNome):
+            if ehVazia(novoNome):
                 novoNome = personagem.nome
             novoEmail = input(f'Novo email: ')
-            if tamanhoIgualZero(novoEmail):
+            if ehVazia(novoEmail):
                 novoEmail = personagem.email
             novasenha = input(f'Nova senha: ')
-            if tamanhoIgualZero(novasenha):
+            if ehVazia(novasenha):
                 novasenha = personagem.senha
             novoEspaco = input(f'Nova quantidade de produção: ')
-            if tamanhoIgualZero(novoEspaco):
+            if ehVazia(novoEspaco):
                 novoEspaco = personagem.espacoProducao
             novoEstado = input(f'Modificar estado? (S/N) ')
             if novoEstado.lower() == 's':
-                personagem.alternaEstado()
+                personagem.alternaEstado
             novoUso = input(f'Modificar uso? (S/N) ')
             if novoUso.lower() == 's':
-                personagem.alternaUso()
+                personagem.alternaUso
             novoAutoProducao = input(f'Modificar autoProducao? (S/N) ')
             if novoAutoProducao.lower() == 's':
-                personagem.alternaAutoProducao()
+                personagem.alternaAutoProducao
             personagem.nome = novoNome
             personagem.email = novoEmail
             personagem.senha = novasenha
             personagem.setEspacoProducao(novoEspaco)
-            self.__aplicacao.modificaPersonagem(personagem)
+            if self.__aplicacao.modificaPersonagem(personagem= personagem):
+                continue
+            input(f'Clique para continuar...')
     
     def removePersonagem(self):
         while True:
             limpaTela()
             personagens = self.__aplicacao.pegaPersonagens()
-            if tamanhoIgualZero(personagens):
+            if ehVazia(personagens):
                 print('Lista de personagens está vazia!')
             else:
                 print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
@@ -255,25 +262,27 @@ class CRUD:
             if int(opcaoPersonagem) == 0:
                 break
             personagem = personagens[int(opcaoPersonagem) - 1]
-            self.__aplicacao.removePersonagem(personagem)
+            if self.__aplicacao.removePersonagem(personagem= personagem):
+                continue
+            input(f'Clique para continuar...')
 
     def mostraListaTrabalhosProducao(self):
         limpaTela()
         trabalhos = self.__aplicacao.pegaTrabalhosProducao()
-        if tamanhoIgualZero(trabalhos):
+        if ehVazia(trabalhos):
             print('Lista de trabalhos em produção está vazia!')
         else:
             print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(44)} | {'PROFISSÃO'.ljust(22)} | {'NÍVEL'.ljust(5)} | {'ESTADO'.ljust(10)} | {'LICENÇA'.ljust(34)} | RECORRÊNCIA")
             for trabalhoProducao in trabalhos:
                 estado = 'Produzir' if trabalhoProducao.estado == 0 else 'Produzindo' if trabalhoProducao.estado == 1 else 'Feito'
                 recorrencia = 'Recorrente' if trabalhoProducao.recorrencia else 'Único'
-                print(f'{str(trabalhos.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao.nome.ljust(44)} | {trabalhoProducao.profissao.ljust(22)} | {str(trabalhoProducao.nivel).ljust(5)} | {estado.ljust(10)} | {trabalhoProducao.tipo_licenca.ljust(34)} | {recorrencia}')
+                print(f'{str(trabalhos.index(trabalhoProducao) + 1).ljust(6)} - {trabalhoProducao.nome.ljust(44)} | {trabalhoProducao.profissao.ljust(22)} | {str(trabalhoProducao.nivel).ljust(5)} | {estado.ljust(10)} | {trabalhoProducao.tipoLicenca.ljust(34)} | {recorrencia}')
         return trabalhos
     
     def mostraListaTrabalhosPorProfissaoRaridade(self, trabalhoBuscado):
         limpaTela()
         trabalhos = self.__aplicacao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
-        if tamanhoIgualZero(trabalhos):
+        if ehVazia(trabalhos):
             print(f'Nem um trabalho encontrado!')
         else:
             print(f"{'ÍNDICE'.ljust(6)} - {'NOME'.ljust(40)} | {('PROFISSÃO').ljust(20)} | NÍVEL")
@@ -315,7 +324,9 @@ class CRUD:
                         trabalhoSelecionado = self.defineNovoTrabalhoProducao(trabalhosEncontrados)
                         if variavelExiste(trabalhosEncontrados) and variavelExiste(trabalhoSelecionado):
                             novoTrabalhoProducao = self.defineNovoTrabalhoProducaoSelecionado(trabalhoSelecionado)
-                            self.__aplicacao.insereTrabalhoProducao(novoTrabalhoProducao)
+                            if self.__aplicacao.insereTrabalhoProducao(trabalho= novoTrabalhoProducao):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -331,7 +342,7 @@ class CRUD:
         novoTrabalhoProducao.id = str(uuid4())
         novoTrabalhoProducao.idTrabalho = trabalhoSelecionado.id
         novoTrabalhoProducao.recorrencia = recorrencia
-        novoTrabalhoProducao.tipo_licenca = licenca
+        novoTrabalhoProducao.tipoLicenca = licenca
         novoTrabalhoProducao.estado = CODIGO_PARA_PRODUZIR
         return novoTrabalhoProducao
 
@@ -361,17 +372,19 @@ class CRUD:
                         self.mostraListaLicencas()
                         novaLicenca = self.defineLicencaSelecionada()
                         if variavelExiste(novaLicenca):
-                            trabalhoProducaoSelecionado.tipo_licenca = novaLicenca
+                            trabalhoProducaoSelecionado.tipoLicenca = novaLicenca
                             novaRecorrencia = input(f'Alterna recorrencia? (S/N) ')
                             if novaRecorrencia.lower() == 's':
                                 trabalhoProducaoSelecionado.alternaRecorrencia()
                             limpaTela()
                             novoEstado = input(f'Novo estado: (0 - PRODUZIR, 1 - PRODUZINDO, 2 - CONCLUÍDO) ')
-                            if tamanhoIgualZero(novoEstado):
+                            if ehVazia(novoEstado):
                                 novoEstado = trabalhoProducaoSelecionado.estado 
                             else:
                                 trabalhoProducaoSelecionado.estado = int(novoEstado)
-                            self.__aplicacao.modificaTrabalhoProducao(trabalhoProducaoSelecionado)
+                            if self.__aplicacao.modificaTrabalhoProducao(trabalho= trabalhoProducaoSelecionado):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -387,7 +400,9 @@ class CRUD:
                     trabalhoRemovido = self.defineTrabalhoProducaoSelecionado(trabalhosProducao)
                     if trabalhoRemovido is None:
                         break
-                    self.__aplicacao.removeTrabalhoProducao(trabalhoRemovido)
+                    if self.__aplicacao.removeTrabalhoProducao(trabalho= trabalhoRemovido):
+                        continue
+                    input('Clique para continuar...')
                 continue
             break
 
@@ -395,7 +410,7 @@ class CRUD:
         while True:
             limpaTela()
             personagens = self.__aplicacao.pegaPersonagens()
-            if tamanhoIgualZero(personagens):
+            if ehVazia(personagens):
                 print(f'Lista de personagens está vazia!')
             else:
                 print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
@@ -408,19 +423,22 @@ class CRUD:
             while True:
                 limpaTela()
                 self.__aplicacao.personagemEmUso(personagens[int(opcaoPersonagem) - 1])
-                profissoes = self.__aplicacao.pegaProfissoes()
-                if tamanhoIgualZero(profissoes):
+                profissoes: list[Profissao] = self.__aplicacao.pegaProfissoes()
+                if ehVazia(profissoes):
                     self.__aplicacao.insereListaProfissoes()
                     continue
-                print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'ID PERSONAGEM'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE")
+                print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE")
                 for profissao in profissoes:
-                    print(f'{str(profissoes.index(profissao) + 1).ljust(6)} - {profissao}')
+                    prioridade: str= 'Ativa' if profissao.prioridade == 1 else 'Inativa'
+                    print(f'{str(profissoes.index(profissao) + 1).ljust(6)} - {profissao.id.ljust(40)} | {profissao.nome.ljust(22)} | {str(profissao.experiencia).ljust(6)} | {prioridade}')
                 print(f'{"0".ljust(6)} - Voltar')
                 opcaoProfissao = input(f'Opção: ')
                 if int(opcaoProfissao) == 0:
                     break
                 profissaoRemovida = profissoes[int(opcaoProfissao)-1]
-                self.__aplicacao.removeProfissao(profissaoRemovida)
+                if self.__aplicacao.removeProfissao(profissao= profissaoRemovida):
+                    continue
+                input(f'Clique para continuar...')
 
     def insereProfissao(self):
         while True:
@@ -428,7 +446,7 @@ class CRUD:
             if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
                 while True:
                     profissoes = self.__aplicacao.pegaProfissoes()
-                    if tamanhoIgualZero(profissoes):
+                    if ehVazia(profissoes):
                         self.__aplicacao.insereListaProfissoes()
                         continue
                     print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'ID PERSONAGEM'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE")
@@ -452,7 +470,7 @@ class CRUD:
         while True:
             limpaTela()
             personagens = self.__aplicacao.pegaPersonagens()
-            if tamanhoIgualZero(personagens):
+            if ehVazia(personagens):
                 print(f'Lista de personagens está vazia!')
             else:
                 print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
@@ -466,7 +484,7 @@ class CRUD:
                 limpaTela()
                 self.__aplicacao.personagemEmUso(personagens[int(opcaoPersonagem) - 1])
                 profissoes = self.__aplicacao.pegaProfissoes()
-                if tamanhoIgualZero(profissoes):
+                if ehVazia(profissoes):
                     self.__aplicacao.insereListaProfissoes()
                     continue
                 print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(40)} | {'ID PERSONAGEM'.ljust(40)} | {'NOME'.ljust(22)} | {'EXP'.ljust(6)} | PRIORIDADE")
@@ -480,19 +498,21 @@ class CRUD:
                 novoNome = input(f'Novo nome: ')
                 novaExperiencia = input(f'Nova experiência: ')
                 alternaPrioridade = input(f'Alternar prioridade? (S/N) ')
-                novoNome = profissaoModificado.nome if tamanhoIgualZero(novoNome) else novoNome
-                novaExperiencia = profissaoModificado.experiencia if tamanhoIgualZero(novaExperiencia) else novaExperiencia
+                novoNome = profissaoModificado.nome if ehVazia(novoNome) else novoNome
+                novaExperiencia = profissaoModificado.experiencia if ehVazia(novaExperiencia) else novaExperiencia
                 profissaoModificado.nome = novoNome
                 profissaoModificado.setExperiencia(novaExperiencia)
                 if alternaPrioridade.lower() == 's':
                     profissaoModificado.alternaPrioridade()
-                self.__aplicacao.modificaProfissao(profissaoModificado)
+                if self.__aplicacao.modificaProfissao(profissaoModificado):
+                    continue
+                input(f'Clique para continuar...')
 
     def pegaTodosTrabalhosProducao(self):
         limpaTela()
         trabalhosProducao = self.__aplicacao.pegaTodosTrabalhosProducao()
         # print(f'{'NOME'.ljust(113)} | {'DATA'.ljust(10)} | {'ID TRABALHO'.ljust(36)} | {'VALOR'.ljust(5)} | UND')
-        if tamanhoIgualZero(trabalhosProducao):
+        if ehVazia(trabalhosProducao):
             print('Lista de trabalhos em produção está vazia!')
         else:
             for trabalhoProducao in trabalhosProducao:
@@ -519,7 +539,7 @@ class CRUD:
                             trabalhoBuscado.raridade = raridadeSelecionada
                             if variavelExiste(raridadeSelecionada):
                                 trabalhos = self.__aplicacao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
-                                if tamanhoIgualZero(trabalhos):
+                                if ehVazia(trabalhos):
                                     print('Lista de trabalhos está vazia!')
                                 else:
                                     print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
@@ -529,7 +549,9 @@ class CRUD:
                                 trabalho = self.defineTrabalhoEstoqueSelecionado(trabalhos)
                                 if variavelExiste(trabalho):
                                     trabalhoEstoque = self.defineNovoTrabalhoEstoque(trabalho)
-                                    self.__aplicacao.insereTrabalhoEstoque(trabalhoEstoque)
+                                    if self.__aplicacao.insereTrabalhoEstoque(trabalho= trabalhoEstoque):
+                                        continue
+                                    input('Clique para continuar...')
                                     continue
                                 break
                             break
@@ -550,7 +572,7 @@ class CRUD:
         trabalhoEstoque = TrabalhoEstoque()
         trabalhoEstoque.dicionarioParaObjeto(trabalho.__dict__)
         trabalhoEstoque.id = str(uuid4())
-        trabalhoEstoque.trabalhoId = trabalho.id
+        trabalhoEstoque.idTrabalho = trabalho.id
         trabalhoEstoque.setQuantidade(quantidadeTrabalho)
         return trabalhoEstoque
 
@@ -560,7 +582,7 @@ class CRUD:
 
     def defineExperiencia(self) -> int:
         experiencia: str = input('Experiência: ')
-        return 0 if experiencia is None else 0 if tamanhoIgualZero(experiencia) else int(experiencia)
+        return 0 if experiencia is None else 0 if ehVazia(experiencia) else int(experiencia)
 
     def defineRaridadeSelecionada(self):
         opcaoRaridade = input('Opçao raridade: ')
@@ -592,7 +614,9 @@ class CRUD:
                         trabalhoEstoque = self.defineTrabalhoEstoqueSelecionado(estoque)
                         if variavelExiste(trabalhoEstoque):
                             trabalhoEstoque = self.defineTrabalhoEstoqueModificado(trabalhoEstoque)
-                            self.__aplicacao.modificaTrabalhoEstoque(trabalhoEstoque)
+                            if self.__aplicacao.modificaTrabalhoEstoque(trabalhoEstoque):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -601,7 +625,7 @@ class CRUD:
 
     def defineTrabalhoEstoqueModificado(self, trabalhoEstoque):
         quantidade = input(f'Quantidade trabalho: ')
-        quantidade = trabalhoEstoque.quantidade if tamanhoIgualZero(quantidade) else quantidade
+        quantidade = trabalhoEstoque.quantidade if ehVazia(quantidade) else quantidade
         trabalhoEstoque.setQuantidade(quantidade)
         return trabalhoEstoque
     
@@ -614,7 +638,9 @@ class CRUD:
                     if variavelExiste(estoque):
                         trabalhoEstoque = self.defineTrabalhoEstoqueSelecionado(estoque)
                         if variavelExiste(trabalhoEstoque):
-                            self.__aplicacao.removeTrabalhoEstoque(trabalhoEstoque)
+                            if self.__aplicacao.removeTrabalhoEstoque(trabalho= trabalhoEstoque):
+                                continue
+                            input('Cliue para continuar...')
                             continue
                         break
                     break
@@ -631,19 +657,19 @@ class CRUD:
     def mostraListaTrabalhosEstoque(self):
         limpaTela()
         estoque = self.__aplicacao.pegaTrabalhosEstoque()
-        if tamanhoIgualZero(estoque):
+        if ehVazia(estoque):
             print(f'Estoque está vazio!')
         else:
             print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(40)} | {"PROFISSÃO".ljust(25)} | {"QNT".ljust(3)} | {"NÍVEL".ljust(5)} | {"RARIDADE".ljust(10)} | ID TRABALHO')
             for trabalhoEstoque in estoque:
-                print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} - {trabalhoEstoque.nome.ljust(40)} | {trabalhoEstoque.profissao.ljust(25)} | {str(trabalhoEstoque.quantidade).ljust(3)} | {str(trabalhoEstoque.nivel).ljust(5)} | {trabalhoEstoque.raridade.ljust(10)} | {trabalhoEstoque.trabalhoId}')
+                print(f'{str(estoque.index(trabalhoEstoque) + 1).ljust(6)} - {trabalhoEstoque.nome.ljust(40)} | {trabalhoEstoque.profissao.ljust(25)} | {str(trabalhoEstoque.quantidade).ljust(3)} | {str(trabalhoEstoque.nivel).ljust(5)} | {trabalhoEstoque.raridade.ljust(10)} | {trabalhoEstoque.idTrabalho}')
         print(f'{"0".ljust(6)} - Voltar')
         return estoque
 
     def mostraListaPersonagens(self):
         limpaTela()
         personagens = self.__aplicacao.pegaPersonagens()
-        if tamanhoIgualZero(personagens):
+        if ehVazia(personagens):
             print('Lista de personagens está vazia!')
         else:
             print(f"{'ÍNDICE'.ljust(6)} - {'ID'.ljust(36)} | {'NOME'.ljust(17)} | {'ESPAÇO'.ljust(6)} | {'ESTADO'.ljust(10)} | {'USO'.ljust(10)} | AUTOPRODUCAO")
@@ -664,7 +690,7 @@ class CRUD:
         limpaTela()
         print(f'{"ÍNDICE".ljust(6)} - {"ID".ljust(36)} | {"NOME".ljust(36)} | {"DATA".ljust(10)} | {"VALOR".ljust(5)} | UND')
         vendas = self.__aplicacao.pegaTrabalhosVendidos()
-        if tamanhoIgualZero(vendas):
+        if ehVazia(vendas):
             print('Lista de vendas está vazia!')
         else:
             for trabalho in vendas:
@@ -674,7 +700,7 @@ class CRUD:
     def mostraListaTrabalhos(self):
         limpaTela()
         trabalhos = self.__aplicacao.pegaTrabalhosBanco()
-        if tamanhoIgualZero(trabalhos):
+        if ehVazia(trabalhos):
             print('Lista de trabalhos está vazia!')
         else:
             print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
@@ -707,7 +733,9 @@ class CRUD:
                                     if variavelExiste(trabalhoSelecionado):
                                         novoTrabalhoVendido = self.defineNovoTrabalhoVendido(trabalhoSelecionado)
                                         if variavelExiste(novoTrabalhoVendido):
-                                            self.__aplicacao.insereTrabalhoVendido(novoTrabalhoVendido)
+                                            if self.__aplicacao.insereTrabalhoVendido(trabalho= novoTrabalhoVendido):
+                                                continue
+                                            input('Clique para continuar...')
                                             continue
                                         break
                                     break
@@ -721,7 +749,7 @@ class CRUD:
     def mostraTrabalhosPorProfissaoRaridade(self, trabalhoBuscado):
         limpaTela()
         trabalhos = self.__aplicacao.pegaTrabalhosPorProfissaoRaridade(trabalhoBuscado)
-        if tamanhoIgualZero(trabalhos):
+        if ehVazia(trabalhos):
             print('Lista de trabalhos está vazia!')
         else:
             print(f'{"ÍNDICE".ljust(6)} - {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | NÍVEL')
@@ -757,7 +785,9 @@ class CRUD:
                         trabalhoVendidoModificado = self.defineVendaEscolhida(vendas)
                         if variavelExiste(trabalhoVendidoModificado):
                             trabalhoVendidoModificado = self.defineTrabalhoVendidoModificado(trabalhoVendidoModificado)
-                            self.__aplicacao.modificaTrabalhoVendido(trabalhoVendidoModificado)
+                            if self.__aplicacao.modificaTrabalhoVendido(trabalho= trabalhoVendidoModificado):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -774,7 +804,9 @@ class CRUD:
                         print(f'{"0".ljust(6)} - Voltar')
                         trabalhoVendidoSelecionado = self.defineVendaEscolhida(vendas)
                         if variavelExiste(trabalhoVendidoSelecionado):
-                            self.__aplicacao.removeTrabalhoVendido(trabalhoVendidoSelecionado)
+                            if self.__aplicacao.removeTrabalhoVendido(trabalho= trabalhoVendidoSelecionado):
+                                continue
+                            input('Clique para continuar...')
                             continue
                         break
                     break
@@ -787,10 +819,10 @@ class CRUD:
         data = input(f'Data da venda: ')
         quantidade = input(f'Quantidade vendida: ')
         valor = input(f'Valor da venda: ')
-        trabalho.descricao = trabalho.descricao if tamanhoIgualZero(descricao) else descricao
-        trabalho.dataVenda = trabalho.dataVenda if tamanhoIgualZero(data) else data
-        trabalho.quantidade = trabalho.quantidade if tamanhoIgualZero(quantidade) else quantidade
-        trabalho.valor = trabalho.valor if tamanhoIgualZero(valor) else valor
+        trabalho.descricao = trabalho.descricao if ehVazia(descricao) else descricao
+        trabalho.dataVenda = trabalho.dataVenda if ehVazia(data) else data
+        trabalho.quantidade = trabalho.quantidade if ehVazia(quantidade) else quantidade
+        trabalho.valor = trabalho.valor if ehVazia(valor) else valor
         return trabalho
 
     def defineTrabalhoProducaoSelecionado(self, trabalhos: list[TrabalhoProducao]) -> TrabalhoProducao | None:
@@ -802,7 +834,7 @@ class CRUD:
         trabalho: TrabalhoProducao = trabalhos[int(opcaoTrabalho) - 1]
         trabalhoProducao.id = trabalho.id
         trabalhoProducao.idTrabalho = trabalho.idTrabalho
-        trabalhoProducao.tipo_licenca = trabalho.tipo_licenca
+        trabalhoProducao.tipoLicenca = trabalho.tipoLicenca
         trabalhoProducao.recorrencia = trabalho.recorrencia
         trabalhoProducao.estado = trabalho.estado
         return trabalhoProducao
@@ -818,11 +850,12 @@ class CRUD:
         return trabalhoVendido
 
     def sincronizaDados(self):
-        # self.sincronizaListaTrabalhos()
+        self.__aplicacao.sincronizaListaTrabalhos()
         self.__aplicacao.sincronizaListaPersonagens()
         self.__aplicacao.sincronizaListaProfissoes()
+        self.__aplicacao.sincronizaTrabalhosEstoque()
         self.__aplicacao.sincronizaTrabalhosProducao()
-        # self.__aplicacao.sincronizaTrabalhosVendidos()
+        self.__aplicacao.sincronizaTrabalhosVendidos()
     
     def verificaTrabalhoRaroMaisVendido(self):
         vendas = self.__aplicacao.pegaTrabalhosRarosVendidos()
@@ -884,12 +917,79 @@ class CRUD:
         self.__aplicacao.abreStreamPersonagens()
         
     def testeFuncao(self):
-        self.__aplicacao.abreStreamPersonagens()
+        # self.testeStream()
+        self.migraDadosNovoServidor()
+
+    def testeStream(self):
+        from repositorio.repositorioTrabalho import RepositorioTrabalho
+        from repositorio.repositorioTrabalhoProducao import RepositorioTrabalhoProducao
+        repositorioTrabalho: RepositorioTrabalho= RepositorioTrabalho()
+        repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao()
+        if not repositorioTrabalhoProducao.abreStream():
+            print(repositorioTrabalhoProducao.pegaErro())
+        if not repositorioTrabalho.abreStream():
+            print(repositorioTrabalho.pegaErro())
+        while True:
+            if repositorioTrabalho.estaPronto:
+                trabalhos: list[Trabalho]= repositorioTrabalho.pegaDadosModificados()
+                print(f'{CHAVE_NOME.upper().ljust(44)} | {CHAVE_PROFISSAO.upper().ljust(22)} | {CHAVE_RARIDADE.upper().ljust(9)} | {CHAVE_NIVEL.upper().ljust(5)}')
+                for trabalho in trabalhos:
+                    print(trabalho)
+                repositorioTrabalho.limpaLista
+            if repositorioTrabalhoProducao.estaPronto:
+                dicionariosTrabalhoProducao: list[dict]= repositorioTrabalhoProducao.pegaDadosModificados()
+                for dicionarioTrabalho in dicionariosTrabalhoProducao:
+                    for atributo in dicionarioTrabalho:
+                        print(f'{atributo} | {dicionarioTrabalho[atributo]}')
+                repositorioTrabalhoProducao.limpaLista
+
+    def migraDadosNovoServidor(self):
+        from pyrebase.pyrebase import Database
+        from pyrebase.pyrebase import PyreResponse
+        from repositorio.firebaseDatabase import FirebaseDatabase
+        from modelos.usuario import Usuario
+
+        logger= MeuLogger(nome= 'novoServidor')
+        firebase: FirebaseDatabase= FirebaseDatabase()
+        meuBanco: Database= firebase.pegaMeuBanco()
+        referenciaUsuarios: PyreResponse= meuBanco.child(CHAVE_USUARIOS).get()
+        for usuarioEncontrado in referenciaUsuarios.each():
+            usuario: Usuario= Usuario()
+            dicionarioUsuario: dict= usuarioEncontrado.val()
+            usuario.dicionarioParaObjeto(dicionario= dicionarioUsuario)
+            meuBanco.child(CHAVE_USUARIOS2).child(usuario.id).update({CHAVE_ID: usuario.id, CHAVE_NOME: usuario.nome})
+            for idpersonagem in dicionarioUsuario[CHAVE_LISTA_PERSONAGEM]:
+                meuBanco.child(CHAVE_USUARIOS2).child(usuario.id).child(CHAVE_PERSONAGENS).update({idpersonagem: True})
+                dicionarioPersonagem: dict= dicionarioUsuario[CHAVE_LISTA_PERSONAGEM][idpersonagem]
+                personagem: Personagem= Personagem()
+                personagem.dicionarioParaObjeto(dicionario= dicionarioPersonagem)
+                meuBanco.child(CHAVE_PERSONAGENS).child(personagem.id).update({CHAVE_ID: personagem.id, CHAVE_NOME: personagem.nome, CHAVE_AUTO_PRODUCAO: personagem.autoProducao, CHAVE_EMAIL: personagem.email, CHAVE_ESPACO_PRODUCAO: personagem.espacoProducao, CHAVE_ESTADO: personagem.estado, CHAVE_SENHA: personagem.senha, CHAVE_USO: personagem.uso})
+                dicionarioPersonagem: dict= dicionarioUsuario[CHAVE_LISTA_PERSONAGEM][idpersonagem]
+                if CHAVE_LISTA_TRABALHOS_PRODUCAO in dicionarioPersonagem:
+                    for idTrabalhoProducao in dicionarioPersonagem[CHAVE_LISTA_TRABALHOS_PRODUCAO]:
+                        dicionarioTrabalhoProducao: dict= dicionarioPersonagem[CHAVE_LISTA_TRABALHOS_PRODUCAO][idTrabalhoProducao]
+                        if CHAVE_ID_TRABALHO in dicionarioTrabalhoProducao:
+                            meuBanco.child(CHAVE_PRODUCAO).child(idpersonagem).child(idTrabalhoProducao).update({CHAVE_ESTADO: dicionarioTrabalhoProducao[CHAVE_ESTADO], CHAVE_ID: dicionarioTrabalhoProducao[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoProducao[CHAVE_ID_TRABALHO], CHAVE_RECORRENCIA: dicionarioTrabalhoProducao[CHAVE_RECORRENCIA], CHAVE_TIPO_LICENCA: dicionarioTrabalhoProducao['tipo_licenca']})
+                            continue
+                        logger.error(menssagem= f'Erro ao inserir trabalho de produção: {idTrabalhoProducao} não possue atributo idTrabalho')
+                if CHAVE_LISTA_ESTOQUE in dicionarioPersonagem:
+                    for idTrabalhoEstoque in dicionarioPersonagem[CHAVE_LISTA_ESTOQUE]:
+                        dicionarioTrabalhoEstoque: dict= dicionarioPersonagem[CHAVE_LISTA_ESTOQUE][idTrabalhoEstoque]
+                        if CHAVE_TRABALHO_ID in dicionarioTrabalhoEstoque:
+                            meuBanco.child(CHAVE_ESTOQUE).child(idpersonagem).child(idTrabalhoEstoque).update({CHAVE_ID: dicionarioTrabalhoEstoque[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoEstoque[CHAVE_TRABALHO_ID], CHAVE_QUANTIDADE: dicionarioTrabalhoEstoque[CHAVE_QUANTIDADE]})
+                            continue
+                        logger.error(menssagem= f'Erro ao inserir trabalho de estoque: {idTrabalhoEstoque} não possue atributo trabalhoId')
+                if CHAVE_LISTA_VENDAS in dicionarioPersonagem:
+                    for idTrabalhoVendido in dicionarioPersonagem[CHAVE_LISTA_VENDAS]:
+                        dicionarioTrabalhoVendido: dict= dicionarioPersonagem[CHAVE_LISTA_VENDAS][idTrabalhoVendido]
+                        if CHAVE_ID_TRABALHO in dicionarioTrabalhoVendido:
+                            meuBanco.child(CHAVE_VENDAS).child(idpersonagem).child(idTrabalhoVendido).update({CHAVE_ID: dicionarioTrabalhoVendido[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoVendido[CHAVE_ID_TRABALHO], CHAVE_DATA_VENDA: dicionarioTrabalhoVendido[CHAVE_DATA_VENDA], CHAVE_DESCRICAO: dicionarioTrabalhoVendido[CHAVE_DESCRICAO], CHAVE_QUANTIDADE: dicionarioTrabalhoVendido[CHAVE_QUANTIDADE], CHAVE_VALOR: dicionarioTrabalhoVendido[CHAVE_VALOR]})
+                            continue
+                        logger.error(menssagem= f'Erro ao inserir trabalho de estoque: {idTrabalhoVendido} não possue atributo trabalhoId')
+        input('Clique para continuar...')
         
     def menu(self):
         while True:
-            self.__aplicacao.verificaAlteracaoListaTrabalhos()
-            self.__aplicacao.verificaAlteracaoPersonagem()
             limpaTela()
             print(f'MENU')
             print(f'{"1".ljust(2)} - Insere trabalho')
@@ -990,4 +1090,7 @@ class CRUD:
                 input(f'Clique para continuar...')
 
 if __name__=='__main__':
-    CRUD()
+    crud: CRUD = CRUD()
+    crud.menu()
+    # aplicacaoCRUD: AplicacaoCRUD= AplicacaoCRUD()
+    # aplicacaoCRUD.mainloop()
