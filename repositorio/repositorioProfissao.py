@@ -7,24 +7,38 @@ from constantes import *
 from requests.exceptions import HTTPError
 from pyrebase import pyrebase
 from pyrebase.pyrebase import PyreResponse
+from firebase_admin import db
+from firebase_admin.db import Event
+from modelos.logger import MeuLogger
 
 class RepositorioProfissao(Stream):
     listaProfissoes = []
     def __init__(self, personagem: Personagem= None):
         super().__init__(chave= CHAVE_PROFISSOES, nomeLogger= CHAVE_REPOSITORIO_PROFISSAO)
+        personagem = Personagem() if personagem is None else personagem
         self.__erro: str= None
-        self.__meuBanco = FirebaseDatabase().pegaMeuBanco()
+        firebaseDb: FirebaseDatabase = FirebaseDatabase()
         self.__personagem: Personagem= personagem
+        self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_PROFISSAO, arquivoLogger = f'{CHAVE_REPOSITORIO_PROFISSAO}.log')
+        try:
+            meuBanco: db = firebaseDb.banco
+            self.__minhaReferenciaProfissoes: db.Reference= meuBanco.reference(CHAVE_PROFISSOES).child(self.__personagem.id)
+            self.__minhaReferenciaListaProfissoes: db.Reference= meuBanco.reference(CHAVE_LISTA_PROFISSAO)
+        except Exception as e:
+            self.__erro = e
+            self.__logger.error(menssagem= f'Erro: {e}')
 
-    def streamHandler(self, menssagem: dict):
-        super().streamHandler(menssagem= menssagem)
-        if menssagem['event'] in ('put', 'path'):
-            if menssagem['path'] == '/':
+    def streamHandler(self, evento: Event):
+        super().streamHandler(evento= evento)
+        if evento.event_type in ('put', 'path'):
+            if evento.path == '/':
                 return
-            ids: list[str]= menssagem['path'].split('/')
+            self.__logger.debug(menssagem= evento.path)
+            self.__logger.debug(menssagem= evento.data)
+            ids: list[str]= evento.path.split('/')
             profissao: Profissao= Profissao()
             dicionarioProfissao: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
-            if menssagem['data'] is None:
+            if evento.data is None:
                 if len(ids) > 2:
                     profissao.id= ids[2]
                     profissao.experiencia= None
@@ -34,7 +48,7 @@ class RepositorioProfissao(Stream):
                 dicionarioProfissao[CHAVE_TRABALHOS]= None
                 super().insereDadosModificados(dado= dicionarioProfissao)
                 return
-            profissao.dicionarioParaObjeto(dicionario= menssagem['data'])
+            profissao.dicionarioParaObjeto(dicionario= evento.data)
             dicionarioProfissao[CHAVE_TRABALHOS]= profissao
             super().insereDadosModificados(dado= dicionarioProfissao)
 
@@ -46,91 +60,108 @@ class RepositorioProfissao(Stream):
         '''
         profissoes: list[Profissao]= []
         try:
-            profissoesEncontradas = self.__meuBanco.child(CHAVE_PROFISSOES).child(self.__personagem.id).get()
-            if profissoesEncontradas.pyres == None:
-                raise Exception(f'Lista de profissões de ({self.__personagem.id}) está vazia!')
-            for profissaoEncontrada in profissoesEncontradas.each():
+            profissoesEncontradas: dict= self.__minhaReferenciaProfissoes.get()
+            if profissoesEncontradas is None:
+                return profissoes
+            for chave, valor in profissoesEncontradas.items():
                 profissao: Profissao= Profissao()
-                profissao.dicionarioParaObjeto(profissaoEncontrada.val())
+                profissao.dicionarioParaObjeto(valor)
                 profissao.idPersonagem = self.__personagem.id
                 profissao.nome= self.pegaNomeProfissaoPorId(id= profissao.id)
                 profissoes.append(profissao)
             profissoes = sorted(profissoes, key = lambda profissao: profissao.nome)
             profissoes = sorted(profissoes, key = lambda profissao: profissao.experiencia, reverse = True)
+            self.__logger.debug(menssagem= f'Profissões recuperadas com sucesso!')
             return profissoes
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao recuperar profissões: {e}')
         return None
 
     def pegaNomeProfissaoPorId(self, id: str) -> str:
-        profissaoEncontrada: PyreResponse= self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).child(id).get()
-        if profissaoEncontrada.pyres is None:
+        profissaoEncontrada: dict= self.__minhaReferenciaListaProfissoes.child(id).get()
+        if profissaoEncontrada is None:
             raise Exception(f'({id}) não foi encontrado na lista de profissões!')
-        return profissaoEncontrada.pyres[1].val()
+        return profissaoEncontrada[CHAVE_NOME]
     
     def pegaListaProfissoes(self) -> list[Profissao]:
-        profissoes: list[Profissao]= []
+        profissoes: list[Profissao] = []
         try:
-            profissoesEncontradas = self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).get()
-            if profissoesEncontradas.pyres == None:
+            profissoesEncontradas: dict= self.__minhaReferenciaListaProfissoes.get()
+            if profissoesEncontradas is None:
                 return profissoes
-            for profissaoEncontrada in profissoesEncontradas.each():
-                profissao = Profissao()
-                profissao.dicionarioParaObjeto(profissaoEncontrada.val())
+            for chave, valor in profissoesEncontradas.items():
+                profissao: Profissao= Profissao()
+                profissao.dicionarioParaObjeto(valor)
                 profissoes.append(profissao)
+            self.__logger.debug(menssagem= f'Lista de profissões recuperadas com sucesso!')
             return profissoes
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao recuperar lista de profissões: {e}')
         return None
     
     def insereProfissao(self, profissao: Profissao) -> bool:
+        '''
+            Função para inserir um objeto da classe Profissao.
+            Args:
+                profissao (Profissao): Objeto da classe Profissao para ser inserida.
+            Returns:
+                bool: Verdadeiro caso profissão seja inserida com sucesso.
+        '''
+        profissao.idPersonagem = self.__personagem.id
         try:
-            profissoes: pyrebase.PyreResponse= self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).get()
-            if profissoes.pyres is None:
-                self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).child(profissao.id).update({CHAVE_ID: profissao.id, CHAVE_NOME: profissao.nome})
+            profissoes: dict= self.__minhaReferenciaListaProfissoes.get()
+            if profissoes is None:
+                self.__minhaReferenciaListaProfissoes.child(profissao.id).update({CHAVE_ID: profissao.id, CHAVE_NOME: profissao.nome})
+                self.__logger.debug(menssagem= f'Profissão ({profissao.id} | {profissao.nome}) inserida com sucesso na lista de profissões!')
             else:
-                for profissaoRecebida in profissoes.each():
-                    if profissaoRecebida.val()[CHAVE_NOME] == profissao.nome:
-                        profissao.id= profissaoRecebida.key()
+                for chave, valor in profissoes.items():
+                    if valor[CHAVE_NOME] == profissao.nome:
+                        profissao.id= chave
                         break
                 else:
-                    self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).child(profissao.id).update({CHAVE_ID: profissao.id, CHAVE_NOME: profissao.nome})
-            self.__meuBanco.child(CHAVE_PROFISSOES).child(self.__personagem.id).child(profissao.id).set({CHAVE_ID: profissao.id, CHAVE_EXPERIENCIA: profissao.experiencia, CHAVE_PRIORIDADE: profissao.prioridade})
+                    self.__minhaReferenciaListaProfissoes.child(profissao.id).update({CHAVE_ID: profissao.id, CHAVE_NOME: profissao.nome})
+            self.__minhaReferenciaProfissoes.child(profissao.id).set({CHAVE_ID: profissao.id, CHAVE_EXPERIENCIA: profissao.experiencia, CHAVE_PRIORIDADE: profissao.prioridade})
+            self.__logger.debug(menssagem= f'Profissão ({profissao}) inserida com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao inserir profissão: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao inserir profissão: {e}')
         return False
 
     def modificaProfissao(self, profissao: Profissao) -> bool:
+        profissao.idPersonagem = self.__personagem.id
         try:
-            self.__meuBanco.child(CHAVE_PROFISSOES).child(self.__personagem.id).child(profissao.id).update({CHAVE_EXPERIENCIA: profissao.experiencia, CHAVE_PRIORIDADE: profissao.prioridade})
-            self.__meuBanco.child(CHAVE_LISTA_PROFISSAO).child(profissao.id).update({CHAVE_NOME: profissao.nome})
+            self.__minhaReferenciaProfissoes.child(profissao.id).update({CHAVE_EXPERIENCIA: profissao.experiencia, CHAVE_PRIORIDADE: profissao.prioridade})
+            self.__minhaReferenciaListaProfissoes.child(profissao.id).update({CHAVE_NOME: profissao.nome})
+            self.__logger.debug(menssagem= f'Profissão ({profissao}) modificada com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao modificar profissão: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao modificar profissão: {e}')
         return False
     
     def removeProfissao(self, profissao: Profissao) -> bool:
+        profissao.idPersonagem = self.__personagem.id
         try:
-            self.__meuBanco.child(CHAVE_PROFISSOES).child(self.__personagem.id).child(profissao.id).remove()
+            self.__minhaReferenciaProfissoes.child(profissao.id).delete()
+            self.__logger.debug(menssagem= f'Profissão ({profissao}) removida com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
+            self.__logger.error(menssagem= f'Erro ao modificar profissão: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
+            self.__logger.error(menssagem= f'Erro ao modificar profissão: {e}')
         return False
     
-    def limpaProfissoes(self):
-        try:
-            self.__meuBanco.child(CHAVE_USUARIOS).child(CHAVE_ID_USUARIO).child(CHAVE_LISTA_PERSONAGEM).child(self.__personagem.id).child(CHAVE_LISTA_PROFISSAO).remove()
-            return True
-        except Exception as e:
-            self.__erro = str(e)
-        return False
-
+    @property
     def pegaErro(self):
         return self.__erro

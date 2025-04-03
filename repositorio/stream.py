@@ -1,15 +1,21 @@
 from modelos.logger import MeuLogger
 from repositorio.firebaseDatabase import FirebaseDatabase
 from time import time
+from firebase_admin import db
+from requests.exceptions import ConnectionError
 
 class Stream:
-    def __init__(self, chave: str, nomeLogger: str):
-        self.__meuBanco= FirebaseDatabase().pegaMeuBanco()
+    def __init__(self, chave: str, nomeLogger: str, arquivoLogger: str = None):
         self.__erro: str = None
-        self.__chave: str= chave
-        self.__streamPronta= False
+        self.__streamPronta: bool= False
         self.__dadosModificados: list= []
-        self.__logger: MeuLogger= MeuLogger(nome= nomeLogger)
+        self.__logger: MeuLogger= MeuLogger(nome= nomeLogger, arquivoLogger= arquivoLogger)
+        firebaseDb: FirebaseDatabase = FirebaseDatabase()
+        try:
+            meuBanco: db = firebaseDb.banco
+            self.__minhaReferencia: db.Reference= meuBanco.reference(chave)
+        except Exception as e:
+            self.__logger.error(menssagem= f'Erro: {e}')
 
     @property
     def estaPronto(self) -> bool:
@@ -51,6 +57,7 @@ class Stream:
         '''
         self.__dadosModificados.clear()
 
+    @property
     def abreStream(self) -> bool:
         '''
         Retorna o estado de inicialização da stream
@@ -60,22 +67,25 @@ class Stream:
         '''
         try:
             self.__inicio= time()
-            self.__logger.info(menssagem= f'Inicio da stream: {self.__inicio}')
-            self.__meuBanco.child(self.__chave).stream(self.streamHandler)
+            self.__logger.debug(menssagem= f'Inicio da stream: {self.__inicio}')
+            self.__minhaReferencia.listen(self.streamHandler)
             return True
+        except ConnectionError as e:
+            self.__erro= str(e.errno)
         except Exception as e:
             self.__erro= str(e)
         return False
     
-    def streamHandler(self, menssagem: dict):
-        if menssagem['event'] in ('put', 'path'):
-            if menssagem['path'] == '/':
+    def streamHandler(self, evento: db.Event):
+        if evento.event_type in ('put', 'path'):
+            if evento.path == '/':
                 self.__streamPronta= True
                 diferenca: int= time() - self.__inicio
                 minutos: int= int(diferenca // 60)
                 segundos: int= int(diferenca % 60)
-                self.__logger.info(menssagem= f'Fim da stream: {minutos}:{segundos}min')
+                self.__logger.debug(menssagem= f'Fim da stream: {minutos}:{segundos}min')
 
+    @property
     def pegaErro(self) -> str:
         '''
         Retorna string com erro encontrado
