@@ -69,12 +69,15 @@ class Trabalho:
             return x + 18
         return 0
 
+    @property
     def ehComum(self) -> bool:
         return self.raridade == CHAVE_RARIDADE_COMUM
     
+    @property
     def ehMelhorado(self) -> bool:
         return self.raridade == CHAVE_RARIDADE_MELHORADO
 
+    @property
     def ehRaro(self) -> bool:
         return self.raridade == CHAVE_RARIDADE_RARO
     

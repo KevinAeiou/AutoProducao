@@ -5,19 +5,19 @@ class TestTrabalhoProducao:
         trabalhoProducaoTeste = TrabalhoProducao()
         trabalhoProducaoTeste.estado = 0
         esperado = True
-        recebido = trabalhoProducaoTeste.ehParaProduzir()
+        recebido = trabalhoProducaoTeste.ehParaProduzir
         assert esperado == recebido
 
     def testDeveRetornarTrueQuandoEstadoTrabalhoEhUm(self):
         trabalhoProducaoTeste = TrabalhoProducao()
         trabalhoProducaoTeste.estado = 1
         esperado = True
-        recebido = trabalhoProducaoTeste.ehProduzindo()
+        recebido = trabalhoProducaoTeste.ehProduzindo
         assert esperado == recebido
 
     def testDeveRetornarTrueQuandoEstadoTrabalhoEhDois(self):
         trabalhoProducaoTeste = TrabalhoProducao()
         trabalhoProducaoTeste.estado = 2
         esperado = True
-        recebido = trabalhoProducaoTeste.ehConcluido()
+        recebido = trabalhoProducaoTeste.ehConcluido
         assert esperado == recebido

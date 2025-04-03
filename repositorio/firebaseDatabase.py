@@ -32,7 +32,7 @@ class FirebaseDatabase:
             Configura a conexão com o Firebase.
         '''
         try:
-            cred= credentials.Certificate(r'repositorio\credenciais\bootwarspear-firebase-adminsdk-it84w-3832600b85.json')
+            cred= credentials.Certificate(r'repositorio\credenciais\bootwarspear-firebase-adminsdk-it84w-9ce7b81546.json')
             firebase_admin.initialize_app(credential= cred, options= {'databaseURL': 'https://bootwarspear-default-rtdb.firebaseio.com/'})
         except Exception as e:
             self.__loggerFirebaseDatabase.error(menssagem= f'Falha na inicialização do Firebase: {e}')

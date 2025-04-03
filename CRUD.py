@@ -375,7 +375,7 @@ class CRUD:
                             trabalhoProducaoSelecionado.tipoLicenca = novaLicenca
                             novaRecorrencia = input(f'Alterna recorrencia? (S/N) ')
                             if novaRecorrencia.lower() == 's':
-                                trabalhoProducaoSelecionado.alternaRecorrencia()
+                                trabalhoProducaoSelecionado.alternaRecorrencia
                             limpaTela()
                             novoEstado = input(f'Novo estado: (0 - PRODUZIR, 1 - PRODUZINDO, 2 - CONCLUÍDO) ')
                             if ehVazia(novoEstado):

@@ -88,13 +88,13 @@ class Aplicacao:
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
             if self.verificaPersonagemMesmoEmail(listaPersonagemMesmoEmail, personagem) and personagem.uso:
-                personagem.alternaUso()
+                personagem.alternaUso
                 self.modificaPersonagem(personagem)
 
     def verificaPersonagemMesmoEmail(self, listaPersonagemMesmoEmail: list[Personagem], personagem: Personagem) -> bool:
         for personagemMesmoEmail in listaPersonagemMesmoEmail:
             if textoEhIgual(personagem.id, personagemMesmoEmail.id) and not personagem.uso:
-                personagem.alternaUso()
+                personagem.alternaUso
                 self.modificaPersonagem(personagem)
                 return False
         return True
@@ -131,7 +131,7 @@ class Aplicacao:
         personagens: list[Personagem] = self.pegaPersonagens()
         self.__listaPersonagemAtivo.clear()
         for personagem in personagens:
-            if personagem.ehAtivo():
+            if personagem.ehAtivo:
                 self.__listaPersonagemAtivo.append(personagem)
 
     def inicializaChavesPersonagem(self):
@@ -941,7 +941,7 @@ class Aplicacao:
             for personagem in self.pegaPersonagens():
                 if personagem.estado:
                     continue
-                personagem.alternaEstado()
+                personagem.alternaEstado
                 self.modificaPersonagem(personagem)
             self.__confirmacao = False
             return
@@ -1143,7 +1143,7 @@ class Aplicacao:
             if trabalhoEncontrado.nome is None:
                 self.__loggerTrabalhoDao.warning(f'({trabalhoVendido}) não foi encontrado na lista de trabalhos!')
                 continue
-            trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos = trabalhoEncontrado.ehRaro() and not trabalhoEhProducaoRecursos(trabalhoEncontrado)
+            trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos = trabalhoEncontrado.ehRaro and not trabalhoEhProducaoRecursos(trabalhoEncontrado)
             if trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos:
                 trabalhosRarosVendidos.append(trabalhoVendido)
         return trabalhosRarosVendidos
@@ -1187,7 +1187,7 @@ class Aplicacao:
             return
         for profissao in profissoes:
             for trabalhoProducao in trabalhosProducao:
-                chaveProfissaoEhIgualEEstadoEhParaProduzir: bool = textoEhIgual(profissao.nome, trabalhoProducao.profissao) and trabalhoProducao.ehParaProduzir()
+                chaveProfissaoEhIgualEEstadoEhParaProduzir: bool = textoEhIgual(profissao.nome, trabalhoProducao.profissao) and trabalhoProducao.ehParaProduzir
                 if chaveProfissaoEhIgualEEstadoEhParaProduzir:
                     self.insereItemListaProfissoesNecessarias(profissao)
                     break
@@ -1262,7 +1262,7 @@ class Aplicacao:
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
         if trabalhosProducao is None: return listaTrabalhosProducaoRaridadeEspecifica
         for trabalhoProducao in trabalhosProducao:
-            raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, nomeProfissao) and trabalhoProducao.ehParaProduzir()
+            raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, nomeProfissao) and trabalhoProducao.ehParaProduzir
             if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
                 for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
                     if textoEhIgual(texto1= trabalhoProducaoRaridadeEspecifica.idTrabalho, texto2= trabalhoProducao.idTrabalho): 
@@ -1481,11 +1481,11 @@ class Aplicacao:
         trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
         if trabalho is None or trabalho.nome is None:
             return
-        if trabalho.ehComum():
+        if trabalho.ehComum:
             if trabalhoEhProducaoRecursos(trabalho):
                 return self.atualizaRecursosEstoqueTrabalhoRecursoProduzindo(trabalhoProducao)
             return self.atualizaRecursosEstoqueTrabalhoComumProduzindo(trabalhoProducao)
-        if trabalho.ehMelhorado() or trabalho.ehRaro():
+        if trabalho.ehMelhorado or trabalho.ehRaro:
             if trabalhoEhProducaoRecursos(trabalho):
                 return
             return self.atualizaResursosEstoqueTrabalhoMelhoradoRaroProduzindo(trabalho)
@@ -1553,18 +1553,18 @@ class Aplicacao:
             return
         trabalhoRecurso: TrabalhoRecurso = self.defineTrabalhoRecurso(trabalho)
         for trabalhoEstoque in self.pegaTrabalhosEstoque():
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.pegaPrimario()):
-                trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadePrimario())
+            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.primario):
+                trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadePrimario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.pegaSecundario()):
-                trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeSecundario())
+            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.secundario):
+                trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeSecundario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.pegaTerciario()):
-                trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeTerciario())
+            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.terciario):
+                trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeTerciario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
@@ -1593,7 +1593,7 @@ class Aplicacao:
                                 if textoEhIgual(texto1= listaCiclo[-1], texto2= 'nenhumitem'):
                                     continue
                                 self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
-                                self.__personagemEmUso.alternaEstado()
+                                self.__personagemEmUso.alternaEstado
                                 self.modificaPersonagem()
                                 clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
                                 clickContinuo(cliques= 10, teclaEspecifica= 'up')
@@ -1619,7 +1619,7 @@ class Aplicacao:
                 clickEspecifico(cliques= 1, teclaEspecifica= "f1") if primeiraBusca else clickEspecifico(cliques= 1, teclaEspecifica= "f2")
                 return trabalhoProducaoEncontrado
             self.__loggerTrabalhoProducaoDao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
-            self.__personagemEmUso.alternaEstado()
+            self.__personagemEmUso.alternaEstado
             self.modificaPersonagem()
             clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
             clickContinuo(cliques= 10, teclaEspecifica= 'up')
@@ -1633,7 +1633,7 @@ class Aplicacao:
     def trataMenuTrabalhosAtuais(self, trabalho: TrabalhoProducao) -> None:
         self.verificaNovamente = True
         self.removeTrabalhoProducaoEstoque(trabalhoProducao= trabalho)
-        if trabalho.ehRecorrente():
+        if trabalho.ehRecorrente:
             self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado= trabalho)
             clickContinuo(cliques= 12, teclaEspecifica= 'up')
             return
@@ -1722,7 +1722,7 @@ class Aplicacao:
             return listaPossiveisTrabalhosProducao[0]
         for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
             for trabalhoProduzirProduzindo in trabalhosProducao:
-                condicoes = trabalhoProduzirProduzindo.ehProduzindo() and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalhoProducao.nome)
+                condicoes = trabalhoProduzirProduzindo.ehProduzindo and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalhoProducao.nome)
                 if condicoes:
                     return trabalhoProduzirProduzindo
         else:
@@ -1734,7 +1734,7 @@ class Aplicacao:
         espacoProducao: int = self.__personagemEmUso.espacoProducao
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducao()
         for trabalho in trabalhosProducao:
-            if trabalho.ehProduzindo():
+            if trabalho.ehProduzindo:
                 espacoProducao -= 1
                 if espacoProducao <= 0:
                     print(f'{espacoProducao} espaços de produção.')
@@ -1818,7 +1818,7 @@ class Aplicacao:
         for listaTrabalhosProducao in listaDeListasTrabalhosProducao:
             dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]= listaTrabalhosProducao
             for trabalhoProducaoPriorizado in listaTrabalhosProducao:
-                if trabalhoProducaoPriorizado.ehEspecial() or trabalhoProducaoPriorizado.ehRaro():
+                if trabalhoProducaoPriorizado.ehEspecial or trabalhoProducaoPriorizado.ehRaro:
                     print(f'Trabalho desejado: {trabalhoProducaoPriorizado.nome}.')
                     posicaoAux = -1
                     if dicionarioTrabalho[CHAVE_POSICAO] != -1:
@@ -1854,7 +1854,7 @@ class Aplicacao:
                         dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
                     dicionarioTrabalho[CHAVE_POSICAO] = posicaoAux
                     continue
-                if trabalhoProducaoPriorizado.ehMelhorado() or trabalhoProducaoPriorizado.ehComum():
+                if trabalhoProducaoPriorizado.ehMelhorado or trabalhoProducaoPriorizado.ehComum:
                     dicionarioTrabalho: dict = self.defineDicionarioTrabalhoComumMelhorado(dicionarioTrabalho= dicionarioTrabalho)
                     if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
                         return dicionarioTrabalho
@@ -2059,7 +2059,7 @@ class Aplicacao:
         trabalhoBuscado.nivel = trabalho.nivel
         trabalhoBuscado.profissao = trabalho.profissao
         trabalhoBuscado.raridade = trabalho.raridade
-        if trabalhoBuscado.ehComum():
+        if trabalhoBuscado.ehComum:
             quantidadeRecursosContingencia: int = 0
             for trabalhoParaProduzir in self.pegaTrabalhosParaProduzirPorProfissaoRaridade(trabalhoBuscado):
                 quantidadeRecursosContingencia += trabalhoParaProduzir.pegaQuantidadeRecursosNecessarios() + 2
@@ -2093,7 +2093,7 @@ class Aplicacao:
         if ehVazia(lista= trabalhosProducaoEncontrados):
             self.__loggerTrabalhoProducaoDao.debug(f'{trabalhoProducaoRecursosEncontrado.nome} não encontrado na lista para produção.')
         for trabalhoEncontrado in trabalhosProducaoEncontrados:
-            if trabalhoEncontrado.ehParaProduzir():
+            if trabalhoEncontrado.ehParaProduzir:
                 self.__loggerTrabalhoProducaoDao.debug(f'{trabalhoEncontrado.nome} já existe na lista para produção.')
                 return
         trabalhoProducao: TrabalhoProducao= self.defineTrabalhoProducaoRecursosEspecfico(trabalhoProducaoRecursosEncontrado)
@@ -2256,7 +2256,7 @@ class Aplicacao:
             if trabalhosProducao is None: return True
             if ehVazia(trabalhosProducao):
                 print(f'Lista de trabalhos desejados vazia.')
-                self.__personagemEmUso.alternaEstado()
+                self.__personagemEmUso.alternaEstado
                 self.modificaPersonagem()
                 return True
             if self.__autoProducaoTrabalho: self.verificaProdutosRarosMaisVendidos()
