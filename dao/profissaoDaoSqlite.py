@@ -159,7 +159,7 @@ class ProfissaoDaoSqlite:
             profissao = Profissao()
             profissao.nome = nomeProfissao
             profissao.idPersonagem = personagem.id
-            if self.insereProfissao(profissao= profissao):
+            if self.insereProfissao(personagem= personagem, profissao= profissao):
                 self.__meuLogger.info(f'({nomeProfissao}) inserido no banco com sucesso!')
                 continue
             self.__meuLogger.error(f'Erro ao inserir profissão no banco: {self.pegaErro()}')
