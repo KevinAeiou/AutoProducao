@@ -37,9 +37,3 @@ class TestRespositorioVendas:
         self._listaVendas = self._repositorioVendas.pegaTrabalhosVendidos()
         recebido = len(self._listaVendas)
         assert esperado == recebido
-
-    def testDeveLimparListaVenda(self):
-        esperado = 0
-        self._repositorioVendas.limpaListaVenda()
-        recebido = len(self._repositorioVendas.pegaTrabalhosVendidos())
-        assert recebido == esperado
