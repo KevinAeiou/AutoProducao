@@ -1578,8 +1578,13 @@ class Aplicacao:
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
 
-    def atualizaRecursosEstoqueTrabalhoComumProduzindo(self, trabalhoProducao: TrabalhoProducao) -> None:
-        trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
+    def atualizaRecursosEstoqueTrabalhoComumProduzindo(self, trabalhoProducao: TrabalhoProducao):
+        '''
+            Método para atualizar a quantidade de recursos necessários para a produção de trabalhos do tipo "Comum".
+            Args:
+                trabalhoProducao (TrabalhoProducao): Objeto da classe TrabalhoProducao que contêm os atributos do trabalho comum produzido.
+        '''
+        trabalho: Trabalho = self.pegaTrabalhoPorId(id= trabalhoProducao.idTrabalho)
         if trabalho is None or trabalho.nome is None:
             return
         trabalhoRecurso: TrabalhoRecurso = self.defineTrabalhoRecurso(trabalho)
@@ -1587,22 +1592,22 @@ class Aplicacao:
             if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.primario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadePrimario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
-                    print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
+                    self.__loggerAplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
             if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.secundario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeSecundario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
-                    print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
+                    self.__loggerAplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
             if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.terciario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeTerciario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
-                    print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
+                    self.__loggerAplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
             if textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipoLicenca):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - 1)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
-                    print(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
+                    self.__loggerAplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
 
     def trataMenuLicenca(self, trabalhoProducaoEncontrado: TrabalhoProducao) -> TrabalhoProducao:
         print(f"Buscando: {trabalhoProducaoEncontrado.tipoLicenca}")
