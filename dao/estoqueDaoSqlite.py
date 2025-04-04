@@ -128,8 +128,8 @@ class EstoqueDaoSqlite:
                     self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {repositorioEstoque.pegaErro()}')
-                self.__erro= repositorioEstoque.pegaErro()
+                self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {repositorioEstoque.pegaErro}')
+                self.__erro= repositorioEstoque.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -157,8 +157,8 @@ class EstoqueDaoSqlite:
                     self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {repositorioEstoque.pegaErro()}')
-                self.__erro= repositorioEstoque.pegaErro()
+                self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {repositorioEstoque.pegaErro}')
+                self.__erro= repositorioEstoque.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -186,8 +186,8 @@ class EstoqueDaoSqlite:
                     self.__logger.info(f'({trabalhoEstoque}) removido do servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao remover ({trabalhoEstoque}) do servidor: {repositorioEstoque.pegaErro()}')
-                self.__erro= repositorioEstoque.pegaErro()
+                self.__logger.error(f'Erro ao remover ({trabalhoEstoque}) do servidor: {repositorioEstoque.pegaErro}')
+                self.__erro= repositorioEstoque.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -232,8 +232,8 @@ class EstoqueDaoSqlite:
             repositorioTrabalhoEstoque: RepositorioEstoque= RepositorioEstoque(personagem= personagem)
             trabalhosServidor: list[TrabalhoEstoque]= repositorioTrabalhoEstoque.pegaTodosTrabalhosEstoque()
             if trabalhosServidor is None:
-                self.__logger.error(f'Erro ao buscar trabalhos no estoque no servidor: {repositorioTrabalhoEstoque.pegaErro()}')
-                raise Exception(repositorioTrabalhoEstoque.pegaErro())
+                self.__logger.error(f'Erro ao buscar trabalhos no estoque no servidor: {repositorioTrabalhoEstoque.pegaErro}')
+                raise Exception(repositorioTrabalhoEstoque.pegaErro)
             for trabalho in trabalhosServidor:
                 sql = f"""INSERT INTO {CHAVE_LISTA_ESTOQUE} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_ID_TRABALHO}, {CHAVE_QUANTIDADE}) VALUES (?,?,?,?);"""
                 try:
@@ -249,5 +249,9 @@ class EstoqueDaoSqlite:
             self.__meuBanco.desconecta()
         return False
 
+    @property
     def pegaErro(self):
+        '''
+            Atributo que retorna o último erro registrado.
+        '''
         return self.__erro

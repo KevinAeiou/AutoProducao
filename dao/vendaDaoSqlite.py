@@ -138,8 +138,8 @@ class VendaDaoSqlite:
                     self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
                     conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {repositorioVendas.pegaErro()}')
-                self.__erro= repositorioVendas.pegaErro()
+                self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {repositorioVendas.pegaErro}')
+                self.__erro= repositorioVendas.pegaErro
                 conexao.rollback()
                 return False
             conexao.commit()
@@ -164,8 +164,8 @@ class VendaDaoSqlite:
                     self.__logger.info(f'({trabalho}) removido do servidor com sucesso!')
                     conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao remover ({trabalho}) do servidor: {repositorioVendas.pegaErro()}')
-                self.__erro= repositorioVendas.pegaErro()
+                self.__logger.error(f'Erro ao remover ({trabalho}) do servidor: {repositorioVendas.pegaErro}')
+                self.__erro= repositorioVendas.pegaErro
                 conexao.rollback()
                 return False
             conexao.commit()
@@ -217,8 +217,8 @@ class VendaDaoSqlite:
                     self.__logger.info(f'({trabalhoModificado}) modificado no servidor com sucesso!')
                     conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({trabalhoModificado}) no servidor: {repositorioVendas.pegaErro()}')
-                self.__erro= repositorioVendas.pegaErro()
+                self.__logger.error(f'Erro ao modificar ({trabalhoModificado}) no servidor: {repositorioVendas.pegaErro}')
+                self.__erro= repositorioVendas.pegaErro
                 conexao.rollback()
                 return False
             conexao.commit()
@@ -245,8 +245,8 @@ class VendaDaoSqlite:
             repositorioTrabalhoVendidos: RepositorioVendas= RepositorioVendas(personagem= personagem)
             trabalhosServidor: list[TrabalhoVendido]= repositorioTrabalhoVendidos.pegaTrabalhosVendidos()
             if trabalhosServidor is None:
-                self.__logger.error(f'Erro ao buscar trabalhos vendidos no servidor: {repositorioTrabalhoVendidos.pegaErro()}')
-                raise Exception(repositorioTrabalhoVendidos.pegaErro())
+                self.__logger.error(f'Erro ao buscar trabalhos vendidos no servidor: {repositorioTrabalhoVendidos.pegaErro}')
+                raise Exception(repositorioTrabalhoVendidos.pegaErro)
             for trabalho in trabalhosServidor:
                 sql = f"""INSERT INTO {CHAVE_LISTA_VENDAS} ({CHAVE_ID}, {CHAVE_DESCRICAO}, {CHAVE_DATA_VENDA}, {CHAVE_ID_PERSONAGEM}, {CHAVE_QUANTIDADE}, {CHAVE_ID_TRABALHO}, {CHAVE_VALOR})VALUES (?, ?, ?, ?, ?, ?, ?);"""
                 try:
@@ -262,5 +262,9 @@ class VendaDaoSqlite:
             self.__meuBanco.desconecta()
         return False
         
+    @property
     def pegaErro(self):
+        '''
+            Atributo que retorna o último erro registrado.
+        '''
         return self.__erro

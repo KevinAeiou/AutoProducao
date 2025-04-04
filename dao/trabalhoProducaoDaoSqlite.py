@@ -213,9 +213,9 @@ class TrabalhoProducaoDaoSqlite:
                     self.__logger.info(f'({trabalhoProducao}) inserido no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalhoProducao}) no servidor: {repositorioTrabalhoProducao.pegaErro()}')
+                self.__logger.error(f'Erro ao inserir ({trabalhoProducao}) no servidor: {repositorioTrabalhoProducao.pegaErro}')
                 self.__conexao.rollback()
-                self.__erro= repositorioTrabalhoProducao.pegaErro()
+                self.__erro= repositorioTrabalhoProducao.pegaErro
                 return False
             self.__conexao.commit()
             return True
@@ -239,8 +239,8 @@ class TrabalhoProducaoDaoSqlite:
                     self.__logger.info(f'({trabalhoProducao}) removido do servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao remover ({trabalhoProducao}) do servidor: {repositorioTrabalhoProducao.pegaErro()}')
-                self.__erro= repositorioTrabalhoProducao.pegaErro()
+                self.__logger.error(f'Erro ao remover ({trabalhoProducao}) do servidor: {repositorioTrabalhoProducao.pegaErro}')
+                self.__erro= repositorioTrabalhoProducao.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -282,8 +282,8 @@ class TrabalhoProducaoDaoSqlite:
                     self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {repositorioTrabalhoProducao.pegaErro()}')
-                self.__erro= repositorioTrabalhoProducao.pegaErro()
+                self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {repositorioTrabalhoProducao.pegaErro}')
+                self.__erro= repositorioTrabalhoProducao.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -310,8 +310,8 @@ class TrabalhoProducaoDaoSqlite:
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
             trabalhosServidor: list[TrabalhoProducao]= repositorioTrabalhoProducao.pegaTodosTrabalhosProducao()
             if trabalhosServidor is None:
-                self.__logger.error(f'Erro ao buscar trabalhos para produção no servidor: {repositorioTrabalhoProducao.pegaErro()}')
-                raise Exception(repositorioTrabalhoProducao.pegaErro())
+                self.__logger.error(f'Erro ao buscar trabalhos para produção no servidor: {repositorioTrabalhoProducao.pegaErro}')
+                raise Exception(repositorioTrabalhoProducao.pegaErro)
             for trabalho in trabalhosServidor:
                 sql = f"""INSERT INTO {CHAVE_LISTA_TRABALHOS_PRODUCAO} ({CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_ID_PERSONAGEM}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO}) VALUES (?, ?, ?, ?, ?, ?);"""
                 try:
@@ -330,5 +330,9 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
         return False
     
+    @property
     def pegaErro(self):
+        '''
+            Atributo que retorna o último erro registrado.
+        '''
         return self.__erro

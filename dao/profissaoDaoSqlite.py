@@ -100,7 +100,7 @@ class ProfissaoDaoSqlite:
                     self.__meuLogger.info(f'({profissao}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__meuLogger.error(f'Erro ao modificar ({profissao}) no servidor: {repositorioProfissao.pegaErro()}')
+                self.__meuLogger.error(f'Erro ao modificar ({profissao}) no servidor: {repositorioProfissao.pegaErro}')
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -125,7 +125,7 @@ class ProfissaoDaoSqlite:
                     self.__meuLogger.info(f'({profissao}) removido do servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__meuLogger.error(f'Erro ao remover ({profissao}) do servidor: {repositorioProfissao.pegaErro()}')
+                self.__meuLogger.error(f'Erro ao remover ({profissao}) do servidor: {repositorioProfissao.pegaErro}')
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -162,7 +162,7 @@ class ProfissaoDaoSqlite:
             if self.insereProfissao(personagem= personagem, profissao= profissao):
                 self.__meuLogger.info(f'({nomeProfissao}) inserido no banco com sucesso!')
                 continue
-            self.__meuLogger.error(f'Erro ao inserir profissão no banco: {self.pegaErro()}')
+            self.__meuLogger.error(f'Erro ao inserir profissão no banco: {self.pegaErro}')
             return False
         return True
     
@@ -188,7 +188,7 @@ class ProfissaoDaoSqlite:
                     self.__meuLogger.info(f'({profissao}) inserido no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__meuLogger.error(f'Erro ao inserir ({profissao}) no servidor: {repositorioProfissao.pegaErro()}')
+                self.__meuLogger.error(f'Erro ao inserir ({profissao}) no servidor: {repositorioProfissao.pegaErro}')
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -215,8 +215,8 @@ class ProfissaoDaoSqlite:
             repositorioProfissao: RepositorioProfissao= RepositorioProfissao(personagem= personagem)
             profissoesServidor: list[Profissao]= repositorioProfissao.pegaProfissoesPersonagem()
             if profissoesServidor is None:
-                self.__meuLogger.error(f'Erro ao buscar profissões no servidor: {repositorioProfissao.pegaErro()}')
-                raise Exception(repositorioProfissao.pegaErro())
+                self.__meuLogger.error(f'Erro ao buscar profissões no servidor: {repositorioProfissao.pegaErro}')
+                raise Exception(repositorioProfissao.pegaErro)
             for profissao in profissoesServidor:
                 prioridade: int = 1 if profissao.prioridade else 0
                 sql = f"""
@@ -235,5 +235,9 @@ class ProfissaoDaoSqlite:
             self.__meuBanco.desconecta()
         return False
 
+    @property
     def pegaErro(self):
+        '''
+            Propriedade que retorna o último erro registrado.
+        '''
         return self.__erro

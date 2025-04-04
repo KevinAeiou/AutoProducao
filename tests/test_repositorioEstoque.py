@@ -197,4 +197,4 @@ class TestRepositorioEstoque:
         repositorio = RepositorioEstoque(personagem=self.mock_personagem)
         repositorio._RepositorioEstoque__erro = "erro_teste"
         
-        assert repositorio.pegaErro() == "erro_teste"
+        assert repositorio.pegaErro == "erro_teste"

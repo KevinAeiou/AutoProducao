@@ -30,7 +30,11 @@ class MeuBanco:
             self.__erroConexao = str(e)
         return False
 
+    @property
     def pegaErro(self):
+        '''
+            Atributo que retorna o último erro registrado.
+        '''
         return self.__erroConexao
     
     def pegaFabrica(self):

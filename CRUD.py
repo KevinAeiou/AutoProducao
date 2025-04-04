@@ -903,12 +903,12 @@ class CRUD:
                                                 pass
                                             return 
                                         continue                                                       
-                                    self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
+                                    self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro}')
                                     continue
                             continue
                         print(f'({trabalhoVendido.nome}) não possue trabalho necesssário!')
                     continue
-                self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro()}')
+                self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar quantidade: {trabalhoProducaoDao.pegaErro}')
             continue
         input('Clique para continuar...')
         
@@ -926,9 +926,9 @@ class CRUD:
         repositorioTrabalho: RepositorioTrabalho= RepositorioTrabalho()
         repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao()
         if not repositorioTrabalhoProducao.abreStream():
-            print(repositorioTrabalhoProducao.pegaErro())
+            print(repositorioTrabalhoProducao.pegaErro)
         if not repositorioTrabalho.abreStream():
-            print(repositorioTrabalho.pegaErro())
+            print(repositorioTrabalho.pegaErro)
         while True:
             if repositorioTrabalho.estaPronto:
                 trabalhos: list[Trabalho]= repositorioTrabalho.pegaDadosModificados()

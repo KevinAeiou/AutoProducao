@@ -17,5 +17,5 @@ class TesteVendaDao:
         if self.__vendaDao.insereTrabalhoVendido(self.__trabalhoVendido):
             recebido = 'Sucesso'
         else:
-            recebido = self.__vendaDao.pegaErro()
+            recebido = self.__vendaDao.pegaErro
         assert esperado == recebido

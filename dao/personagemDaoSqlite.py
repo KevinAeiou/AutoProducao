@@ -95,7 +95,7 @@ class PersonagemDaoSqlite():
                     self.__logger.info(f'({personagem}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro()}')
+                self.__logger.error(f'Erro ao modificar ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro}')
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -123,8 +123,8 @@ class PersonagemDaoSqlite():
                     self.__logger.info(f'({personagem}) inserido com sucesso no servidor!')
                     self.__conexao.commit()
                     return True
-                self.__erro= self.__repositorioPersonagem.pegaErro()
-                self.__logger.error(f'Erro ao inserir ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro()}')
+                self.__erro= self.__repositorioPersonagem.pegaErro
+                self.__logger.error(f'Erro ao inserir ({personagem}) no servidor: {self.__repositorioPersonagem.pegaErro}')
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -157,8 +157,8 @@ class PersonagemDaoSqlite():
                     self.__conexao.commit()
                     return True
                 self.__conexao.rollback()
-                self.__logger.error(f'Erro ao remover ({personagem}) do servidor: {self.__repositorioPersonagem.pegaErro()}')
-                self.__erro = self.__repositorioPersonagem.pegaErro()
+                self.__logger.error(f'Erro ao remover ({personagem}) do servidor: {self.__repositorioPersonagem.pegaErro}')
+                self.__erro = self.__repositorioPersonagem.pegaErro
                 return False
             self.__conexao.commit()
             return True
@@ -211,7 +211,7 @@ class PersonagemDaoSqlite():
             repositorioPersonagem: RepositorioPersonagem= RepositorioPersonagem()
             personagensServidor: list[Personagem]= repositorioPersonagem.pegaTodosPersonagens()
             if personagensServidor is None:
-                raise Exception(repositorioPersonagem.pegaErro())
+                raise Exception(repositorioPersonagem.pegaErro)
             for personagemServidor in personagensServidor:
                 estado: int = 1 if personagemServidor.estado else 0
                 uso: int = 1 if personagemServidor.uso else 0
@@ -233,5 +233,9 @@ class PersonagemDaoSqlite():
             self.__meuBanco.desconecta()
         return False
     
+    @property
     def pegaErro(self):
+        '''
+            Atributo que retorna o último erro registrado.
+        '''
         return self.__erro

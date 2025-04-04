@@ -215,8 +215,8 @@ class TrabalhoDaoSqlite:
                     self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) inserido no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalho.id.ljust(36)} | {trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro()}')
-                self.__erro= self.__repositorioTrabalho.pegaErro()
+                self.__logger.error(f'Erro ao inserir ({trabalho.id.ljust(36)} | {trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro}')
+                self.__erro= self.__repositorioTrabalho.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -241,8 +241,8 @@ class TrabalhoDaoSqlite:
                     self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({trabalho.id.ljust(36)} | {trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro()}')
-                self.__erro= self.__repositorioTrabalho.pegaErro()
+                self.__logger.error(f'Erro ao modificar ({trabalho.id.ljust(36)} | {trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro}')
+                self.__erro= self.__repositorioTrabalho.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -267,8 +267,8 @@ class TrabalhoDaoSqlite:
                     self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) removido do servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao remover ({trabalho.id.ljust(36)} | {trabalho}) do servidor: {self.__repositorioTrabalho.pegaErro()}')
-                self.__erro= self.__repositorioTrabalho.pegaErro()
+                self.__logger.error(f'Erro ao remover ({trabalho.id.ljust(36)} | {trabalho}) do servidor: {self.__repositorioTrabalho.pegaErro}')
+                self.__erro= self.__repositorioTrabalho.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
@@ -295,14 +295,14 @@ class TrabalhoDaoSqlite:
             repositorioTrabalho: RepositorioTrabalho= RepositorioTrabalho()
             trabalhosServidor: list[Trabalho]= repositorioTrabalho.pegaTodosTrabalhos()
             if trabalhosServidor is None:
-                self.__logger.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro()}')
-                raise Exception(repositorioTrabalho.pegaErro())
+                self.__logger.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro}')
+                raise Exception(repositorioTrabalho.pegaErro)
             for trabalho in trabalhosServidor:
                 sql= f"""INSERT INTO {CHAVE_TRABALHOS} ({CHAVE_ID}, {CHAVE_NOME}, {CHAVE_NOME_PRODUCAO}, {CHAVE_EXPERIENCIA}, {CHAVE_NIVEL}, {CHAVE_PROFISSAO}, {CHAVE_RARIDADE}, {CHAVE_TRABALHO_NECESSARIO}) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
                 try:
                     cursor.execute(sql, (trabalho.id, trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario))
                 except Exception as e:
-                    self.__logger.error(f'Erro ao inserir trabalho no banco ({trabalho.id}, {trabalho.nome}, {trabalho.nomeProducao}, {trabalho.experiencia}, {trabalho.nivel}, {trabalho.profissao}, {trabalho.raridade}, {trabalho.trabalhoNecessario}): {repositorioTrabalho.pegaErro()}')
+                    self.__logger.error(f'Erro ao inserir trabalho no banco ({trabalho.id}, {trabalho.nome}, {trabalho.nomeProducao}, {trabalho.experiencia}, {trabalho.nivel}, {trabalho.profissao}, {trabalho.raridade}, {trabalho.trabalhoNecessario}): {repositorioTrabalho.pegaErro}')
                     raise e
             self.__conexao.commit()
             return True
@@ -313,5 +313,9 @@ class TrabalhoDaoSqlite:
             self.__meuBanco.desconecta()
         return False
     
+    @property
     def pegaErro(self):
+        '''
+            Atributo que retorna o último erro registrado.
+        '''
         return self.__erro

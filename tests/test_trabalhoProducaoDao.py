@@ -16,7 +16,7 @@ class TesteTrabalhoProducaoDao:
         if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
             recebidoMensagem = 'Sucesso'
         else:
-            recebidoMensagem = trabalhoProducaoDao.pegaErro()
+            recebidoMensagem = trabalhoProducaoDao.pegaErro
         assert esperadoMensagem == recebidoMensagem
 
     def testeRemoverTrabalhoProducaoQuandoMetodoRemoveTrabalhoProducaoEhChamada(self):
@@ -29,13 +29,13 @@ class TesteTrabalhoProducaoDao:
         if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
             mensagemInsereRecebido = 'Sucesso'
         else:
-            mensagemInsereRecebido = trabalhoProducaoDao.pegaErro()
+            mensagemInsereRecebido = trabalhoProducaoDao.pegaErro
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemTeste)
         mensagemRemoveEsperado = 'Sucesso'
         if trabalhoProducaoDao.removeTrabalhoProducao(trabalhoProducaoTeste):
             mensagemRemoveRecebido = 'Sucesso'
         else:
-            mensagemRemoveRecebido = trabalhoProducaoDao.pegaErro()
+            mensagemRemoveRecebido = trabalhoProducaoDao.pegaErro
         assert mensagemInsereEsperado == mensagemInsereRecebido
         assert mensagemRemoveEsperado == mensagemRemoveRecebido
 
@@ -49,13 +49,13 @@ class TesteTrabalhoProducaoDao:
         if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
             mensagemInsereRecebido = 'Sucesso'
         else:
-            mensagemInsereRecebido = trabalhoProducaoDao.pegaErro()
+            mensagemInsereRecebido = trabalhoProducaoDao.pegaErro
         mensagemModificaEsperado = 'Sucesso'
         trabalhoProducaoTeste.estado = 1
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemTeste)
         if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoTeste):
             mensagemModificaRecebido = 'Sucesso'
         else:
-            mensagemModificaRecebido = trabalhoProducaoDao.pegaErro()
+            mensagemModificaRecebido = trabalhoProducaoDao.pegaErro
         assert mensagemInsereEsperado == mensagemInsereRecebido
         assert mensagemModificaEsperado == mensagemModificaRecebido
