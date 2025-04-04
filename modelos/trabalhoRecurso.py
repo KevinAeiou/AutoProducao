@@ -11,7 +11,7 @@ class TrabalhoRecurso:
     def pegaQuantidadeTerciario(self):
         return self.quantidade
     
-    property
+    @property
     def pegaQuantidadeSecundario(self):
         return self.quantidade + 1
     
