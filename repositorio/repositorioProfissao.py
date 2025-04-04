@@ -36,21 +36,20 @@ class RepositorioProfissao(Stream):
             self.__logger.debug(menssagem= evento.path)
             self.__logger.debug(menssagem= evento.data)
             ids: list[str]= evento.path.split('/')
-            profissao: Profissao= Profissao()
-            dicionarioProfissao: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
+            dicionario: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if evento.data is None:
                 if len(ids) > 2:
-                    profissao.id= ids[2]
-                    profissao.experiencia= None
-                    dicionarioProfissao[CHAVE_TRABALHOS]= profissao
-                    super().insereDadosModificados(dado= dicionarioProfissao)
+                    dicionarioProfissao: dict = {CHAVE_ID: ids[2]}
+                    dicionario[CHAVE_TRABALHOS]= dicionarioProfissao
+                    super().insereDadosModificados(dado= dicionario)
                     return
-                dicionarioProfissao[CHAVE_TRABALHOS]= None
-                super().insereDadosModificados(dado= dicionarioProfissao)
+                dicionario[CHAVE_TRABALHOS]= None
+                super().insereDadosModificados(dado= dicionario)
                 return
-            profissao.dicionarioParaObjeto(dicionario= evento.data)
-            dicionarioProfissao[CHAVE_TRABALHOS]= profissao
-            super().insereDadosModificados(dado= dicionarioProfissao)
+            dicionarioProfissao: dict = evento.data
+            dicionarioProfissao[CHAVE_ID] = ids[2]
+            dicionario[CHAVE_TRABALHOS]= dicionarioProfissao
+            super().insereDadosModificados(dado= dicionario)
 
     def pegaProfissoesPersonagem(self) -> list[Profissao] | None:
         '''

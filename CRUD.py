@@ -494,7 +494,7 @@ class CRUD:
                 opcaoProfissao = input(f'Opção: ')
                 if int(opcaoProfissao) == 0:
                     break
-                profissaoModificado = profissoes[int(opcaoProfissao)-1]
+                profissaoModificado: Profissao= profissoes[int(opcaoProfissao)-1]
                 novoNome = input(f'Novo nome: ')
                 novaExperiencia = input(f'Nova experiência: ')
                 alternaPrioridade = input(f'Alternar prioridade? (S/N) ')
@@ -503,8 +503,8 @@ class CRUD:
                 profissaoModificado.nome = novoNome
                 profissaoModificado.setExperiencia(novaExperiencia)
                 if alternaPrioridade.lower() == 's':
-                    profissaoModificado.alternaPrioridade()
-                if self.__aplicacao.modificaProfissao(profissaoModificado):
+                    profissaoModificado.alternaPrioridade
+                if self.__aplicacao.modificaProfissao(profissao= profissaoModificado):
                     continue
                 input(f'Clique para continuar...')
 

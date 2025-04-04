@@ -2383,28 +2383,27 @@ class Aplicacao:
         # self.__loggerRepositorioProducao.debug(f'Verificando alterações na lista de trabalhos de produção...')
         if self.__repositorioProfissao.estaPronto:
             dicionariosProfissoes: list[dict]= self.__repositorioProfissao.pegaDadosModificados()
-            for dicionario in dicionariosProfissoes:
+            for dicionarioProfissao in dicionariosProfissoes:
                 personagem: Personagem= Personagem()
-                personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
-                if dicionario[CHAVE_TRABALHOS] is None:
+                personagem.id= dicionarioProfissao[CHAVE_ID_PERSONAGEM]
+                if dicionarioProfissao[CHAVE_TRABALHOS] is None:
                     self.removeProfissoesPorIdPersonagem(personagem= personagem)
                     continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
-                    profissao: Profissao= dicionario[CHAVE_TRABALHOS]
-                    if profissao.experiencia is None:
-                        profissao.idPersonagem= personagem.id
-                        self.removeProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
-                        continue
-                    profissaoEncontrada: Profissao= self.pegaProfissaoPorId(id= profissao.id, personagem= personagem)
+                    dicionario: dict= dicionarioProfissao[CHAVE_TRABALHOS]
+                    profissaoEncontrada: Profissao= self.pegaProfissaoPorId(id= dicionario[CHAVE_ID], personagem= personagem)
                     if profissaoEncontrada is None:
                         continue
-                    if profissaoEncontrada.id == profissao.id:
-                        profissao.nome= profissaoEncontrada.nome
-                        profissao.idPersonagem= profissaoEncontrada.idPersonagem
-                        self.modificaProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
+                    if profissaoEncontrada.experiencia is None:
+                        profissaoEncontrada.idPersonagem= personagem.id
+                        self.removeProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
                         continue
-                    profissao.nome= self.pegaNomeProfissaoPorId(id= profissao.id)
-                    self.insereProfissao(profissao= profissao, personagem= personagem, modificaServidor= False)
+                    if profissaoEncontrada.id == dicionario[CHAVE_ID]:
+                        profissaoEncontrada.dicionarioParaObjeto(dicionario)
+                        self.modificaProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
+                        continue
+                    profissaoEncontrada.nome= self.pegaNomeProfissaoPorId(id= profissaoEncontrada.id)
+                    self.insereProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
             self.__repositorioProfissao.limpaLista
     
     def verificaAlteracaoEstoque(self):
