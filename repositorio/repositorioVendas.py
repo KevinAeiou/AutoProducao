@@ -2,7 +2,19 @@ from repositorio.firebaseDatabase import FirebaseDatabase
 from modelos.trabalhoVendido import TrabalhoVendidoVelho, TrabalhoVendido
 from modelos.personagem import Personagem
 from modelos.logger import MeuLogger
-from constantes import CHAVE_VENDAS, CHAVE_ID, CHAVE_DESCRICAO, CHAVE_DATA_VENDA, CHAVE_ID_TRABALHO, CHAVE_QUANTIDADE, CHAVE_VALOR, CHAVE_ID_PERSONAGEM, CHAVE_TRABALHOS, CHAVE_REPOSITORIO_VENDAS
+from constantes import (
+    CHAVE_VENDAS, 
+    CHAVE_ID, 
+    CHAVE_DESCRICAO, 
+    CHAVE_DATA_VENDA, 
+    CHAVE_ID_TRABALHO, 
+    CHAVE_QUANTIDADE, 
+    CHAVE_VALOR, 
+    CHAVE_ID_PERSONAGEM, 
+    CHAVE_TRABALHOS, 
+    CHAVE_REPOSITORIO_VENDAS, 
+    STRING_PUT, 
+    STRING_PATCH)
 from requests.exceptions import HTTPError
 from repositorio.stream import Stream
 from firebase_admin.db import Event
@@ -24,7 +36,7 @@ class RepositorioVendas(Stream):
             
     def streamHandler(self, evento: Event):
         super().streamHandler(evento= evento)
-        if evento.event_type in ('put', 'path'):
+        if evento.event_type in (STRING_PUT, STRING_PATCH):
             if evento.path == '/':
                 return
             self.__logger.debug(menssagem= evento.path)

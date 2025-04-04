@@ -913,8 +913,7 @@ class CRUD:
         input('Clique para continuar...')
         
     def iniciaStreans(self):
-        self.__aplicacao.abreStreamTrabalhos()
-        self.__aplicacao.abreStreamPersonagens()
+        self.__aplicacao.abreStreans()
         
     def testeFuncao(self):
         # self.testeStream()
@@ -990,6 +989,12 @@ class CRUD:
         
     def menu(self):
         while True:
+            self.__aplicacao.verificaAlteracaoTrabalhos()
+            self.__aplicacao.verificaAlteracaoProducao()
+            self.__aplicacao.verificaAlteracaoPersonagens()
+            self.__aplicacao.verificaAlteracaoProfissoes()
+            self.__aplicacao.verificaAlteracaoEstoque()
+            self.__aplicacao.verificaAlteracaoVendas()
             limpaTela()
             print(f'MENU')
             print(f'{"1".ljust(2)} - Insere trabalho')

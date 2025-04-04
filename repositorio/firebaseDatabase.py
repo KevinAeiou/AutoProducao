@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, db
 from modelos.logger import MeuLogger
 from typing import Optional, NoReturn
-from credenciais.firebaseCredenciais import CAMINHO_CERTIFICADO_FIREBASE
+from repositorio.credenciais.firebaseCredenciais import CAMINHO_CERTIFICADO_FIREBASE
 
 class FirebaseDatabase:
     '''

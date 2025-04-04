@@ -2,6 +2,7 @@ from modelos.logger import MeuLogger
 from repositorio.firebaseDatabase import FirebaseDatabase
 from time import time
 from firebase_admin import db
+from constantes import STRING_PUT, STRING_PATCH
 from requests.exceptions import ConnectionError
 
 class Stream:
@@ -77,7 +78,7 @@ class Stream:
         return False
     
     def streamHandler(self, evento: db.Event):
-        if evento.event_type in ('put', 'path'):
+        if evento.event_type in (STRING_PUT, STRING_PATCH):
             if evento.path == '/':
                 self.__streamPronta= True
                 diferenca: int= time() - self.__inicio

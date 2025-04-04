@@ -24,25 +24,25 @@ class RepositorioTrabalhoProducao(Stream):
 
     def streamHandler(self, evento: Event):
         super().streamHandler(evento= evento)
-        if evento.event_type in ('put', 'path'):
+        if evento.event_type in (STRING_PUT, STRING_PATCH):
             if evento.path == '/':
                 return
             self.__logger.debug(menssagem= evento.path)
             self.__logger.debug(menssagem= evento.data)
             ids: list[str]= evento.path.split('/')
-            trabalho: TrabalhoProducao= TrabalhoProducao()
             dicionarioTrabalho: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if evento.data is None:
                 if len(ids) > 2:
-                    trabalho.id= ids[2]
-                    dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+                    dicionario: dict = {CHAVE_ID: ids[2]}
+                    dicionarioTrabalho[CHAVE_TRABALHOS]= dicionario
                     super().insereDadosModificados(dado= dicionarioTrabalho)
                     return
                 dicionarioTrabalho[CHAVE_TRABALHOS]= None
                 super().insereDadosModificados(dado= dicionarioTrabalho)
                 return
-            trabalho.dicionarioParaObjeto(dicionario= evento.data)
-            dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+            dicionario: dict = evento.data
+            dicionario[CHAVE_ID] = ids[2]
+            dicionarioTrabalho[CHAVE_TRABALHOS]= dicionario
             super().insereDadosModificados(dado= dicionarioTrabalho)
             pass
 
@@ -85,6 +85,7 @@ class RepositorioTrabalhoProducao(Stream):
                 trabalhoProducao.dicionarioParaObjeto(valor)
                 trabalhosProducao.append(trabalhoProducao)
             trabalhosProducao = sorted(trabalhosProducao, key=lambda trabalhoProducao: trabalhoProducao.estado, reverse=True)
+            self.__logger.debug(menssagem= f'Trabalhos para produção com estados "Para produzir" e "Produzindo" recuperados com sucesso!')
             return trabalhosProducao
         except HTTPError as e:
             self.__erro = str(e.errno)
@@ -94,10 +95,10 @@ class RepositorioTrabalhoProducao(Stream):
             self.__logger.error(menssagem= f'Erro ao pegar trabalhos para produção com estados paraProduzir(0) e produzindo(1): {e.errno}')
         return None
     
-    def removeTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao) -> bool:
+    def removeTrabalhoProducao(self, trabalho: TrabalhoProducao) -> bool:
         try:
-            self.__minhaReferencia.child(self._personagem.id).child(trabalhoProducao.id).delete()
-            self.__logger.debug(menssagem= f'Trabalho para produção removido com sucesso!')
+            self.__minhaReferencia.child(self._personagem.id).child(trabalho.id).delete()
+            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) removido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
@@ -107,10 +108,10 @@ class RepositorioTrabalhoProducao(Stream):
             self.__logger.error(menssagem= f'Erro remover trabalho para produção: {e}')
         return False
     
-    def insereTrabalhoProducao(self, trabalhoProducao: TrabalhoProducao) -> bool:
+    def insereTrabalhoProducao(self, trabalho: TrabalhoProducao) -> bool:
         try:
-            self.__minhaReferencia.child(self._personagem.id).child(trabalhoProducao.id).set({CHAVE_ID: trabalhoProducao.id, CHAVE_ID_TRABALHO: trabalhoProducao.idTrabalho, CHAVE_ESTADO: trabalhoProducao.estado, CHAVE_RECORRENCIA: trabalhoProducao.recorrencia, CHAVE_TIPO_LICENCA: trabalhoProducao.tipoLicenca})
-            self.__logger.debug(menssagem= f'Trabalho para produção inserido com sucesso!')
+            self.__minhaReferencia.child(self._personagem.id).child(trabalho.id).set({CHAVE_ID: trabalho.id, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_ESTADO: trabalho.estado, CHAVE_RECORRENCIA: trabalho.recorrencia, CHAVE_TIPO_LICENCA: trabalho.tipoLicenca})
+            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) inserido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
@@ -123,7 +124,7 @@ class RepositorioTrabalhoProducao(Stream):
     def modificaTrabalhoProducao(self, trabalho: TrabalhoProducao) -> bool:
         try:
             self.__minhaReferencia.child(self._personagem.id).child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_ESTADO: trabalho.estado, CHAVE_RECORRENCIA: trabalho.recorrencia, CHAVE_TIPO_LICENCA: trabalho.tipoLicenca})
-            self.__logger.debug(menssagem= f'Trabalho para produção modificado com sucesso!')
+            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) modificado com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)

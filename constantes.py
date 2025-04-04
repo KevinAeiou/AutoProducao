@@ -227,3 +227,5 @@ CHAVE_LISTA_ERROS = [
     STRING_FALHA_INICIAR_CONEXAO]
 STRING_ADICIONAR_NOVO_PEDIDO = 'Adicionar um novo pedido'
 STRING_PEDIDO_CONCLUIDO = 'Pedido concluido'
+STRING_PATCH: str = 'patch'
+STRING_PUT: str = 'put'

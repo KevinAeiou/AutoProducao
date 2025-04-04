@@ -2435,24 +2435,26 @@ class Aplicacao:
         # self.__loggerRepositorioProducao.debug(f'Verificando alterações na lista de trabalhos de produção...')
         if self.__repositorioProducao.estaPronto:
             dicionariosProducoes: list[dict]= self.__repositorioProducao.pegaDadosModificados()
-            for dicionario in dicionariosProducoes:
+            for dicionarioProducao in dicionariosProducoes:
                 personagem: Personagem= Personagem()
-                personagem.id= dicionario[CHAVE_ID_PERSONAGEM]
-                if dicionario[CHAVE_TRABALHOS] is None:
+                personagem.id= dicionarioProducao[CHAVE_ID_PERSONAGEM]
+                if dicionarioProducao[CHAVE_TRABALHOS] is None:
                     self.removeProducoesPorIdPersonagem(personagem= personagem)
                     continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
-                    trabalho: TrabalhoProducao= dicionario[CHAVE_TRABALHOS]
-                    if trabalho.idTrabalho is None:
-                        self.removeTrabalhoProducao(trabalho= trabalho, personagem= personagem, modificaServidor= False)
-                        continue
-                    trabalhoEncontrado: TrabalhoProducao= self.pegaTrabalhoProducaoPorId(id= trabalho.id)
+                    dicionarioTrabalho: dict= dicionarioProducao[CHAVE_TRABALHOS]
+                    trabalhoEncontrado: TrabalhoProducao= self.pegaTrabalhoProducaoPorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
-                    if trabalhoEncontrado.id == trabalho.id:
-                        self.modificaTrabalhoProducao(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+                    if trabalhoEncontrado.idTrabalho is None:
+                        self.removeTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                         continue
-                    self.insereTrabalhoProducao(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+                    if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                        trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                        self.modificaTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                        continue
+                    trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                    self.insereTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
             self.__repositorioProducao.limpaLista
     
     def verificaAlteracaoVendas(self):
@@ -2767,6 +2769,9 @@ class Aplicacao:
                 self.iniciaProcessoBusca()
 
     def abreStreans(self):
+        '''
+            Método para iniciar streans
+        '''
         self.abreStreamEstoque()
         self.abreStreamTrabalhos()
         self.abreStreamPersonagens()
@@ -2782,7 +2787,6 @@ class Aplicacao:
             self.mostraResultadoStreamProfissoes()
             self.mostraResultadoStreamVendas()
             sleep(1.5)
-            continue
 
     def mostraResultadoStreamEstoque(self):
         if self.__repositorioEstoque.streamPronta:

@@ -209,11 +209,11 @@ class TrabalhoProducaoDaoSqlite:
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.idTrabalho, personagem.id, recorrencia, trabalhoProducao.tipoLicenca, trabalhoProducao.estado))
             if modificaServidor:
-                if repositorioTrabalhoProducao.insereTrabalhoProducao(trabalhoProducao= trabalhoProducao):
-                    self.__logger.info(f'({trabalhoProducao}) inserido no servidor com sucesso!')
+                if repositorioTrabalhoProducao.insereTrabalhoProducao(trabalho= trabalhoProducao):
+                    self.__logger.info(f'({personagem.id.ljust(36)} | {trabalhoProducao}) inserido no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalhoProducao}) no servidor: {repositorioTrabalhoProducao.pegaErro}')
+                self.__logger.error(f'Erro ao inserir ({personagem.id.ljust(36)} | {trabalhoProducao}) no servidor: {repositorioTrabalhoProducao.pegaErro}')
                 self.__conexao.rollback()
                 self.__erro= repositorioTrabalhoProducao.pegaErro
                 return False
@@ -235,11 +235,11 @@ class TrabalhoProducaoDaoSqlite:
             cursor.execute('BEGIN')
             cursor.execute(sql, [trabalhoProducao.id])
             if modificaServidor:
-                if repositorioTrabalhoProducao.removeTrabalhoProducao(trabalhoProducao= trabalhoProducao):
-                    self.__logger.info(f'({trabalhoProducao}) removido do servidor com sucesso!')
+                if repositorioTrabalhoProducao.removeTrabalhoProducao(trabalho= trabalhoProducao):
+                    self.__logger.info(f'({personagem.id.ljust(36)} | {trabalhoProducao}) removido do servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao remover ({trabalhoProducao}) do servidor: {repositorioTrabalhoProducao.pegaErro}')
+                self.__logger.error(f'Erro ao remover ({personagem.id.ljust(36)} | {trabalhoProducao}) do servidor: {repositorioTrabalhoProducao.pegaErro}')
                 self.__erro= repositorioTrabalhoProducao.pegaErro
                 self.__conexao.rollback()
                 return False
@@ -279,10 +279,10 @@ class TrabalhoProducaoDaoSqlite:
             cursor.execute(sql, (trabalho.idTrabalho, recorrencia, trabalho.tipoLicenca, trabalho.estado, trabalho.id))
             if modificaServidor:
                 if repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalho= trabalho):
-                    self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
+                    self.__logger.info(f'({personagem.id.ljust(36)} | {trabalho}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {repositorioTrabalhoProducao.pegaErro}')
+                self.__logger.error(f'Erro ao modificar ({personagem.id.ljust(36)} | {trabalho}) no servidor: {repositorioTrabalhoProducao.pegaErro}')
                 self.__erro= repositorioTrabalhoProducao.pegaErro
                 self.__conexao.rollback()
                 return False

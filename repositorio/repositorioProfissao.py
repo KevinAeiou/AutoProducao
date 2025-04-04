@@ -30,7 +30,7 @@ class RepositorioProfissao(Stream):
 
     def streamHandler(self, evento: Event):
         super().streamHandler(evento= evento)
-        if evento.event_type in ('put', 'path'):
+        if evento.event_type in (STRING_PUT, STRING_PATCH):
             if evento.path == '/':
                 return
             self.__logger.debug(menssagem= evento.path)
