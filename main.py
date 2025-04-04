@@ -2752,30 +2752,37 @@ class Aplicacao:
 
     def preparaPersonagem(self):
         try:
-            self.abreStreamEstoque()
-            self.abreStreamTrabalhos()
-            self.abreStreamPersonagens()
-            self.abreStreamProducao()
-            self.abreStreamProfissoes()
-            self.abreStreamVendas()
-            while not self.__repositorioEstoque.streamPronta or not self.__repositorioTrabalho.streamPronta or not self.__repositorioPersonagem.streamPronta or not self.__repositorioPersonagem.streamPronta or not self.__repositorioProducao.streamPronta or not self.__repositorioProfissao.streamPronta or not self.__repositorioVendas.streamPronta:
-                limpaTela()
-                self.mostraResultadoStreamEstoque()
-                self.mostraResultadoStreamTrabalhos()
-                self.mostraResultadoStreamPersonagens()
-                self.mostraResultadoStreamProducao()
-                self.mostraResultadoStreamProfissoes()
-                self.mostraResultadoStreamVendas()
-                sleep(1.5)
-                continue
+            self.abreStreans()
             self.sincronizaListas()
             clickAtalhoEspecifico('alt', 'tab')
             clickAtalhoEspecifico('win', 'left')
             self.iniciaProcessoBusca()
+        except ConnectionError as e:
+            self.__loggerAplicacao.error(e)
+            self.abreStreans()
+            self.iniciaProcessoBusca()
         except Exception as e:
-            print(e)
+            self.__loggerAplicacao.error(e)
             if input(f'Tentar novamente? (S/N) \n').lower() == 's':
                 self.iniciaProcessoBusca()
+
+    def abreStreans(self):
+        self.abreStreamEstoque()
+        self.abreStreamTrabalhos()
+        self.abreStreamPersonagens()
+        self.abreStreamProducao()
+        self.abreStreamProfissoes()
+        self.abreStreamVendas()
+        while not self.__repositorioEstoque.streamPronta or not self.__repositorioTrabalho.streamPronta or not self.__repositorioPersonagem.streamPronta or not self.__repositorioPersonagem.streamPronta or not self.__repositorioProducao.streamPronta or not self.__repositorioProfissao.streamPronta or not self.__repositorioVendas.streamPronta:
+            limpaTela()
+            self.mostraResultadoStreamEstoque()
+            self.mostraResultadoStreamTrabalhos()
+            self.mostraResultadoStreamPersonagens()
+            self.mostraResultadoStreamProducao()
+            self.mostraResultadoStreamProfissoes()
+            self.mostraResultadoStreamVendas()
+            sleep(1.5)
+            continue
 
     def mostraResultadoStreamEstoque(self):
         if self.__repositorioEstoque.streamPronta:
