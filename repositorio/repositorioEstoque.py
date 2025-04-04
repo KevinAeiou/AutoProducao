@@ -30,19 +30,19 @@ class RepositorioEstoque(Stream):
             self.__logger.debug(menssagem= evento.path)
             self.__logger.debug(menssagem= evento.data)
             ids: list[str]= evento.path.split('/')
-            trabalho: TrabalhoEstoque= TrabalhoEstoque()
             dicionarioTrabalho: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if evento.data is None:
                 if len(ids) > 2:
-                    trabalho.id= ids[2]
-                    dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+                    dicionario: dict= {CHAVE_ID: ids[2]}
+                    dicionarioTrabalho[CHAVE_TRABALHOS]= dicionario
                     super().insereDadosModificados(dado= dicionarioTrabalho)
                     return
                 dicionarioTrabalho[CHAVE_TRABALHOS]= None
                 super().insereDadosModificados(dado= dicionarioTrabalho)
                 return
-            trabalho.dicionarioParaObjeto(dicionario= evento.data)
-            dicionarioTrabalho[CHAVE_TRABALHOS]= trabalho
+            dicionario: dict = evento.data
+            dicionario[CHAVE_ID] = ids[2]
+            dicionarioTrabalho[CHAVE_TRABALHOS]= dicionario
             super().insereDadosModificados(dado= dicionarioTrabalho)
 
     def pegaTodosTrabalhosEstoque(self) -> list[TrabalhoEstoque] | None:

@@ -2417,17 +2417,19 @@ class Aplicacao:
                     self.removeEstoquePorIdPersonagem(personagem= personagem)
                     continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
-                    trabalhoEstoque: TrabalhoEstoque= dicionario[CHAVE_TRABALHOS]
-                    if trabalhoEstoque.idTrabalho is None:
-                        self.removeTrabalhoEstoque(trabalho= trabalhoEstoque, personagem= personagem, modificaServidor= False)
+                    dicionarioTrabalho: dict = dicionario[CHAVE_TRABALHOS]
+                    trabalhoEncontrado: TrabalhoEstoque= self.pegaTrabalhoEstoquePorId(id= dicionarioTrabalho[CHAVE_ID])
+                    if trabalhoEncontrado is None:
                         continue
-                    trabalhoEstoqueEncontrada: TrabalhoEstoque= self.pegaTrabalhoEstoquePorId(id= trabalhoEstoque.id)
-                    if trabalhoEstoqueEncontrada is None:
+                    if trabalhoEncontrado.idTrabalho is None:
+                        self.removeTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                         continue
-                    if trabalhoEstoqueEncontrada.id == trabalhoEstoque.id:
-                        self.modificaTrabalhoEstoque(trabalho= trabalhoEstoque, personagem= personagem, modificaServidor= False)
+                    if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                        trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                        self.modificaTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                         continue
-                    self.insereTrabalhoEstoque(trabalho= trabalhoEstoque, personagem= personagem, modificaServidor= False)
+                    trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                    self.insereTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
             self.__repositorioEstoque.limpaLista
     
     def verificaAlteracaoProducao(self):
