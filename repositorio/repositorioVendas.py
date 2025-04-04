@@ -42,19 +42,19 @@ class RepositorioVendas(Stream):
             self.__logger.debug(menssagem= evento.path)
             self.__logger.debug(menssagem= evento.data)
             ids: list[str]= evento.path.split('/')
-            trabalhoVendido: TrabalhoVendido= TrabalhoVendido()
             dicionarioVenda: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if evento.data is None:
                 if len(ids) > 2:
-                    trabalhoVendido.id= ids[2]
-                    dicionarioVenda[CHAVE_TRABALHOS]= trabalhoVendido
+                    dicionario: dict= {CHAVE_ID: ids[2]}
+                    dicionarioVenda[CHAVE_TRABALHOS]= dicionario
                     super().insereDadosModificados(dado= dicionarioVenda)
                     return
                 dicionarioVenda[CHAVE_TRABALHOS]= None
                 super().insereDadosModificados(dado= dicionarioVenda)
                 return
-            trabalhoVendido.dicionarioParaObjeto(dicionario= evento.data)
-            dicionarioVenda[CHAVE_TRABALHOS]= trabalhoVendido
+            dicionario: dict = evento.data
+            dicionario[CHAVE_ID] = ids[2]
+            dicionarioVenda[CHAVE_TRABALHOS] = dicionario
             super().insereDadosModificados(dado= dicionarioVenda)
 
     def pegaTrabalhosVendidos(self) -> list[TrabalhoVendidoVelho] | None:

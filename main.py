@@ -2469,17 +2469,19 @@ class Aplicacao:
                     self.removeVendasPorIdPersonagem(personagem= personagem)
                     continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
-                    trabalho: TrabalhoVendido= dicionario[CHAVE_TRABALHOS]
-                    if trabalho.idTrabalho is None:
-                        self.removeTrabalhoVendido(trabalho= trabalho, personagem= personagem, modificaServidor= False)
-                        continue
-                    trabalhoEncontrado: TrabalhoVendido= self.pegaTrabalhoVendidoPorId(id= trabalho.id)
+                    dicionarioTrabalho: dict= dicionario[CHAVE_TRABALHOS]
+                    trabalhoEncontrado: TrabalhoVendido= self.pegaTrabalhoVendidoPorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
-                    if trabalhoEncontrado.id == trabalho.id:
-                        self.modificaTrabalhoVendido(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+                    if trabalhoEncontrado.idTrabalho is None:
+                        self.removeTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                         continue
-                    self.insereTrabalhoVendido(trabalho= trabalho, personagem= personagem, modificaServidor= False)
+                    if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                        trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                        self.modificaTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                        continue
+                    trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                    self.insereTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
             self.__repositorioVendas.limpaLista
     
     def modificaPersonagem(self, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
