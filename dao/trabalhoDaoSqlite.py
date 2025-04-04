@@ -19,6 +19,11 @@ class TrabalhoDaoSqlite:
             self.__erro = str(e)
 
     def pegaTrabalhos(self) -> list[Trabalho]:
+        '''
+            Método para recuperar uma lista de objetos da classe Trabalho no banco de dados local.
+            Returns:
+                trabalhos (list[Trabalho]): Lista de objetos da classe Trabalho recuperados no banco de dados.    
+        '''
         try:
             trabalhos: list[Trabalho]= []
             sql = f"""SELECT * FROM {CHAVE_TRABALHOS};"""

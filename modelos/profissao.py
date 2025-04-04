@@ -9,11 +9,12 @@ class Profissao:
         self.experiencia = 0
         self.prioridade = False
 
+    @property
     def pegaExperienciaMaxima(self):
         return LISTA_EXPERIENCIAS_NIVEL[-1]
     
     def setExperiencia(self, experiencia: int):
-        experiencia = self.pegaExperienciaMaxima() if int(experiencia) > self.pegaExperienciaMaxima() else int(experiencia) if int(experiencia) > 0 else 0
+        experiencia = self.pegaExperienciaMaxima if int(experiencia) > self.pegaExperienciaMaxima else int(experiencia) if int(experiencia) > 0 else 0
         self.experiencia = experiencia
 
     @property
@@ -21,7 +22,7 @@ class Profissao:
         self.prioridade = not self.prioridade
 
     def pegaNivel(self):
-        if self.experiencia >= self.pegaExperienciaMaxima():
+        if self.experiencia >= self.pegaExperienciaMaxima:
             return len(LISTA_EXPERIENCIAS_NIVEL) + 1
         for i, experiencia in enumerate(LISTA_EXPERIENCIAS_NIVEL):
             if self.experiencia < experiencia:
@@ -29,10 +30,11 @@ class Profissao:
             if self.experiencia == experiencia:
                 return i + 2
         return 0
-    
+
+    @property
     def pegaExperienciaMaximaPorNivel(self):
-        if self.experiencia >= self.pegaExperienciaMaxima():
-            return self.pegaExperienciaMaxima()
+        if self.experiencia >= self.pegaExperienciaMaxima:
+            return self.pegaExperienciaMaxima
         for i, exp in enumerate(LISTA_EXPERIENCIAS_NIVEL):
             if self.experiencia < exp:
                 return exp

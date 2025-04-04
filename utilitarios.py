@@ -5,7 +5,15 @@ import numpy as np
 import os
 import re
 
-def textoEhIgual(texto1, texto2):
+def textoEhIgual(texto1: str, texto2: str) -> bool:
+    '''
+        Função para verificar se dois textos são iguais.
+        Args:
+            texto1 (str): String que contêm o primeiro texto.
+            texto2 (str): String que contêm o segundo texto.
+        Returns:
+            bool: Verdadeiro caso os dois textos sejam iguais.
+    '''
     return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
 
 def texto1PertenceTexto2(texto1: str, texto2: str) -> bool:

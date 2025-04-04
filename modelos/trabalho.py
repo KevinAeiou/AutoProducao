@@ -81,7 +81,12 @@ class Trabalho:
     def ehRaro(self) -> bool:
         return self.raridade == CHAVE_RARIDADE_RARO
     
-    def dicionarioParaObjeto(self, dicionario):
+    def dicionarioParaObjeto(self, dicionario: dict):
+        '''
+            Método para transformar um dicionário em um objeto de classe.
+            Args:
+                dicionario (dict): Dicionário a ser transformado em classe.
+        '''
         if dicionario is None:
             return
         for chave in dicionario:

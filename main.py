@@ -542,6 +542,13 @@ class Aplicacao:
         return False
 
     def pegaProfissoes(self, personagem: Personagem = None) -> list[Personagem]:
+        '''
+            Método para recuperar uma lista de objetos da classe Profissao do personagem atual no banco de dados local.
+            Args:
+                personagem (Personagem): Objeto da classe Personagem que contêm os atributos do personagem em uso.
+            Returns:
+                profissoes (list[Profissao]): Lista de objetos da classe Profissao encontrados no banco de dados.
+        '''
         personagem = self.__personagemEmUso if personagem is None else personagem
         self.__loggerAplicacao.debug(menssagem= f'Pegando profissões de ({personagem.nome})')
         profissoes: list[Profissao] = self.__profissaoDao.pegaProfissoesPorIdPersonagem(personagem= personagem)
@@ -742,34 +749,58 @@ class Aplicacao:
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
             self.insereTrabalhoEstoque(trabalhoEstoqueConcluido)
 
-    def retornaProfissaoTrabalhoProducaoConcluido(self, trabalhoProducaoConcluido: TrabalhoProducao) -> Profissao | None:
+    def retornaProfissaoTrabalhoProducaoConcluido(self, trabalhoConcluido: TrabalhoProducao) -> Profissao | None:
+        '''
+            Método para retornar um objeto da classe Profissao que contêm os atributos da profissão encontrada.
+            Args:
+                trabalhoConcluido (TrabalhoConcluido): Objeto da classe TrabalhoProducao que contêm os atributos do trabalho concluído.
+            Returns:
+                profissao (Profissao): Objeto da classe Profissao que contêm os atributos da profissão encontrada.
+        '''
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
-            if textoEhIgual(profissao.nome, trabalhoProducaoConcluido.profissao):
+            if textoEhIgual(texto1= profissao.nome, texto2= trabalhoConcluido.profissao):
                 return profissao
         return None
 
-    def verificaProducaoTrabalhoRaro(self, trabalhoProducaoConcluido):
-        profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoProducaoConcluido)
-        if variavelExiste(profissao) and trabalhoProducaoConcluido.ehMelhorado():
-            trabalhos = self.pegaTrabalhosBanco()
+    def verificaProducaoTrabalhoRaro(self, trabalhoConcluido: TrabalhoProducao) -> TrabalhoProducao | None:
+        '''
+            Método para verificar se trabalho concluído é do tipo "Melhorado" e possui um trabalho do tipo "Raro"
+            Args:
+                trabalhoConcluido (TrabalhoProducao): Objeto da classe TrabalhoProducao que contêm os atributos do trabalho concluído.
+            Returns:
+                TrabalhoProducao: Obejto da classe TrabalhoProducao que contêm os atributos do trabalho do tipo "Raro" encontrado.
+        '''
+        if trabalhoConcluido.ehMelhorado:
+            profissao: Profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoConcluido)
+            if profissao is None:
+                return None
+            trabalhos: list[Trabalho]= self.pegaTrabalhosBanco()
             for trabalho in trabalhos:
-                trabalhoNecessarioEhIgualNomeTrabalhoConcluido = textoEhIgual(trabalho.trabalhoNecessario, trabalhoProducaoConcluido.nome)
+                trabalhoNecessarioEhIgualNomeTrabalhoConcluido = textoEhIgual(texto1= trabalho.trabalhoNecessario, texto2= trabalhoConcluido.nome)
                 if trabalhoNecessarioEhIgualNomeTrabalhoConcluido:
                     return self.defineNovoTrabalhoProducaoRaro(profissao, trabalho)
         return None
 
-    def defineNovoTrabalhoProducaoRaro(self, profissao, trabalho):
-        licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel() >= profissao.pegaExperienciaMaxima() else CHAVE_LICENCA_INICIANTE
-        trabalhoProducaoRaro = TrabalhoProducao()
-        trabalhoProducaoRaro.dicionarioParaObjeto(trabalho.__dict__)
-        trabalhoProducaoRaro.id = str(uuid.uuid4())
-        trabalhoProducaoRaro.idTrabalho = trabalho.id
-        trabalhoProducaoRaro.experiencia = trabalho.experiencia * 1.5
-        trabalhoProducaoRaro.recorrencia = False
-        trabalhoProducaoRaro.tipoLicenca = licencaProducaoIdeal
-        trabalhoProducaoRaro.estado = CODIGO_PARA_PRODUZIR
-        return trabalhoProducaoRaro
+    def defineNovoTrabalhoProducaoRaro(self, profissao: Profissao, trabalho: Trabalho) -> TrabalhoProducao:
+        '''
+            Função de define um novo objeto da classe TrabalhoProducao do tipo "Raro"
+            Args:
+                profissao (Profissao): Objeto da classe Profissao que contêm o atributo necessário "experiencia".
+                trabalho (Trabalho): Obejto da classe Trabalho que contêm os atributos do trabalho encontrado.
+            Returns:
+                trabalhoRaro (TrabalhoProducao): Novo bjeto da classe TrabalhoProducao que contêm os atributos do trabalho do tipo "Raro" encontado.
+        '''
+        licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel >= profissao.pegaExperienciaMaxima else CHAVE_LICENCA_INICIANTE
+        trabalhoRaro: TrabalhoProducao = TrabalhoProducao()
+        trabalhoRaro.dicionarioParaObjeto(dicionario= trabalho.__dict__)
+        trabalhoRaro.id = str(uuid.uuid4())
+        trabalhoRaro.idTrabalho = trabalho.id
+        trabalhoRaro.experiencia = trabalho.experiencia * 1.5
+        trabalhoRaro.recorrencia = False
+        trabalhoRaro.tipoLicenca = licencaProducaoIdeal
+        trabalhoRaro.estado = CODIGO_PARA_PRODUZIR
+        return trabalhoRaro
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado: list[str] = []) -> list[str]:
         nomePersonagemReconhecido: str = self.__imagem.retornaTextoNomePersonagemReconhecido(posicao= 0)
@@ -921,7 +952,7 @@ class Aplicacao:
                 self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido= trabalhoProducaoConcluido)
                 self.modificaExperienciaProfissao(trabalho= trabalhoProducaoConcluido)
                 self.atualizaEstoquePersonagem(trabalhoEstoqueConcluido= trabalhoProducaoConcluido)
-                trabalhoProducaoRaro = self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido= trabalhoProducaoConcluido)
+                trabalhoProducaoRaro: TrabalhoProducao = self.verificaProducaoTrabalhoRaro(trabalhoConcluido= trabalhoProducaoConcluido)
                 self.insereTrabalhoProducao(trabalho= trabalhoProducaoRaro)
                 return
             if estadoTrabalho == CODIGO_PRODUZINDO:
@@ -2693,6 +2724,11 @@ class Aplicacao:
         return personagens
 
     def pegaTrabalhosBanco(self) -> list[Trabalho]:
+        '''
+            Método para recuperar uma lista de objetos da classe Trabalho no banco de dados local.
+            Returns:
+                trabalhos (list[Trabalho]): Lista de objetos da classe Trabalho recuperados no banco de dados.
+        '''
         trabalhos: list[Trabalho]= self.__trabalhoDao.pegaTrabalhos()
         if trabalhos is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos no banco: {self.__trabalhoDao.pegaErro}')

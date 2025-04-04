@@ -877,7 +877,7 @@ class CRUD:
                             profissao = self.__aplicacao.retornaProfissaoTrabalhoProducaoConcluido(trabalhoVendido)
                             if variavelExiste(profissao):
                                 print(f'Profissão: ({profissao})')
-                                xpMaximo = profissao.pegaExperienciaMaximaPorNivel()
+                                xpMaximo = profissao.pegaExperienciaMaximaPorNivel
                                 licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if xpMaximo >= 830000 else CHAVE_LICENCA_INICIANTE
                                 print(f'Licença de produção ideal: ({licencaProducaoIdeal})')
                                 trabalhoMelhoradoBuscado = Trabalho()

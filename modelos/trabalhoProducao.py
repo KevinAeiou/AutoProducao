@@ -45,10 +45,6 @@ class TrabalhoProducao(Trabalho):
     def alternaRecorrencia(self):
         self.recorrencia = not self.recorrencia
     
-    def dicionarioParaObjeto(self, dicionario):
-        for chave in dicionario:
-            setattr(self, chave, dicionario[chave])
-    
     def __str__(self) -> str:
         id = 'Indefinido' if self.id == None else str(self.id)
         idTrabalho = 'Indefinido' if self.idTrabalho == None else str(self.idTrabalho)
