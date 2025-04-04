@@ -2,6 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, db
 from modelos.logger import MeuLogger
 from typing import Optional, NoReturn
+from credenciais.firebaseCredenciais import CAMINHO_CERTIFICADO_FIREBASE
 
 class FirebaseDatabase:
     '''
@@ -32,7 +33,7 @@ class FirebaseDatabase:
             Configura a conexão com o Firebase.
         '''
         try:
-            cred= credentials.Certificate(r'repositorio\credenciais\bootwarspear-firebase-adminsdk-it84w-3832600b85.json')
+            cred= credentials.Certificate(CAMINHO_CERTIFICADO_FIREBASE)
             firebase_admin.initialize_app(credential= cred, options= {'databaseURL': 'https://bootwarspear-default-rtdb.firebaseio.com/'})
         except Exception as e:
             self.__loggerFirebaseDatabase.error(menssagem= f'Falha na inicialização do Firebase: {e}')
