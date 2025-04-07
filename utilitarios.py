@@ -1,6 +1,7 @@
 from unidecode import unidecode
 from constantes import *
 from modelos.trabalho import Trabalho
+from modelos.trabalhoEstoque import TrabalhoEstoque
 import numpy as np
 import os
 import re
@@ -281,24 +282,31 @@ def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
                 {'armadelongoalcance':['Esfera do neófito','Varinha de aço','Cabeça do cajado de ônix']}]
     return listaDicionarioProfissaoRecursos
 
-def retornaChaveTipoRecurso(trabalhoEstoque):
-    listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(trabalhoEstoque.nivel)
-    chaveProfissao = limpaRuidoTexto(trabalhoEstoque.profissao)
+def retornaChaveTipoRecurso(recursoProducao: TrabalhoEstoque) -> str | None:
+    '''
+        Função para encontrar a chave correspondente ao recurso de produção
+        Args:
+            recursoProducao (TrabalhoEstoque): Objeto da classe TrabalhoEstoque que contêm os atributos do trabalho de produção de recursos.
+        Returns:
+            str: String que contêm a chave correspondente ao trabalho de produção de recursos.
+    '''
+    listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(recursoProducao.nivel)
+    chaveProfissao = limpaRuidoTexto(recursoProducao.profissao)
     for dicionarioProfissaoRecursos in listaDicionarioProfissaoRecursos:
         if chaveProfissao in dicionarioProfissaoRecursos:
             for x in range(len(dicionarioProfissaoRecursos[chaveProfissao])):
-                if textoEhIgual(dicionarioProfissaoRecursos[chaveProfissao][x], trabalhoEstoque.nome):
-                    if x == 0 and trabalhoEstoque.nivel == 1:
+                if textoEhIgual(dicionarioProfissaoRecursos[chaveProfissao][x], recursoProducao.nome):
+                    if x == 0 and recursoProducao.nivel == 1:
                         return CHAVE_RCP
-                    elif x == 0 and trabalhoEstoque.nivel == 8:
+                    elif x == 0 and recursoProducao.nivel == 8:
                         return CHAVE_RAP
-                    elif x == 1 and trabalhoEstoque.nivel == 1:
+                    elif x == 1 and recursoProducao.nivel == 1:
                         return CHAVE_RCS
-                    elif x == 1 and trabalhoEstoque.nivel == 8:
+                    elif x == 1 and recursoProducao.nivel == 8:
                         return CHAVE_RAS
-                    elif x == 2 and trabalhoEstoque.nivel == 1:
+                    elif x == 2 and recursoProducao.nivel == 1:
                         return CHAVE_RCT
-                    elif x == 2 and trabalhoEstoque.nivel == 8:
+                    elif x == 2 and recursoProducao.nivel == 8:
                         return CHAVE_RAT
                     break
     return None

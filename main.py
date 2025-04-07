@@ -1433,28 +1433,6 @@ class Aplicacao:
         cloneTrabalhoProducaoEncontrado: TrabalhoProducao = self.defineCloneTrabalhoProducao(trabalhoProducaoEncontrado)
         self.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado)
 
-    def retornaChaveTipoRecurso(self, dicionarioRecurso):
-        listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(dicionarioRecurso[CHAVE_NIVEL])
-        chaveProfissao = limpaRuidoTexto(dicionarioRecurso[CHAVE_PROFISSAO])
-        for dicionarioProfissaoRecursos in listaDicionarioProfissaoRecursos:
-            if chaveProfissao in dicionarioProfissaoRecursos:
-                for x in range(len(dicionarioProfissaoRecursos[chaveProfissao])):
-                    if textoEhIgual(dicionarioProfissaoRecursos[chaveProfissao][x],dicionarioRecurso[CHAVE_NOME]):
-                        if x == 0 and dicionarioRecurso[CHAVE_NIVEL] == 1:
-                            return CHAVE_RCP
-                        elif x == 0 and dicionarioRecurso[CHAVE_NIVEL] == 8:
-                            return CHAVE_RAP
-                        elif x == 1 and dicionarioRecurso[CHAVE_NIVEL] == 1:
-                            return CHAVE_RCS
-                        elif x == 1 and dicionarioRecurso[CHAVE_NIVEL] == 8:
-                            return CHAVE_RAS
-                        elif x == 2 and dicionarioRecurso[CHAVE_NIVEL] == 1:
-                            return CHAVE_RCT
-                        elif x == 2 and dicionarioRecurso[CHAVE_NIVEL] == 8:
-                            return CHAVE_RAT
-                        break
-        return None
-
     def retornaNomesRecursos(self, chaveProfissao, nivelRecurso):
         nomeRecursoPrimario = None
         nomeRecursoSecundario = None
@@ -1544,7 +1522,7 @@ class Aplicacao:
             CHAVE_NOME:trabalho.nome,
             CHAVE_PROFISSAO:trabalho.profissao,
             CHAVE_NIVEL:trabalho.nivel}
-        dicionarioRecurso[CHAVE_TIPO] = retornaChaveTipoRecurso(dicionarioRecurso)
+        dicionarioRecurso[CHAVE_TIPO] = retornaChaveTipoRecurso(trabalho)
         print(f'Dicionário recurso reconhecido:')
         for atributo in dicionarioRecurso:
             print(f'{atributo} - {dicionarioRecurso[atributo]}')
