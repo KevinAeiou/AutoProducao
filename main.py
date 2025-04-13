@@ -1381,6 +1381,8 @@ class Aplicacao:
         trabalhosProducaoPriorizado: list[TrabalhoProducao]= dicionarioTrabalho[CHAVE_LISTA_TRABALHOS_PRODUCAO_PRIORIZADA]
         self.__loggerAplicacao.debug(f'Buscando trabalho {trabalhosProducaoPriorizado[0].raridade}.')
         contadorParaBaixo: int= 0
+        nomeReconhecidoAux: str = ''
+        contadorNomeReconhecido: int = 0
         if not primeiraBusca(dicionarioTrabalho= dicionarioTrabalho):
             contadorParaBaixo = dicionarioTrabalho[CHAVE_POSICAO]
             clickEspecifico(cliques= contadorParaBaixo, teclaEspecifica= 'down')
@@ -1390,9 +1392,12 @@ class Aplicacao:
                 return dicionarioTrabalho
             nomeTrabalhoReconhecido: str = self.reconheceTextoTrabalhoComumMelhorado(trabalho= dicionarioTrabalho, contadorParaBaixo= contadorParaBaixo)
             contadorParaBaixo = 3 if primeiraBusca(dicionarioTrabalho) else contadorParaBaixo
-            fimLista: bool= False if contadorParaBaixo < 133 else True
-            nomeReconhecidoNaoEstaVazioEnaoEhFimLista: bool= nomeTrabalhoReconhecido is not None and not fimLista
+            fimLista: bool = contadorNomeReconhecido > 3
+            nomeReconhecidoNaoEstaVazioEnaoEhFimLista: bool = nomeTrabalhoReconhecido is not None and not fimLista
             if nomeReconhecidoNaoEstaVazioEnaoEhFimLista:
+                if textoEhIgual(texto1= nomeReconhecidoAux, texto2= nomeTrabalhoReconhecido):
+                    contadorNomeReconhecido += 1
+                nomeReconhecidoAux = nomeTrabalhoReconhecido
                 self.__loggerAplicacao.debug(f'Trabalho reconhecido: {nomeTrabalhoReconhecido}')
                 for trabalhoProducao in trabalhosProducaoPriorizado:
                     self.__loggerAplicacao.debug(f'Trabalho na lista: {trabalhoProducao.id.ljust(36)} | {trabalhoProducao.nome}')
