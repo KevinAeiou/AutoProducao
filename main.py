@@ -2157,7 +2157,9 @@ class Aplicacao:
         for profissaoPriorizada in profissoesPriorizadas:
             self.__loggerProfissaoDao.debug(menssagem= f'Verificando profissão priorizada: {profissaoPriorizada.nome}')
             nivelProfissao: int = profissaoPriorizada.pegaNivel()
+            self.__loggerProfissaoDao.debug(menssagem= f'Nível profissão priorizada: {nivelProfissao}')
             trabalhoBuscado: Trabalho = self.defineTrabalhoComumBuscado(profissaoPriorizada, nivelProfissao)
+            self.__loggerProfissaoDao.debug(menssagem= f'Trabalho buscado: {trabalhoBuscado}')
             trabalhosComunsProfissaoNivelExpecifico: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalhoBuscado)
             if ehVazia(trabalhosComunsProfissaoNivelExpecifico):
                 self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade (comum) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
