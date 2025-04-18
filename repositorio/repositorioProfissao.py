@@ -5,8 +5,6 @@ from modelos.profissao import Profissao
 from modelos.personagem import Personagem
 from constantes import *
 from requests.exceptions import HTTPError
-from pyrebase import pyrebase
-from pyrebase.pyrebase import PyreResponse
 from firebase_admin import db
 from firebase_admin.db import Event
 from modelos.logger import MeuLogger
