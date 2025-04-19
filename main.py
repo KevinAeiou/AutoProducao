@@ -407,7 +407,8 @@ class Aplicacao:
             Returns:
                 trabalho (TrabalhoVendido): Objeto da classe TrabalhoVendido que contêm os atributos do trabalho vendido.
         '''
-        conteudoFormatado: str = re.sub("Item vendido", "", conteudoCorrespondencia).strip()
+        conteudoFormatado: str = re.sub("Item", "", conteudoCorrespondencia).strip()
+        conteudoFormatado: str = re.sub("vendido", "", conteudoCorrespondencia).strip()
         trabalho: TrabalhoVendido = TrabalhoVendido()
         trabalho.descricao = conteudoFormatado
         trabalho.dataVenda = str(datetime.date.today())
