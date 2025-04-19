@@ -88,8 +88,8 @@ class ManipulaImagem:
             y= int(y * razao[0])
             x1= int(x1 * razao[1])
             x2= int(x2 * razao[1])
-        frameTrabalho: np.ndarray = tela[y : y + altura, x1 : x2]
-        frameNomeTrabalhoTratado: np.ndarray = self.retornaImagemCinza(frameTrabalho)
+        frameTrabalho: ndarray = tela[y : y + altura, x1 : x2]
+        frameNomeTrabalhoTratado: ndarray = self.retornaImagemCinza(frameTrabalho)
         frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalhoTratado)
         return self.reconheceTexto(frameNomeTrabalhoTratado) if existePixelPreto(frameNomeTrabalhoTratado) else None
     
@@ -209,8 +209,19 @@ class ManipulaImagem:
     def quantidadePixelBrancoEhMaiorQueZero(self, imagem):
         return np.sum(imagem[233:233+30, 235:235+200] == 255) > 0
     
-    def reconheceTextoCorrespondencia(self, tela):
-        return self.reconheceTexto(tela[231:231+100, 168:168+343])
+    def reconheceTextoCorrespondencia(self, tela: ndarray):
+        altura: int = 130
+        largura: int = 343
+        x: int = 168
+        y: int = 231
+        if not self.resolucaoEh1366x768(tela):
+            razao: tuple = self.retornaRazaoEntreTelas(tela)
+            altura= int(altura * razao[0])
+            largura= int(largura * razao[1])
+            x = int(x * razao[1])
+            y = int(y * razao[0])
+        frameTela: ndarray = tela[y : y + altura, x : x + largura]
+        return self.reconheceTexto(frameTela)
 
     def retornaTextoCorrespondenciaReconhecido(self):
         return self.reconheceTextoCorrespondencia(self.retornaAtualizacaoTela())
@@ -308,15 +319,15 @@ class ManipulaImagem:
 
 if __name__=='__main__':
     from teclado import clickAtalhoEspecifico, posicionaMouseEsquerdo
-    clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
+    # clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
     sleep(1)
     imagem = ManipulaImagem()
-    telaMenuInicial: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testeTrabalhoAnelDeJadeBrutaY530Identificador1.png')
+    telaTeste: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testePacoteTrabalhoVendido.png')
     while True:
         sleep(1)
         # print(imagem.reconheceNomeTrabalho(tela= telaMenuInicial, y= 524, identificador= 1))
         # print(imagem.retornaNomeTrabalhoReconhecido(yinicialNome= 524, identificador= 1))
-        print(imagem.verificaMenuReferencia())
+        print(imagem.reconheceTextoCorrespondencia(tela= telaTeste))
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:

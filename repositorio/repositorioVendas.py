@@ -80,7 +80,7 @@ class RepositorioVendas(Stream):
     def insereTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
             self.__minhaReferencia.child(self.__personagem.id).child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_DESCRICAO: trabalho.descricao, CHAVE_DATA_VENDA: trabalho.dataVenda, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_QUANTIDADE: trabalho.quantidade, CHAVE_VALOR: trabalho.valor})
-            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) inserido com sucesso!')
+            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) inserido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
@@ -93,7 +93,7 @@ class RepositorioVendas(Stream):
     def modificaTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
             self.__minhaReferencia.child(self.__personagem.id).child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_DESCRICAO: trabalho.descricao, CHAVE_DATA_VENDA: trabalho.dataVenda, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_QUANTIDADE: trabalho.quantidade, CHAVE_VALOR: trabalho.valor})
-            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) modificado com sucesso!')
+            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) modificado com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
@@ -106,7 +106,7 @@ class RepositorioVendas(Stream):
     def removeTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
             self.__minhaReferencia.child(self.__personagem.id).child(trabalho.id).delete()
-            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) removido com sucesso!')
+            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) removido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)

@@ -135,10 +135,10 @@ class VendaDaoSqlite:
             if modificaServidor:
                 repositorioVendas: RepositorioVendas= RepositorioVendas(personagem= personagem)
                 if repositorioVendas.insereTrabalhoVendido(trabalho= trabalho):
-                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
+                    self.__logger.info(f'({personagem.id.ljust(36)} | {trabalho}) inserido no servidor com sucesso!')
                     conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {repositorioVendas.pegaErro}')
+                self.__logger.error(f'Erro ao inserir ({personagem.id.ljust(36)} | {trabalho}) no servidor: {repositorioVendas.pegaErro}')
                 self.__erro= repositorioVendas.pegaErro
                 conexao.rollback()
                 return False

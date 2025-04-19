@@ -310,22 +310,35 @@ class Aplicacao:
         self.verificaErro(textoErroEncontrado= textoMenu)
         return MENU_DESCONHECIDO
     
-    def retornaValorTrabalhoVendido(self, textoCarta):
-        listaTextoCarta = textoCarta.split()
-        for palavra in listaTextoCarta:
-            if textoEhIgual(palavra, 'por') and listaTextoCarta.index(palavra)+1 < len(listaTextoCarta):
-                valorProduto = listaTextoCarta[listaTextoCarta.index(palavra)+1].strip()
+    def retornaValorTrabalhoVendido(self, conteudo: str) -> int:
+        '''
+            Método para recuperar o atributo(valor) do trabalho vendido.
+            Args:
+                conteudo (str): String que contêm o conteúdo da correspondênca recebida.
+            Returns:
+                int: Inteiro que contêm o valor encontrado do trabalho vendido. Retorna zero(0) por padrão caso o valor não seja encontrado.
+        '''
+        palavrasConteudo: list[str] = conteudo.split()
+        for palavra in palavrasConteudo:
+            if textoEhIgual(texto1= palavra, texto2= 'por') and palavrasConteudo.index(palavra)+1 < len(palavrasConteudo):
+                valorProduto: str = palavrasConteudo[palavrasConteudo.index(palavra)+1].strip()
                 if valorProduto.isdigit():
                     return int(valorProduto)
         return 0
 
-    def retornaQuantidadeTrabalhoVendido(self, textoCarta):
-        listaTextoCarta = textoCarta.split()
+    def retornaQuantidadeTrabalhoVendido(self, conteudo: str) -> int:
+        '''
+            Método para recuperar o atributo(quantidade) do trabalho vendido.
+            Args:
+                conteudo (str): String que contêm o conteúdo da correspondênca recebida.
+            Returns:
+                int: Inteiro que contêm a quantidade encontrada do trabalho vendido. Retorna um(1) por padrão caso a quantidade não seja encontrada.
+        '''
+        listaTextoCarta: list[str]= conteudo.split()
         for texto in listaTextoCarta:
-            if texto1PertenceTexto2('x', texto):
-                valor = texto.replace('x', '').strip()
+            if texto1PertenceTexto2(texto1= 'x', texto2= texto):
+                valor: str = texto.replace('x', '').strip()
                 if valor.isdigit():
-                    print(f'quantidadeProduto:{valor}')
                     return int(valor)
         return 1
     
@@ -370,26 +383,49 @@ class Aplicacao:
         return vendas
 
     def retornaConteudoCorrespondencia(self) -> TrabalhoVendido | None:
-        textoCarta = self.__imagem.retornaTextoCorrespondenciaReconhecido()
-        if variavelExiste(textoCarta):
-            trabalhoFoiVendido = texto1PertenceTexto2('Item vendido', textoCarta)
-            if trabalhoFoiVendido:
-                print(f'Produto vendido')
-                textoCarta = re.sub("Item vendido", "", textoCarta).strip()
-                trabalho = TrabalhoVendido()
-                trabalho.descricao = textoCarta
-                trabalho.dataVenda = str(datetime.date.today())
-                trabalho.setQuantidade(self.retornaQuantidadeTrabalhoVendido(textoCarta))
-                trabalho.idTrabalho = self.retornaChaveIdTrabalho(textoCarta)
-                trabalho.setValor(self.retornaValorTrabalhoVendido(textoCarta))
-                self.insereTrabalhoVendido(trabalho)
-                return trabalho
+        '''
+            Método para verificar o conteúdo da correspondencia recebida.
+            Returns:
+                trabalho (TrabalhoVendido): Objeto da classe TrabalhoVendido que contêm os atributos do trabalho vendido.
+        '''
+        conteudoCorrespondencia: str = self.__imagem.retornaTextoCorrespondenciaReconhecido()
+        if conteudoCorrespondencia is None: return None
+        self.__loggerAplicacao.debug(menssagem= f'Conteúdo correspondencia: {conteudoCorrespondencia}')
+        trabalhoFoiVendido: bool = texto1PertenceTexto2(texto1= 'Item vendido', texto2= conteudoCorrespondencia)
+        if trabalhoFoiVendido:
+            trabalho: TrabalhoVendido = self.defineTrabalhoVendido(conteudoCorrespondencia)
+            self.insereTrabalhoVendido(trabalho)
+            return trabalho
         return None
 
-    def retornaChaveIdTrabalho(self, textoCarta):
-        trabalhos = self.pegaTrabalhosBanco()
+    def defineTrabalhoVendido(self, conteudoCorrespondencia: str) -> TrabalhoVendido:
+        '''
+            Método para definir um objeto da classe TrabalhoVendido com os atributos do trabalho vendido.
+            Args:
+                conteudoCorrespondencia (str): String que contêm o texto da correspondência recebida.
+            Returns:
+                trabalho (TrabalhoVendido): Objeto da classe TrabalhoVendido que contêm os atributos do trabalho vendido.
+        '''
+        conteudoFormatado: str = re.sub("Item vendido", "", conteudoCorrespondencia).strip()
+        trabalho: TrabalhoVendido = TrabalhoVendido()
+        trabalho.descricao = conteudoFormatado
+        trabalho.dataVenda = str(datetime.date.today())
+        trabalho.setQuantidade(self.retornaQuantidadeTrabalhoVendido(conteudoFormatado))
+        trabalho.idTrabalho = self.retornaChaveIdTrabalho(conteudoFormatado)
+        trabalho.setValor(self.retornaValorTrabalhoVendido(conteudoFormatado))
+        return trabalho
+
+    def retornaChaveIdTrabalho(self, conteudo: str) -> str:
+        '''
+            Método para recuperar o atributo(idTrabalho) do trabalho vendido.
+            Args:
+                conteudo (str): String que contêm o conteúdo da correspondência recebida.
+            Returns:
+                str: String que contêm o atributo(idTrabalho) do trabalho vendido. Retorna uma string vazia caso o atributo (idTrabalho) não seja encontrado.
+        '''
+        trabalhos: list[Trabalho] = self.pegaTrabalhosBanco()
         for trabalho in trabalhos:
-            if texto1PertenceTexto2(trabalho.nome, textoCarta):
+            if texto1PertenceTexto2(texto1= trabalho.nome, texto2= conteudo):
                 return trabalho.id
         return ''
     
@@ -437,15 +473,18 @@ class Aplicacao:
                 return
 
     def recuperaCorrespondencia(self):
+        '''
+            Método para verificar a existência de correspondências. 
+        '''
         while self.__imagem.existeCorrespondencia():
-            clickEspecifico(1, 'enter')
-            trabalhoVendido = self.retornaConteudoCorrespondencia()
-            if variavelExiste(trabalhoVendido):
+            clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
+            trabalhoVendido: TrabalhoVendido = self.retornaConteudoCorrespondencia()
+            if trabalhoVendido is not None:
                 self.atualizaQuantidadeTrabalhoEstoque(trabalhoVendido)
-            clickEspecifico(1,'f2')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
             continue
-        print(f'Caixa de correio vazia!')
-        clickMouseEsquerdo(1, 2, 35)
+        self.__loggerAplicacao.debug(menssagem= f'Caixa de correio está vazia!')
+        clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
 
     def reconheceRecuperaTrabalhoConcluido(self) -> str | None:
         erro: int = self.verificaErro()

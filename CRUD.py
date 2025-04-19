@@ -917,7 +917,14 @@ class CRUD:
         
     def testeFuncao(self):
         # self.testeStream()
-        self.migraDadosNovoServidor()
+        while True:
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
+                teste = 'itemvendidoesferadeaprimoramentodedefesax2por1deourotaxadomercadoodeouro10dovalordevenda'
+                trabalho = self.__aplicacao.defineTrabalhoVendido(conteudoCorrespondencia= teste)
+                print(self.__aplicacao.insereTrabalhoVendido(trabalho))
+                continue
+            break
 
     def testeStream(self):
         from repositorio.repositorioTrabalho import RepositorioTrabalho
