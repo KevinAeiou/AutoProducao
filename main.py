@@ -382,19 +382,20 @@ class Aplicacao:
             return []
         return vendas
 
-    def retornaConteudoCorrespondencia(self) -> TrabalhoVendido | None:
+    def reconheceConteudoCorrespondencia(self) -> str | None:
         '''
-            Método para verificar o conteúdo da correspondencia recebida.
+            Método para verificar/reconhecer o conteúdo da correspondencia recebida.
             Returns:
-                trabalho (TrabalhoVendido): Objeto da classe TrabalhoVendido que contêm os atributos do trabalho vendido.
+                conteudoCorrespondencia (str): String que contêm o texto reconhecido do conteudo da correspondencia reconhecida.
         '''
         conteudoCorrespondencia: str = self.__imagem.retornaTextoCorrespondenciaReconhecido()
-        if conteudoCorrespondencia is None: return None
         self.__loggerAplicacao.debug(menssagem= f'Conteúdo correspondencia: {conteudoCorrespondencia}')
-        trabalhoFoiVendido: bool = texto1PertenceTexto2(texto1= 'Item vendido', texto2= conteudoCorrespondencia)
+        return conteudoCorrespondencia
+    
+    def processaConteudoReconhecido(self, conteudo: str) -> TrabalhoVendido | None:
+        trabalhoFoiVendido: bool = texto1PertenceTexto2(texto1= 'Item vendido', texto2= conteudo)
         if trabalhoFoiVendido:
-            trabalho: TrabalhoVendido = self.defineTrabalhoVendido(conteudoCorrespondencia)
-            self.insereTrabalhoVendido(trabalho)
+            trabalho: TrabalhoVendido = self.defineTrabalhoVendido(conteudo)
             return trabalho
         return None
 
@@ -478,11 +479,13 @@ class Aplicacao:
         '''
         while self.__imagem.existeCorrespondencia():
             clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
-            trabalhoVendido: TrabalhoVendido = self.retornaConteudoCorrespondencia()
-            if trabalhoVendido is not None:
-                self.atualizaQuantidadeTrabalhoEstoque(trabalhoVendido)
+            conteudoCorrespondencia: str = self.reconheceConteudoCorrespondencia()
+            trabalhoVendido: TrabalhoVendido = self.processaConteudoReconhecido(conteudoCorrespondencia)
             clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
-            continue
+            if trabalhoVendido is None:
+                continue
+            self.insereTrabalhoVendido(trabalhoVendido)
+            self.atualizaQuantidadeTrabalhoEstoque(trabalhoVendido)
         self.__loggerAplicacao.debug(menssagem= f'Caixa de correio está vazia!')
         clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
 
