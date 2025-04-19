@@ -393,7 +393,7 @@ class Aplicacao:
         return conteudoCorrespondencia
     
     def processaConteudoReconhecido(self, conteudo: str) -> TrabalhoVendido | None:
-        trabalhoFoiVendido: bool = texto1PertenceTexto2(texto1= 'Item vendido', texto2= conteudo)
+        trabalhoFoiVendido: bool = texto1PertenceTexto2(texto1= 'Vendido', texto2= conteudo)
         if trabalhoFoiVendido:
             trabalho: TrabalhoVendido = self.defineTrabalhoVendido(conteudo)
             return trabalho
