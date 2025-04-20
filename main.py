@@ -2439,16 +2439,18 @@ class Aplicacao:
                     profissaoEncontrada: Profissao= self.pegaProfissaoPorId(id= dicionario[CHAVE_ID], personagem= personagem)
                     if profissaoEncontrada is None:
                         continue
-                    if profissaoEncontrada.experiencia is None:
-                        profissaoEncontrada.idPersonagem= personagem.id
-                        self.removeProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
-                        continue
-                    if profissaoEncontrada.id == dicionario[CHAVE_ID]:
+                    if CHAVE_EXPERIENCIA in dicionario:
+                        if profissaoEncontrada.id == dicionario[CHAVE_ID]:
+                            profissaoEncontrada.dicionarioParaObjeto(dicionario)
+                            self.modificaProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
+                            continue
                         profissaoEncontrada.dicionarioParaObjeto(dicionario)
-                        self.modificaProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
+                        profissaoEncontrada.nome= self.pegaNomeProfissaoPorId(id= profissaoEncontrada.id)
+                        self.insereProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
+                        profissaoEncontrada.idPersonagem= personagem.id
                         continue
-                    profissaoEncontrada.nome= self.pegaNomeProfissaoPorId(id= profissaoEncontrada.id)
-                    self.insereProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
+                    profissaoEncontrada.id = dicionario[CHAVE_ID]
+                    self.removeProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
             self.__repositorioProfissao.limpaLista
     
     def verificaAlteracaoEstoque(self):
@@ -2466,15 +2468,16 @@ class Aplicacao:
                     trabalhoEncontrado: TrabalhoEstoque= self.pegaTrabalhoEstoquePorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
-                    if trabalhoEncontrado.idTrabalho is None:
-                        self.removeTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
-                        continue
-                    if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                    if CHAVE_ID_TRABALHO in dicionarioTrabalho:
+                        if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                            trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                            self.modificaTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                            continue
                         trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
-                        self.modificaTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                        self.insereTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                         continue
-                    trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
-                    self.insereTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                    trabalhoEncontrado.id = dicionarioTrabalho[CHAVE_ID]
+                    self.removeTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
             self.__repositorioEstoque.limpaLista
     
     def verificaAlteracaoProducao(self):
@@ -2519,15 +2522,16 @@ class Aplicacao:
                     trabalhoEncontrado: TrabalhoVendido= self.pegaTrabalhoVendidoPorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
-                    if trabalhoEncontrado.idTrabalho is None:
-                        self.removeTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
-                        continue
-                    if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                    if CHAVE_ID_TRABALHO in dicionarioTrabalho:
+                        if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                            trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                            self.modificaTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                            continue
                         trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
-                        self.modificaTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                        self.insereTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                         continue
-                    trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
-                    self.insereTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                    trabalhoEncontrado.id = dicionarioTrabalho[CHAVE_ID]
+                    self.removeTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
             self.__repositorioVendas.limpaLista
     
     def modificaPersonagem(self, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
