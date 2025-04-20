@@ -1481,18 +1481,26 @@ class Aplicacao:
         cloneTrabalhoProducaoEncontrado: TrabalhoProducao = self.defineCloneTrabalhoProducao(trabalhoProducaoEncontrado)
         self.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado)
 
-    def retornaNomesRecursos(self, chaveProfissao, nivelRecurso):
-        nomeRecursoPrimario = ''
-        nomeRecursoSecundario = ''
-        nomeRecursoTerciario = ''
-        listaDicionarioProfissao = retornaListaDicionarioProfissaoRecursos(nivelRecurso)
+    def retornaNomesRecursos(self, profissao: str, nivel: int) -> tuple[str, str, str]:
+        '''
+            Método para verificar e retornar os nomes dos recursos comuns para produção de trabalhos com o nível e profissão específicas.
+            Args:
+                profissao (str): String que contêm o nome da profissão a ser verificada.
+                nivel (int): Inteiro que contêm o nível do trabalho a ser verificado.
+            Returns:
+                tuple: Tupla que contêm os três valores encontrados.
+        '''
+        nomeRecursoPrimario: str = ''
+        nomeRecursoSecundario: str = ''
+        nomeRecursoTerciario: str = ''
+        listaDicionarioProfissao: list[dict[str, list[str]]] = retornaListaDicionarioProfissaoRecursos(nivel)
         for dicionarioProfissao in listaDicionarioProfissao:
-            if chaveProfissao in dicionarioProfissao:
-                nomeRecursoPrimario = dicionarioProfissao[chaveProfissao][0]
-                nomeRecursoSecundario = dicionarioProfissao[chaveProfissao][1]
-                nomeRecursoTerciario = dicionarioProfissao[chaveProfissao][2]
+            if profissao in dicionarioProfissao:
+                nomeRecursoPrimario = dicionarioProfissao[profissao][0]
+                nomeRecursoSecundario = dicionarioProfissao[profissao][1]
+                nomeRecursoTerciario = dicionarioProfissao[profissao][2]
                 break
-        return nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario
+        return [nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario]
 
     def defineTrabalhoRecurso(self, trabalho: Trabalho) -> TrabalhoRecurso:
         '''
@@ -1507,12 +1515,12 @@ class Aplicacao:
             recursoTerciario = 1
         if nivelTrabalhoProducao <= 14:
             recursoTerciario = self.retornaQuantidadeRecursoTerciario(nivelTrabalhoProducao, recursoTerciario)
-            nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, nivelRecurso)
-            return TrabalhoRecurso(trabalho.profissao, trabalho.nivel, nomeRecursoTerciario, nomeRecursoSecundario, nomeRecursoPrimario, recursoTerciario)
+            recursos: tuple[str, str, str] = self.retornaNomesRecursos(chaveProfissao, nivelRecurso)
+            return TrabalhoRecurso(trabalho.profissao, trabalho.nivel, recursos[0], recursos[1], recursos[2], recursoTerciario)
         nivelRecurso = 8
         recursoTerciario = self.retornaQuantidadeRecursoTerciario(nivelTrabalhoProducao, recursoTerciario)
-        nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, nivelRecurso)
-        return TrabalhoRecurso(trabalho.profissao, trabalho.nivel, nomeRecursoTerciario, nomeRecursoSecundario, nomeRecursoPrimario, recursoTerciario)
+        recursos: tuple[str, str, str] = self.retornaNomesRecursos(chaveProfissao, nivelRecurso)
+        return TrabalhoRecurso(trabalho.profissao, trabalho.nivel, recursos[0], recursos[1], recursos[2], recursoTerciario)
 
     def retornaQuantidadeRecursoTerciario(self, nivel: int, quantidade: int) -> int:
         '''
@@ -1584,20 +1592,20 @@ class Aplicacao:
         for atributo in dicionarioRecurso:
             print(f'{atributo} - {dicionarioRecurso[atributo]}')
         chaveProfissao = dicionarioRecurso[CHAVE_PROFISSAO]
-        nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, 1)
+        recursos: tuple[str, str, str] = self.retornaNomesRecursos(chaveProfissao, 1)
         listaNomeRecursoBuscado = []
         if dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCS:
-            listaNomeRecursoBuscado.append([nomeRecursoPrimario, 2])
+            listaNomeRecursoBuscado.append([recursos[0], 2])
         elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCT:
-            listaNomeRecursoBuscado.append([nomeRecursoPrimario, 3])
+            listaNomeRecursoBuscado.append([recursos[0], 3])
         elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAP:
-            listaNomeRecursoBuscado.append([nomeRecursoPrimario, 6])
+            listaNomeRecursoBuscado.append([recursos[0], 6])
         elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAS:
-            listaNomeRecursoBuscado.append([nomeRecursoPrimario, 7])
-            listaNomeRecursoBuscado.append([nomeRecursoSecundario, 2])
+            listaNomeRecursoBuscado.append([recursos[0], 7])
+            listaNomeRecursoBuscado.append([recursos[1], 2])
         elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAT:
-            listaNomeRecursoBuscado.append([nomeRecursoPrimario, 8])
-            listaNomeRecursoBuscado.append([nomeRecursoTerciario, 2])
+            listaNomeRecursoBuscado.append([recursos[0], 8])
+            listaNomeRecursoBuscado.append([recursos[2], 2])
         for trabalhoEstoque in self.pegaTrabalhosEstoque():
             for recursoBuscado in listaNomeRecursoBuscado:
                 if textoEhIgual(trabalhoEstoque.nome, recursoBuscado[0]):

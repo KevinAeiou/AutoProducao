@@ -256,10 +256,10 @@ def ehMenuRecompensasDiarias(menu: int) -> bool:
 def ehMenuLojaMilagrosa(menu: int) -> bool:
     return menu == MENU_LOJA_MILAGROSA
 
-def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
-    listaDicionarioProfissaoRecursos = []
-    if nivelProduzTrabalhoComum == 1:
-        listaDicionarioProfissaoRecursos=[
+def retornaListaDicionarioProfissaoRecursos(nivel: int) -> list[dict[str, list[str]]]:
+    listaDicionarioProfissaoRecursos: list[dict[str, list[str]]] = []
+    if nivel == 1:
+        listaDicionarioProfissaoRecursos = [
                 {CHAVE_PROFISSAO_BRACELETES:['Fibra de Bronze','Prata','Pin de Estudante']},
                 {CHAVE_PROFISSAO_CAPOTES:['Furador do aprendiz','Tecido delicado','Substância instável']},
                 {CHAVE_PROFISSAO_AMULETOS:['Pinça do aprendiz','Jade bruta','Energia inicial']},
@@ -269,8 +269,9 @@ def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
                 {CHAVE_PROFISSAO_ARMADURAS_DE_TECIDO:['Tesoura do aprendiz','Fio grosseiro','Tecido de linho']},
                 {CHAVE_PROFISSAO_ARMAS_CORPO_A_CORPO:['Lascas','Minério de cobre','Mó do aprendiz']},
                 {CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE:['Esfera do aprendiz','Varinha de madeira','Cabeça do cajado de jade']}]
-    elif nivelProduzTrabalhoComum == 8:    
-        listaDicionarioProfissaoRecursos=[
+        return listaDicionarioProfissaoRecursos
+    if nivel == 8:    
+        listaDicionarioProfissaoRecursos = [
                 {CHAVE_PROFISSAO_BRACELETES:['Fibra de Platina','Âmbarito','Pino do Aprendiz']},
                 {CHAVE_PROFISSAO_CAPOTES:['Furador do principiante','Tecido espesso','Substância estável']},
                 {CHAVE_PROFISSAO_AMULETOS:['Pinça do principiante','Ônix extraordinária','Éter inicial']},
