@@ -1495,43 +1495,53 @@ class Aplicacao:
         return nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario
 
     def defineTrabalhoRecurso(self, trabalho: Trabalho) -> TrabalhoRecurso:
+        '''
+            Método para definir o objeto da classe TrabalhoRecurso que contêm os atributos do tipo e nível do trabalho produzindo.
+        '''
         self.__loggerAplicacao.debug(menssagem= f'Definindo objeto da classe TrabalhoRecurso')
-        nivelTrabalhoProducao = trabalho.nivel
-        nivelRecurso = 1
-        recursoTerciario = 0
-        chaveProfissao = trabalho.profissao
-        if textoEhIgual(trabalho.profissao, CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE):
+        nivelTrabalhoProducao: int = trabalho.nivel
+        nivelRecurso: int = 1
+        recursoTerciario: int = 0
+        chaveProfissao: str = trabalho.profissao
+        if textoEhIgual(texto1= trabalho.profissao, texto2= CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE):
             recursoTerciario = 1
         if nivelTrabalhoProducao <= 14:
-            if nivelTrabalhoProducao == 10:
-                recursoTerciario += 2
-            elif nivelTrabalhoProducao == 12:
-                recursoTerciario += 4
-            elif nivelTrabalhoProducao == 14:
-                recursoTerciario += 6
+            recursoTerciario = self.retornaQuantidadeRecursoTerciario(nivelTrabalhoProducao, recursoTerciario)
             nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, nivelRecurso)
             return TrabalhoRecurso(trabalho.profissao, trabalho.nivel, nomeRecursoTerciario, nomeRecursoSecundario, nomeRecursoPrimario, recursoTerciario)
         nivelRecurso = 8
-        if nivelTrabalhoProducao == 16:
-            recursoTerciario += 2
-        elif nivelTrabalhoProducao == 18:
-            recursoTerciario += 4
-        elif nivelTrabalhoProducao == 20:
-            recursoTerciario += 6
-        elif nivelTrabalhoProducao == 22:
-            recursoTerciario += 8
-        elif nivelTrabalhoProducao == 24:
-            recursoTerciario += 10
-        elif nivelTrabalhoProducao == 26:
-            recursoTerciario += 12
-        elif nivelTrabalhoProducao == 28:
-            recursoTerciario += 14
-        elif nivelTrabalhoProducao == 30:
-            recursoTerciario += 16
-        elif nivelTrabalhoProducao == 32:
-            recursoTerciario += 18
+        recursoTerciario = self.retornaQuantidadeRecursoTerciario(nivelTrabalhoProducao, recursoTerciario)
         nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, nivelRecurso)
         return TrabalhoRecurso(trabalho.profissao, trabalho.nivel, nomeRecursoTerciario, nomeRecursoSecundario, nomeRecursoPrimario, recursoTerciario)
+
+    def retornaQuantidadeRecursoTerciario(self, nivel: int, quantidade: int) -> int:
+        '''
+            Método para calcular a quantidade de recursos para produção de trabalhos do tipo(Comum) com base no nível do trabalho.
+            Args:
+                nivel (int): Inteiro que representa o nível do trabalho.
+                quantidade (int): Inteiro que representa a quantidade de recursos para produção inicializado.
+            Returns:
+                quantidade (int): Inteiro que representa a quantidade de recursos para produção calculado. Retorna zero(0) por padrão.
+        '''
+        if nivel == 10 or nivel == 16:
+            return quantidade + 2
+        if nivel == 12 or nivel == 18:
+            return quantidade + 4
+        if nivel == 14 or nivel == 20:
+            return quantidade + 6
+        if nivel == 22:
+            return quantidade + 8
+        if nivel == 24:
+            return quantidade + 10
+        if nivel == 26:
+            return quantidade + 12
+        if nivel == 28:
+            return quantidade + 14
+        if nivel == 30:
+            return quantidade + 16
+        if nivel == 32:
+            return quantidade + 18
+        return 0
 
     def removeTrabalhoProducaoEstoque(self, trabalhoProducao: TrabalhoProducao) -> None:
         trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoProducao.idTrabalho)
