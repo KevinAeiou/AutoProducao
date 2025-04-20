@@ -1482,25 +1482,24 @@ class Aplicacao:
         self.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado)
 
     def retornaNomesRecursos(self, chaveProfissao, nivelRecurso):
-        nomeRecursoPrimario = None
-        nomeRecursoSecundario = None
-        nomeRecursoTerciario = None
+        nomeRecursoPrimario = ''
+        nomeRecursoSecundario = ''
+        nomeRecursoTerciario = ''
         listaDicionarioProfissao = retornaListaDicionarioProfissaoRecursos(nivelRecurso)
-        if not ehVazia(listaDicionarioProfissao):
-            for dicionarioProfissao in listaDicionarioProfissao:
-                if chaveProfissao in dicionarioProfissao:
-                    nomeRecursoPrimario = dicionarioProfissao[chaveProfissao][0]
-                    nomeRecursoSecundario = dicionarioProfissao[chaveProfissao][1]
-                    nomeRecursoTerciario = dicionarioProfissao[chaveProfissao][2]
-                    break
+        for dicionarioProfissao in listaDicionarioProfissao:
+            if chaveProfissao in dicionarioProfissao:
+                nomeRecursoPrimario = dicionarioProfissao[chaveProfissao][0]
+                nomeRecursoSecundario = dicionarioProfissao[chaveProfissao][1]
+                nomeRecursoTerciario = dicionarioProfissao[chaveProfissao][2]
+                break
         return nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario
 
     def defineTrabalhoRecurso(self, trabalho: Trabalho) -> TrabalhoRecurso:
-        print(f'Define quantidade de recursos.')
+        self.__loggerAplicacao.debug(menssagem= f'Definindo objeto da classe TrabalhoRecurso')
         nivelTrabalhoProducao = trabalho.nivel
         nivelRecurso = 1
         recursoTerciario = 0
-        chaveProfissao = limpaRuidoTexto(trabalho.profissao)
+        chaveProfissao = trabalho.profissao
         if textoEhIgual(trabalho.profissao, CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE):
             recursoTerciario = 1
         if nivelTrabalhoProducao <= 14:
@@ -1574,7 +1573,7 @@ class Aplicacao:
         print(f'Dicionário recurso reconhecido:')
         for atributo in dicionarioRecurso:
             print(f'{atributo} - {dicionarioRecurso[atributo]}')
-        chaveProfissao = limpaRuidoTexto(dicionarioRecurso[CHAVE_PROFISSAO])
+        chaveProfissao = dicionarioRecurso[CHAVE_PROFISSAO]
         nomeRecursoPrimario, nomeRecursoSecundario, nomeRecursoTerciario = self.retornaNomesRecursos(chaveProfissao, 1)
         listaNomeRecursoBuscado = []
         if dicionarioRecurso[CHAVE_TIPO] == CHAVE_RCS:
@@ -1615,22 +1614,22 @@ class Aplicacao:
             return
         trabalhoRecurso: TrabalhoRecurso = self.defineTrabalhoRecurso(trabalho)
         for trabalhoEstoque in self.pegaTrabalhosEstoque():
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.primario):
+            if textoEhIgual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.primario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadePrimario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__loggerAplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.secundario):
+            if textoEhIgual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.secundario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeSecundario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__loggerAplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoRecurso.terciario):
+            if textoEhIgual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.terciario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeTerciario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__loggerAplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipoLicenca):
+            if textoEhIgual(texto1= trabalhoEstoque.nome, texto2=trabalhoProducao.tipoLicenca):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - 1)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__loggerAplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
