@@ -98,7 +98,7 @@ class RepositorioTrabalhoProducao(Stream):
     def removeTrabalhoProducao(self, trabalho: TrabalhoProducao) -> bool:
         try:
             self.__minhaReferencia.child(self._personagem.id).child(trabalho.id).delete()
-            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) removido com sucesso!')
+            self.__logger.debug(menssagem= f'Trabalho ({self._personagem.id.ljust(36)} | {trabalho}) removido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)

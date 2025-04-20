@@ -2492,15 +2492,16 @@ class Aplicacao:
                     trabalhoEncontrado: TrabalhoProducao= self.pegaTrabalhoProducaoPorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
-                    if trabalhoEncontrado.idTrabalho is None:
-                        self.removeTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
-                        continue
-                    if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                    if CHAVE_ID_TRABALHO in dicionarioTrabalho:
+                        if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
+                            trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
+                            self.modificaTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                            continue
                         trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
-                        self.modificaTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                        self.insereTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                         continue
-                    trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
-                    self.insereTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                    trabalhoEncontrado.id = dicionarioTrabalho[CHAVE_ID]
+                    self.removeTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
             self.__repositorioProducao.limpaLista
     
     def verificaAlteracaoVendas(self):
@@ -2708,7 +2709,7 @@ class Aplicacao:
             self.__loggerProfissaoDao.error(menssagem= f'Erro ao sincronizar profissões: {self.__profissaoDao.pegaErro}')
     
     def pegaTrabalhoProducaoPorId(self, id:  str) -> TrabalhoProducao:
-        trabalhoProducaoEncontrado = self.__trabalhoProducaoDao.pegaTrabalhoProducaoPorId(id= id)
+        trabalhoProducaoEncontrado: TrabalhoProducao = self.__trabalhoProducaoDao.pegaTrabalhoProducaoPorId(id= id)
         if trabalhoProducaoEncontrado is None:
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalho para produção por id ({id}) no banco: {self.__trabalhoProducaoDao.pegaErro}')
             return None
