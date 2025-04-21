@@ -1,6 +1,7 @@
 from teclado import *
 from constantes import *
 from utilitarios import *
+from utilitariosTexto import textoEhIgual, texto1PertenceTexto2, limpaRuidoTexto
 from imagem import ManipulaImagem
 from time import sleep
 import datetime
@@ -431,16 +432,23 @@ class Aplicacao:
                 return trabalho.id
         return ''
     
-    def pegaTrabalhosEstoque(self, personagem: Personagem = None) -> list[TrabalhoEstoque]:
+    def recuperaTrabalhosEstoque(self, personagem: Personagem = None) -> list[TrabalhoEstoque]:
+        '''
+            Método para recuperar trabalhos no estoque do banco de dados.
+            Args:
+                personagem (Personagem): Objeto da classe Personagem que contêm os atributos do personagem em uso atual.
+            Returns:
+                trabalhosEstoque (list[TrabalhoEstoque]): Lista de objetos da classe TrabalhoEstoque recuperados do banco de dados. Retorna uma lista vazia por padrão.
+        '''
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhosEstoque: list[TrabalhoEstoque]= self.__estoqueDao.pegaTrabalhosEstoque(personagem= personagem)
+        trabalhosEstoque: list[TrabalhoEstoque]= self.__estoqueDao.recuperaTrabalhosEstoque(personagem= personagem)
         if trabalhosEstoque is None:
             self.__loggerEstoqueDao.error(f'Erro ao buscar trabalhos em estoque no banco: {self.__estoqueDao.pegaErro}')
             return []
         return trabalhosEstoque
 
     def atualizaQuantidadeTrabalhoEstoque(self, trabalho: TrabalhoVendido):
-        estoque = self.pegaTrabalhosEstoque()
+        estoque = self.recuperaTrabalhosEstoque()
         for trabalhoEstoque in estoque:
             if textoEhIgual(trabalhoEstoque.idTrabalho, trabalho.idTrabalho):
                 novaQuantidade = 0 if trabalhoEstoque.quantidade - trabalho.quantidade < 0 else trabalhoEstoque.quantidade - trabalho.quantidade
@@ -565,16 +573,18 @@ class Aplicacao:
 
 
     def modificaTrabalhoConcluidoListaProduzirProduzindo(self, trabalhoProducaoConcluido: TrabalhoProducao):
-        trabalho = self.pegaTrabalhoPorId(trabalhoProducaoConcluido.idTrabalho)
+        self.__loggerAplicacao.debug(menssagem= f'Modificando o estado do trabalho para produção concluído.')
+        trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoProducaoConcluido.idTrabalho)
         if trabalho is None or trabalho.nome is None:
             return
-        if trabalhoEhProducaoRecursos(trabalho):
+        if trabalho.ehProducaoRecursos:
+            self.__loggerAplicacao.debug(menssagem= f'Trabalho é produção de recursos.')
             trabalhoProducaoConcluido.recorrencia = True
-        if trabalhoProducaoConcluido.recorrencia:
-            print(f'Trabalho recorrente.')
+        if trabalhoProducaoConcluido.ehRecorrente:
+            self.__loggerAplicacao.debug(f'Trabalho é recorrente.')
             self.removeTrabalhoProducao(trabalhoProducaoConcluido)
             return
-        print(f'Trabalho sem recorrencia.')
+        self.__loggerAplicacao.debug(f'Trabalho não é recorrente.')
         trabalhoProducaoConcluido.estado = CODIGO_CONCLUIDO
         self.modificaTrabalhoProducao(trabalhoProducaoConcluido)
 
@@ -625,88 +635,88 @@ class Aplicacao:
                 return True
         return False
 
-    def retornaListaTrabalhoProduzido(self, trabalhoProducaoConcluido: TrabalhoProducao):
+    def retornaListaTrabalhoProduzido(self, trabalhoConcluido: TrabalhoProducao):
         '''
-        Função que recebe um objeto TrabalhoProducao
+            Função que recebe um objeto TrabalhoProducao
         '''
-        listaTrabalhoEstoqueConcluido = []
-        trabalhoEstoque = None
-        trabalho = self.pegaTrabalhoPorId(trabalhoProducaoConcluido.idTrabalho)
+        listaTrabalhoEstoqueConcluido: list[TrabalhoEstoque] = []
+        trabalhoEstoque: TrabalhoEstoque = None
+        trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoConcluido.idTrabalho)
         if trabalho is None:
             return listaTrabalhoEstoqueConcluido
         if trabalho.nome is None:
-            self.__loggerTrabalhoDao.warning(f'({trabalhoProducaoConcluido}) não foi encontrado na lista de trabalhos!')
+            self.__loggerTrabalhoDao.warning(f'({trabalhoConcluido}) não foi encontrado na lista de trabalhos!')
             return listaTrabalhoEstoqueConcluido
-        if trabalhoEhProducaoRecursos(trabalho):
-            if trabalhoEhProducaoLicenca(trabalhoProducaoConcluido):
+        if trabalho.ehProducaoRecursos:
+            if trabalhoEhProducaoLicenca(trabalhoConcluido):
                 trabalhoEstoque = TrabalhoEstoque()
                 trabalhoEstoque.nome = CHAVE_LICENCA_APRENDIZ
                 trabalhoEstoque.profissao = ''
                 trabalhoEstoque.nivel = 0
                 trabalhoEstoque.quantidade = 2
                 trabalhoEstoque.raridade = 'Recurso'
-                trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
+                trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
             else:
-                if trabalhoEhMelhoriaEssenciaComum(trabalhoProducaoConcluido):
+                if trabalhoEhMelhoriaEssenciaComum(trabalhoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Essência composta'
                     trabalhoEstoque.profissao = ''
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
-                elif trabalhoEhMelhoriaEssenciaComposta(trabalhoProducaoConcluido):
+                    trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
+                elif trabalhoEhMelhoriaEssenciaComposta(trabalhoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Essência de energia'
                     trabalhoEstoque.profissao = ''
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
-                elif trabalhoEhMelhoriaSubstanciaComum(trabalhoProducaoConcluido):
+                    trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
+                elif trabalhoEhMelhoriaSubstanciaComum(trabalhoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Substância composta'
                     trabalhoEstoque.profissao = ''
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
-                elif trabalhoEhMelhoriaSubstanciaComposta(trabalhoProducaoConcluido):
+                    trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
+                elif trabalhoEhMelhoriaSubstanciaComposta(trabalhoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Substância energética'
                     trabalhoEstoque.profissao = ''
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
-                elif trabalhoEhMelhoriaCatalisadorComum(trabalhoProducaoConcluido):
+                    trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
+                elif trabalhoEhMelhoriaCatalisadorComum(trabalhoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Catalisador amplificado'
                     trabalhoEstoque.profissao = ''
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 5
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
-                elif trabalhoEhMelhoriaCatalisadorComposto(trabalhoProducaoConcluido):
+                    trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
+                elif trabalhoEhMelhoriaCatalisadorComposto(trabalhoConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
                     trabalhoEstoque.nome = 'Catalisador de energia'
                     trabalhoEstoque.profissao = ''
                     trabalhoEstoque.nivel = 0
                     trabalhoEstoque.quantidade = 1
                     trabalhoEstoque.raridade = 'Recurso'
-                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
                 if variavelExiste(trabalhoEstoque):
-                    if textoEhIgual(trabalhoProducaoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
+                    if textoEhIgual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                         trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
             if variavelExiste(trabalhoEstoque):
                 listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
-            if trabalhoEhColecaoRecursosComuns(trabalhoProducaoConcluido) or trabalhoEhColecaoRecursosAvancados(trabalhoProducaoConcluido):
+            if trabalhoEhColecaoRecursosComuns(trabalhoConcluido) or trabalhoEhColecaoRecursosAvancados(trabalhoConcluido):
                     nivelColecao = 1
-                    if trabalhoEhColecaoRecursosAvancados(trabalhoProducaoConcluido):
+                    if trabalhoEhColecaoRecursosAvancados(trabalhoConcluido):
                         nivelColecao = 8
                     trabalhos = self.pegaTrabalhosBanco()
                     for trabalho in trabalhos:
-                        condicoes = textoEhIgual(trabalho.profissao, trabalhoProducaoConcluido.profissao) and trabalho.nivel == nivelColecao and textoEhIgual(trabalho.raridade, CHAVE_RARIDADE_COMUM)
+                        condicoes = textoEhIgual(trabalho.profissao, trabalhoConcluido.profissao) and trabalho.nivel == nivelColecao and textoEhIgual(trabalho.raridade, CHAVE_RARIDADE_COMUM)
                         if condicoes:
                             trabalhoEstoque = TrabalhoEstoque()
                             trabalhoEstoque.nome = trabalho.nome
@@ -727,44 +737,44 @@ class Aplicacao:
                                 trabalhoEstoque.quantidade = 4
                             elif tipoRecurso == CHAVE_RAP:
                                 trabalhoEstoque.quantidade = 5
-                            if textoEhIgual(trabalhoProducaoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
+                            if textoEhIgual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                                 trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         else:
                             print(f'Tipo de recurso não encontrado!')
             if ehVazia(listaTrabalhoEstoqueConcluido):
                     trabalhoEstoque = TrabalhoEstoque()
-                    trabalhoEstoque.nome = trabalhoProducaoConcluido.nome
-                    trabalhoEstoque.profissao = trabalhoProducaoConcluido.profissao
-                    trabalhoEstoque.nivel = trabalhoProducaoConcluido.nivel
+                    trabalhoEstoque.nome = trabalhoConcluido.nome
+                    trabalhoEstoque.profissao = trabalhoConcluido.profissao
+                    trabalhoEstoque.nivel = trabalhoConcluido.nivel
                     trabalhoEstoque.quantidade = 0
-                    trabalhoEstoque.raridade = trabalhoProducaoConcluido.raridade
-                    trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
+                    trabalhoEstoque.raridade = trabalhoConcluido.raridade
+                    trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
                     tipoRecurso = retornaChaveTipoRecurso(trabalhoEstoque)
                     if variavelExiste(tipoRecurso):
                         if tipoRecurso == CHAVE_RCS or tipoRecurso == CHAVE_RCT:
                             trabalhoEstoque.quantidade = 1
                         elif tipoRecurso == CHAVE_RCP or tipoRecurso == CHAVE_RAP or tipoRecurso == CHAVE_RAS or tipoRecurso == CHAVE_RAT:
                             trabalhoEstoque.quantidade = 2
-                        if textoEhIgual(trabalhoProducaoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
+                        if textoEhIgual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                             trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     else:
                         print(f'Tipo de recurso não encontrado!')
         else:
             trabalhoEstoque = TrabalhoEstoque()
-            trabalhoEstoque.nome = trabalhoProducaoConcluido.nome
-            trabalhoEstoque.profissao = trabalhoProducaoConcluido.profissao
-            trabalhoEstoque.nivel = trabalhoProducaoConcluido.nivel
+            trabalhoEstoque.nome = trabalhoConcluido.nome
+            trabalhoEstoque.profissao = trabalhoConcluido.profissao
+            trabalhoEstoque.nivel = trabalhoConcluido.nivel
             trabalhoEstoque.quantidade = 1
-            trabalhoEstoque.raridade = trabalhoProducaoConcluido.raridade
-            trabalhoEstoque.idTrabalho = trabalhoProducaoConcluido.idTrabalho
+            trabalhoEstoque.raridade = trabalhoConcluido.raridade
+            trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
             listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
         print(f'Lista de dicionários trabalhos concluídos:')
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
             print(trabalhoEstoqueConcluido)
         return listaTrabalhoEstoqueConcluido
 
-    def modificaQuantidadeTrabalhoEstoque(self, listaTrabalhoEstoqueConcluido, trabalhoEstoque):
+    def modificaQuantidadeTrabalhoEstoque(self, listaTrabalhoEstoqueConcluido: list[TrabalhoEstoque], trabalhoEstoque: TrabalhoEstoque):
         listaTrabalhoEstoqueConcluidoModificado = listaTrabalhoEstoqueConcluido
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
             if textoEhIgual(trabalhoEstoqueConcluido.nome, trabalhoEstoque.nome):
@@ -776,21 +786,24 @@ class Aplicacao:
                     del listaTrabalhoEstoqueConcluidoModificado[listaTrabalhoEstoqueConcluido.index(trabalhoEstoqueConcluido)]
         return listaTrabalhoEstoqueConcluidoModificado, trabalhoEstoque
 
-    def atualizaEstoquePersonagem(self, trabalhoEstoqueConcluido):
-        listaTrabalhoEstoqueConcluido = self.retornaListaTrabalhoProduzido(trabalhoEstoqueConcluido)
-        if ehVazia(listaTrabalhoEstoqueConcluido):
-            return
-        estoque = self.pegaTrabalhosEstoque()
-        if ehVazia(estoque):
-            for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-                self.insereTrabalhoEstoque(trabalhoEstoqueConcluido)
-            return
-        for trabalhoEstoque in estoque:
-            listaTrabalhoEstoqueConcluido, trabalhoEstoque = self.modificaQuantidadeTrabalhoEstoque(listaTrabalhoEstoqueConcluido, trabalhoEstoque)
+    def atualizaEstoquePersonagem(self, trabalhoConcluido: TrabalhoProducao):
+        '''
+            Método para atualizar o estoque do personagem em uso atual.
+            Args:
+                trabalhoConcluido (TrabalhoProducao): Objeto da classe TrabalhoProducao que contêm os atributos do trabalho concluído.
+        '''
+        listaTrabalhoEstoqueConcluido: list[TrabalhoEstoque] = self.retornaListaTrabalhoProduzido(trabalhoConcluido)
         if ehVazia(listaTrabalhoEstoqueConcluido):
             return
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-            self.insereTrabalhoEstoque(trabalhoEstoqueConcluido)
+            trabalhoEncontrado: TrabalhoEstoque = self.recuperaTrabalhoEstoquePorIdTrabalho(id= trabalhoEstoqueConcluido.idTrabalho)
+            if trabalhoEncontrado is None:
+                continue
+            if trabalhoEncontrado.idTrabalho is None:
+                self.insereTrabalhoEstoque(trabalhoEstoqueConcluido)
+                continue
+            trabalhoEncontrado.quantidade += trabalhoEstoqueConcluido.quantidade
+            self.modificaTrabalhoEstoque(trabalhoEncontrado)
 
     def retornaProfissaoTrabalhoProducaoConcluido(self, trabalhoConcluido: TrabalhoProducao) -> Profissao | None:
         '''
@@ -988,13 +1001,13 @@ class Aplicacao:
                 if nomeTrabalhoConcluido is None:
                     self.__loggerTrabalhoProducaoDao.warning(f'Nome trabalho concluído não reconhecido.')
                     return
-                trabalhoProducaoConcluido: TrabalhoProducao = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= nomeTrabalhoConcluido)
+                trabalhoProducaoConcluido: TrabalhoProducao = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoConcluido)
                 if trabalhoProducaoConcluido is None:
                     self.__loggerTrabalhoProducaoDao.warning(f'Trabalho produção concluido ({nomeTrabalhoConcluido}) não encontrado.')
                     return
-                self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido= trabalhoProducaoConcluido)
+                self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
                 self.modificaExperienciaProfissao(trabalho= trabalhoProducaoConcluido)
-                self.atualizaEstoquePersonagem(trabalhoEstoqueConcluido= trabalhoProducaoConcluido)
+                self.atualizaEstoquePersonagem(trabalhoProducaoConcluido)
                 trabalhoProducaoRaro: TrabalhoProducao = self.verificaProducaoTrabalhoRaro(trabalhoConcluido= trabalhoProducaoConcluido)
                 self.insereTrabalhoProducao(trabalho= trabalhoProducaoRaro)
                 return
@@ -1217,7 +1230,7 @@ class Aplicacao:
             if trabalhoEncontrado.nome is None:
                 self.__loggerTrabalhoDao.warning(f'({trabalhoVendido}) não foi encontrado na lista de trabalhos!')
                 continue
-            trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos = trabalhoEncontrado.ehRaro and not trabalhoEhProducaoRecursos(trabalhoEncontrado)
+            trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos = trabalhoEncontrado.ehRaro and not trabalhoEncontrado.ehProducaoRecursos
             if trabalhoEhRaroETrabalhoNaoEhProducaoDeRecursos:
                 trabalhosRarosVendidos.append(trabalhoVendido)
         return trabalhosRarosVendidos
@@ -1378,7 +1391,7 @@ class Aplicacao:
                     continue
                 nomeTrabalho = self.padronizaTexto(trabalhoEncontrado.nome)
 
-                if trabalhoEhProducaoRecursos(trabalhoEncontrado):
+                if trabalhoEncontrado.ehProducaoRecursos:
                     nomeProducaoTrabalho: str = limpaRuidoTexto(trabalhoEncontrado.nomeProducao)
                     if texto1PertenceTexto2(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
                         dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
@@ -1449,7 +1462,7 @@ class Aplicacao:
                         dicionarioTrabalho[CHAVE_POSICAO] = contadorParaBaixo - 1
                         dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                         contadorParaBaixo+= 1
-                        tipoTrabalho: int= 1 if trabalhoEhProducaoRecursos(trabalho= dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]) else 0
+                        tipoTrabalho: int= 1 if trabalhoProducao.ehProducaoRecursos else 0
                         dicionarioTrabalho= self.confirmaNomeTrabalhoProducao(dicionario= dicionarioTrabalho, tipo= tipoTrabalho)
                         if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho= dicionarioTrabalho):
                             return dicionarioTrabalho
@@ -1556,11 +1569,11 @@ class Aplicacao:
         if trabalho is None or trabalho.nome is None:
             return
         if trabalho.ehComum:
-            if trabalhoEhProducaoRecursos(trabalho):
+            if trabalho.ehProducaoRecursos:
                 return self.atualizaRecursosEstoqueTrabalhoRecursoProduzindo(trabalhoProducao)
             return self.atualizaRecursosEstoqueTrabalhoComumProduzindo(trabalhoProducao)
         if trabalho.ehMelhorado or trabalho.ehRaro:
-            if trabalhoEhProducaoRecursos(trabalho):
+            if trabalho.ehProducaoRecursos:
                 return
             return self.atualizaResursosEstoqueTrabalhoMelhoradoRaroProduzindo(trabalho)
 
@@ -1606,7 +1619,7 @@ class Aplicacao:
         elif dicionarioRecurso[CHAVE_TIPO] == CHAVE_RAT:
             listaNomeRecursoBuscado.append([recursos[0], 8])
             listaNomeRecursoBuscado.append([recursos[2], 2])
-        for trabalhoEstoque in self.pegaTrabalhosEstoque():
+        for trabalhoEstoque in self.recuperaTrabalhosEstoque():
             for recursoBuscado in listaNomeRecursoBuscado:
                 if textoEhIgual(trabalhoEstoque.nome, recursoBuscado[0]):
                     novaQuantidade = trabalhoEstoque.quantidade - recursoBuscado[1]
@@ -1631,7 +1644,7 @@ class Aplicacao:
         if trabalho is None or trabalho.nome is None:
             return
         trabalhoRecurso: TrabalhoRecurso = self.defineTrabalhoRecurso(trabalho)
-        for trabalhoEstoque in self.pegaTrabalhosEstoque():
+        for trabalhoEstoque in self.recuperaTrabalhosEstoque():
             if textoEhIgual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.primario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadePrimario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
@@ -1792,21 +1805,25 @@ class Aplicacao:
         return listaPossiveisTrabalhos
 
     def retornaTrabalhoProducaoConcluido(self, nomeTrabalhoReconhecido: str) -> TrabalhoProducao | None:
-        listaPossiveisTrabalhosProducao: list[TrabalhoProducao] = self.retornaListaPossiveisTrabalhos(nomeTrabalhoReconhecido= nomeTrabalhoReconhecido)
+        self.__loggerAplicacao.debug(menssagem= f'Recuperando trabalho para produção correspondente ao concluído.')
+        listaPossiveisTrabalhosProducao: list[TrabalhoProducao] = self.retornaListaPossiveisTrabalhos(nomeTrabalhoReconhecido)
         if ehVazia(listaPossiveisTrabalhosProducao):
-            self.__loggerTrabalhoProducaoDao.warning(f'Falha ao criar lista de possíveis trabalhos concluídos ({nomeTrabalhoReconhecido})...')
+            self.__loggerAplicacao.warning(f'Falha ao criar lista de possíveis trabalhos concluídos ({nomeTrabalhoReconhecido})...')
             return None
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
         if trabalhosProducao is None:
+            self.__loggerAplicacao.debug(menssagem= f'Trabalho encontrado: {listaPossiveisTrabalhosProducao[0]}')
             return listaPossiveisTrabalhosProducao[0]
         for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
             for trabalhoProduzirProduzindo in trabalhosProducao:
                 condicoes = trabalhoProduzirProduzindo.ehProduzindo and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalhoProducao.nome)
                 if condicoes:
+                    self.__loggerAplicacao.debug(menssagem= f'Trabalho encontrado: {trabalhoProduzirProduzindo}')
                     return trabalhoProduzirProduzindo
         else:
             for trabalhoProducao in listaPossiveisTrabalhosProducao:
-                self.__loggerTrabalhoProducaoDao.warning(f'Possível trabalho concluído ({trabalhoProducao.nome}) não encontrado na lista produzindo...')
+                self.__loggerAplicacao.warning(f'Possível trabalho concluído ({trabalhoProducao.nome}) não encontrado na lista produzindo...')
+            self.__loggerAplicacao.debug(menssagem= f'Trabalho encontrado: {listaPossiveisTrabalhosProducao[0]}')
             return listaPossiveisTrabalhosProducao[0]
     
     def existeEspacoProducao(self) -> bool:
@@ -1922,7 +1939,7 @@ class Aplicacao:
                             if trabalhoEncontrado.nome is None:
                                 self.__loggerTrabalhoDao.warning(f'({dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]}) não foi encontrado na lista de trabalhos!')
                                 continue
-                            tipoTrabalho = 1 if trabalhoEhProducaoRecursos(trabalhoEncontrado) else 0
+                            tipoTrabalho = 1 if trabalhoEncontrado.ehProducaoRecursos else 0
                             dicionarioTrabalho = self.confirmaNomeTrabalhoProducao(dicionarioTrabalho, tipoTrabalho)
                             if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
                                 return dicionarioTrabalho
@@ -2204,7 +2221,7 @@ class Aplicacao:
         trabalhosProducaoRecursosEncontrados: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalho= trabalho)
         trabalhoEncontrado: Trabalho = None
         for trabalho in trabalhosProducaoRecursosEncontrados:
-            if trabalhoEhProducaoRecursos(trabalho= trabalho):
+            if trabalho.ehProducaoRecursos:
                 trabalhoEncontrado= trabalho
                 break
         return trabalhoEncontrado
@@ -2465,7 +2482,7 @@ class Aplicacao:
                     continue
                 if self.__repositorioUsuario.verificaIdPersonagem(id= personagem.id):
                     dicionarioTrabalho: dict = dicionario[CHAVE_TRABALHOS]
-                    trabalhoEncontrado: TrabalhoEstoque= self.pegaTrabalhoEstoquePorId(id= dicionarioTrabalho[CHAVE_ID])
+                    trabalhoEncontrado: TrabalhoEstoque= self.recuperaTrabalhoEstoquePorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
                     if CHAVE_ID_TRABALHO in dicionarioTrabalho:
@@ -2572,6 +2589,21 @@ class Aplicacao:
             return True
         self.__loggerEstoqueDao.error(f'Erro ao inserir ({personagem.id.ljust(36)} | {trabalho}) no banco: {self.__estoqueDao.pegaErro}')
         return False
+
+    def recuperaTrabalhoEstoquePorId(self, id: str) -> TrabalhoEstoque | None:
+        trabalhoEstoque: TrabalhoEstoque = self.__estoqueDao.recuperaTrabalhoEstoquePorId(id= id)
+        if trabalhoEstoque is None:
+            self.__loggerEstoqueDao.error(f'Erro ao recuperar trabalho no estoque por id ({id}): {self.__estoqueDao.pegaErro}')
+            return None
+        return trabalhoEstoque
+
+    def recuperaTrabalhoEstoquePorIdTrabalho(self, id: str, personagem: Personagem = None) -> TrabalhoEstoque | None:
+        personagem = self.__personagemEmUso if personagem is None else personagem
+        trabalhoEstoque: TrabalhoEstoque = self.__estoqueDao.recuperaTrabalhoEstoquePorIdTrabalho(id, personagem)
+        if trabalhoEstoque is None:
+            self.__loggerEstoqueDao.error(f'Erro ao recuperar trabalho no estoque por idTrabalho ({id}): {self.__estoqueDao.pegaErro}')
+            return None
+        return trabalhoEstoque
     
     def removePersonagem(self, personagem: Personagem, modificaServidor: bool = True) -> bool:
         if self.__personagemDao.removePersonagem(personagem= personagem, modificaServidor= modificaServidor):
@@ -2619,20 +2651,6 @@ class Aplicacao:
             self.__loggerProfissaoDao.error(f'Erro ao buscar por id ({id}): {self.__profissaoDao.pegaErro}')
             return None
         return profissaoEncontrada
-
-    def pegaTrabalhoEstoquePorId(self, id: str) -> TrabalhoEstoque | None:
-        trabalhoEstoque: TrabalhoEstoque = self.__estoqueDao.pegaTrabalhoEstoquePorId(id= id)
-        if trabalhoEstoque is None:
-            self.__loggerEstoqueDao.error(f'Erro ao buscar no trabalho no estoque por id ({id}): {self.__estoqueDao.pegaErro}')
-            return None
-        return trabalhoEstoque
-
-    def pegaTrabalhoEstoquePorIdTrabalho(self, id: str) -> TrabalhoEstoque | None:
-        trabalhoEstoque: TrabalhoEstoque = self.__estoqueDao.pegaTrabalhoEstoquePorIdTrabalho(id)
-        if trabalhoEstoque is None:
-            self.__loggerEstoqueDao.error(f'Erro ao buscar no trabalho no estoque por idTrabalho ({id}): {self.__estoqueDao.pegaErro}')
-            return None
-        return trabalhoEstoque
         
     def sincronizaListaTrabalhos(self):
         limpaTela()

@@ -7,6 +7,7 @@ import pytesseract
 from time import sleep
 from utilitarios import *
 from pytesseract import Output
+from utilitariosTexto import texto1PertenceTexto2, limpaRuidoTexto
 
 class ManipulaImagem:
     def __init__(self):
@@ -349,13 +350,12 @@ if __name__=='__main__':
     # clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
     sleep(1)
     imagem = ManipulaImagem()
-    telaTeste: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testeReconheceNomeTrabalhoProducaoConcluido.png')
+    telaTeste: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testeEstadoTrabalhoConcluidoGrandeColecao.png')
     while True:
         sleep(1)
         # print(imagem.reconheceNomeTrabalho(tela= telaMenuInicial, y= 524, identificador= 1))
         # print(imagem.retornaNomeTrabalhoReconhecido(yinicialNome= 524, identificador= 1))
         print(imagem.reconheceNomeTrabalhoFrameProducao(tela= telaTeste))
-        print(imagem.retornaNomeTrabalhoFrameProducaoReconhecido())
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:

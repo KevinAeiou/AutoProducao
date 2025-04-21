@@ -1,32 +1,8 @@
-from unidecode import unidecode
 from constantes import *
-from modelos.trabalho import Trabalho
 from modelos.trabalhoEstoque import TrabalhoEstoque
+from utilitariosTexto import textoEhIgual
 import numpy as np
 import os
-import re
-
-def textoEhIgual(texto1: str, texto2: str) -> bool:
-    '''
-        Função para verificar se dois textos são iguais.
-        Args:
-            texto1 (str): String que contêm o primeiro texto.
-            texto2 (str): String que contêm o segundo texto.
-        Returns:
-            bool: Verdadeiro caso os dois textos sejam iguais.
-    '''
-    return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
-
-def texto1PertenceTexto2(texto1: str, texto2: str) -> bool:
-    '''
-        Função para verificar caso texto1 está contido no texto2
-        Args:
-            texto1 (str): String que contêm o texto a ser verificado
-            texto2 (str): String que contêm o texto a ser verificado
-        Returns:
-            bool: Verdadeiro caso o texto1 está contido no texto2
-    '''
-    return limpaRuidoTexto(texto= texto1) in limpaRuidoTexto(texto= texto2)
 
 def ehVazia(lista: list) -> bool:
     '''
@@ -40,20 +16,6 @@ def ehVazia(lista: list) -> bool:
 
 def variavelExiste(variavel):
     return variavel != None
-
-def limpaRuidoTexto(texto: str) -> str:
-    '''
-        Função para retirar caracteres especiais do texto recebido por parâmetro.
-        Args:
-            texto (str): String que contêm o texto a ser higienizado.
-        Returns:
-            str: String que contêm o texto higienizado.
-    '''
-    texto = '' if texto is None else texto
-    padrao: str = '[^a-zA-Z0-9àáãâéêíîóõôúûç_]'
-    expressao = re.compile(padrao)
-    novaStringPalavras: str = expressao.sub('', texto)
-    return unidecode(novaStringPalavras).lower()
 
 def retiraDigitos(texto):
     listaDigitos = ['0','1','2','3','4','5','6','7','8','9']
@@ -171,15 +133,6 @@ def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
 
 def haMaisQueUmPersonagemAtivo(listaPersonagemAtivo):
     return not len(listaPersonagemAtivo) == 1
-
-def trabalhoEhProducaoRecursos(trabalho: Trabalho) -> bool:
-    if variavelExiste(trabalho):
-        for recurso in CHAVE_LISTA_PRODUCAO_RECURSO:
-            if textoEhIgual(recurso, trabalho.nomeProducao):
-                print(f'Trabalho produção é recurso')
-                return True
-    print(f'Trabalho produção não é recurso')
-    return False
 
 def trabalhoEhColecaoRecursosAvancados(trabalhoProducao):
     return textoEhIgual(trabalhoProducao.nome, 'grandecoleçãoderecursosavançados') or textoEhIgual(trabalhoProducao.nome, 'coletaemmassaderecursosavançados')

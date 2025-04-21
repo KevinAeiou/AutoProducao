@@ -656,7 +656,7 @@ class CRUD:
     
     def mostraListaTrabalhosEstoque(self):
         limpaTela()
-        estoque = self.__aplicacao.pegaTrabalhosEstoque()
+        estoque = self.__aplicacao.recuperaTrabalhosEstoque()
         if ehVazia(estoque):
             print(f'Estoque está vazio!')
         else:
@@ -920,9 +920,10 @@ class CRUD:
         while True:
             personagens = self.mostraListaPersonagens()
             if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-                teste = TrabalhoProducao()
-                teste.idTrabalho = '-NnbTPqsNBMmH5fVkYyQ'
-                self.__aplicacao.removeTrabalhoProducaoEstoque(trabalhoProducao= teste)
+                teste = self.__aplicacao.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= 'grandecolecaoderecur')
+                print(teste)
+                self.__aplicacao.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido= teste)
+                self.__aplicacao.atualizaEstoquePersonagem(trabalhoConcluido= teste)
                 continue
             break
 
