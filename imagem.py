@@ -34,19 +34,22 @@ class ManipulaImagem:
         stringPalavras: str = ''.join(listaPalavras)
         return None if ehVazia(lista= stringPalavras) else limpaRuidoTexto(texto= stringPalavras)
 
-    def retornaImagemBinarizadaOtsu(self, imagemDesfocada):
-        ret, thresh = cv2.threshold(imagemDesfocada, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        return thresh
+    def retornaImagemBinarizadaOtsu(self, imagem, limiarMinimo: int = 0, limiarMaximo: int = 255):
+        ret, imagemBinarizada = cv2.threshold(imagem, limiarMinimo, limiarMaximo, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        return imagemBinarizada
 
     def retornaImagemEqualizada(self, img):
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         return clahe.apply(img)
 
     def retornaImagemCinza(self, imagem):
-        return cv2.cvtColor(np.array(imagem), cv2.COLOR_RGB2GRAY)
+        return cv2.cvtColor(imagem, cv2.COLOR_RGB2GRAY)
 
     def retornaImagemColorida(self, screenshot):
         return cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+    
+    def retornaImagemInvertida(self, telaCinza):
+        return cv2.bitwise_not(telaCinza)
 
     def retornaAtualizacaoTela(self):
         return self.retornaImagemColorida(tiraScreenshot())
@@ -70,13 +73,16 @@ class ManipulaImagem:
     def abreImagem(self, caminhoImagem):
         return cv2.imread(caminhoImagem)
     
-    def salvaNovaTela(self, nomeImagem):
-        imagem = cv2.cvtColor(np.array(tiraScreenshot()), cv2.COLOR_RGB2BGR)
-        if os.path.isdir('tests/imagemTeste'):
-            cv2.imwrite('tests/imagemTeste/{}'.format(nomeImagem),imagem)
-        else:
-            os.makedirs('tests/imagemTeste')
-            cv2.imwrite('tests/imagemTeste/{}'.format(nomeImagem),imagem)
+    def salvaNovaTela(self, nomeArquivo: str):
+        imagem = self.retornaImagemColorida(tiraScreenshot())
+        return self.salvaImagemCaminhoEspecifico(nomeArquivo, imagem)
+
+    def salvaImagemCaminhoEspecifico(self, nomeArquivo: str, imagem: ndarray, caminho: str = 'tests\imagemTeste'):
+        if os.path.isdir(caminho):
+            cv2.imwrite('{}\\{}'.format(caminho, nomeArquivo), imagem)
+            return
+        os.makedirs(caminho)
+        cv2.imwrite('{}\\{}'.format(caminho, nomeArquivo),imagem)
 
     def reconheceNomeTrabalho(self, tela: ndarray, y: int, identificador: int) -> str | None:
         altura: int = 70 if identificador == 1 else 34
@@ -89,7 +95,7 @@ class ManipulaImagem:
             x1= int(x1 * razao[1])
             x2= int(x2 * razao[1])
         frameTrabalho: ndarray = tela[y : y + altura, x1 : x2]
-        frameNomeTrabalhoTratado: ndarray = self.retornaImagemCinza(frameTrabalho)
+        frameNomeTrabalhoTratado: ndarray = self.retornaImagemCinza(np.array(frameTrabalho))
         frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalhoTratado)
         return self.reconheceTexto(frameNomeTrabalhoTratado) if existePixelPreto(frameNomeTrabalhoTratado) else None
     
@@ -100,7 +106,7 @@ class ManipulaImagem:
         arrayFrames: tuple = ((169, 285, 303, 33), (183, 200, 318, 31)) # [x, y, altura, largura]
         posicao: int = arrayFrames[tipoTrabalho]
         frameNomeTrabalho: np.ndarray = tela[posicao[1]:posicao[1] + posicao[3], posicao[0]:posicao[0] + posicao[2]]
-        frameNomeTrabalhoCinza: np.ndarray = self.retornaImagemCinza(imagem= frameNomeTrabalho)
+        frameNomeTrabalhoCinza: np.ndarray = self.retornaImagemCinza(imagem= np.array(frameNomeTrabalho))
         frameNomeTrabalhoBinarizado: np.ndarray = self.retornaImagemBinarizada(imagem= frameNomeTrabalhoCinza, limiteMinimo= 115)
         return self.reconheceTexto(frameNomeTrabalhoBinarizado, confianca=30)
 
@@ -110,7 +116,7 @@ class ManipulaImagem:
     def reconheceLicenca(self, telaInteira) -> str | None:
         listaLicencas = LISTA_LICENCAS
         listaLicencas.append('Nenhum item')
-        frameTelaCinza = self.retornaImagemCinza(telaInteira[0 : telaInteira.shape[0], 0 : telaInteira.shape[1] // 2])
+        frameTelaCinza = self.retornaImagemCinza(np.array(telaInteira[0 : telaInteira.shape[0], 0 : telaInteira.shape[1] // 2]))
         fremaTelaBinarizada = self.retornaImagemBinarizada(imagem= frameTelaCinza, limiteMinimo= 120)
         textoReconhecido: str = self.reconheceTexto(fremaTelaBinarizada)
         if textoReconhecido is None: return None
@@ -126,7 +132,7 @@ class ManipulaImagem:
         y: int = 14*(tela.shape[0]//30)
         posicaoNome = [[2,33,210,45], [x,y,200,40]] # [x, y, altura, largura]
         frameNomePersonagem = tela[posicaoNome[posicao][1]:posicaoNome[posicao][1]+posicaoNome[posicao][3], posicaoNome[posicao][0]:posicaoNome[posicao][0]+posicaoNome[posicao][2]]
-        frameCinza = self.retornaImagemCinza(frameNomePersonagem)
+        frameCinza = self.retornaImagemCinza(np.array(frameNomePersonagem))
         frameBinarizado = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 150)
         return self.reconheceTexto(imagem= frameBinarizado, confianca= 40)
     
@@ -175,7 +181,7 @@ class ManipulaImagem:
     
     def reconheceTextoMenu(self, tela: ndarray) -> str | None:
         frameTela = tela[0 : tela.shape[0], 0 : tela.shape[1]//2]
-        frameTelaTratado = self.retornaImagemCinza(frameTela)
+        frameTelaTratado = self.retornaImagemCinza(np.array(frameTela))
         frameTelaTratado = self.retornaImagemBinarizada(imagem= frameTelaTratado, limiteMinimo= 155)
         return self.reconheceTexto(imagem= frameTelaTratado, confianca= 50)
 
@@ -183,7 +189,7 @@ class ManipulaImagem:
         return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
     
     def reconheceTextoSair(self, tela: np.ndarray):
-        frameTelaTratado = self.retornaImagemCinza(tela[tela.shape[0]-55:tela.shape[0]-15,50:50+80])
+        frameTelaTratado = self.retornaImagemCinza(np.array(tela[tela.shape[0]-55:tela.shape[0]-15,50:50+80]))
         frameTelaTratado = self.retornaImagemBinarizada(frameTelaTratado)
         return self.reconheceTexto(frameTelaTratado)
     
@@ -243,8 +249,29 @@ class ManipulaImagem:
     def retornaEstadoTrabalho(self) -> int:
         return self.reconheceEstadoTrabalho(tela= self.retornaAtualizacaoTela())
 
-    def reconheceNomeTrabalhoFrameProducao(self, tela):
-        tela = self.retornaImagemBinarizada(tela[285:285+37, 233:486])
+    def reconheceNomeTrabalhoFrameProducao(self, tela: ndarray) -> str | None:
+        '''
+            Método para analise e reconhecimento do nome do trabalho para produção concluído.
+            Args:
+                tela (ndarray): Imagem que contêm os dados do trabalho para produção.
+            Returns:
+                str: String que contêm o nome do trabalho reconhecido.
+        '''
+        x: int = 233
+        y: int = 289
+        largura: int = 253
+        altura: int = 37
+        telaCinza = self.retornaImagemCinza(np.array(tela))
+        telaInvertida = self.retornaImagemInvertida(telaCinza)
+        if self.resolucaoEh1366x768(tela):
+            tela = telaInvertida[y : y + altura, x : x + largura]
+            return self.reconheceTexto(tela)
+        razoes: tuple= self.retornaRazaoEntreTelas(tela)
+        x = int(x * razoes[1])
+        y = int(y * razoes[0])
+        largura = int(largura * razoes[1])
+        altura = int(altura * razoes[0])
+        tela = telaInvertida[y : y + altura, x : x + largura]
         return self.reconheceTexto(tela)
     
     def retornaNomeTrabalhoFrameProducaoReconhecido(self):
@@ -262,7 +289,7 @@ class ManipulaImagem:
     def retornaReferencia(self, imagem: np.ndarray) -> tuple | None:
         print(f'Buscando referência "PEGAR"...')
         imagem = imagem[0:imagem.shape[0], 0:imagem.shape[1]//2]
-        imagemTratada = self.retornaImagemCinza(imagem= imagem)
+        imagemTratada = self.retornaImagemCinza(imagem= np.array(imagem))
         imagemTratada = self.retornaImagemBinarizada(imagem= imagemTratada, limiteMinimo=150)
         resultado: dict = self.retornaImagemParaDicionario(imagem= imagemTratada)
         for i in range(len(resultado['text'])):
@@ -281,7 +308,7 @@ class ManipulaImagem:
 
     def verificaReferenciaLeiloeiro(self, imagem: np.ndarray) -> tuple | None:
         imagem = imagem[0:imagem.shape[0], 0:imagem.shape[1]//2]
-        imagemTratada = self.retornaImagemCinza(imagem= imagem)
+        imagemTratada = self.retornaImagemCinza(imagem= np.array(imagem))
         imagemTratada = self.retornaImagemBinarizada(imagem= imagemTratada, limiteMinimo=130)
         resultado: dict = self.retornaImagemParaDicionario(imagem= imagemTratada)
         for i in range(len(resultado['text'])):
@@ -322,12 +349,13 @@ if __name__=='__main__':
     # clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
     sleep(1)
     imagem = ManipulaImagem()
-    telaTeste: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testePacoteTrabalhoVendido.png')
+    telaTeste: ndarray= imagem.abreImagem(caminhoImagem= r'tests\imagemTeste\testeReconheceNomeTrabalhoProducaoConcluido.png')
     while True:
         sleep(1)
         # print(imagem.reconheceNomeTrabalho(tela= telaMenuInicial, y= 524, identificador= 1))
         # print(imagem.retornaNomeTrabalhoReconhecido(yinicialNome= 524, identificador= 1))
-        print(imagem.reconheceTextoCorrespondencia(tela= telaTeste))
+        print(imagem.reconheceNomeTrabalhoFrameProducao(tela= telaTeste))
+        print(imagem.retornaNomeTrabalhoFrameProducaoReconhecido())
         # resultado = imagem.retornaReferenciaLeiloeiro()
         # print(resultado)
         # if resultado is None:
