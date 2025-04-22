@@ -1580,8 +1580,8 @@ class Aplicacao:
     def atualizaResursosEstoqueTrabalhoMelhoradoRaroProduzindo(self, trabalho: Trabalho) -> None:
         listaIdsTrabalhosNecessarios: list[str] = trabalho.trabalhoNecessario.split(',')
         for idTrabalhoNecessario in listaIdsTrabalhosNecessarios:
-            trabalhoEncontrado: TrabalhoEstoque = self.pegaTrabalhoEstoquePorIdTrabalho(id= idTrabalhoNecessario)
-            if trabalhoEncontrado is None:
+            trabalhoEncontrado: TrabalhoEstoque = self.recuperaTrabalhoEstoquePorIdTrabalho(id= idTrabalhoNecessario)
+            if trabalhoEncontrado is None or trabalhoEncontrado.idTrabalho is None:
                 continue
             if trabalhoEncontrado.idTrabalho == idTrabalhoNecessario:
                 trabalhoEncontrado.setQuantidade(trabalhoEncontrado.quantidade - 1)
