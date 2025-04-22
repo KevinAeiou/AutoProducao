@@ -920,7 +920,7 @@ class CRUD:
         while True:
             personagens = self.mostraListaPersonagens()
             if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-                teste = self.__aplicacao.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= 'grandecolecaoderecur')
+                teste = self.__aplicacao.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= 'vestuariodoselementos')
                 print(teste)
                 self.__aplicacao.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido= teste)
                 self.__aplicacao.atualizaEstoquePersonagem(trabalhoConcluido= teste)

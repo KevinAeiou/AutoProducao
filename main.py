@@ -551,7 +551,15 @@ class Aplicacao:
         personagem = self.__personagemEmUso if personagem is None else personagem
         trabalhosProducaoProduzirProduzindo = self.__trabalhoProducaoDao.pegaTrabalhosProducaoParaProduzirProduzindo(personagem= personagem)
         if trabalhosProducaoProduzirProduzindo is None:
-            self.__loggerTrabalhoProducaoDao.error(f'Erro ao bucar trabalhos para produção com estado para produzir ou produzindo: {self.__trabalhoProducaoDao.pegaErro}')
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao recuperar trabalhos para produção com estado para produzir(0) ou produzindo(1): {self.__trabalhoProducaoDao.pegaErro}')
+            return None
+        return trabalhosProducaoProduzirProduzindo
+        
+    def recuperaTrabalhosProducaoEstadoProduzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao] | None:
+        personagem = self.__personagemEmUso if personagem is None else personagem
+        trabalhosProducaoProduzirProduzindo = self.__trabalhoProducaoDao.recuperaTrabalhosProducaoEstadoProduzindo(personagem= personagem)
+        if trabalhosProducaoProduzirProduzindo is None:
+            self.__loggerTrabalhoProducaoDao.error(f'Erro ao recuperar trabalhos para produção com estado produzindo(1): {self.__trabalhoProducaoDao.pegaErro}')
             return None
         return trabalhosProducaoProduzirProduzindo
         
@@ -1810,14 +1818,13 @@ class Aplicacao:
         if ehVazia(listaPossiveisTrabalhosProducao):
             self.__loggerAplicacao.warning(f'Falha ao criar lista de possíveis trabalhos concluídos ({nomeTrabalhoReconhecido})...')
             return None
-        trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
+        trabalhosProducao: list[TrabalhoProducao] = self.recuperaTrabalhosProducaoEstadoProduzindo()
         if trabalhosProducao is None:
             self.__loggerAplicacao.debug(menssagem= f'Trabalho encontrado: {listaPossiveisTrabalhosProducao[0]}')
             return listaPossiveisTrabalhosProducao[0]
         for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
             for trabalhoProduzirProduzindo in trabalhosProducao:
-                condicoes = trabalhoProduzirProduzindo.ehProduzindo and textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalhoProducao.nome)
-                if condicoes:
+                if textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalhoProducao.nome):
                     self.__loggerAplicacao.debug(menssagem= f'Trabalho encontrado: {trabalhoProduzirProduzindo}')
                     return trabalhoProduzirProduzindo
         else:
