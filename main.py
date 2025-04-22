@@ -1313,7 +1313,7 @@ class Aplicacao:
         contadorNivel: int = 0
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
-            if profissao.pegaNivel() >= nivel:
+            if profissao.nivel() >= nivel:
                 contadorNivel += 1
         print(f'Contador de profissões nível {nivel} ou superior: {contadorNivel}.')
         if contadorNivel > 0 and contadorNivel < 3:
@@ -1328,7 +1328,7 @@ class Aplicacao:
         quantidadeEspacosProducao: int = 2
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
-            nivel: int = profissao.pegaNivel()
+            nivel: int = profissao.nivel()
             if nivel >= 5:
                 quantidadeEspacosProducao += 1
                 break
@@ -2130,8 +2130,6 @@ class Aplicacao:
         if trabalhosProfissaoRaridadeNivelExpecifico is None:
             self.__loggerTrabalhoDao.error(f'Erro ao buscar trabalhos específicos no banco: {self.__trabalhoDao.pegaErro}')
             return []
-        for trabalho in trabalhosProfissaoRaridadeNivelExpecifico:
-            self.__loggerTrabalhoDao.debug(menssagem= f'{trabalho.nome} encontrado!')
         return trabalhosProfissaoRaridadeNivelExpecifico
     
     def retornaListaIdsRecursosNecessarios(self, trabalho: Trabalho) -> list[str]:
@@ -2240,13 +2238,13 @@ class Aplicacao:
             return
         for profissaoPriorizada in profissoesPriorizadas:
             self.__loggerProfissaoDao.debug(menssagem= f'Verificando profissão priorizada: {profissaoPriorizada.nome}')
-            nivelProfissao: int = profissaoPriorizada.pegaNivel()
+            nivelProfissao: int = profissaoPriorizada.nivel()
             self.__loggerProfissaoDao.debug(menssagem= f'Nível profissão priorizada: {nivelProfissao}')
-            trabalhoBuscado: Trabalho = self.defineTrabalhoComumBuscado(profissaoPriorizada, nivelProfissao)
+            self.defineTrabalhoMelhoradoProfissaoPriorizada(profissaoPriorizada, nivelProfissao)
+            trabalhoBuscado: Trabalho = self.defineTrabalhoBuscado(profissaoPriorizada, nivelProfissao, CHAVE_RARIDADE_COMUM)
             self.__loggerProfissaoDao.debug(menssagem= f'Trabalho buscado: {trabalhoBuscado}')
-            trabalhosComunsProfissaoNivelExpecifico: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalhoBuscado)
+            trabalhosComunsProfissaoNivelExpecifico: list[Trabalho] = self.defineTrabalhosPorProfissaoNivelRaridade(trabalhoBuscado)
             if ehVazia(trabalhosComunsProfissaoNivelExpecifico):
-                self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade (comum) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
                 continue
             while True:
                 trabalhosQuantidade: list[TrabalhoEstoque]= self.defineListaTrabalhosQuantidade(trabalhosComunsProfissaoNivelExpecifico)
@@ -2271,11 +2269,137 @@ class Aplicacao:
                 self.defineTrabalhoProducaoRecursosProfissaoPriorizada(trabalho= trabalhoBuscado)
                 break
 
-    def defineTrabalhoComumBuscado(self, profissaoPriorizada: Profissao, nivelProfissao: int) -> Trabalho:
-        trabalhoBuscado = Trabalho()
+    def defineTrabalhoMelhoradoProfissaoPriorizada(self, profissaoPriorizada: Profissao, nivelProfissao: int):
+        '''
+            Método para verificar e definir trabalhos melhorados para produção de uma profissão priorizada específica.
+            Args:
+                profissaoPriorizada (Profissao): Objeto da classe Profissao que contêm os atributos da profissão priorizada.
+                nivelProfissao (int): Inteiro que contêm o nível da profissão priorizada.
+        '''
+        if profissaoPriorizada.ehNivelProducaoMelhorada:
+            self.__loggerAplicacao.debug(menssagem= f'Nível({nivelProfissao}) de ({profissaoPriorizada.nome}) é para melhoria de trabalhos.')
+            trabalhoBuscado: Trabalho = self.defineTrabalhoBuscado(profissaoPriorizada, nivelProfissao, CHAVE_RARIDADE_RARO)
+            trabalhosRarosProfissaoNivelExpecifico: list[Trabalho] = self.defineTrabalhosPorProfissaoNivelRaridade(trabalhoBuscado)
+            self.verificaTrabalhosRarosEncontrados(trabalhosRarosProfissaoNivelExpecifico)
+            return
+        self.__loggerAplicacao.debug(menssagem= f'Nível({nivelProfissao}) de ({profissaoPriorizada.nome}) não é para melhoria de trabalhos.')
+
+    def defineTrabalhosPorProfissaoNivelRaridade(self, trabalhoBuscado: Trabalho):
+        '''
+            Método para definir uma lista de objetos da classe Trabalho que contêm atributos específicos ('profissao', 'nivel', 'raridade), no objeto 'trabalhoBuscado'.
+            Args:
+                trabalhoBuscado (Trabalho): Objeto da classe Trabalho que contêm atributos específicos buscados no banco de dados.
+            Returns:
+                trabalhosRaros (list[Trabalho]): Lista de objetos da classe Trabalho que foram encontrados no banco de dados.
+        '''
+        self.__loggerAplicacao.debug(menssagem= f'Recuperando trabalhos ({trabalhoBuscado.profissao.ljust(22)}, {str(trabalhoBuscado.nivel).ljust(2)}, {trabalhoBuscado.raridade})')
+        trabalhosEncontrados: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalhoBuscado)
+        if ehVazia(trabalhosEncontrados):
+            self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade ({trabalhoBuscado.raridade}) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
+            return trabalhosEncontrados
+        for trabalho in trabalhosEncontrados:
+            self.__loggerAplicacao.debug(menssagem= f'({trabalho.id.ljust(40)} | {trabalho}) encontrado')
+        return trabalhosEncontrados
+
+    def verificaTrabalhosRarosEncontrados(self, trabalhosRaros: list[Trabalho]):
+        '''
+            Método para verificar se cada trabalho raro encontrado possue zero(0) unidades no estoque.
+            Args:
+                trabalhosRaros (list[Trabalho]): Lista que contêm objetos da classe Trabalho encontrados.
+        '''
+        self.__loggerAplicacao.debug(menssagem= f'Verificando lista de trabalho raros encontrados')
+        for trabalho in trabalhosRaros:
+            if trabalho.ehProducaoRecursos:
+                continue
+            quantidadeRaro: int = self.pegaQuantidadeTrabalhoEstoque(trabalho.id)
+            if quantidadeRaro == 0:
+                self.__loggerAplicacao.debug(menssagem= f'Quantidade de ({trabalho.id.ljust(40)}) no estoque é zero(0)')
+                if self.trabalhoEstaNaListaProducao(trabalho.id):
+                    continue
+                self.verificaListaIdsTrabalhosMelhoradosNecessarios(trabalho)
+
+    def verificaListaIdsTrabalhosMelhoradosNecessarios(self, trabalho: Trabalho):
+        '''
+            Método para verificar cada item da lista de trabalhos melhorados necessários de um trabalho raro específico.
+            Args:
+                trabalho (Trabalho): Objeto da classe Trabalho que contêm os atributos do trabalho raro espécifico.
+        '''
+        self.__loggerAplicacao.debug(menssagem= f'Verificando lista de trabalho melhorados necessários')
+        trabalhosMelhoradosNecessarios: str = trabalho.trabalhoNecessario
+        if trabalhosMelhoradosNecessarios is None or ehVazia(trabalhosMelhoradosNecessarios):
+            self.__loggerAplicacao.debug(menssagem= f'({trabalho.id.ljust(40)} | {trabalho} não possui trabalhos necessários)')
+            return
+        idsTrabalhosNecessarios: list[str] = trabalhosMelhoradosNecessarios.split(',')
+        for idTrabalhoMelhorado in idsTrabalhosNecessarios:
+            quantidadeMelhorado: int = self.pegaQuantidadeTrabalhoEstoque(idTrabalhoMelhorado)
+            if quantidadeMelhorado == 0:
+                if self.trabalhoEstaNaListaProducao(idTrabalhoMelhorado):
+                    continue
+                if self.possuiTrabalhosNecessariosSuficientes(idTrabalhoMelhorado):
+                    trabalhoProducaoMelhorado: TrabalhoProducao = self.defineTrabalhoProducaoMelhorado(idTrabalhoMelhorado)
+                    self.insereTrabalhoProducao(trabalhoProducaoMelhorado)
+
+    def possuiTrabalhosNecessariosSuficientes(self, idTrabalhoMelhorado: str) -> bool:
+        '''
+            Método para verificar se existem trabalhos necessários comuns suficientes no estoque para a produção de um trabalho melhorado.
+            Args:
+                idTrabalhoMelhorado (str): String que contêm o 'idTrabalho' do trabalho melhorado.
+            Returns:
+                bool: Verdadeiro caso existam trabalhos comuns suficientes no estoque para iniciar uma nova produção. Falso caso contrário.
+        '''
+        self.__loggerAplicacao.debug(menssagem= f'Verificando lista de trabalho comuns necessários')
+        trabalhoMelhorado: Trabalho = self.pegaTrabalhoPorId(idTrabalhoMelhorado)
+        trabalhosComunsNecessarios: str = trabalhoMelhorado.trabalhoNecessario
+        if trabalhosComunsNecessarios is None or ehVazia(trabalhosComunsNecessarios):
+            self.__loggerAplicacao.debug(menssagem= f'({trabalhoMelhorado.id.ljust(40)} | {trabalhoMelhorado} não possui trabalhos necessários)')
+            return False
+        idsTrabalhosComunsNecessarios: list[str] = trabalhosComunsNecessarios.split(',')
+        for idTrabalhoComum in idsTrabalhosComunsNecessarios:
+            quantidadeMelhorado: int = self.pegaQuantidadeTrabalhoEstoque(idTrabalhoComum)
+            if quantidadeMelhorado == 0:
+                self.__loggerAplicacao.debug(menssagem= f'({trabalhoMelhorado.id.ljust(40)} | {trabalhoMelhorado}) não possui trabalhos necessários suficientes')
+                return False
+        return True
+
+    def defineTrabalhoProducaoMelhorado(self, idTrabalho: str) -> TrabalhoProducao:
+        '''
+            Método para definir um objeto da classe TrabalhoProducao com 'idTrabalho' específico.
+            Args:
+                idTrabalho (str): String que contêm o 'idTrabalho' específico.
+            Returns:
+                trabalhoMelhorado (TrabalhoProducao): Obejto da classe TrabalhoProducao com atributos 'idTrabalho' específico, 'estado' para produzir(0), 'recorrencia' falso e 'tipoLicença' Licença de Artesanato de Iniciante.
+        '''
+        trabalhoMelhorado: TrabalhoProducao = TrabalhoProducao()
+        trabalhoMelhorado.idTrabalho = idTrabalho
+        trabalhoMelhorado.estado = CODIGO_PARA_PRODUZIR
+        trabalhoMelhorado.recorrencia = False
+        trabalhoMelhorado.tipoLicenca = CHAVE_LICENCA_INICIANTE
+        return trabalhoMelhorado
+
+    def trabalhoEstaNaListaProducao(self, id: str):
+        '''
+            Método para verificar se pelo menos um trabalho com 'idTrabalho' está na lista de produção.
+            Args:
+                id (str): String que contêm o valor do 'idTrabalho' a ser buscado.
+            Returns:
+                bool: Verdadeiro se pelo menos um trabalho com 'idTrabalho' encontrado for igual ao 'idTrabalho' buscado. Falso caso contrário. 
+        '''
+        self.__loggerAplicacao.debug(menssagem= f'Verificando se ({id.ljust(40)}) está na lista para produção')
+        trabalhosParaProduzirProduzindo: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
+        if trabalhosParaProduzirProduzindo is None:
+            return True
+        for trabalhoProducao in trabalhosParaProduzirProduzindo:
+            if textoEhIgual(trabalhoProducao.idTrabalho, id):
+                self.__loggerAplicacao.debug(menssagem= f'Trabalho ({id.ljust(40)}) encontrado na lista para produção')
+                return True
+        self.__loggerAplicacao.debug(menssagem= f'Trabalho ({id.ljust(40)}) não encontrado na lista para produção')
+        return False
+
+    def defineTrabalhoBuscado(self, profissaoPriorizada: Profissao, nivelProfissao: int, raridade: str) -> Trabalho:
+        trabalhoBuscado: Trabalho = Trabalho()
         trabalhoBuscado.profissao = profissaoPriorizada.nome
         trabalhoBuscado.nivel = trabalhoBuscado.pegaNivel(nivelProfissao)
-        trabalhoBuscado.raridade = CHAVE_RARIDADE_COMUM
+        trabalhoBuscado.raridade = raridade
         return trabalhoBuscado
 
     def defineTrabalhoProducaoComum(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> TrabalhoProducao:
@@ -2303,6 +2427,14 @@ class Aplicacao:
         return trabalhosQuantidade, quantidadeTotalTrabalhoProducao
     
     def pegaQuantidadeTrabalhoEstoque(self, idTrabalho: str, personagem: Personagem = None) -> int:
+        '''
+            Método para recuperar a quantidade de um trabalho específico no estoque por id.
+            Args:
+                idTrabalho (str): String que contêm o id do trabalho buscado.
+                personagem (Personagem): Objeto da classe Personagem que contêm os atributos do personagem atual. É None por padrão.
+            Returns:
+                quantidade (int): Inteiro que contêm a quantidade de trabalho recuperado do banco de dados. É zero(0) por padrão.
+        '''
         personagem = self.__personagemEmUso if personagem is None else personagem
         quantidade = self.__estoqueDao.pegaQuantidadeTrabalho(personagem= personagem, idTrabalho= idTrabalho)
         if quantidade is None:

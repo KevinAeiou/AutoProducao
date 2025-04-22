@@ -3,11 +3,11 @@ from constantes import LISTA_EXPERIENCIAS_NIVEL
 
 class Profissao:
     def __init__(self):
-        self.id = str(uuid4())
-        self.idPersonagem = None
-        self.nome = None
-        self.experiencia = 0
-        self.prioridade = False
+        self.id: str = str(uuid4())
+        self.idPersonagem: str = None
+        self.nome: str = None
+        self.experiencia: int = 0
+        self.prioridade: bool = False
 
     @property
     def pegaExperienciaMaxima(self):
@@ -21,7 +21,7 @@ class Profissao:
     def alternaPrioridade(self):
         self.prioridade = not self.prioridade
 
-    def pegaNivel(self):
+    def nivel(self):
         if self.experiencia >= self.pegaExperienciaMaxima:
             return len(LISTA_EXPERIENCIAS_NIVEL) + 1
         for i, experiencia in enumerate(LISTA_EXPERIENCIAS_NIVEL):
@@ -43,6 +43,17 @@ class Profissao:
                     return exp
                 return LISTA_EXPERIENCIAS_NIVEL[i + 1]
         return 0
+    
+    @property
+    def ehNivelProducaoMelhorada(self) -> bool:
+        '''
+            Atributo que verifica se o nível de produção é 'melhorado'.
+            Returns:
+                bool: Verdadeiro se o nível da profissão for melhorado, false caso contrário.
+        '''
+        if self.nivel() > 7:
+            return self.nivel() % 2 == 0
+        return self.nivel() % 2 != 0
 
     def dicionarioParaObjeto(self, dicionario):
         for chave in dicionario:

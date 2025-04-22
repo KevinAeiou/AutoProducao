@@ -4,14 +4,14 @@ from utilitariosTexto import textoEhIgual
 
 class Trabalho:
     def __init__(self):
-        self.id = str(uuid4())
-        self.nome = None
-        self.nomeProducao = None
-        self.experiencia = None
-        self.nivel = None
-        self.profissao = None
-        self.raridade = None
-        self.trabalhoNecessario = None
+        self.id: str = str(uuid4())
+        self.nome: str = None
+        self.nomeProducao: str = None
+        self.experiencia: int = None
+        self.nivel: int = None
+        self.profissao: str = None
+        self.raridade: str = None
+        self.trabalhoNecessario: str = None
 
     def pegaNivel(self, nivelProfissao: int) -> int:
         '''
