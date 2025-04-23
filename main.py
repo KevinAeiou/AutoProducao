@@ -554,7 +554,7 @@ class Aplicacao:
             return None
         return trabalhosProducaoProduzirProduzindo
         
-    def recuperaTrabalhosProducaoEstadoProduzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao] | None:
+    def recupera_trabalhos_producao_estado_produzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao] | None:
         personagem = self.__personagemEmUso if personagem is None else personagem
         trabalhosProducaoProduzirProduzindo = self.__trabalhoProducaoDao.recuperaTrabalhosProducaoEstadoProduzindo(personagem= personagem)
         if trabalhosProducaoProduzirProduzindo is None:
@@ -1108,7 +1108,7 @@ class Aplicacao:
                 if nomeTrabalhoConcluido is None:
                     self.__loggerTrabalhoProducaoDao.warning(f'Nome trabalho concluído não reconhecido.')
                     return
-                trabalhoProducaoConcluido: TrabalhoProducao = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoConcluido)
+                trabalhoProducaoConcluido: TrabalhoProducao = self.retorna_trabalho_producao_concluido(nomeTrabalhoConcluido)
                 if trabalhoProducaoConcluido is None:
                     self.__loggerTrabalhoProducaoDao.warning(f'Trabalho produção concluido ({nomeTrabalhoConcluido}) não encontrado.')
                     return
@@ -1929,26 +1929,34 @@ class Aplicacao:
                 listaPossiveisTrabalhos.append(trabalhoEncontrado)
         return listaPossiveisTrabalhos
 
-    def retornaTrabalhoProducaoConcluido(self, nomeTrabalhoReconhecido: str) -> TrabalhoProducao | None:
+    def retorna_trabalho_producao_concluido(self, nome_trabalho_reconhecido: str) -> TrabalhoProducao | None:
         self.__logger_aplicacao.debug(menssagem= f'Recuperando trabalho para produção correspondente ao concluído.')
-        listaPossiveisTrabalhosProducao: list[TrabalhoProducao] = self.retornaListaPossiveisTrabalhos(nomeTrabalhoReconhecido)
-        if ehVazia(listaPossiveisTrabalhosProducao):
-            self.__logger_aplicacao.warning(f'Falha ao criar lista de possíveis trabalhos concluídos ({nomeTrabalhoReconhecido})...')
+        possiveis_trabalhos_producao: list[TrabalhoProducao] = self.retornaListaPossiveisTrabalhos(nome_trabalho_reconhecido)
+        if ehVazia(possiveis_trabalhos_producao):
+            self.__logger_aplicacao.warning(f'Falha ao criar lista de possíveis trabalhos concluídos ({nome_trabalho_reconhecido})...')
             return None
-        trabalhosProducao: list[TrabalhoProducao] = self.recuperaTrabalhosProducaoEstadoProduzindo()
-        if trabalhosProducao is None:
-            self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {listaPossiveisTrabalhosProducao[0]}')
-            return listaPossiveisTrabalhosProducao[0]
-        for possivelTrabalhoProducao in listaPossiveisTrabalhosProducao:
-            for trabalhoProduzirProduzindo in trabalhosProducao:
-                if textoEhIgual(trabalhoProduzirProduzindo.nome, possivelTrabalhoProducao.nome):
-                    self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {trabalhoProduzirProduzindo}')
-                    return trabalhoProduzirProduzindo
+        trabalhos_producao_encontrados: list[TrabalhoProducao] = self.recupera_trabalhos_producao_estado_produzindo()
+        if trabalhos_producao_encontrados is None:
+            self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {possiveis_trabalhos_producao[0]}')
+            return possiveis_trabalhos_producao[0]
+        self.mostra_lista_trabalhos_producao_produzindo(trabalhos_producao_encontrados)
+        for provavel_trabalho_producao in possiveis_trabalhos_producao:
+            for trabalho_produzindo_encontrado in trabalhos_producao_encontrados:
+                if textoEhIgual(trabalho_produzindo_encontrado.nome, provavel_trabalho_producao.nome):
+                    self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {trabalho_produzindo_encontrado}')
+                    return trabalho_produzindo_encontrado
         else:
-            for trabalhoProducao in listaPossiveisTrabalhosProducao:
-                self.__logger_aplicacao.warning(f'Possível trabalho concluído ({trabalhoProducao.nome}) não encontrado na lista produzindo...')
-            self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {listaPossiveisTrabalhosProducao[0]}')
-            return listaPossiveisTrabalhosProducao[0]
+            for possivel_trabalho in possiveis_trabalhos_producao:
+                self.__logger_aplicacao.warning(f'Possível trabalho concluído ({possivel_trabalho.nome}) não encontrado na lista produzindo...')
+            self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {possiveis_trabalhos_producao[0]}')
+            return possiveis_trabalhos_producao[0]
+
+    def mostra_lista_trabalhos_producao_produzindo(self, trabalhos_producao: list[TrabalhoProducao]):
+        if ehVazia(trabalhos_producao):
+            self.__logger_aplicacao.debug(menssagem= f"Lista de trabalhos para produção com estado igual a 'produzindo' (1) está vazia")
+            return
+        for trabalho_encontrado in trabalhos_producao:
+            self.__logger_aplicacao.debug(menssagem= f"Trabalho encontrado: {trabalho_encontrado.id.ljust(40)} | {trabalho_encontrado}")
     
     def existeEspacoProducao(self) -> bool:
         espacoProducao: int = self.__personagemEmUso.espacoProducao
@@ -1994,7 +2002,7 @@ class Aplicacao:
                     if self.__imagem.retornaEstadoTrabalho() == CODIGO_CONCLUIDO:
                         nomeTrabalhoReconhecido: str = self.reconheceRecuperaTrabalhoConcluido()
                         if variavelExiste(variavel= nomeTrabalhoReconhecido):
-                            trabalhoProducaoConcluido: TrabalhoProducao = self.retornaTrabalhoProducaoConcluido(nomeTrabalhoReconhecido= nomeTrabalhoReconhecido)
+                            trabalhoProducaoConcluido: TrabalhoProducao = self.retorna_trabalho_producao_concluido(nome_trabalho_reconhecido= nomeTrabalhoReconhecido)
                             if variavelExiste(trabalhoProducaoConcluido):
                                 self.modificaTrabalhoConcluidoListaProduzirProduzindo(trabalhoProducaoConcluido)
                                 self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
@@ -2712,7 +2720,7 @@ class Aplicacao:
                     profissaoEncontrada: Profissao= self.pegaProfissaoPorId(id= dicionario[CHAVE_ID], personagem= personagem)
                     if profissaoEncontrada is None:
                         continue
-                    if CHAVE_EXPERIENCIA in dicionario:
+                    if len(dicionario) > 1:
                         if profissaoEncontrada.id == dicionario[CHAVE_ID]:
                             profissaoEncontrada.dicionarioParaObjeto(dicionario)
                             self.modificaProfissao(profissao= profissaoEncontrada, personagem= personagem, modificaServidor= False)
@@ -2741,7 +2749,7 @@ class Aplicacao:
                     trabalhoEncontrado: TrabalhoEstoque= self.recuperaTrabalhoEstoquePorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
-                    if CHAVE_ID_TRABALHO in dicionarioTrabalho:
+                    if len(dicionarioTrabalho) > 1:
                         if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
                             trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
                             self.modificaTrabalhoEstoque(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
@@ -2768,7 +2776,7 @@ class Aplicacao:
                     trabalhoEncontrado: TrabalhoProducao= self.pegaTrabalhoProducaoPorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
-                    if CHAVE_ID_TRABALHO in dicionarioTrabalho:
+                    if len(dicionarioTrabalho) > 1:
                         if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
                             trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
                             self.modificaTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
@@ -2795,7 +2803,7 @@ class Aplicacao:
                     trabalhoEncontrado: TrabalhoVendido= self.pegaTrabalhoVendidoPorId(id= dicionarioTrabalho[CHAVE_ID])
                     if trabalhoEncontrado is None:
                         continue
-                    if CHAVE_ID_TRABALHO in dicionarioTrabalho:
+                    if len(dicionarioTrabalho) > 1:
                         if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
                             trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
                             self.modificaTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)

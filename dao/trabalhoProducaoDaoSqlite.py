@@ -126,7 +126,6 @@ class TrabalhoProducaoDaoSqlite:
                 trabalhoProducao.recorrencia = recorrencia
                 trabalhoProducao.tipoLicenca = linha[10]
                 trabalhoProducao.estado = linha[11]
-                self.__logger.debug(menssagem= f'({personagem.id.ljust(36)} | {trabalhoProducao}) produzindo(1)')
                 trabalhosProducao.append(trabalhoProducao)
             return trabalhosProducao
         except Exception as e:
