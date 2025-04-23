@@ -6,7 +6,7 @@ from firebase_admin import db
 
 class RepositorioUsuario:
     def __init__(self):
-        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_USUARIO, arquivoLogger= CHAVE_REPOSITORIO_USUARIO)
+        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_USUARIO, arquivoLogger= f'{CHAVE_REPOSITORIO_USUARIO}.log')
         self.__erro: str= None
         firebaseDb: FirebaseDatabase = FirebaseDatabase()
         try:
