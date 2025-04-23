@@ -853,7 +853,7 @@ class Aplicacao:
             Returns:
                 trabalho_producao_estoque (TrabalhoProducao): Objeto da classe TrabalhoProducao que contêm os atributos do trabalho melhorado para produção.
         '''
-        if trabalho_concluido.ehComum:
+        if trabalho_concluido.ehComum and not trabalho_concluido.ehProducaoRecursos:
             self.__logger_aplicacao.debug(menssagem= f'Raridade de ({trabalho_concluido}) é Comum')
             profissao: Profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalho_concluido)
             if profissao.eh_nivel_producao_melhorada:
