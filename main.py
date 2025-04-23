@@ -190,7 +190,6 @@ class Aplicacao:
 
     def verificaErro(self, textoErroEncontrado:str = None) -> int:
         textoErroEncontrado = self.__imagem.retornaTextoMenuReconhecido() if textoErroEncontrado is None else textoErroEncontrado
-        sleep(0.5)
         print(f'Verificando erro...')
         CODIGO_ERRO = self.retornaCodigoErroReconhecido(textoErroEncontrado)
         if ehErroLicencaNecessaria(CODIGO_ERRO) or ehErroFalhaConexao(CODIGO_ERRO) or ehErroConexaoInterrompida(CODIGO_ERRO) or ehErroServidorEmManutencao(CODIGO_ERRO) or ehErroReinoIndisponivel(CODIGO_ERRO):
