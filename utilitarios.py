@@ -23,8 +23,15 @@ def retiraDigitos(texto):
         texto = texto.replace(digito,'')
     return texto
 
-def erroEncontrado(erro):
-    return erro != 0
+def erroEncontrado(codigoErro: int) -> bool:
+    '''
+        Função que verifica se foi encontrado algum erro.
+        Args:
+            codigoErro (int): Inteiro que contêm o código do erro encontrado.
+        Returns:
+            bool: Verdadeiro caso 'codigoErro' for diferente de zero(0).
+    '''
+    return codigoErro != 0
 
 def nenhumErroEncontrado(erro):
     return not erroEncontrado(erro)

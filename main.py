@@ -203,13 +203,13 @@ class Aplicacao:
             if ehErroOutraConexao(CODIGO_ERRO) or ehErroFalhaAoIniciarConexao(erro= CODIGO_ERRO):
                 return CODIGO_ERRO
             clickEspecifico(2,'f1')
-            clickContinuo(9,'up')
+            precionaTecla(9,'up')
             clickEspecifico(1,'left')
             return CODIGO_ERRO
         if ehErroEscolhaItemNecessaria(CODIGO_ERRO):
             clickEspecifico(1, 'enter')
             clickEspecifico(1, 'f2')
-            clickContinuo(9, 'up')
+            precionaTecla(9, 'up')
             return CODIGO_ERRO
         if ehErroConectando(CODIGO_ERRO) or ehErroRestauraConexao(CODIGO_ERRO):
             sleep(1)
@@ -223,11 +223,11 @@ class Aplicacao:
             return CODIGO_ERRO
         if ehErroTrabalhoNaoConcluido(CODIGO_ERRO):
             clickEspecifico(1,'f1')
-            clickContinuo(8,'up')
+            precionaTecla(8,'up')
             return CODIGO_ERRO
         if ehErroEspacoBolsaInsuficiente(CODIGO_ERRO):
             clickEspecifico(1,'f1')
-            clickContinuo(8,'up')
+            precionaTecla(8,'up')
             return CODIGO_ERRO
         if ehErroMoedasMilagrosasInsuficientes(CODIGO_ERRO) or ehErroItemAVenda(erro= CODIGO_ERRO):
             clickEspecifico(1,'f1')
@@ -307,7 +307,7 @@ class Aplicacao:
         if texto1PertenceTexto2('Bolsa',textoMenu):
             print(f'Menu bolsa...')
             return MENU_BOLSA
-        clickMouseEsquerdo(1,35,35)
+        cliqueMouseEsquerdo(1,35,35)
         self.verificaErro(textoErroEncontrado= textoMenu)
         return MENU_DESCONHECIDO
     
@@ -462,7 +462,7 @@ class Aplicacao:
         for x in range(10):
             resultado: tuple = self.__imagem.retornaReferenciaLeiloeiro()
             if resultado is None: return
-            clickMouseEsquerdo(clicks= 1, xTela= resultado[0], yTela= resultado[1] + 100)
+            cliqueMouseEsquerdo(cliques= 1, xTela= resultado[0], yTela= resultado[1] + 100)
             sleep(3)
             if ehMenuMercado(menu= self.retornaMenu()):
                 clickEspecifico(cliques= 1, teclaEspecifica= 'down')
@@ -496,7 +496,7 @@ class Aplicacao:
             self.insereTrabalhoVendido(trabalhoVendido)
             self.atualizaQuantidadeTrabalhoEstoque(trabalhoVendido)
         self.__loggerAplicacao.debug(menssagem= f'Caixa de correio está vazia!')
-        clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
+        cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
 
     def reconheceRecuperaTrabalhoConcluido(self) -> str | None:
         erro: int = self.verificaErro()
@@ -511,12 +511,12 @@ class Aplicacao:
             if nenhumErroEncontrado(erro= erro):
                 if not self.listaProfissoesFoiModificada():
                     self.__profissaoModificada = True
-                clickContinuo(cliques= 3, teclaEspecifica= 'up')
+                precionaTecla(cliques= 3, teclaEspecifica= 'up')
                 return nomeTrabalhoConcluido
             self.__loggerTrabalhoProducaoDao.warning(f'Codigo erro: {erro}')
             if ehErroEspacoBolsaInsuficiente(erro= erro):
                 self.__espacoBolsa = False
-                clickContinuo(cliques= 1, teclaEspecifica= 'up')
+                precionaTecla(cliques= 1, teclaEspecifica= 'up')
                 clickEspecifico(cliques= 1, teclaEspecifica= 'left')
         return None
 
@@ -867,48 +867,70 @@ class Aplicacao:
         return trabalhoRaro
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado: list[str] = []) -> list[str]:
-        nomePersonagemReconhecido: str = self.__imagem.retornaTextoNomePersonagemReconhecido(posicao= 0)
-        if nomePersonagemReconhecido is None:
-            print(f'Erro ao reconhecer nome...')
+        '''
+            Método para definir lista de personagens verificados.
+            Args:
+                listaPersonagemPresenteRecuperado (list[str]): Lista de strings que contêm os nomes dos personagens verificados.
+            Returns:
+                listaPersonagemPresenteRecuperado (list[str]): Lista de strings que contêm os nomes dos personagens verificados atualizada.
+        '''
+        nomeReconhecido: str = self.__imagem.retornaTextoNomePersonagemReconhecido(posicao= 0)
+        if nomeReconhecido is None:
+            self.__loggerAplicacao.debug(menssagem= f'Nome do personagem não reconhecido')
             return listaPersonagemPresenteRecuperado
-        print(f'{nomePersonagemReconhecido} foi adicionado a lista!')
-        listaPersonagemPresenteRecuperado.append(nomePersonagemReconhecido)
+        self.__loggerAplicacao.debug(menssagem= f'{nomeReconhecido} foi adicionado a lista')
+        listaPersonagemPresenteRecuperado.append(nomeReconhecido)
         return listaPersonagemPresenteRecuperado
 
-    def recuperaPresente(self) -> None:
+    def recuperaPresente(self):
+        '''
+            Método para reconhecer a(s) recompensa(s) diária(s).
+        '''
         evento: int = 0
-        print(f'Buscando recompensa diária...')
+        self.__loggerAplicacao.debug(menssagem= f'Buscando recompensa(s) diária(s)')
         while evento < 2:
             sleep(2)
             referenciaEncontrada: list[float] = self.__imagem.verificaRecompensaDisponivel()
-            if variavelExiste(referenciaEncontrada):
-                print(f'Referência encontrada!')
-                clickMouseEsquerdo(1, referenciaEncontrada[0], referenciaEncontrada[1])
-                posicionaMouseEsquerdo(360,600)
-                if self.verificaErro() != 0:
-                    evento=2
-                clickEspecifico(1,'f2')
-            print(f'Próxima busca.')
-            clickContinuo(8,'up')
-            clickEspecifico(1,'left')
+            if referenciaEncontrada is not None:
+                self.__loggerAplicacao.debug(menssagem= f'Referência "Pegar" encontrada: {referenciaEncontrada}')
+                cliqueMouseEsquerdo(cliques= 1, xTela= referenciaEncontrada[0], yTela= referenciaEncontrada[1])
+                posicionaMouseEsquerdo(xTela= 360, yTela= 600)
+                if erroEncontrado(codigoErro= self.verificaErro()):
+                    evento = 2
+                clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+            precionaTecla(cliques= 8, teclaEspecifica= 'up')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'left')
             evento += 1
-        clickEspecifico(2,'f1')
+        clickEspecifico(cliques= 2, teclaEspecifica= 'f1')
 
-    def reconheceMenuRecompensa(self, menu: int) -> bool:
+    def reconheceMenuRecompensa(self, codigoMenu: int) -> bool:
+        '''
+            Método para verificar se menu atual é Loja milagrosa ou Recompensas diárias.
+            Args:
+                codigoMenu (int): Inteiro que contêm o código do menu reconhecido.
+            Returns:
+                bool: Verdadeiro se menu atual reconhecido é Recompensas diárias.
+        '''
         sleep(2)
-        if menu == MENU_LOJA_MILAGROSA:
-            clickEspecifico(1,'down')
-            clickEspecifico(1,'enter')
+        if ehMenuLojaMilagrosa(menu= codigoMenu):
+            clickEspecifico(cliques= 1, teclaEspecifica= 'down')
+            clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
             return False
-        if menu == MENU_RECOMPENSAS_DIARIAS:
+        if ehMenuRecompensasDiarias(menu= codigoMenu):
             self.recuperaPresente()
             return True
-        print(f'Recompensa diária já recebida!')
+        self.__loggerAplicacao.debug(menssagem= f'Recompensa diária já recebida!')
         return True
 
-    def deslogaPersonagem(self, menu: int = None) -> None:
-        menu = self.retornaMenu() if menu is None else menu
-        while not ehMenuJogar(menu):
+    def deslogaPersonagem(self, codigoMenu: int = None):
+        '''
+            Método para deslogar personagem atual.
+            Args:
+                menu (int): Inteiro que contêm o codigo do menu reconhecido.
+        
+        '''
+        codigoMenu = self.retornaMenu() if codigoMenu is None else codigoMenu
+        while not ehMenuJogar(codigoMenu):
             tentativas: int = 0
             erro: int = self.verificaErro()
             while erroEncontrado(erro):
@@ -919,85 +941,104 @@ class Aplicacao:
                     tentativas += 1
                 erro = self.verificaErro()
                 continue
-            if ehMenuInicial(menu):
+            if ehMenuInicial(codigoMenu):
                 encerraSecao()
                 return
-            if ehMenuEscolhaPersonagem(menu):
+            if ehMenuEscolhaPersonagem(codigoMenu):
                 clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
                 return
-            clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
-            menu = self.retornaMenu()
+            cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
+            codigoMenu = self.retornaMenu()
 
-    def entraPersonagem(self, listaPersonagemPresenteRecuperado):
+    def entraPersonagem(self, personagensVerificados: list[str]) -> bool:
+        '''
+            Método para entrar na conta do personagem.
+            Args:
+                personagensVerificados (list[str]): Lista de nomes de personagens já verificados. 
+            Returns:
+                bool: Verdadeiro caso o login seja realizado com sucesso. Falso caso contrário.
+        '''
         confirmacao = False
-        print(f'Buscando próximo personagem...')
-        clickEspecifico(1, 'enter')
+        self.__loggerAplicacao.debug(menssagem= f'Buscando próximo personagem')
+        clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
         sleep(1)
-        tentativas = 1
-        erro = self.verificaErro()
-        while erroEncontrado(erro):
-            if erro == CODIGO_CONECTANDO:
+        tentativas: int = 1
+        condigoErro: int = self.verificaErro()
+        while erroEncontrado(condigoErro):
+            if ehErroConectando(condigoErro):
                 if tentativas > 10:
-                    clickEspecifico(2, 'enter')
+                    clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
                     tentativas = 0
                 tentativas += 1
-            erro = self.verificaErro()
-        else:
-            clickEspecifico(1, 'f2')
-            if len(listaPersonagemPresenteRecuperado) == 1:
-                clickContinuo(8, 'left')
-            else:
-                clickEspecifico(1, 'right')
-            nomePersonagem = self.__imagem.retornaTextoNomePersonagemReconhecido(1)               
-            while True:
-                nomePersonagemPresenteado = None
-                for nomeLista in listaPersonagemPresenteRecuperado:
-                    if texto1PertenceTexto2(nomeLista, nomePersonagem) and nomePersonagem != None:
-                        nomePersonagemPresenteado = nomeLista
-                        break
-                if nomePersonagemPresenteado != None:
-                    clickEspecifico(1, 'right')
-                    nomePersonagem = self.__imagem.retornaTextoNomePersonagemReconhecido(1)
-                if nomePersonagem == None:
-                    print(f'Fim da lista de personagens!')
-                    clickEspecifico(1, 'f1')
+            condigoErro = self.verificaErro()
+        clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+        self.processaMenuEscolhaPersonagem(personagensVerificados)
+        nomePersonagemReconhecido: str = self.__imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)               
+        if nomePersonagemReconhecido is None:
+            self.__loggerAplicacao.debug(menssagem= f'Fim da lista de personagens!')
+            clickEspecifico(1, 'f1')
+            return confirmacao
+        while True:
+            nomePersonagemPresenteado: str = None
+            for personagemVerificado in personagensVerificados:
+                if texto1PertenceTexto2(texto1= personagemVerificado, texto2= nomePersonagemReconhecido) and nomePersonagemReconhecido != None:
+                    nomePersonagemPresenteado = personagemVerificado
                     break
-                else:
-                    clickEspecifico(1, 'f2')
-                    sleep(1)
-                    tentativas = 1
-                    erro = self.verificaErro()
-                    while erroEncontrado(erro):
-                        if erro == CODIGO_RECEBER_RECOMPENSA:
-                            break
-                        elif erro == CODIGO_CONECTANDO:
-                            if tentativas > 10:
-                                clickEspecifico(2, 'enter')
-                                tentativas = 0
-                            tentativas += 1
-                        sleep(1.5)
-                        erro = self.verificaErro()
-                    confirmacao = True
-                    print(f'Login efetuado com sucesso!')
+            if nomePersonagemPresenteado is not None:
+                clickEspecifico(cliques= 1, teclaEspecifica= 'right')
+                nomePersonagemReconhecido = self.__imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
+            clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
+            sleep(1)
+            tentativas = 1
+            condigoErro = self.verificaErro()
+            while erroEncontrado(condigoErro):
+                if ehErroReceberRecompensaDiaria(condigoErro):
                     break
+                if ehErroConectando(condigoErro):
+                    if tentativas > 10:
+                        clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
+                        tentativas = 0
+                    tentativas += 1
+                sleep(1.5)
+                condigoErro = self.verificaErro()
+            confirmacao = True
+            self.__loggerAplicacao.debug(menssagem= f'Login efetuado com sucesso')
+            break
         return confirmacao
 
-    def recebeTodasRecompensas(self, menu: int) -> None:
-        listaPersonagemPresenteRecuperado: list[str] = self.retornaListaPersonagemRecompensaRecebida()
+    def processaMenuEscolhaPersonagem(self, personagensVerificados: list[str]):
+        '''
+            Método para processar o menu Escolha de personagem.
+            Args:
+                personagensVerificados (list[str]): Lista de nomes de personagens já verificados.
+        '''
+        if len(personagensVerificados) == 1:
+            precionaTecla(cliques= 8, teclaEspecifica= 'left')
+            return
+        clickEspecifico(cliques= 1, teclaEspecifica= 'right')
+
+    def recebeTodasRecompensas(self, codigoMenu: int):
+        '''
+            Método para recuperar todas as recompensas diárias.
+            Args:
+                codigoMenu (int): Inteiro que contêm o código do menu reconhecido.
+        '''
+        personagensVerificados: list[str] = self.retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado= [])
         while True:
-            if self.reconheceMenuRecompensa(menu= menu):
+            if self.reconheceMenuRecompensa(codigoMenu= codigoMenu):
                 if self.__imagem.retornaExistePixelCorrespondencia():
                     vaiParaMenuCorrespondencia()
                     self.recuperaCorrespondencia()
                     self.ofertaTrabalho()
-                print(f'Lista: {listaPersonagemPresenteRecuperado}.')
+                self.__loggerAplicacao.debug(menssagem= f'Personagens verificados: {personagensVerificados}')
                 self.deslogaPersonagem()
-                if self.entraPersonagem(listaPersonagemPresenteRecuperado):
-                    listaPersonagemPresenteRecuperado = self.retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado)
-                else:
-                    print(f'Todos os personagens foram verificados!')
-                    break
-            menu: int = self.retornaMenu()
+                if self.entraPersonagem(personagensVerificados):
+                    personagensVerificados = self.retornaListaPersonagemRecompensaRecebida(personagensVerificados)
+                    codigoMenu: int = self.retornaMenu()
+                    continue
+                self.__loggerAplicacao.debug(menssagem= f'Todos os personagens foram verificados!')
+                break
+            codigoMenu: int = self.retornaMenu()
 
     def trataMenu(self, menu) -> None:
         if menu == MENU_DESCONHECIDO:
@@ -1021,14 +1062,14 @@ class Aplicacao:
                 return
             if estadoTrabalho == CODIGO_PRODUZINDO:
                 if self.existeEspacoProducao():
-                    clickContinuo(cliques= 3, teclaEspecifica= 'up')
+                    precionaTecla(cliques= 3, teclaEspecifica= 'up')
                     clickEspecifico(cliques= 1, teclaEspecifica= 'left')
                     return
                 print(f'Todos os espaços de produção ocupados.')
                 self.__confirmacao = False
                 return
             if estadoTrabalho == CODIGO_PARA_PRODUZIR:
-                clickContinuo(cliques= 3, teclaEspecifica= 'up')
+                precionaTecla(cliques= 3, teclaEspecifica= 'up')
                 clickEspecifico(cliques= 1, teclaEspecifica= 'left')
             return
         if ehMenuRecompensasDiarias(menu= menu) or ehMenuLojaMilagrosa(menu= menu):
@@ -1053,7 +1094,7 @@ class Aplicacao:
             return
         if ehMenuTrabalhoEspecifico(menu== menu):
             clickEspecifico(1,'f1')
-            clickContinuo(3,'up')
+            precionaTecla(3,'up')
             clickEspecifico(2,'left')
             return
         if ehMenuOfertaDiaria(menu= menu):
@@ -1451,7 +1492,7 @@ class Aplicacao:
             contadorParaBaixo = dicionarioTrabalho[CHAVE_POSICAO]
             clickEspecifico(cliques= contadorParaBaixo, teclaEspecifica= 'down')
         while not chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
-            if erroEncontrado(erro= self.verificaErro()):
+            if erroEncontrado(codigoErro= self.verificaErro()):
                 self.__confirmacao = False
                 return dicionarioTrabalho
             nomeTrabalhoReconhecido: str = self.reconheceTextoTrabalhoComumMelhorado(trabalho= dicionarioTrabalho, contadorParaBaixo= contadorParaBaixo)
@@ -1696,7 +1737,7 @@ class Aplicacao:
                                 self.__personagemEmUso.alternaEstado
                                 self.modificaPersonagem()
                                 clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
-                                clickContinuo(cliques= 10, teclaEspecifica= 'up')
+                                precionaTecla(cliques= 10, teclaEspecifica= 'up')
                                 clickEspecifico(cliques= 1, teclaEspecifica= 'left')
                                 self.__confirmacao = False
                                 return trabalhoProducaoEncontrado
@@ -1722,7 +1763,7 @@ class Aplicacao:
             self.__personagemEmUso.alternaEstado
             self.modificaPersonagem()
             clickEspecifico(cliques= 3, teclaEspecifica= 'f1')
-            clickContinuo(cliques= 10, teclaEspecifica= 'up')
+            precionaTecla(cliques= 10, teclaEspecifica= 'up')
             clickEspecifico(cliques= 1, teclaEspecifica= 'left')
             self.__confirmacao = False
             return trabalhoProducaoEncontrado
@@ -1735,10 +1776,10 @@ class Aplicacao:
         self.removeTrabalhoProducaoEstoque(trabalhoProducao= trabalho)
         if trabalho.ehRecorrente:
             self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado= trabalho)
-            clickContinuo(cliques= 12, teclaEspecifica= 'up')
+            precionaTecla(cliques= 12, teclaEspecifica= 'up')
             return
         self.modificaTrabalhoProducao(trabalho= trabalho)
-        clickContinuo(cliques= 12, teclaEspecifica= 'up')
+        precionaTecla(cliques= 12, teclaEspecifica= 'up')
 
     def trataMenuTrabalhoEspecifico(self, primeiraBusca: bool) -> None:
         if primeiraBusca:
@@ -1777,7 +1818,7 @@ class Aplicacao:
         print(f'Tratando possíveis erros...')
         tentativas: int = 1
         erro: int = self.verificaErro()
-        while erroEncontrado(erro= erro):
+        while erroEncontrado(codigoErro= erro):
             if ehErroRecursosInsuficiente(erro= erro):
                 self.__loggerTrabalhoProducaoDao.warning(f'Não possue recursos necessários ({trabalho})')
                 self.verificaNovamente = True
@@ -1892,7 +1933,7 @@ class Aplicacao:
                     elif not self.existeEspacoProducao():
                         break
                     dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = None
-                    clickContinuo(3,'up')
+                    precionaTecla(3,'up')
                     clickEspecifico(1,'left')
                     sleep(1.5)
             if not self.verificaNovamente:
@@ -1951,7 +1992,7 @@ class Aplicacao:
                             if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho) or not self.__confirmacao:
                                 return dicionarioTrabalho
                             clickEspecifico(1,'f1')
-                            clickContinuo(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
+                            precionaTecla(dicionarioTrabalho[CHAVE_POSICAO] + 1, 'up')
                             dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
                             continue
                         dicionarioTrabalho = self.incrementaChavePosicaoTrabalho(dicionarioTrabalho)
@@ -2044,7 +2085,7 @@ class Aplicacao:
                 encerraSecao()
                 menu = self.retornaMenu()
                 continue
-            clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
+            cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
             menu = self.retornaMenu()
 
     def verificaErroEncontrado(self) -> None:
@@ -2063,7 +2104,7 @@ class Aplicacao:
         for x in range(5):
             codigoMenu: int = self.retornaMenu()
             if ehMenuDesconhecido(menu= codigoMenu) or ehMenuProduzir(menu= codigoMenu) or ehMenuTrabalhosDisponiveis(menu= codigoMenu) or ehMenuTrabalhosAtuais(menu= codigoMenu): 
-                clickMouseEsquerdo(clicks= 1, xTela= 2, yTela= 35)
+                cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
                 continue
             if ehMenuJogar(menu= codigoMenu):
                 print(f'Buscando personagem ativo...')
@@ -2071,7 +2112,7 @@ class Aplicacao:
                 sleep(1)
                 tentativas: int = 1
                 erro: int = self.verificaErro()
-                while erroEncontrado(erro= erro):
+                while erroEncontrado(codigoErro= erro):
                     if ehErroConectando(erro= erro):
                         if tentativas > 10:
                             clickEspecifico(cliques= 2, teclaEspecifica= 'enter')
@@ -2079,7 +2120,7 @@ class Aplicacao:
                         tentativas += 1
                     erro = self.verificaErro()
                 clickEspecifico(cliques= 1, teclaEspecifica= 'f2')
-                clickContinuo(cliques= 10, teclaEspecifica= 'left')   
+                precionaTecla(cliques= 10, teclaEspecifica= 'left')   
                 contadorPersonagem: int = 0
                 personagemReconhecido: str = self.__imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)
                 while variavelExiste(variavel= personagemReconhecido) and contadorPersonagem < 13:
@@ -2094,7 +2135,7 @@ class Aplicacao:
                     print(f'Personagem ({self.__personagemEmUso.nome}) encontrado.')
                     tentativas: int = 1
                     erro: int = self.verificaErro()
-                    while erroEncontrado(erro= erro):
+                    while erroEncontrado(codigoErro= erro):
                         if ehErroOutraConexao(erro= erro):
                             self.__unicaConexao = False
                             contadorPersonagem = 14
@@ -2112,7 +2153,7 @@ class Aplicacao:
                 if ehMenuEscolhaPersonagem(menu= self.retornaMenu()):
                     clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
                     return False
-            if ehMenuInicial(menu= codigoMenu): self.deslogaPersonagem(menu= codigoMenu)
+            if ehMenuInicial(menu= codigoMenu): self.deslogaPersonagem(codigoMenu= codigoMenu)
             if ehMenuNoticias(menu= codigoMenu) or ehMenuEscolhaPersonagem(menu= codigoMenu): clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
         return False
 
@@ -2500,7 +2541,7 @@ class Aplicacao:
             self.iniciaBuscaTrabalho()
             self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
             return False
-        if self.__unicaConexao and haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo): clickMouseEsquerdo(1, 2, 35)
+        if self.__unicaConexao and haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo): cliqueMouseEsquerdo(1, 2, 35)
         self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
         return True
 
