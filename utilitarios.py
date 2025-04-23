@@ -1,32 +1,8 @@
-from unidecode import unidecode
 from constantes import *
-from modelos.trabalho import Trabalho
 from modelos.trabalhoEstoque import TrabalhoEstoque
+from utilitariosTexto import textoEhIgual
 import numpy as np
 import os
-import re
-
-def textoEhIgual(texto1: str, texto2: str) -> bool:
-    '''
-        Função para verificar se dois textos são iguais.
-        Args:
-            texto1 (str): String que contêm o primeiro texto.
-            texto2 (str): String que contêm o segundo texto.
-        Returns:
-            bool: Verdadeiro caso os dois textos sejam iguais.
-    '''
-    return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
-
-def texto1PertenceTexto2(texto1: str, texto2: str) -> bool:
-    '''
-        Função para verificar caso texto1 está contido no texto2
-        Args:
-            texto1 (str): String que contêm o texto a ser verificado
-            texto2 (str): String que contêm o texto a ser verificado
-        Returns:
-            bool: Verdadeiro caso o texto1 está contido no texto2
-    '''
-    return limpaRuidoTexto(texto= texto1) in limpaRuidoTexto(texto= texto2)
 
 def ehVazia(lista: list) -> bool:
     '''
@@ -41,28 +17,21 @@ def ehVazia(lista: list) -> bool:
 def variavelExiste(variavel):
     return variavel != None
 
-def limpaRuidoTexto(texto: str) -> str:
-    '''
-        Função para retirar caracteres especiais do texto recebido por parâmetro.
-        Args:
-            texto (str): String que contêm o texto a ser higienizado.
-        Returns:
-            str: String que contêm o texto higienizado.
-    '''
-    texto = '' if texto is None else texto
-    padrao: str = '[^a-zA-Z0-9àáãâéêíîóõôúûç_]'
-    expressao = re.compile(padrao)
-    novaStringPalavras: str = expressao.sub('', texto)
-    return unidecode(novaStringPalavras).lower()
-
 def retiraDigitos(texto):
     listaDigitos = ['0','1','2','3','4','5','6','7','8','9']
     for digito in listaDigitos:
         texto = texto.replace(digito,'')
     return texto
 
-def erroEncontrado(erro):
-    return erro != 0
+def erroEncontrado(codigoErro: int) -> bool:
+    '''
+        Função que verifica se foi encontrado algum erro.
+        Args:
+            codigoErro (int): Inteiro que contêm o código do erro encontrado.
+        Returns:
+            bool: Verdadeiro caso 'codigoErro' for diferente de zero(0).
+    '''
+    return codigoErro != 0
 
 def nenhumErroEncontrado(erro):
     return not erroEncontrado(erro)
@@ -172,15 +141,6 @@ def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
 def haMaisQueUmPersonagemAtivo(listaPersonagemAtivo):
     return not len(listaPersonagemAtivo) == 1
 
-def trabalhoEhProducaoRecursos(trabalho: Trabalho) -> bool:
-    if variavelExiste(trabalho):
-        for recurso in CHAVE_LISTA_PRODUCAO_RECURSO:
-            if textoEhIgual(recurso, trabalho.nomeProducao):
-                print(f'Trabalho produção é recurso')
-                return True
-    print(f'Trabalho produção não é recurso')
-    return False
-
 def trabalhoEhColecaoRecursosAvancados(trabalhoProducao):
     return textoEhIgual(trabalhoProducao.nome, 'grandecoleçãoderecursosavançados') or textoEhIgual(trabalhoProducao.nome, 'coletaemmassaderecursosavançados')
 
@@ -256,30 +216,31 @@ def ehMenuRecompensasDiarias(menu: int) -> bool:
 def ehMenuLojaMilagrosa(menu: int) -> bool:
     return menu == MENU_LOJA_MILAGROSA
 
-def retornaListaDicionarioProfissaoRecursos(nivelProduzTrabalhoComum):
-    listaDicionarioProfissaoRecursos = []
-    if nivelProduzTrabalhoComum == 1:
-        listaDicionarioProfissaoRecursos=[
-                {'braceletes':['Fibra de Bronze','Prata','Pin de Estudante']},
-                {'capotes':['Furador do aprendiz','Tecido delicado','Substância instável']},
-                {'amuletos':['Pinça do aprendiz','Jade bruta','Energia inicial']},
-                {'aneis':['Molde do aprendiz','Pepita de cobre','Pedra de sombras']},
-                {'armadurapesada':['Marretão do aprendiz','Placas de cobre','Anéis de bronze']},
-                {'armaduraleve':['Faca do aprendiz','Escamas da serpente','Couro resistente']},
-                {'armaduradetecido':['Tesoura do aprendiz','Fio grosseiro','Tecido de linho']},
-                {'armacorpoacorpo':['Lascas','Minério de cobre','Mó do aprendiz']},
-                {'armadelongoalcance':['Esfera do aprendiz','Varinha de madeira','Cabeça do cajado de jade']}]
-    elif nivelProduzTrabalhoComum == 8:    
-        listaDicionarioProfissaoRecursos=[
-                {'braceletes':['Fibra de Platina','Âmbarito','Pino do Aprendiz']},
-                {'capotes':['Furador do principiante','Tecido espesso','Substância estável']},
-                {'amuletos':['Pinça do principiante','Ônix extraordinária','Éter inicial']},
-                {'aneis':['Molde do principiante','Pepita de prata','Pedra da luz']},
-                {'armadurapesada':['Marretão do principiante','Placas de ferro','Anéis de aço']},
-                {'armaduraleve':['Faca do principiante','Escamas do lagarto','Couro grosso']},
-                {'armaduradetecido':['Tesoura do principiante','Fio grosso','Tecido de cetim']},
-                {'armacorpoacorpo':['Lascas de quartzo','Minério de ferro','Mó do principiante']},
-                {'armadelongoalcance':['Esfera do neófito','Varinha de aço','Cabeça do cajado de ônix']}]
+def retornaListaDicionarioProfissaoRecursos(nivel: int) -> list[dict[str, list[str]]]:
+    listaDicionarioProfissaoRecursos: list[dict[str, list[str]]] = []
+    if nivel == 1:
+        listaDicionarioProfissaoRecursos = [
+                {CHAVE_PROFISSAO_BRACELETES:['Fibra de Bronze','Prata','Pin de Estudante']},
+                {CHAVE_PROFISSAO_CAPOTES:['Furador do aprendiz','Tecido delicado','Substância instável']},
+                {CHAVE_PROFISSAO_AMULETOS:['Pinça do aprendiz','Jade bruta','Energia inicial']},
+                {CHAVE_PROFISSAO_ANEIS:['Molde do aprendiz','Pepita de cobre','Pedra de sombras']},
+                {CHAVE_PROFISSAO_ARMADURAS_PESADAS:['Marretão do aprendiz','Placas de cobre','Anéis de bronze']},
+                {CHAVE_PROFISSAO_ARMADURA_LEVE:['Faca do aprendiz','Escamas da serpente','Couro resistente']},
+                {CHAVE_PROFISSAO_ARMADURAS_DE_TECIDO:['Tesoura do aprendiz','Fio grosseiro','Tecido de linho']},
+                {CHAVE_PROFISSAO_ARMAS_CORPO_A_CORPO:['Lascas','Minério de cobre','Mó do aprendiz']},
+                {CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE:['Esfera do aprendiz','Varinha de madeira','Cabeça do cajado de jade']}]
+        return listaDicionarioProfissaoRecursos
+    if nivel == 8:    
+        listaDicionarioProfissaoRecursos = [
+                {CHAVE_PROFISSAO_BRACELETES:['Fibra de Platina','Âmbarito','Pino do Aprendiz']},
+                {CHAVE_PROFISSAO_CAPOTES:['Furador do principiante','Tecido espesso','Substância estável']},
+                {CHAVE_PROFISSAO_AMULETOS:['Pinça do principiante','Ônix extraordinária','Éter inicial']},
+                {CHAVE_PROFISSAO_ANEIS:['Molde do principiante','Pepita de prata','Pedra da luz']},
+                {CHAVE_PROFISSAO_ARMADURAS_PESADAS:['Marretão do principiante','Placas de ferro','Anéis de aço']},
+                {CHAVE_PROFISSAO_ARMADURA_LEVE:['Faca do principiante','Escamas do lagarto','Couro grosso']},
+                {CHAVE_PROFISSAO_ARMADURAS_DE_TECIDO:['Tesoura do principiante','Fio grosso','Tecido de cetim']},
+                {CHAVE_PROFISSAO_ARMAS_CORPO_A_CORPO:['Lascas de quartzo','Minério de ferro','Mó do principiante']},
+                {CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE:['Esfera do neófito','Varinha de aço','Cabeça do cajado de ônix']}]
     return listaDicionarioProfissaoRecursos
 
 def retornaChaveTipoRecurso(recursoProducao: TrabalhoEstoque) -> str | None:
@@ -291,22 +252,23 @@ def retornaChaveTipoRecurso(recursoProducao: TrabalhoEstoque) -> str | None:
             str: String que contêm a chave correspondente ao trabalho de produção de recursos.
     '''
     listaDicionarioProfissaoRecursos = retornaListaDicionarioProfissaoRecursos(recursoProducao.nivel)
-    chaveProfissao = limpaRuidoTexto(recursoProducao.profissao)
+    # chaveProfissao = limpaRuidoTexto(recursoProducao.profissao)
+    chaveProfissao = recursoProducao.profissao
     for dicionarioProfissaoRecursos in listaDicionarioProfissaoRecursos:
         if chaveProfissao in dicionarioProfissaoRecursos:
             for x in range(len(dicionarioProfissaoRecursos[chaveProfissao])):
                 if textoEhIgual(dicionarioProfissaoRecursos[chaveProfissao][x], recursoProducao.nome):
                     if x == 0 and recursoProducao.nivel == 1:
                         return CHAVE_RCP
-                    elif x == 0 and recursoProducao.nivel == 8:
+                    if x == 0 and recursoProducao.nivel == 8:
                         return CHAVE_RAP
-                    elif x == 1 and recursoProducao.nivel == 1:
+                    if x == 1 and recursoProducao.nivel == 1:
                         return CHAVE_RCS
-                    elif x == 1 and recursoProducao.nivel == 8:
+                    if x == 1 and recursoProducao.nivel == 8:
                         return CHAVE_RAS
-                    elif x == 2 and recursoProducao.nivel == 1:
+                    if x == 2 and recursoProducao.nivel == 1:
                         return CHAVE_RCT
-                    elif x == 2 and recursoProducao.nivel == 8:
+                    if x == 2 and recursoProducao.nivel == 8:
                         return CHAVE_RAT
                     break
     return None

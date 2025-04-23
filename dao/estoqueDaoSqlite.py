@@ -14,7 +14,7 @@ class EstoqueDaoSqlite:
         self.__logger: MeuLogger= MeuLogger(nome= 'estoqueDao')
         self.__meuBanco = banco
 
-    def pegaTrabalhosEstoque(self, personagem: Personagem) -> list[TrabalhoEstoque]:
+    def recuperaTrabalhosEstoque(self, personagem: Personagem) -> list[TrabalhoEstoque]:
         try:
             self.__conexao = self.__meuBanco.pegaConexao()
             estoque: list[TrabalhoEstoque]= []
@@ -43,7 +43,7 @@ class EstoqueDaoSqlite:
             self.__meuBanco.desconecta()
         return None
 
-    def pegaTrabalhoEstoquePorId(self, id: str) -> TrabalhoEstoque | None:
+    def recuperaTrabalhoEstoquePorId(self, id: str) -> TrabalhoEstoque | None:
         try:
             trabalhoEncontrado: TrabalhoEstoque= TrabalhoEstoque()
             sql = f"""
@@ -72,16 +72,17 @@ class EstoqueDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def pegaTrabalhoEstoquePorIdTrabalho(self, id: str) -> TrabalhoEstoque | None:
+    def recuperaTrabalhoEstoquePorIdTrabalho(self, id: str, personagem: Personagem) -> TrabalhoEstoque | None:
         try:
-            sql = f"""
+            sql: str = f"""
                 SELECT {CHAVE_ID}, {CHAVE_QUANTIDADE}, {CHAVE_ID_TRABALHO}
                 FROM {CHAVE_LISTA_ESTOQUE}
                 WHERE {CHAVE_ID_TRABALHO} == ?
+                AND {CHAVE_ID_PERSONAGEM} == ?
                 LIMIT 1;"""
             self.__conexao = self.__meuBanco.pegaConexao()
             cursor = self.__conexao.cursor()
-            cursor.execute(sql, [id])
+            cursor.execute(sql, (id, personagem.id))
             trabalhoEncontrado = TrabalhoEstoque()
             for linha in cursor.fetchall():
                 trabalhoEncontrado.id = linha[0]
@@ -125,10 +126,10 @@ class EstoqueDaoSqlite:
             cursor.execute(sql, (trabalho.id, personagem.id, trabalho.idTrabalho, trabalho.quantidade))
             if modificaServidor:
                 if repositorioEstoque.insereTrabalhoEstoque(trabalho= trabalho):
-                    self.__logger.info(f'({trabalho}) inserido no servidor com sucesso!')
+                    self.__logger.info(f'({personagem.id.ljust(36)} | {trabalho}) inserido no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalho}) no servidor: {repositorioEstoque.pegaErro}')
+                self.__logger.error(f'Erro ao inserir ({personagem.id.ljust(36)} | {trabalho}) no servidor: {repositorioEstoque.pegaErro}')
                 self.__erro= repositorioEstoque.pegaErro
                 self.__conexao.rollback()
                 return False
@@ -154,10 +155,10 @@ class EstoqueDaoSqlite:
             cursor.execute(sql, (trabalho.idTrabalho, trabalho.quantidade, trabalho.id))
             if modificaServidor:
                 if repositorioEstoque.modificaTrabalhoEstoque(trabalho= trabalho):
-                    self.__logger.info(f'({trabalho}) modificado no servidor com sucesso!')
+                    self.__logger.info(f'({personagem.id.ljust(36)} | {trabalho}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({trabalho}) no servidor: {repositorioEstoque.pegaErro}')
+                self.__logger.error(f'Erro ao modificar ({personagem.id.ljust(36)} | {trabalho}) no servidor: {repositorioEstoque.pegaErro}')
                 self.__erro= repositorioEstoque.pegaErro
                 self.__conexao.rollback()
                 return False

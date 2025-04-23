@@ -56,8 +56,9 @@ class TrabalhoVendido(Trabalho):
             
     def __str__(self) -> str:
         id = 'Indefinido' if self.id == None else self.id
-        nome = 'Indefinido' if self.nome == None else self.nome
+        idTrabalho = 'Indefinido' if self.idTrabalho == None else 'Indefinido' if self.idTrabalho == '' else self.idTrabalho
+        descricao = 'Indefinido' if self.descricao == None else 'Indefinido' if self.descricao == '' else self.descricao
         data = 'Indefinido' if self.dataVenda == None else self.dataVenda
         valor = 'Indefinido' if self.valor == None else str(self.valor)
         quantidade = '0' if self.quantidade == None else str(self.quantidade)
-        return f'{id.ljust(36)} | {nome.ljust(36)} | {data.ljust(10)} | {valor.ljust(5)} | {quantidade.ljust(3)}'
+        return f'{id.ljust(36)} | {idTrabalho.ljust(36)} | {descricao.ljust(36)} | {data.ljust(10)} | {valor.ljust(5)} | {quantidade.ljust(3)}'

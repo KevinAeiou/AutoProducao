@@ -74,7 +74,7 @@ class RepositorioEstoque(Stream):
                         trabalho.id = chave
                         break
             self.__minhaReferencia.child(trabalho.id).set({CHAVE_ID: trabalho.id, CHAVE_QUANTIDADE: trabalho.quantidade, CHAVE_ID_TRABALHO: trabalho.idTrabalho})
-            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) inserido com sucesso!')
+            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) inserido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
@@ -87,7 +87,7 @@ class RepositorioEstoque(Stream):
     def modificaTrabalhoEstoque(self, trabalho: TrabalhoEstoque) -> bool:
         try:
             self.__minhaReferencia.child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_QUANTIDADE: trabalho.quantidade})
-            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) modificado com sucesso!')
+            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) modificado com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)

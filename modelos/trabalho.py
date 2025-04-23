@@ -1,16 +1,17 @@
 from uuid import uuid4
-from constantes import CHAVE_RARIDADE_RARO, CHAVE_RARIDADE_COMUM, CHAVE_RARIDADE_MELHORADO, CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE
+from constantes import CHAVE_RARIDADE_RARO, CHAVE_RARIDADE_COMUM, CHAVE_RARIDADE_MELHORADO, CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE, CHAVE_LISTA_PRODUCAO_RECURSO
+from utilitariosTexto import textoEhIgual
 
 class Trabalho:
     def __init__(self):
-        self.id = str(uuid4())
-        self.nome = None
-        self.nomeProducao = None
-        self.experiencia = None
-        self.nivel = None
-        self.profissao = None
-        self.raridade = None
-        self.trabalhoNecessario = None
+        self.id: str = str(uuid4())
+        self.nome: str = None
+        self.nomeProducao: str = None
+        self.experiencia: int = None
+        self.nivel: int = None
+        self.profissao: str = None
+        self.raridade: str = None
+        self.trabalhoNecessario: str = None
 
     def pegaNivel(self, nivelProfissao: int) -> int:
         '''
@@ -77,6 +78,10 @@ class Trabalho:
     @property
     def ehRaro(self) -> bool:
         return self.raridade == CHAVE_RARIDADE_RARO
+    
+    @property
+    def ehProducaoRecursos(self) -> bool:
+        return any(textoEhIgual(recurso, self.nomeProducao) for recurso in CHAVE_LISTA_PRODUCAO_RECURSO)
     
     def dicionarioParaObjeto(self, dicionario: dict):
         '''

@@ -656,7 +656,7 @@ class CRUD:
     
     def mostraListaTrabalhosEstoque(self):
         limpaTela()
-        estoque = self.__aplicacao.pegaTrabalhosEstoque()
+        estoque = self.__aplicacao.recuperaTrabalhosEstoque()
         if ehVazia(estoque):
             print(f'Estoque está vazio!')
         else:
@@ -917,7 +917,12 @@ class CRUD:
         
     def testeFuncao(self):
         # self.testeStream()
-        self.migraDadosNovoServidor()
+        while True:
+            personagens = self.mostraListaPersonagens()
+            if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
+                self.__aplicacao.defineTrabalhoComumProfissaoPriorizada()
+                continue
+            break
 
     def testeStream(self):
         from repositorio.repositorioTrabalho import RepositorioTrabalho

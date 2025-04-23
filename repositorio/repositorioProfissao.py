@@ -1,5 +1,4 @@
 from repositorio.firebaseDatabase import FirebaseDatabase
-from repositorio.credenciais.firebaseCredenciais import CHAVE_ID_USUARIO
 from repositorio.stream import Stream
 from modelos.profissao import Profissao
 from modelos.personagem import Personagem

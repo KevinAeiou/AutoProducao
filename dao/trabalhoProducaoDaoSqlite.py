@@ -104,6 +104,37 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
+    def recuperaTrabalhosProducaoEstadoProduzindo(self, personagem: Personagem) -> list[TrabalhoProducao]:
+        try:
+            trabalhosProducao: list[TrabalhoProducao]= []
+            sql = """SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado FROM Lista_desejo INNER JOIN trabalhos ON Lista_desejo.idTrabalho == trabalhos.id WHERE idPersonagem == ? AND estado == 1;"""
+            conexao = self.__meuBanco.pegaConexao()
+            cursor = conexao.cursor()
+            cursor.execute(sql, [personagem.id])
+            for linha in cursor.fetchall():
+                recorrencia = True if linha[9] == 1 else False
+                trabalhoProducao: TrabalhoProducao= TrabalhoProducao()
+                trabalhoProducao.id = linha[0]
+                trabalhoProducao.idTrabalho = linha[1]
+                trabalhoProducao.nome = linha[2]
+                trabalhoProducao.nomeProducao = linha[3]
+                trabalhoProducao.experiencia = linha[4]
+                trabalhoProducao.nivel = linha[5]
+                trabalhoProducao.profissao = linha[6]
+                trabalhoProducao.raridade = linha[7]
+                trabalhoProducao.trabalhoNecessario = linha[8]
+                trabalhoProducao.recorrencia = recorrencia
+                trabalhoProducao.tipoLicenca = linha[10]
+                trabalhoProducao.estado = linha[11]
+                self.__logger.debug(menssagem= f'({personagem.id.ljust(36)} | {trabalhoProducao}) produzindo(1)')
+                trabalhosProducao.append(trabalhoProducao)
+            return trabalhosProducao
+        except Exception as e:
+            self.__erro = str(e)
+        finally:
+            self.__meuBanco.desconecta()
+        return None
+    
     def pegaTrabalhosParaProduzirPorProfissaoRaridade(self, personagem: Personagem, trabalho: TrabalhoProducao) -> list[TrabalhoProducao]:
         try:
             trabalhosProducao: list[TrabalhoProducao]= []
