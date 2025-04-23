@@ -138,6 +138,32 @@ class TrabalhoDaoSqlite:
         finally:
             self.__meuBanco.desconecta()
         return None
+
+    def recuperaTrabalhoPorIdTrabalhoNecessario(self, idBuscado: str) -> Trabalho | None:
+        trabalho: Trabalho= Trabalho()
+        sql = f"""SELECT * FROM {CHAVE_TRABALHOS} WHERE CONCAT(',', {CHAVE_TRABALHO_NECESSARIO}, ',') LIKE '%' || ? || '%' LIMIT 1;"""
+        try:
+            if len(idBuscado) == 0: raise Exception("'idBuscado' está vazio")
+            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__fabrica = self.__meuBanco.pegaFabrica()
+            if self.__fabrica == 1:
+                cursor = self.__conexao.cursor()
+                cursor.execute(sql, [idBuscado])
+                for linha in cursor.fetchall():
+                    trabalho.id = linha[0]
+                    trabalho.nome = linha[1]
+                    trabalho.nomeProducao = linha[2]
+                    trabalho.experiencia = linha[3]
+                    trabalho.nivel = linha[4]
+                    trabalho.profissao = linha[5]
+                    trabalho.raridade = linha[6]
+                    trabalho.trabalhoNecessario = linha[7]
+                return trabalho            
+        except Exception as e:
+            self.__erro = str(e)
+        finally:
+            self.__meuBanco.desconecta()
+        return None
     
     def retornaListaIdsRecursosNecessarios(self, trabalho: Trabalho) -> list[str] | None:
         try:

@@ -53,9 +53,9 @@ class CRUD:
                 if ehVazia(trabalhos):
                     print('Lista de trabalhos está vazia!')
                 else:
-                    print(f'{"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | {"NÍVEL".ljust(5)} | TRABALHOS NECESSÁRIOS')
+                    print(f'{"ID".ljust(40)} | {"NOME".ljust(44)} | {"PROFISSÃO".ljust(22)} | {"RARIDADE".ljust(9)} | {"NÍVEL".ljust(5)} | TRABALHOS NECESSÁRIOS')
                     for trabalho in trabalhos:
-                        print(f'{trabalho} | {trabalho.trabalhoNecessario}')
+                        print(f'{trabalho.id.ljust(40)} | {trabalho} | {trabalho.trabalhoNecessario}')
                 opcaoTrabalho = input(f'Adicionar novo trabalho? (S/N)')
                 if opcaoTrabalho.lower() == 'n':
                     break
@@ -860,7 +860,7 @@ class CRUD:
     def verificaTrabalhoRaroMaisVendido(self):
         vendas = self.__aplicacao.pegaTrabalhosRarosVendidos()
         for trabalhoVendido in vendas:
-            quantidadeTrabalhoRaroEmEstoque = self.__aplicacao.pegaQuantidadeTrabalhoEstoque(trabalhoVendido.trabalhoId)
+            quantidadeTrabalhoRaroEmEstoque = self.__aplicacao.recupera_quantidade_trabalho_estoque(trabalhoVendido.trabalhoId)
             print(f'Quantidade de ({trabalhoVendido.nome}) no estoque: {quantidadeTrabalhoRaroEmEstoque}')
             # quantidadeTrabalhoRaroNecessario = CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE - quantidadeTrabalhoEmEstoque
             quantidadeTrabalhoRaroNecessario = 2 - quantidadeTrabalhoRaroEmEstoque
@@ -886,7 +886,7 @@ class CRUD:
                                 trabalhoMelhoradoBuscado.profissao = trabalhoVendido.profissao
                                 trabalhoMelhoradoEncontrado = self.__aplicacao.pegaTrabalhoPorNomeProfissaoRaridade(trabalhoMelhoradoBuscado)
                                 if variavelExiste(trabalhoMelhoradoEncontrado):
-                                    quantidadeTrabalhoMelhoradoEmEstoque = self.__aplicacao.pegaQuantidadeTrabalhoEstoque(trabalhoMelhoradoEncontrado.id)
+                                    quantidadeTrabalhoMelhoradoEmEstoque = self.__aplicacao.recupera_quantidade_trabalho_estoque(trabalhoMelhoradoEncontrado.id)
                                     quantidadeTrabalhoMelhoradoNecessario = quantidadeTrabalhoRaroNecessario - quantidadeTrabalhoMelhoradoEmEstoque
                                     print(f'Quantidade de ({trabalhoMelhoradoEncontrado.nome}) no estoque: {quantidadeTrabalhoMelhoradoEmEstoque}')
                                     trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemEmUso)
@@ -920,7 +920,11 @@ class CRUD:
         while True:
             personagens = self.mostraListaPersonagens()
             if variavelExiste(personagens) and self.definePersonagemEscolhido(personagens):
-                self.__aplicacao.defineTrabalhoComumProfissaoPriorizada()
+                trabalhoTeste: TrabalhoProducao = TrabalhoProducao()
+                trabalhoTeste.idTrabalho = 'YK81EN0qfsT2RxtgSRLgiHEaHQPB'
+                trabalhoTeste.raridade = CHAVE_RARIDADE_COMUM
+                trabalhoTeste.profissao = CHAVE_PROFISSAO_ANEIS
+                print(self.__aplicacao.verifica_producao_trabalho_melhorado(trabalhoTeste))
                 continue
             break
 

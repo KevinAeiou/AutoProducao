@@ -7,7 +7,7 @@ class TrabalhoProducao(Trabalho):
         self.idTrabalho = None
         self.recorrencia = False
         self.tipoLicenca = None
-        self.estado = 0
+        self.estado = CODIGO_PARA_PRODUZIR
 
     @property
     def ehParaProduzir(self):

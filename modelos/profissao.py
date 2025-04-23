@@ -45,7 +45,7 @@ class Profissao:
         return 0
     
     @property
-    def ehNivelProducaoMelhorada(self) -> bool:
+    def eh_nivel_producao_melhorada(self) -> bool:
         '''
             Atributo que verifica se o nível de produção é 'melhorado'.
             Returns:
