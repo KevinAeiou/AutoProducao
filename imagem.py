@@ -128,13 +128,23 @@ class ManipulaImagem:
     def retornaTextoLicencaReconhecida(self):
         return self.reconheceLicenca(self.retornaAtualizacaoTela())
     
-    def reconheceTextoNomePersonagem(self, tela, posicao: int) -> str | None:
+    def reconheceTextoNomePersonagem(self, tela: ndarray, posicao: int) -> str | None:
+        '''
+            Método para reconhecimento do nome do personagem em uma posição específica.
+            Args:
+                tela (ndarray): Imagem da tela atual inteira.
+                posicao (int): Posição específica na tela e que o texto deve ser reconhecido.
+            Returns:
+                str: String que contêm o texto reconhecido.
+        '''
         x: int = tela.shape[1]//7
         y: int = 14*(tela.shape[0]//30)
-        posicaoNome = [[2,33,210,45], [x,y,200,40]] # [x, y, altura, largura]
-        frameNomePersonagem = tela[posicaoNome[posicao][1]:posicaoNome[posicao][1]+posicaoNome[posicao][3], posicaoNome[posicao][0]:posicaoNome[posicao][0]+posicaoNome[posicao][2]]
-        frameCinza = self.retornaImagemCinza(np.array(frameNomePersonagem))
-        frameBinarizado = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 150)
+        posicaoNome: list[tuple] = [(2, 33, 210, 45), (x, y, 200, 40)] # [x, y, altura, largura]
+        frameNomePersonagem: ndarray = tela[
+            posicaoNome[posicao][1] : posicaoNome[posicao][1]+posicaoNome[posicao][3], 
+            posicaoNome[posicao][0] : posicaoNome[posicao][0]+posicaoNome[posicao][2]]
+        frameCinza: ndarray = self.retornaImagemCinza(np.array(frameNomePersonagem))
+        frameBinarizado: ndarray = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 150)
         return self.reconheceTexto(imagem= frameBinarizado, confianca= 40)
     
     def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
