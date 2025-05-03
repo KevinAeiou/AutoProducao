@@ -4,7 +4,18 @@ from modelos.trabalho import Trabalho
 from db.db import MeuBanco
 from repositorio.repositorioTrabalho import RepositorioTrabalho
 from modelos.logger import MeuLogger
-from constantes import CHAVE_ID, CHAVE_PROFISSAO, CHAVE_NIVEL, CHAVE_TRABALHOS, CHAVE_RARIDADE, CHAVE_NOME, CHAVE_NOME_PRODUCAO, CHAVE_EXPERIENCIA, CHAVE_TRABALHO_NECESSARIO
+from constantes import (
+    CHAVE_ID, 
+    CHAVE_PROFISSAO, 
+    CHAVE_NIVEL, 
+    CHAVE_TRABALHOS, 
+    CHAVE_RARIDADE, 
+    CHAVE_NOME, 
+    CHAVE_NOME_PRODUCAO, 
+    CHAVE_EXPERIENCIA, 
+    CHAVE_TRABALHO_NECESSARIO,
+    CHAVE_RARIDADE_COMUM
+)
 
 class TrabalhoDaoSqlite:
     def __init__(self, banco: MeuBanco):
@@ -168,7 +179,7 @@ class TrabalhoDaoSqlite:
     def retornaListaIdsRecursosNecessarios(self, trabalho: Trabalho) -> list[str] | None:
         try:
             idsTrabalhos: list[str]= []
-            sql = f"""SELECT {CHAVE_ID} FROM {CHAVE_TRABALHOS} WHERE {CHAVE_PROFISSAO} == ? AND {CHAVE_NIVEL} == ?;"""
+            sql = f"""SELECT {CHAVE_ID} FROM {CHAVE_TRABALHOS} WHERE {CHAVE_PROFISSAO} == ? AND {CHAVE_NIVEL} == ? AND {CHAVE_RARIDADE} == '{CHAVE_RARIDADE_COMUM}';"""
             self.__conexao = self.__meuBanco.pegaConexao()
             self.__fabrica = self.__meuBanco.pegaFabrica()
             if self.__fabrica == 1:
