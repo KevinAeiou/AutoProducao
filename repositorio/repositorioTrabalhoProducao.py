@@ -111,7 +111,7 @@ class RepositorioTrabalhoProducao(Stream):
     def insereTrabalhoProducao(self, trabalho: TrabalhoProducao) -> bool:
         try:
             self.__minhaReferencia.child(self._personagem.id).child(trabalho.id).set({CHAVE_ID: trabalho.id, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_ESTADO: trabalho.estado, CHAVE_RECORRENCIA: trabalho.recorrencia, CHAVE_TIPO_LICENCA: trabalho.tipoLicenca})
-            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) inserido com sucesso!')
+            self.__logger.debug(menssagem= f'Trabalho ({self._personagem.id.ljust(36)} | {trabalho}) inserido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)

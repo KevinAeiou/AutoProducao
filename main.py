@@ -527,7 +527,7 @@ class Aplicacao:
                 listaPossiveisDicionariosTrabalhos.append(trabalho)
         return listaPossiveisDicionariosTrabalhos
     
-    def insereTrabalhoProducao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
+    def insere_trabalho_producao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         '''
             Função para inserir um objeto da classe TrabalhoProducao no banco de dados local e remoto.
             Args:
@@ -1116,9 +1116,9 @@ class Aplicacao:
                 self.modificaExperienciaProfissao(trabalho= trabalhoProducaoConcluido)
                 self.atualizaEstoquePersonagem(trabalhoProducaoConcluido)
                 trabalhoProducaoRaro: TrabalhoProducao = self.verificaProducaoTrabalhoRaro(trabalhoConcluido= trabalhoProducaoConcluido)
-                self.insereTrabalhoProducao(trabalho= trabalhoProducaoRaro)
+                self.insere_trabalho_producao(trabalho= trabalhoProducaoRaro)
                 trabalhoProducaoMelhorado: TrabalhoProducao = self.verifica_producao_trabalho_melhorado(trabalhoProducaoConcluido)
-                self.insereTrabalhoProducao(trabalho= trabalhoProducaoMelhorado)
+                self.insere_trabalho_producao(trabalho= trabalhoProducaoMelhorado)
                 return
             if estadoTrabalho == CODIGO_PRODUZINDO:
                 if self.existeEspacoProducao():
@@ -1617,7 +1617,7 @@ class Aplicacao:
     def clonaTrabalhoProducaoEncontrado(self, trabalhoProducaoEncontrado: TrabalhoProducao) -> None:
         print(f'Recorrencia está ligada.')
         cloneTrabalhoProducaoEncontrado: TrabalhoProducao = self.defineCloneTrabalhoProducao(trabalhoProducaoEncontrado)
-        self.insereTrabalhoProducao(cloneTrabalhoProducaoEncontrado)
+        self.insere_trabalho_producao(cloneTrabalhoProducaoEncontrado)
 
     def retornaNomesRecursos(self, profissao: str, nivel: int) -> tuple[str, str, str]:
         '''
@@ -2008,9 +2008,9 @@ class Aplicacao:
                                 self.modificaExperienciaProfissao(trabalhoProducaoConcluido)
                                 self.atualizaEstoquePersonagem(trabalhoProducaoConcluido)
                                 trabalhoProducaoRaro = self.verificaProducaoTrabalhoRaro(trabalhoProducaoConcluido)
-                                self.insereTrabalhoProducao(trabalhoProducaoRaro)
+                                self.insere_trabalho_producao(trabalhoProducaoRaro)
                                 trabalhoProducaoMelhorado: TrabalhoProducao = self.verifica_producao_trabalho_melhorado(trabalhoProducaoConcluido)
-                                self.insereTrabalhoProducao(trabalho= trabalhoProducaoMelhorado)
+                                self.insere_trabalho_producao(trabalho= trabalhoProducaoMelhorado)
                             else:
                                 print(f'Dicionário trabalho concluido não reconhecido.')
                         else:
@@ -2243,7 +2243,12 @@ class Aplicacao:
             if ehMenuNoticias(menu= codigoMenu) or ehMenuEscolhaPersonagem(menu= codigoMenu): clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
         return False
 
-    def retornaProfissoesPriorizadas(self) -> list[Profissao]:
+    def retorna_profissoes_priorizadas(self) -> list[Profissao]:
+        '''
+            Método para recuperação de profissões com atributo 'prioridade' verdadeiro.
+            Returns:
+                profissoesPriorizadas (list[Profissao]): Lista de objetos da classe Profissao contendo profissões priorizadas encontradas.
+        '''
         profissoesPriorizadas: list[Profissao] = []
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
@@ -2266,23 +2271,23 @@ class Aplicacao:
             return []
         return idsTrabalhos
     
-    def retornaListaDicionariosRecursosNecessarios(self, idsRecursos: list[str]) -> list[dict]:
-        listaDicionarios = []
-        for id in idsRecursos:
-            quantidade = self.recupera_quantidade_trabalho_estoque(id_trabalho = id)
-            dicionarioTrabalho = {CHAVE_ID_TRABALHO: id, CHAVE_QUANTIDADE: quantidade}
-            listaDicionarios.append(dicionarioTrabalho)
-        return listaDicionarios
+    def retorna_lista_dicionarios_recursos_necessarios(self, ids_recursos: list[str]) -> list[dict]:
+        lista_dicionarios: list[dict] = []
+        for id in ids_recursos:
+            quantidade: int = self.recupera_quantidade_trabalho_estoque(id_trabalho = id)
+            dicionario_trabalho: dict = {CHAVE_ID_TRABALHO: id, CHAVE_QUANTIDADE: quantidade}
+            lista_dicionarios.append(dicionario_trabalho)
+        return lista_dicionarios
     
     def pegaTrabalhosParaProduzirPorProfissaoRaridade(self, trabalho: TrabalhoProducao, personagem: Personagem = None) -> list[TrabalhoProducao]:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhosProduzindo = self.__trabalhoProducaoDao.pegaTrabalhosParaProduzirPorProfissaoRaridade(personagem= personagem, trabalho= trabalho)
+        trabalhosProduzindo: list[TrabalhoProducao] = self.__trabalhoProducaoDao.pegaTrabalhosParaProduzirPorProfissaoRaridade(personagem= personagem, trabalho= trabalho)
         if trabalhosProduzindo is None:
             self.__loggerTrabalhoProducaoDao.error(f'Erro ao buscar trabalhos produzindo por profissão e raridade ({trabalho.profissao}, {trabalho.raridade}): {self.__trabalhoProducaoDao.pegaErro}')
             return []
         return trabalhosProduzindo
 
-    def verificaRecursosNecessarios(self, trabalho: Trabalho) -> bool:
+    def verifica_recursos_necessarios(self, trabalho: Trabalho) -> bool:
         trabalhoBuscado: Trabalho= Trabalho()
         trabalhoBuscado.nivel = trabalho.nivel
         trabalhoBuscado.profissao = trabalho.profissao
@@ -2296,14 +2301,14 @@ class Aplicacao:
             idsRecursosNecessarios: list[str] = self.retornaListaIdsRecursosNecessarios(trabalhoBuscado)
             if len(idsRecursosNecessarios) < 3:
                 return False
-            dicionariosRecursosNecessarios: list[dict] = self.retornaListaDicionariosRecursosNecessarios(idsRecursosNecessarios)
+            dicionariosRecursosNecessarios: list[dict] = self.retorna_lista_dicionarios_recursos_necessarios(idsRecursosNecessarios)
             for dicionario in dicionariosRecursosNecessarios:
                 if self.recupera_quantidade_trabalho_estoque(id_trabalho= dicionario[CHAVE_ID_TRABALHO]) < quantidadeRecursosContingencia:
                     return False
             return True
         return False
     
-    def defineTrabalhoProducaoRecursosProfissaoPriorizada(self, trabalho: Trabalho):
+    def define_trabalho_producao_recursos_profissao_priorizada(self, trabalho: Trabalho):
         '''
             Função para definir trabalho para produção de recursos de acordo com o nível e profissão da profissão priorizada atual
             Args:
@@ -2325,7 +2330,7 @@ class Aplicacao:
                 self.__loggerTrabalhoProducaoDao.debug(f'{trabalhoEncontrado.nome} já existe na lista para produção.')
                 return
         trabalhoProducao: TrabalhoProducao= self.defineTrabalhoProducaoRecursosEspecfico(trabalhoProducaoRecursosEncontrado)
-        self.insereTrabalhoProducao(trabalho= trabalhoProducao)
+        self.insere_trabalho_producao(trabalho= trabalhoProducao)
 
     def defineTrabalhoProducaoRecursosEspecfico(self, trabalhoEncontrado: Trabalho) -> TrabalhoProducao:
         '''
@@ -2358,45 +2363,48 @@ class Aplicacao:
                 break
         return trabalhoEncontrado
 
-    def defineTrabalhoComumProfissaoPriorizada(self):
-        profissoesPriorizadas: list[Profissao] = self.retornaProfissoesPriorizadas()
-        if ehVazia(profissoesPriorizadas):
+    def define_trabalho_comum_profissao_priorizada(self):
+        '''
+            Método para verificação de produção de trabalhos comuns e melhorados, com base em profissões priorizadas.
+        '''
+        profissoes_priorizadas: list[Profissao] = self.retorna_profissoes_priorizadas()
+        if ehVazia(profissoes_priorizadas):
             self.__loggerProfissaoDao.warning(f'Nem uma profissão priorizada encontrada!')
             return
-        for profissaoPriorizada in profissoesPriorizadas:
-            self.__loggerProfissaoDao.debug(menssagem= f'Verificando profissão priorizada: {profissaoPriorizada.nome}')
-            nivelProfissao: int = profissaoPriorizada.nivel()
-            self.__loggerProfissaoDao.debug(menssagem= f'Nível profissão priorizada: {nivelProfissao}')
-            self.defineTrabalhoMelhoradoProfissaoPriorizada(profissaoPriorizada, nivelProfissao)
-            trabalhoBuscado: Trabalho = self.defineTrabalhoBuscado(profissaoPriorizada, nivelProfissao, CHAVE_RARIDADE_COMUM)
-            self.__loggerProfissaoDao.debug(menssagem= f'Trabalho buscado: {trabalhoBuscado}')
-            trabalhosComunsProfissaoNivelExpecifico: list[Trabalho] = self.defineTrabalhosPorProfissaoNivelRaridade(trabalhoBuscado)
-            if ehVazia(trabalhosComunsProfissaoNivelExpecifico):
+        for profissao_priorizada in profissoes_priorizadas:
+            self.__loggerProfissaoDao.debug(menssagem= f'Verificando profissão priorizada: {profissao_priorizada.nome}')
+            nivel_profissao: int = profissao_priorizada.nivel()
+            self.__loggerProfissaoDao.debug(menssagem= f'Nível profissão priorizada: {nivel_profissao}')
+            self.define_trabalho_melhorado_profissao_priorizada(profissao_priorizada, nivel_profissao)
+            trabalho_buscado: Trabalho = self.define_trabalho_buscado(profissao_priorizada, nivel_profissao, CHAVE_RARIDADE_COMUM)
+            self.__loggerProfissaoDao.debug(menssagem= f'Trabalho buscado: {trabalho_buscado}')
+            trabalhos_comuns_profissao_nivel_expecifico: list[Trabalho] = self.define_trabalhos_por_profissao_nivel_raridade(trabalho_buscado)
+            if ehVazia(trabalhos_comuns_profissao_nivel_expecifico):
                 continue
             while True:
-                trabalhosQuantidade: list[TrabalhoEstoque]= self.defineListaTrabalhosQuantidade(trabalhosComunsProfissaoNivelExpecifico)
-                trabalhosQuantidade= self.atualizaListaTrabalhosQuantidadeEstoque(trabalhosQuantidade)
-                trabalhosQuantidade, quantidadeTotalTrabalhoProducao= self.atualizaListaTrabalhosQuantidadeTrabalhosProducao(trabalhosQuantidade)
-                trabalhosQuantidade= sorted(trabalhosQuantidade, key=lambda trabalho: trabalho.quantidade)
-                quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns = quantidadeTotalTrabalhoProducao >= len(trabalhosComunsProfissaoNivelExpecifico)
-                if quantidadeTrabalhosEmProducaoEhMaiorIgualAoTamanhoListaTrabalhosComuns:
-                    self.__loggerProfissaoDao.debug(menssagem= f'Existem ({quantidadeTotalTrabalhoProducao}) ou mais trabalhos sendo produzidos!')
+                trabalhos_quantidade: list[TrabalhoEstoque]= self.define_lista_trabalhos_quantidade(trabalhos_comuns_profissao_nivel_expecifico)
+                trabalhos_quantidade= self.atualiza_lista_trabalhos_quantidade_estoque(trabalhos_quantidade)
+                trabalhos_quantidade, quantidade_total_trabalho_producao= self.atualiza_lista_trabalhos_quantidade_trabalhos_producao(trabalhos_quantidade)
+                trabalhos_quantidade= sorted(trabalhos_quantidade, key=lambda trabalho: trabalho.quantidade)
+                quantidade_trabalhos_em_producao_eh_maior_igual_ao_tamanho_lista_trabalhos_comuns = quantidade_total_trabalho_producao >= len(trabalhos_comuns_profissao_nivel_expecifico)
+                if quantidade_trabalhos_em_producao_eh_maior_igual_ao_tamanho_lista_trabalhos_comuns:
+                    self.__loggerProfissaoDao.debug(menssagem= f'Existem ({quantidade_total_trabalho_producao}) ou mais trabalhos sendo produzidos!')
                     break
-                trabalhoComum: TrabalhoProducao = self.defineTrabalhoProducaoComum(trabalhosQuantidade)
-                if nivelProfissao == 1 or nivelProfissao == 8:
-                    self.__loggerProfissaoDao.warning(f'Nível de produção de ({profissaoPriorizada.nome}) é 1 ou 8')
-                    trabalhoComum.tipoLicenca = CHAVE_LICENCA_APRENDIZ
-                    self.insereTrabalhoProducao(trabalhoComum)
+                trabalho_comum: TrabalhoProducao = self.define_trabalho_producao_comum(trabalhos_quantidade)
+                if nivel_profissao == 1 or nivel_profissao == 8:
+                    self.__loggerProfissaoDao.warning(f'Nível de produção de ({profissao_priorizada.nome}) é 1 ou 8')
+                    trabalho_comum.tipoLicenca = CHAVE_LICENCA_APRENDIZ
+                    self.insere_trabalho_producao(trabalho_comum)
                     continue
-                existeRecursosNecessarios = self.verificaRecursosNecessarios(trabalho= trabalhoBuscado)
-                if existeRecursosNecessarios:
-                    self.insereTrabalhoProducao(trabalhoComum)
+                existe_recursos_necessarios = self.verifica_recursos_necessarios(trabalho= trabalho_buscado)
+                if existe_recursos_necessarios:
+                    self.insere_trabalho_producao(trabalho_comum)
                     continue
-                self.__loggerProfissaoDao.debug(f'Recursos necessários insuficientes para produzir {trabalhosComunsProfissaoNivelExpecifico[0].nome}')
-                self.defineTrabalhoProducaoRecursosProfissaoPriorizada(trabalho= trabalhoBuscado)
+                self.__loggerProfissaoDao.debug(f'Recursos necessários insuficientes para produzir {trabalhos_comuns_profissao_nivel_expecifico[0].nome}')
+                self.define_trabalho_producao_recursos_profissao_priorizada(trabalho= trabalho_buscado)
                 break
 
-    def defineTrabalhoMelhoradoProfissaoPriorizada(self, profissaoPriorizada: Profissao, nivelProfissao: int):
+    def define_trabalho_melhorado_profissao_priorizada(self, profissaoPriorizada: Profissao, nivelProfissao: int):
         '''
             Método para verificar e definir trabalhos melhorados para produção de uma profissão priorizada específica.
             Args:
@@ -2405,13 +2413,13 @@ class Aplicacao:
         '''
         if profissaoPriorizada.eh_nivel_producao_melhorada:
             self.__logger_aplicacao.debug(menssagem= f'Nível({nivelProfissao}) de ({profissaoPriorizada.nome}) é para melhoria de trabalhos.')
-            trabalhoBuscado: Trabalho = self.defineTrabalhoBuscado(profissaoPriorizada, nivelProfissao, CHAVE_RARIDADE_RARO)
-            trabalhosRarosProfissaoNivelExpecifico: list[Trabalho] = self.defineTrabalhosPorProfissaoNivelRaridade(trabalhoBuscado)
+            trabalhoBuscado: Trabalho = self.define_trabalho_buscado(profissaoPriorizada, nivelProfissao, CHAVE_RARIDADE_RARO)
+            trabalhosRarosProfissaoNivelExpecifico: list[Trabalho] = self.define_trabalhos_por_profissao_nivel_raridade(trabalhoBuscado)
             self.verificaTrabalhosRarosEncontrados(trabalhosRarosProfissaoNivelExpecifico)
             return
         self.__logger_aplicacao.debug(menssagem= f'Nível({nivelProfissao}) de ({profissaoPriorizada.nome}) não é para melhoria de trabalhos.')
 
-    def defineTrabalhosPorProfissaoNivelRaridade(self, trabalhoBuscado: Trabalho):
+    def define_trabalhos_por_profissao_nivel_raridade(self, trabalhoBuscado: Trabalho):
         '''
             Método para definir uma lista de objetos da classe Trabalho que contêm atributos específicos ('profissao', 'nivel', 'raridade), no objeto 'trabalhoBuscado'.
             Args:
@@ -2464,7 +2472,7 @@ class Aplicacao:
                     continue
                 if self.possuiTrabalhosNecessariosSuficientes(idTrabalhoMelhorado):
                     trabalhoProducaoMelhorado: TrabalhoProducao = self.define_trabalho_producao_melhorado(idTrabalhoMelhorado)
-                    self.insereTrabalhoProducao(trabalhoProducaoMelhorado)
+                    self.insere_trabalho_producao(trabalhoProducaoMelhorado)
 
     def possuiTrabalhosNecessariosSuficientes(self, idTrabalhoMelhorado: str) -> bool:
         '''
@@ -2520,14 +2528,23 @@ class Aplicacao:
         self.__logger_aplicacao.debug(menssagem= f'Trabalho ({id.ljust(40)}) não encontrado na lista para produção')
         return False
 
-    def defineTrabalhoBuscado(self, profissaoPriorizada: Profissao, nivelProfissao: int, raridade: str) -> Trabalho:
+    def define_trabalho_buscado(self, profissaoPriorizada: Profissao, nivelProfissao: int, raridade: str) -> Trabalho:
+        '''
+            Método para definir um objeto da classe Trabalho contendo os atributos passados por parâmetro.
+            Args:
+                profissaoPriorizada (Profissao): Objeto da classe Profissao que contêm os atributos da profissão priorizada atual.
+                nivelProfissao (int): Inteiro que contêm o nível da profissão atual.
+                raridade (str): String que contêm a raridade buscada.
+            Returns:
+                trabalhoBuscado (Trabalho): Objeto da classe Trabalho que contêm os atributos definidos.
+        '''
         trabalhoBuscado: Trabalho = Trabalho()
         trabalhoBuscado.profissao = profissaoPriorizada.nome
         trabalhoBuscado.nivel = trabalhoBuscado.pegaNivel(nivelProfissao)
         trabalhoBuscado.raridade = raridade
         return trabalhoBuscado
 
-    def defineTrabalhoProducaoComum(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> TrabalhoProducao:
+    def define_trabalho_producao_comum(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> TrabalhoProducao:
         trabalhoComum = TrabalhoProducao()
         trabalhoComum.idTrabalho = trabalhosQuantidade[0].idTrabalho
         trabalhoComum.estado = CODIGO_PARA_PRODUZIR
@@ -2543,7 +2560,7 @@ class Aplicacao:
             return 0
         return quantidade
 
-    def atualizaListaTrabalhosQuantidadeTrabalhosProducao(self, trabalhosQuantidade: list[TrabalhoEstoque]):
+    def atualiza_lista_trabalhos_quantidade_trabalhos_producao(self, trabalhosQuantidade: list[TrabalhoEstoque]):
         quantidadeTotalTrabalhoProducao: int= 0
         for trabalhoQuantidade in trabalhosQuantidade:
             quantidade = self.pegaQuantidadeTrabalhoProducaoProduzirProduzindo(trabalhoQuantidade.idTrabalho)
@@ -2567,14 +2584,14 @@ class Aplicacao:
             return 0
         return quantidade
 
-    def atualizaListaTrabalhosQuantidadeEstoque(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> list[TrabalhoEstoque]:
+    def atualiza_lista_trabalhos_quantidade_estoque(self, trabalhosQuantidade: list[TrabalhoEstoque]) -> list[TrabalhoEstoque]:
         for trabalhoQuantidade in trabalhosQuantidade:
             quantidade: int= self.recupera_quantidade_trabalho_estoque(id_trabalho= trabalhoQuantidade.idTrabalho)
             trabalhoQuantidade.quantidade += quantidade
             self.__loggerEstoqueDao.debug(menssagem= f'Quantidade de ({trabalhoQuantidade.idTrabalho}) encontrada: ({trabalhoQuantidade.quantidade})')
         return trabalhosQuantidade
 
-    def defineListaTrabalhosQuantidade(self, trabalhosComunsProfissaoNivelExpecifico: list[Trabalho]) -> list[TrabalhoEstoque]:
+    def define_lista_trabalhos_quantidade(self, trabalhosComunsProfissaoNivelExpecifico: list[Trabalho]) -> list[TrabalhoEstoque]:
         trabalhosQuantidade: list[TrabalhoEstoque] = []
         for trabalhoComum in trabalhosComunsProfissaoNivelExpecifico:
             trabalhoQuantidade = TrabalhoEstoque()
@@ -2613,7 +2630,7 @@ class Aplicacao:
         self.inicializaChavesPersonagem()
         print('Inicia busca...')
         if self.vaiParaMenuProduzir():
-            self.defineTrabalhoComumProfissaoPriorizada()
+            self.define_trabalho_comum_profissao_priorizada()
             trabalhosProducao: list[TrabalhoProducao]= self.pegaTrabalhosProducaoParaProduzirProduzindo()
             if trabalhosProducao is None: return True
             if ehVazia(trabalhosProducao):
@@ -2782,7 +2799,7 @@ class Aplicacao:
                             self.modificaTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                             continue
                         trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
-                        self.insereTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                        self.insere_trabalho_producao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
                         continue
                     trabalhoEncontrado.id = dicionarioTrabalho[CHAVE_ID]
                     self.removeTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
