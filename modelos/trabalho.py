@@ -39,10 +39,11 @@ class Trabalho:
         }
         return dicionarioNiveis.get(nivelProfissao, 1)
     
-    def pegaQuantidadeRecursosNecessarios(self) -> int:
+    def recupera_quantidade_recursos_necessarios(self) -> int:
         '''
-            Função que retorna a quantidade de recursos terciários necessários para produção de trabalhos comuns
-            Input: int
+            Método que retorna a quantidade de recursos terciários necessários para produção de trabalhos comuns
+            Returns:
+                int: Quantidade de recuro terciário necessário para produção de trabalhos.
         '''
         x = 0
         if self.profissao == CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE:
@@ -65,6 +66,8 @@ class Trabalho:
             return x + 16
         if self.nivel == 32:
             return x + 18
+        if self.nivel == 34:
+            return x + 20
         return 0
 
     @property

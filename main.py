@@ -2286,7 +2286,7 @@ class Aplicacao:
             lista_dicionarios.append(dicionario_trabalho)
         return lista_dicionarios
     
-    def pegaTrabalhosParaProduzirPorProfissaoRaridade(self, trabalho: TrabalhoProducao, personagem: Personagem = None) -> list[TrabalhoProducao]:
+    def recupera_trabalhos_para_produzir_por_profissao_raridade(self, trabalho: TrabalhoProducao, personagem: Personagem = None) -> list[TrabalhoProducao]:
         personagem = self.__personagemEmUso if personagem is None else personagem
         trabalhosProduzindo: list[TrabalhoProducao] = self.__trabalho_producao_dao.pegaTrabalhosParaProduzirPorProfissaoRaridade(personagem= personagem, trabalho= trabalho)
         if trabalhosProduzindo is None:
@@ -2346,9 +2346,9 @@ class Aplicacao:
                 quantidade_recursos_minima (int): Inteiro que contêm a quantidade mínima de recursos necessários para produção. Retorna zero (0) por padrão.
         '''
         quantidade_recursos_minima: int = 0
-        for trabalhoParaProduzir in self.pegaTrabalhosParaProduzirPorProfissaoRaridade(trabalho_buscado):
-            quantidade_recursos_minima += trabalhoParaProduzir.pegaQuantidadeRecursosNecessarios() + 2
-        quantidade_recursos_minima += trabalho_buscado.pegaQuantidadeRecursosNecessarios() + 2
+        for trabalho_para_produzir in self.recupera_trabalhos_para_produzir_por_profissao_raridade(trabalho_buscado):
+            quantidade_recursos_minima += trabalho_para_produzir.recupera_quantidade_recursos_necessarios() + 2
+        quantidade_recursos_minima += trabalho_buscado.recupera_quantidade_recursos_necessarios() + 2
         return quantidade_recursos_minima
     
     def define_trabalho_producao_recursos_profissao_priorizada(self, trabalho: Trabalho):
