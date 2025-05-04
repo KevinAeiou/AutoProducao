@@ -176,7 +176,7 @@ class TrabalhoDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def retornaListaIdsRecursosNecessarios(self, trabalho: Trabalho) -> list[str] | None:
+    def retorna_lista_ids_recursos_necessarios(self, trabalho: Trabalho) -> list[str] | None:
         try:
             idsTrabalhos: list[str]= []
             sql = f"""SELECT {CHAVE_ID} FROM {CHAVE_TRABALHOS} WHERE {CHAVE_PROFISSAO} == ? AND {CHAVE_NIVEL} == ? AND {CHAVE_RARIDADE} == '{CHAVE_RARIDADE_COMUM}';"""

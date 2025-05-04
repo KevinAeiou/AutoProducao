@@ -2264,12 +2264,19 @@ class Aplicacao:
             return []
         return trabalhosProfissaoRaridadeNivelExpecifico
     
-    def retornaListaIdsRecursosNecessarios(self, trabalho: Trabalho) -> list[str]:
-        idsTrabalhos = self.__trabalhoDao.retornaListaIdsRecursosNecessarios(trabalho)
-        if idsTrabalhos is None:
-            self.__loggerTrabalhoDao.error(f'Erro ao buscar ids de recursos necessários ({trabalho.profissao}, {trabalho.nivel}): {self.__trabalhoDao.pegaErro}')
+    def retorna_lista_ids_recursos_necessarios(self, trabalho: Trabalho) -> list[str]:
+        '''
+            Método para recuperar trabalhos comuns para produção de recursos de recursos.
+            Args:
+                trabalho (Trabalho): Objeto da classe Trabalho que contêm os atributos do trabalho buscado.
+            Returns:
+                ids_trabalhos (list[Trabalho]): Lista de objetos da classe Trabalho encontrados no banco.
+        '''
+        ids_trabalhos: list[str] = self.__trabalhoDao.retorna_lista_ids_recursos_necessarios(trabalho)
+        if ids_trabalhos is None:
+            self.__logger_aplicacao.error(f'Erro ao buscar ids de recursos necessários ({trabalho.profissao}, {trabalho.nivel}): {self.__trabalhoDao.pegaErro}')
             return []
-        return idsTrabalhos
+        return ids_trabalhos
     
     def retorna_lista_dicionarios_recursos_necessarios(self, ids_recursos: list[str]) -> list[dict]:
         lista_dicionarios: list[dict] = []
@@ -2288,25 +2295,61 @@ class Aplicacao:
         return trabalhosProduzindo
 
     def verifica_recursos_necessarios(self, trabalho: Trabalho) -> bool:
-        trabalhoBuscado: Trabalho= Trabalho()
-        trabalhoBuscado.nivel = trabalho.nivel
-        trabalhoBuscado.profissao = trabalho.profissao
-        trabalhoBuscado.raridade = trabalho.raridade
-        if trabalhoBuscado.ehComum:
-            quantidadeRecursosContingencia: int = 0
-            for trabalhoParaProduzir in self.pegaTrabalhosParaProduzirPorProfissaoRaridade(trabalhoBuscado):
-                quantidadeRecursosContingencia += trabalhoParaProduzir.pegaQuantidadeRecursosNecessarios() + 2
-            quantidadeRecursosContingencia += trabalhoBuscado.pegaQuantidadeRecursosNecessarios() + 2
-            trabalhoBuscado.nivel = 1 if trabalhoBuscado.nivel < 16 else 8
-            idsRecursosNecessarios: list[str] = self.retornaListaIdsRecursosNecessarios(trabalhoBuscado)
-            if len(idsRecursosNecessarios) < 3:
-                return False
-            dicionariosRecursosNecessarios: list[dict] = self.retorna_lista_dicionarios_recursos_necessarios(idsRecursosNecessarios)
-            for dicionario in dicionariosRecursosNecessarios:
-                if self.recupera_quantidade_trabalho_estoque(id_trabalho= dicionario[CHAVE_ID_TRABALHO]) < quantidadeRecursosContingencia:
-                    return False
-            return True
+        '''
+            Método para verificar se existem recursos para produção suficientes.
+            Args:
+                trabalho (Trabalho): Objeto da classe Trabalho que contêm os atributos do trabalho buscado.
+            Returns:
+                bool: Verdadeiro caso existam recursos necessários suficientes para produção no estoque. Falso caso contrário.
+        '''
+        trabalho_buscado: Trabalho= Trabalho()
+        trabalho_buscado.nivel = trabalho.nivel
+        trabalho_buscado.profissao = trabalho.profissao
+        trabalho_buscado.raridade = trabalho.raridade
+        if trabalho_buscado.ehComum:
+            return self.verifica_quantidade_recursos_estoque_eh_suficiente(trabalho_buscado)
         return False
+    
+    def verifica_quantidade_recursos_estoque_eh_suficiente(self, trabalho_buscado: Trabalho) -> bool:
+        '''
+            Método para verificar se existem recursos suficientes no estoque para produção.
+            Args:
+                trabalho_buscado (Trabalho): Objeto da classe Trabalho que contêm os atributos do trabalho buscado.
+            Returns:
+                bool: Verdadeiro caso a quantidade de trabalho necessário no estoque for maios do que o mínimo necessário. Falso caso contrário.
+        '''
+        quantidade_recursos_minima: int = self.define_quantidade_minima_recursos_necessarios(trabalho_buscado)
+        trabalho_buscado.nivel = 1 if trabalho_buscado.nivel < 16 else 8
+        ids_recursos_necessarios: list[str] = self.retorna_lista_ids_recursos_necessarios(trabalho_buscado)
+        self.mostra_lista(lista= ids_recursos_necessarios)
+        if len(ids_recursos_necessarios) < 3:
+            self.__logger_aplicacao.debug(mensagem= f'Lista de trabalhos comuns para produção de recursos é menor que três (3)')
+            return False
+        dicionarios_recursos_necessarios: list[dict] = self.retorna_lista_dicionarios_recursos_necessarios(ids_recursos_necessarios)
+        for dicionario in dicionarios_recursos_necessarios:
+            quantidade_trabalho_estoque: int = self.recupera_quantidade_trabalho_estoque(id_trabalho= dicionario[CHAVE_ID_TRABALHO])
+            if quantidade_trabalho_estoque < quantidade_recursos_minima:
+                self.__logger_aplicacao.debug(mensagem= f'Quantidade de recursos no estoque ({quantidade_trabalho_estoque}) é menor do que o mínimo necessário: {quantidade_recursos_minima}')
+                return False
+        return True
+
+    def mostra_lista(self, lista: list):
+        for item in lista:
+            print(item)
+
+    def define_quantidade_minima_recursos_necessarios(self, trabalho_buscado: Trabalho) -> int:
+        '''
+            Método para definir quantidade mínima de recursos necessário para produção de acordo com o nível do trabalho passado por parêmetro.
+            Args:
+                trabalho_buscado (Trabalho): Objeto da classe Trabalho que contêm os atributos do trabalho buscado.
+            Returns:
+                quantidade_recursos_minima (int): Inteiro que contêm a quantidade mínima de recursos necessários para produção. Retorna zero (0) por padrão.
+        '''
+        quantidade_recursos_minima: int = 0
+        for trabalhoParaProduzir in self.pegaTrabalhosParaProduzirPorProfissaoRaridade(trabalho_buscado):
+            quantidade_recursos_minima += trabalhoParaProduzir.pegaQuantidadeRecursosNecessarios() + 2
+        quantidade_recursos_minima += trabalho_buscado.pegaQuantidadeRecursosNecessarios() + 2
+        return quantidade_recursos_minima
     
     def define_trabalho_producao_recursos_profissao_priorizada(self, trabalho: Trabalho):
         '''
