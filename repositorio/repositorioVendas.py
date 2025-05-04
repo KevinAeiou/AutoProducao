@@ -24,7 +24,7 @@ class RepositorioVendas(Stream):
     def __init__(self, personagem: Personagem= None):
         super().__init__(chave= CHAVE_VENDAS, nomeLogger= CHAVE_REPOSITORIO_VENDAS)
         personagem = Personagem() if personagem is None else personagem
-        self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_VENDAS, arquivoLogger= f'{CHAVE_REPOSITORIO_VENDAS}.log')
+        self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_VENDAS, arquivo_logger= f'{CHAVE_REPOSITORIO_VENDAS}.log')
         self.__erro: str= None
         self.__personagem: Personagem= personagem
         firebaseDb: FirebaseDatabase = FirebaseDatabase()
@@ -32,15 +32,15 @@ class RepositorioVendas(Stream):
             meuBanco: db = firebaseDb.banco
             self.__minhaReferencia: db.Reference= meuBanco.reference(CHAVE_VENDAS)
         except Exception as e:
-            self.__logger.error(menssagem= f'Erro: {e}')
+            self.__logger.error(mensagem= f'Erro: {e}')
             
     def streamHandler(self, evento: Event):
         super().streamHandler(evento= evento)
         if evento.event_type in (STRING_PUT, STRING_PATCH):
             if evento.path == '/':
                 return
-            self.__logger.debug(menssagem= evento.path)
-            self.__logger.debug(menssagem= evento.data)
+            self.__logger.debug(mensagem= evento.path)
+            self.__logger.debug(mensagem= evento.data)
             ids: list[str]= evento.path.split('/')
             dicionarioVenda: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if evento.data is None:
@@ -67,53 +67,53 @@ class RepositorioVendas(Stream):
                 trabalhoVendido = TrabalhoVendidoVelho()
                 trabalhoVendido.dicionarioParaObjeto(valor)
                 listaVendas.append(trabalhoVendido)
-            self.__logger.debug(menssagem= f'Trabalhos vendidos recuperados com sucesso!')
+            self.__logger.debug(mensagem= f'Trabalhos vendidos recuperados com sucesso!')
             return listaVendas
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao recuperar trabalhos vendidos: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao recuperar trabalhos vendidos: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao recuperar trabalhos vendidos: {e}')
+            self.__logger.error(mensagem= f'Erro ao recuperar trabalhos vendidos: {e}')
         return None
     
     def insereTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
             self.__minhaReferencia.child(self.__personagem.id).child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_DESCRICAO: trabalho.descricao, CHAVE_DATA_VENDA: trabalho.dataVenda, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_QUANTIDADE: trabalho.quantidade, CHAVE_VALOR: trabalho.valor})
-            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) inserido com sucesso!')
+            self.__logger.debug(mensagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) inserido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao inserir trabalho vendido: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao inserir trabalho vendido: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao inserir trabalho vendido: {e}')
+            self.__logger.error(mensagem= f'Erro ao inserir trabalho vendido: {e}')
         return False
 
     def modificaTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
             self.__minhaReferencia.child(self.__personagem.id).child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_DESCRICAO: trabalho.descricao, CHAVE_DATA_VENDA: trabalho.dataVenda, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_QUANTIDADE: trabalho.quantidade, CHAVE_VALOR: trabalho.valor})
-            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) modificado com sucesso!')
+            self.__logger.debug(mensagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) modificado com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao modificar trabalho vendido: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao modificar trabalho vendido: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao modificar trabalho vendido: {e}')
+            self.__logger.error(mensagem= f'Erro ao modificar trabalho vendido: {e}')
         return False
         
     def removeTrabalhoVendido(self, trabalho: TrabalhoVendido) -> bool:
         try:
             self.__minhaReferencia.child(self.__personagem.id).child(trabalho.id).delete()
-            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) removido com sucesso!')
+            self.__logger.debug(mensagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) removido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao remover trabalho vendido: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao remover trabalho vendido: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao remover trabalho vendido: {e}')
+            self.__logger.error(mensagem= f'Erro ao remover trabalho vendido: {e}')
         return False
     
     @property

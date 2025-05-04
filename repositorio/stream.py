@@ -10,13 +10,13 @@ class Stream:
         self.__erro: str = None
         self.__streamPronta: bool= False
         self.__dadosModificados: list= []
-        self.__logger: MeuLogger= MeuLogger(nome= nomeLogger, arquivoLogger= arquivoLogger)
+        self.__logger: MeuLogger= MeuLogger(nome= nomeLogger, arquivo_logger= arquivoLogger)
         firebaseDb: FirebaseDatabase = FirebaseDatabase()
         try:
             meuBanco: db = firebaseDb.banco
             self.__minhaReferencia: db.Reference= meuBanco.reference(chave)
         except Exception as e:
-            self.__logger.error(menssagem= f'Erro: {e}')
+            self.__logger.error(mensagem= f'Erro: {e}')
 
     @property
     def estaPronto(self) -> bool:
@@ -68,7 +68,7 @@ class Stream:
         '''
         try:
             self.__inicio= time()
-            self.__logger.debug(menssagem= f'Inicio da stream: {self.__inicio}')
+            self.__logger.debug(mensagem= f'Inicio da stream: {self.__inicio}')
             self.__minhaReferencia.listen(self.streamHandler)
             return True
         except ConnectionError as e:
@@ -84,7 +84,7 @@ class Stream:
                 diferenca: int= time() - self.__inicio
                 minutos: int= int(diferenca // 60)
                 segundos: int= int(diferenca % 60)
-                self.__logger.debug(menssagem= f'Fim da stream: {minutos}:{segundos}min')
+                self.__logger.debug(mensagem= f'Fim da stream: {minutos}:{segundos}min')
 
     @property
     def pegaErro(self) -> str:

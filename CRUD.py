@@ -979,21 +979,21 @@ class CRUD:
                         if CHAVE_ID_TRABALHO in dicionarioTrabalhoProducao:
                             meuBanco.child(CHAVE_PRODUCAO).child(idpersonagem).child(idTrabalhoProducao).update({CHAVE_ESTADO: dicionarioTrabalhoProducao[CHAVE_ESTADO], CHAVE_ID: dicionarioTrabalhoProducao[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoProducao[CHAVE_ID_TRABALHO], CHAVE_RECORRENCIA: dicionarioTrabalhoProducao[CHAVE_RECORRENCIA], CHAVE_TIPO_LICENCA: dicionarioTrabalhoProducao['tipo_licenca']})
                             continue
-                        logger.error(menssagem= f'Erro ao inserir trabalho de produção: {idTrabalhoProducao} não possue atributo idTrabalho')
+                        logger.error(mensagem= f'Erro ao inserir trabalho de produção: {idTrabalhoProducao} não possue atributo idTrabalho')
                 if CHAVE_LISTA_ESTOQUE in dicionarioPersonagem:
                     for idTrabalhoEstoque in dicionarioPersonagem[CHAVE_LISTA_ESTOQUE]:
                         dicionarioTrabalhoEstoque: dict= dicionarioPersonagem[CHAVE_LISTA_ESTOQUE][idTrabalhoEstoque]
                         if CHAVE_TRABALHO_ID in dicionarioTrabalhoEstoque:
                             meuBanco.child(CHAVE_ESTOQUE).child(idpersonagem).child(idTrabalhoEstoque).update({CHAVE_ID: dicionarioTrabalhoEstoque[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoEstoque[CHAVE_TRABALHO_ID], CHAVE_QUANTIDADE: dicionarioTrabalhoEstoque[CHAVE_QUANTIDADE]})
                             continue
-                        logger.error(menssagem= f'Erro ao inserir trabalho de estoque: {idTrabalhoEstoque} não possue atributo trabalhoId')
+                        logger.error(mensagem= f'Erro ao inserir trabalho de estoque: {idTrabalhoEstoque} não possue atributo trabalhoId')
                 if CHAVE_LISTA_VENDAS in dicionarioPersonagem:
                     for idTrabalhoVendido in dicionarioPersonagem[CHAVE_LISTA_VENDAS]:
                         dicionarioTrabalhoVendido: dict= dicionarioPersonagem[CHAVE_LISTA_VENDAS][idTrabalhoVendido]
                         if CHAVE_ID_TRABALHO in dicionarioTrabalhoVendido:
                             meuBanco.child(CHAVE_VENDAS).child(idpersonagem).child(idTrabalhoVendido).update({CHAVE_ID: dicionarioTrabalhoVendido[CHAVE_ID], CHAVE_ID_TRABALHO: dicionarioTrabalhoVendido[CHAVE_ID_TRABALHO], CHAVE_DATA_VENDA: dicionarioTrabalhoVendido[CHAVE_DATA_VENDA], CHAVE_DESCRICAO: dicionarioTrabalhoVendido[CHAVE_DESCRICAO], CHAVE_QUANTIDADE: dicionarioTrabalhoVendido[CHAVE_QUANTIDADE], CHAVE_VALOR: dicionarioTrabalhoVendido[CHAVE_VALOR]})
                             continue
-                        logger.error(menssagem= f'Erro ao inserir trabalho de estoque: {idTrabalhoVendido} não possue atributo trabalhoId')
+                        logger.error(mensagem= f'Erro ao inserir trabalho de estoque: {idTrabalhoVendido} não possue atributo trabalhoId')
         input('Clique para continuar...')
         
     def menu(self):

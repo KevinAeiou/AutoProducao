@@ -6,14 +6,14 @@ from firebase_admin import db
 
 class RepositorioUsuario:
     def __init__(self):
-        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_USUARIO, arquivoLogger= f'{CHAVE_REPOSITORIO_USUARIO}.log')
+        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_USUARIO, arquivo_logger= f'{CHAVE_REPOSITORIO_USUARIO}.log')
         self.__erro: str= None
         firebaseDb: FirebaseDatabase = FirebaseDatabase()
         try:
             meuBanco: db = firebaseDb.banco
             self.__minhaReferencia: db.Reference= meuBanco.reference(CHAVE_USUARIOS2).child(CHAVE_ID_USUARIO).child(CHAVE_PERSONAGENS)
         except Exception as e:
-            self.__logger.error(menssagem= f'Erro: {e}')
+            self.__logger.error(mensagem= f'Erro: {e}')
 
     def verificaIdPersonagem(self, id: str) -> bool:
         '''
@@ -26,11 +26,11 @@ class RepositorioUsuario:
         try:
             resultado: dict= self.__minhaReferencia.child(id).get()
             pertence: bool= resultado is not None
-            self.__logger.debug(menssagem= f'{id} pertence ao usuário {CHAVE_ID_USUARIO}: {pertence}')
+            self.__logger.debug(mensagem= f'{id} pertence ao usuário {CHAVE_ID_USUARIO}: {pertence}')
             return pertence
         except Exception as e:
             self.__erro= str(e)
-            self.__logger.error(menssagem= f'Erro ao verificar se id de personagem ({id}) pertence ao usuario {CHAVE_ID_USUARIO}')
+            self.__logger.error(mensagem= f'Erro ao verificar se id de personagem ({id}) pertence ao usuario {CHAVE_ID_USUARIO}')
         return False
     
     @property

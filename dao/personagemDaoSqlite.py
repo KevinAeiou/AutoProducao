@@ -13,7 +13,7 @@ class PersonagemDaoSqlite():
         self.__erro = None
         self.__fabrica = None
         self.__logger: MeuLogger= MeuLogger(nome= 'personagemDao')
-        self.__logger.debug(menssagem= f'Inicializando PersonagemDaoSqlite')
+        self.__logger.debug(mensagem= f'Inicializando PersonagemDaoSqlite')
         try:
             self.__repositorioPersonagem = RepositorioPersonagem()
         except Exception as e:

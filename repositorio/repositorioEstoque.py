@@ -12,7 +12,7 @@ class RepositorioEstoque(Stream):
     def __init__(self, personagem: Personagem= None):
         super().__init__(chave= CHAVE_ESTOQUE, nomeLogger= CHAVE_REPOSITORIO_ESTOQUE)
         personagem = Personagem() if personagem is None else personagem
-        self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_ESTOQUE, arquivoLogger= f'{CHAVE_REPOSITORIO_ESTOQUE}.log')
+        self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_ESTOQUE, arquivo_logger= f'{CHAVE_REPOSITORIO_ESTOQUE}.log')
         firebaseDb: FirebaseDatabase = FirebaseDatabase()
         self.__personagem: Personagem= personagem
         self.__erro: str= None
@@ -20,15 +20,15 @@ class RepositorioEstoque(Stream):
             meuBanco: db = firebaseDb.banco
             self.__minhaReferencia: db.Reference = meuBanco.reference(CHAVE_ESTOQUE).child(self.__personagem.id)
         except Exception as e:
-            self.__logger.error(menssagem= f'Erro: {e}')
+            self.__logger.error(mensagem= f'Erro: {e}')
         
     def streamHandler(self, evento: Event):
         super().streamHandler(evento= evento)
         if evento.event_type in (STRING_PUT, STRING_PATCH):
             if evento.path == '/':
                 return
-            self.__logger.debug(menssagem= evento.path)
-            self.__logger.debug(menssagem= evento.data)
+            self.__logger.debug(mensagem= evento.path)
+            self.__logger.debug(mensagem= evento.data)
             ids: list[str]= evento.path.split('/')
             dicionarioTrabalho: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if evento.data is None:
@@ -55,14 +55,14 @@ class RepositorioEstoque(Stream):
                 trabalhoEstoque: TrabalhoEstoque= TrabalhoEstoque()
                 trabalhoEstoque.dicionarioParaObjeto(valor)
                 listaEstoque.append(trabalhoEstoque)
-            self.__logger.debug(menssagem= f'Estoque recuperado com sucesso!')
+            self.__logger.debug(mensagem= f'Estoque recuperado com sucesso!')
             return listaEstoque
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao recuperar trabalhos no estoque: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao recuperar trabalhos no estoque: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao recuperar trabalhos no estoque: {e}')
+            self.__logger.error(mensagem= f'Erro ao recuperar trabalhos no estoque: {e}')
         return None
         
     def insereTrabalhoEstoque(self, trabalho: TrabalhoEstoque):
@@ -74,40 +74,40 @@ class RepositorioEstoque(Stream):
                         trabalho.id = chave
                         break
             self.__minhaReferencia.child(trabalho.id).set({CHAVE_ID: trabalho.id, CHAVE_QUANTIDADE: trabalho.quantidade, CHAVE_ID_TRABALHO: trabalho.idTrabalho})
-            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) inserido com sucesso!')
+            self.__logger.debug(mensagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) inserido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao inserir trabalho no estoque: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao inserir trabalho no estoque: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao inserir trabalho no estoque: {e}')
+            self.__logger.error(mensagem= f'Erro ao inserir trabalho no estoque: {e}')
         return False
 
     def modificaTrabalhoEstoque(self, trabalho: TrabalhoEstoque) -> bool:
         try:
             self.__minhaReferencia.child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_QUANTIDADE: trabalho.quantidade})
-            self.__logger.debug(menssagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) modificado com sucesso!')
+            self.__logger.debug(mensagem= f'Trabalho ({self.__personagem.id.ljust(36)} | {trabalho}) modificado com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao modificar trabalho no estoque: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao modificar trabalho no estoque: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao modificar trabalho no estoque: {e}')
+            self.__logger.error(mensagem= f'Erro ao modificar trabalho no estoque: {e}')
         return False
     
     def removeTrabalho(self, trabalho: TrabalhoEstoque) -> bool:
         try:
             self.__minhaReferencia.child(trabalho.id).delete()
-            self.__logger.debug(menssagem= f'Trabalho ({trabalho}) removido com sucesso!')
+            self.__logger.debug(mensagem= f'Trabalho ({trabalho}) removido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao remover trabalho no estoque: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao remover trabalho no estoque: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao remover trabalho no estoque: {e}')
+            self.__logger.error(mensagem= f'Erro ao remover trabalho no estoque: {e}')
         return False
 
     @property

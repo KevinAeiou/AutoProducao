@@ -13,7 +13,7 @@ from time import time
 class RepositorioPersonagem(Stream):
     def __init__(self):
         super().__init__(chave=CHAVE_PERSONAGENS, nomeLogger= CHAVE_REPOSITORIO_PERSONAGEM)
-        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_PERSONAGEM, arquivoLogger= f'{CHAVE_REPOSITORIO_PERSONAGEM}.log')
+        self.__logger: MeuLogger= MeuLogger(nome= CHAVE_REPOSITORIO_PERSONAGEM, arquivo_logger= f'{CHAVE_REPOSITORIO_PERSONAGEM}.log')
         self.__erro = None
         firebaseDb: FirebaseDatabase = FirebaseDatabase()
         try:
@@ -25,15 +25,15 @@ class RepositorioPersonagem(Stream):
             self.__minhaReferenciaEstoque: db.Reference = meuBanco.reference(CHAVE_ESTOQUE)
             self.__minhaReferenciaVendas: db.Reference = meuBanco.reference(CHAVE_VENDAS)
         except Exception as e:
-            self.__logger.error(menssagem= f'Erro: {e}')
+            self.__logger.error(mensagem= f'Erro: {e}')
     
     def streamHandler(self, evento: Event):
         super().streamHandler(evento= evento)
         if evento.event_type in (STRING_PUT, STRING_PATCH):
             if evento.path == "/":
                 return
-            self.__logger.debug(menssagem= evento.path)
-            self.__logger.debug(menssagem= evento.data)
+            self.__logger.debug(mensagem= evento.path)
+            self.__logger.debug(mensagem= evento.data)
             caminho: str= evento.path
             idPersonagem: str= caminho.replace('/', '').strip()
             dicionarioPersonagem: dict= {CHAVE_ID: idPersonagem}
@@ -60,64 +60,64 @@ class RepositorioPersonagem(Stream):
                     personagem.dicionarioParaObjeto(valor2)
                     break
                 personagens.append(personagem)
-            self.__logger.debug(menssagem= f'Personagens recuperados com sucesso!')
+            self.__logger.debug(mensagem= f'Personagens recuperados com sucesso!')
             return personagens
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao pegar personagens: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao pegar personagens: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao pegar personagens: {e}')
+            self.__logger.error(mensagem= f'Erro ao pegar personagens: {e}')
         return None
     
     def inserePersonagem(self, personagem: Personagem) -> bool:
         try:
             self.__minhaReferenciaUsuarios.update({personagem.id: True})
             self.__minhaReferenciaPersonagens.child(personagem.id).set(personagem.__dict__)
-            self.__logger.debug(menssagem= f'Personagem ({personagem}) inserido com sucesso!')
+            self.__logger.debug(mensagem= f'Personagem ({personagem}) inserido com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao inserir personagem: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao inserir personagem: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao inserir personagem: {e}')
+            self.__logger.error(mensagem= f'Erro ao inserir personagem: {e}')
         return False
     
     def modificaPersonagem(self, personagem: Personagem) -> bool:
         try:
             self.__minhaReferenciaPersonagens.child(personagem.id).update(personagem.__dict__)
-            self.__logger.debug(menssagem= f'Personagem ({personagem}) modificado com sucesso!')
+            self.__logger.debug(mensagem= f'Personagem ({personagem}) modificado com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao modificar personagem: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao modificar personagem: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao modificar personagem: {e}')
+            self.__logger.error(mensagem= f'Erro ao modificar personagem: {e}')
         return False
     
     def removePersonagem(self, personagem: Personagem) -> bool:
         try:
             self.__minhaReferenciaPersonagens.child(personagem.id).delete()
-            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de personagens.')
+            self.__logger.debug(mensagem= f'Referência de personagem ({personagem.id}) removida da lista de personagens.')
             self.__minhaReferenciaUsuarios.child(personagem.id).delete()
-            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de usuários.')
+            self.__logger.debug(mensagem= f'Referência de personagem ({personagem.id}) removida da lista de usuários.')
             self.__minhaReferenciaProfissoes.child(personagem.id).delete()
-            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de profissões.')
+            self.__logger.debug(mensagem= f'Referência de personagem ({personagem.id}) removida da lista de profissões.')
             self.__minhaReferenciaProducoes.child(personagem.id).delete()
-            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de produções.')
+            self.__logger.debug(mensagem= f'Referência de personagem ({personagem.id}) removida da lista de produções.')
             self.__minhaReferenciaEstoque.child(personagem.id).delete()
-            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de estoque.')
+            self.__logger.debug(mensagem= f'Referência de personagem ({personagem.id}) removida da lista de estoque.')
             self.__minhaReferenciaVendas.child(personagem.id).delete()
-            self.__logger.debug(menssagem= f'Referência de personagem ({personagem.id}) removida da lista de vendas.')
+            self.__logger.debug(mensagem= f'Referência de personagem ({personagem.id}) removida da lista de vendas.')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao remover personagem: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao remover personagem: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao remover personagem: {e}')
+            self.__logger.error(mensagem= f'Erro ao remover personagem: {e}')
         return False
 
     @property

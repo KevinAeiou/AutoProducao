@@ -71,7 +71,7 @@ class Aplicacao:
             self.__trabalhoProducaoDao: TrabalhoProducaoDaoSqlite= TrabalhoProducaoDaoSqlite(banco= __meuBanco)
             self.__vendasDao: VendaDaoSqlite= VendaDaoSqlite(banco= __meuBanco)
         except Exception as e:
-            self.__logger_aplicacao.critical(menssagem= f'Erro: {e}')
+            self.__logger_aplicacao.critical(mensagem= f'Erro: {e}')
 
     def personagemEmUso(self, personagem: Personagem = None):
         self.__personagemEmUso = personagem
@@ -389,7 +389,7 @@ class Aplicacao:
                 conteudoCorrespondencia (str): String que contêm o texto reconhecido do conteudo da correspondencia reconhecida.
         '''
         conteudoCorrespondencia: str = self.__imagem.retornaTextoCorrespondenciaReconhecido()
-        self.__logger_aplicacao.debug(menssagem= f'Conteúdo correspondencia: {conteudoCorrespondencia}')
+        self.__logger_aplicacao.debug(mensagem= f'Conteúdo correspondencia: {conteudoCorrespondencia}')
         return conteudoCorrespondencia
     
     def processaConteudoReconhecido(self, conteudo: str) -> TrabalhoVendido | None:
@@ -494,7 +494,7 @@ class Aplicacao:
                 continue
             self.insereTrabalhoVendido(trabalhoVendido)
             self.atualizaQuantidadeTrabalhoEstoque(trabalhoVendido)
-        self.__logger_aplicacao.debug(menssagem= f'Caixa de correio está vazia!')
+        self.__logger_aplicacao.debug(mensagem= f'Caixa de correio está vazia!')
         cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
 
     def reconheceRecuperaTrabalhoConcluido(self) -> str | None:
@@ -580,12 +580,12 @@ class Aplicacao:
 
 
     def modificaTrabalhoConcluidoListaProduzirProduzindo(self, trabalhoProducaoConcluido: TrabalhoProducao):
-        self.__logger_aplicacao.debug(menssagem= f'Modificando o estado do trabalho para produção concluído.')
+        self.__logger_aplicacao.debug(mensagem= f'Modificando o estado do trabalho para produção concluído.')
         trabalho: Trabalho = self.pegaTrabalhoPorId(trabalhoProducaoConcluido.idTrabalho)
         if trabalho is None or trabalho.nome is None:
             return
         if trabalho.ehProducaoRecursos:
-            self.__logger_aplicacao.debug(menssagem= f'Trabalho é produção de recursos.')
+            self.__logger_aplicacao.debug(mensagem= f'Trabalho é produção de recursos.')
             trabalhoProducaoConcluido.recorrencia = True
         if trabalhoProducaoConcluido.ehRecorrente:
             self.__logger_aplicacao.debug(f'Trabalho é recorrente.')
@@ -610,7 +610,7 @@ class Aplicacao:
                 profissoes (list[Profissao]): Lista de objetos da classe Profissao encontrados no banco de dados.
         '''
         personagem = self.__personagemEmUso if personagem is None else personagem
-        self.__logger_aplicacao.debug(menssagem= f'Pegando profissões de ({personagem.nome})')
+        self.__logger_aplicacao.debug(mensagem= f'Pegando profissões de ({personagem.nome})')
         profissoes: list[Profissao] = self.__profissaoDao.pegaProfissoesPorIdPersonagem(personagem= personagem)
         if profissoes is None:
             self.__loggerProfissaoDao.error(f'Erro ao buscar profissões no banco ({self.__personagemEmUso.nome}): {self.__profissaoDao.pegaErro}')
@@ -854,13 +854,13 @@ class Aplicacao:
                 trabalho_producao_estoque (TrabalhoProducao): Objeto da classe TrabalhoProducao que contêm os atributos do trabalho melhorado para produção.
         '''
         if trabalho_concluido.ehComum and not trabalho_concluido.ehProducaoRecursos:
-            self.__logger_aplicacao.debug(menssagem= f'Raridade de ({trabalho_concluido}) é Comum')
+            self.__logger_aplicacao.debug(mensagem= f'Raridade de ({trabalho_concluido}) é Comum')
             profissao: Profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalho_concluido)
             if profissao.eh_nivel_producao_melhorada:
-                self.__logger_aplicacao.debug(menssagem= f'Nível da profissão ({profissao}) é para melhoria')
+                self.__logger_aplicacao.debug(mensagem= f'Nível da profissão ({profissao}) é para melhoria')
                 trabalho_melhorado: Trabalho = self.recupera_trabalho_por_id_trabalho_necessario(id= trabalho_concluido.idTrabalho)
                 if trabalho_melhorado is None: return None
-                self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: ({trabalho_melhorado.id.ljust(40)} | {trabalho_melhorado} | {trabalho_melhorado.trabalhoNecessario})')
+                self.__logger_aplicacao.debug(mensagem= f'Trabalho encontrado: ({trabalho_melhorado.id.ljust(40)} | {trabalho_melhorado} | {trabalho_melhorado.trabalhoNecessario})')
                 if self.quantidade_trabalhos_necessarios_estoque_insuficiente(trabalho_melhorado): return
                 trabalho_raro: Trabalho = self.recupera_trabalho_por_id_trabalho_necessario(id= trabalho_melhorado.id)
                 if trabalho_raro is None: return None
@@ -868,7 +868,7 @@ class Aplicacao:
                 if self.trabalho_esta_na_lista_producao(id= trabalho_melhorado.id): return None
                 if not self.existe_zero_unidade_estoque(trabalho_melhorado): return None
                 return self.define_trabalho_producao_melhorado(idTrabalho= trabalho_melhorado.id)
-            self.__logger_aplicacao.debug(menssagem= f'Nível da profissão ({profissao}) não é para melhoria')
+            self.__logger_aplicacao.debug(mensagem= f'Nível da profissão ({profissao}) não é para melhoria')
         return None
     
     def quantidade_trabalhos_necessarios_estoque_insuficiente(self, trabalho_buscado: Trabalho) -> bool:
@@ -886,7 +886,7 @@ class Aplicacao:
             trabalho_buscado: Trabalho = Trabalho()
             trabalho_buscado.id = id_trabalho
             if self.existe_zero_unidade_estoque(trabalho_buscado):
-                self.__logger_aplicacao.debug(menssagem= f'Quantidade de ({id_trabalho}) no estoque é insuficiente')
+                self.__logger_aplicacao.debug(mensagem= f'Quantidade de ({id_trabalho}) no estoque é insuficiente')
                 return True
         return False
     
@@ -900,7 +900,7 @@ class Aplicacao:
         '''
         quantidade_estoque: int = self.recupera_quantidade_trabalho_estoque(id_trabalho= trabalho_buscado.id)
         if quantidade_estoque == 0:
-            self.__logger_aplicacao.debug(menssagem= f'Zero(0) unidade de ({trabalho_buscado}) encontrado no estoque')
+            self.__logger_aplicacao.debug(mensagem= f'Zero(0) unidade de ({trabalho_buscado}) encontrado no estoque')
             return True
         return False
 
@@ -934,9 +934,9 @@ class Aplicacao:
         '''
         nomeReconhecido: str = self.__imagem.retornaTextoNomePersonagemReconhecido(posicao= 0)
         if nomeReconhecido is None:
-            self.__logger_aplicacao.debug(menssagem= f'Nome do personagem não reconhecido')
+            self.__logger_aplicacao.debug(mensagem= f'Nome do personagem não reconhecido')
             return listaPersonagemPresenteRecuperado
-        self.__logger_aplicacao.debug(menssagem= f'{nomeReconhecido} foi adicionado a lista')
+        self.__logger_aplicacao.debug(mensagem= f'{nomeReconhecido} foi adicionado a lista')
         listaPersonagemPresenteRecuperado.append(nomeReconhecido)
         return listaPersonagemPresenteRecuperado
 
@@ -945,12 +945,12 @@ class Aplicacao:
             Método para reconhecer a(s) recompensa(s) diária(s).
         '''
         evento: int = 0
-        self.__logger_aplicacao.debug(menssagem= f'Buscando recompensa(s) diária(s)')
+        self.__logger_aplicacao.debug(mensagem= f'Buscando recompensa(s) diária(s)')
         while evento < 2:
             sleep(2)
             referenciaEncontrada: list[float] = self.__imagem.verificaRecompensaDisponivel()
             if referenciaEncontrada is not None:
-                self.__logger_aplicacao.debug(menssagem= f'Referência "Pegar" encontrada: {referenciaEncontrada}')
+                self.__logger_aplicacao.debug(mensagem= f'Referência "Pegar" encontrada: {referenciaEncontrada}')
                 cliqueMouseEsquerdo(cliques= 1, xTela= referenciaEncontrada[0], yTela= referenciaEncontrada[1])
                 posicionaMouseEsquerdo(xTela= 360, yTela= 600)
                 if erroEncontrado(codigoErro= self.verificaErro()):
@@ -977,7 +977,7 @@ class Aplicacao:
         if ehMenuRecompensasDiarias(menu= codigoMenu):
             self.recuperaPresente()
             return True
-        self.__logger_aplicacao.debug(menssagem= f'Recompensa diária já recebida!')
+        self.__logger_aplicacao.debug(mensagem= f'Recompensa diária já recebida!')
         return True
 
     def deslogaPersonagem(self, codigoMenu: int = None):
@@ -1017,7 +1017,7 @@ class Aplicacao:
                 bool: Verdadeiro caso o login seja realizado com sucesso. Falso caso contrário.
         '''
         confirmacao = False
-        self.__logger_aplicacao.debug(menssagem= f'Buscando próximo personagem')
+        self.__logger_aplicacao.debug(mensagem= f'Buscando próximo personagem')
         clickEspecifico(cliques= 1, teclaEspecifica= 'enter')
         sleep(1)
         tentativas: int = 1
@@ -1033,7 +1033,7 @@ class Aplicacao:
         self.processaMenuEscolhaPersonagem(personagensVerificados)
         nomePersonagemReconhecido: str = self.__imagem.retornaTextoNomePersonagemReconhecido(posicao= 1)               
         if nomePersonagemReconhecido is None:
-            self.__logger_aplicacao.debug(menssagem= f'Fim da lista de personagens!')
+            self.__logger_aplicacao.debug(mensagem= f'Fim da lista de personagens!')
             clickEspecifico(1, 'f1')
             return confirmacao
         while True:
@@ -1060,7 +1060,7 @@ class Aplicacao:
                 sleep(1.5)
                 condigoErro = self.verificaErro()
             confirmacao = True
-            self.__logger_aplicacao.debug(menssagem= f'Login efetuado com sucesso')
+            self.__logger_aplicacao.debug(mensagem= f'Login efetuado com sucesso')
             break
         return confirmacao
 
@@ -1088,13 +1088,13 @@ class Aplicacao:
                     vaiParaMenuCorrespondencia()
                     self.recuperaCorrespondencia()
                     self.ofertaTrabalho()
-                self.__logger_aplicacao.debug(menssagem= f'Personagens verificados: {personagensVerificados}')
+                self.__logger_aplicacao.debug(mensagem= f'Personagens verificados: {personagensVerificados}')
                 self.deslogaPersonagem()
                 if self.entraPersonagem(personagensVerificados):
                     personagensVerificados = self.retornaListaPersonagemRecompensaRecebida(personagensVerificados)
                     codigoMenu: int = self.retornaMenu()
                     continue
-                self.__logger_aplicacao.debug(menssagem= f'Todos os personagens foram verificados!')
+                self.__logger_aplicacao.debug(mensagem= f'Todos os personagens foram verificados!')
                 break
             codigoMenu: int = self.retornaMenu()
 
@@ -1340,7 +1340,7 @@ class Aplicacao:
             self.__loggerTrabalhoDao.error(f'Erro ao recuperar trabalho por "id" de "trabalhoNecessario" ({id}) no banco: {self.__trabalhoDao.pegaErro}')
             return None
         if trabalhoEncontrado.nome is None:
-            self.__loggerTrabalhoDao.debug(menssagem= f"'{id}' não foi encontrado em nem um 'trabalhoNecessario' de trabalho")
+            self.__loggerTrabalhoDao.debug(mensagem= f"'{id}' não foi encontrado em nem um 'trabalhoNecessario' de trabalho")
             return None
         return trabalhoEncontrado
 
@@ -1395,7 +1395,7 @@ class Aplicacao:
         profissoes: list[Profissao] = self.pegaProfissoes()
         trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducao()
         if ehVazia(profissoes):
-            self.__loggerProfissaoDao.warning(menssagem= f'Profissões está vazia!')
+            self.__loggerProfissaoDao.warning(mensagem= f'Profissões está vazia!')
             return
         for profissao in profissoes:
             for trabalhoProducao in trabalhosProducao:
@@ -1409,21 +1409,21 @@ class Aplicacao:
 
     def mostraListaProfissoesNecessarias(self) -> None:
         if ehVazia(self.__listaProfissoesNecessarias):
-            self.__logger_aplicacao.debug(menssagem= f'Profissões necessárias está vazia!')
+            self.__logger_aplicacao.debug(mensagem= f'Profissões necessárias está vazia!')
             return
-        self.__logger_aplicacao.debug(menssagem= f'Profissões necessárias:')
+        self.__logger_aplicacao.debug(mensagem= f'Profissões necessárias:')
         for profissaoNecessaria in self.__listaProfissoesNecessarias:
             nome: str= 'Indefinido' if profissaoNecessaria.nome is None else profissaoNecessaria.nome
             experiencia: str= 'Indefinido' if profissaoNecessaria.experiencia is None else str(profissaoNecessaria.experiencia)
             prioridade: str= 'Verdadeiro' if profissaoNecessaria.prioridade else 'Falso'
-            self.__logger_aplicacao.debug(menssagem= f'{(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}')
+            self.__logger_aplicacao.debug(mensagem= f'{(nome).ljust(22)} | {experiencia.ljust(6)} | {prioridade.ljust(10)}')
 
     def insereItemListaProfissoesNecessarias(self, profissao: Profissao) -> None:
-        self.__logger_aplicacao.debug(menssagem= f'({profissao.nome}) foi adicionado a lista de profissões necessárias')
+        self.__logger_aplicacao.debug(mensagem= f'({profissao.nome}) foi adicionado a lista de profissões necessárias')
         self.__listaProfissoesNecessarias.append(profissao)
 
     def limpaListaProfissoesNecessarias(self) -> None:
-        self.__logger_aplicacao.debug(menssagem= f'Profissões necessárias foi limpa')
+        self.__logger_aplicacao.debug(mensagem= f'Profissões necessárias foi limpa')
         self.__listaProfissoesNecessarias.clear()
 
     def retornaContadorEspacosProducao(self, contadorEspacosProducao: int, nivel: int):
@@ -1644,7 +1644,7 @@ class Aplicacao:
         '''
             Método para definir o objeto da classe TrabalhoRecurso que contêm os atributos do tipo e nível do trabalho produzindo.
         '''
-        self.__logger_aplicacao.debug(menssagem= f'Definindo objeto da classe TrabalhoRecurso')
+        self.__logger_aplicacao.debug(mensagem= f'Definindo objeto da classe TrabalhoRecurso')
         nivelTrabalhoProducao: int = trabalho.nivel
         nivelRecurso: int = 1
         recursoTerciario: int = 0
@@ -1930,33 +1930,33 @@ class Aplicacao:
         return listaPossiveisTrabalhos
 
     def retorna_trabalho_producao_concluido(self, nome_trabalho_reconhecido: str) -> TrabalhoProducao | None:
-        self.__logger_aplicacao.debug(menssagem= f'Recuperando trabalho para produção correspondente ao concluído.')
+        self.__logger_aplicacao.debug(mensagem= f'Recuperando trabalho para produção correspondente ao concluído.')
         possiveis_trabalhos_producao: list[TrabalhoProducao] = self.retornaListaPossiveisTrabalhos(nome_trabalho_reconhecido)
         if ehVazia(possiveis_trabalhos_producao):
             self.__logger_aplicacao.warning(f'Falha ao criar lista de possíveis trabalhos concluídos ({nome_trabalho_reconhecido})...')
             return None
         trabalhos_producao_encontrados: list[TrabalhoProducao] = self.recupera_trabalhos_producao_estado_produzindo()
         if trabalhos_producao_encontrados is None:
-            self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {possiveis_trabalhos_producao[0]}')
+            self.__logger_aplicacao.debug(mensagem= f'Trabalho encontrado: {possiveis_trabalhos_producao[0]}')
             return possiveis_trabalhos_producao[0]
         self.mostra_lista_trabalhos_producao_produzindo(trabalhos_producao_encontrados)
         for provavel_trabalho_producao in possiveis_trabalhos_producao:
             for trabalho_produzindo_encontrado in trabalhos_producao_encontrados:
                 if textoEhIgual(trabalho_produzindo_encontrado.nome, provavel_trabalho_producao.nome):
-                    self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {trabalho_produzindo_encontrado}')
+                    self.__logger_aplicacao.debug(mensagem= f'Trabalho encontrado: {trabalho_produzindo_encontrado}')
                     return trabalho_produzindo_encontrado
         else:
             for possivel_trabalho in possiveis_trabalhos_producao:
                 self.__logger_aplicacao.warning(f'Possível trabalho concluído ({possivel_trabalho.nome}) não encontrado na lista produzindo...')
-            self.__logger_aplicacao.debug(menssagem= f'Trabalho encontrado: {possiveis_trabalhos_producao[0]}')
+            self.__logger_aplicacao.debug(mensagem= f'Trabalho encontrado: {possiveis_trabalhos_producao[0]}')
             return possiveis_trabalhos_producao[0]
 
     def mostra_lista_trabalhos_producao_produzindo(self, trabalhos_producao: list[TrabalhoProducao]):
         if ehVazia(trabalhos_producao):
-            self.__logger_aplicacao.debug(menssagem= f"Lista de trabalhos para produção com estado igual a 'produzindo' (1) está vazia")
+            self.__logger_aplicacao.debug(mensagem= f"Lista de trabalhos para produção com estado igual a 'produzindo' (1) está vazia")
             return
         for trabalho_encontrado in trabalhos_producao:
-            self.__logger_aplicacao.debug(menssagem= f"Trabalho encontrado: {trabalho_encontrado.id.ljust(40)} | {trabalho_encontrado}")
+            self.__logger_aplicacao.debug(mensagem= f"Trabalho encontrado: {trabalho_encontrado.id.ljust(40)} | {trabalho_encontrado}")
     
     def existeEspacoProducao(self) -> bool:
         espacoProducao: int = self.__personagemEmUso.espacoProducao
@@ -1990,7 +1990,7 @@ class Aplicacao:
             posicao: int= self.retornaPosicaoProfissaoNecessaria(profissaoNecessaria= profissao)
             if posicao == 0: break
             entraProfissaoEspecifica(posicao)
-            self.__logger_aplicacao.debug(menssagem= f'Verificando profissão: {profissao.nome}')
+            self.__logger_aplicacao.debug(mensagem= f'Verificando profissão: {profissao.nome}')
             dicionarioTrabalho[CHAVE_PROFISSAO] = profissao.nome
             dicionarioTrabalho = self.veficaTrabalhosProducaoListaDesejos(dicionarioTrabalho)
             if chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
@@ -2253,7 +2253,7 @@ class Aplicacao:
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
             if profissao.prioridade:
-                self.__loggerProfissaoDao.debug(menssagem= f'Profissão priorizada encontrada: ({profissao.nome})')
+                self.__loggerProfissaoDao.debug(mensagem= f'Profissão priorizada encontrada: ({profissao.nome})')
                 profissoesPriorizadas.append(profissao)
         return profissoesPriorizadas
     
@@ -2372,12 +2372,12 @@ class Aplicacao:
             self.__loggerProfissaoDao.warning(f'Nem uma profissão priorizada encontrada!')
             return
         for profissao_priorizada in profissoes_priorizadas:
-            self.__loggerProfissaoDao.debug(menssagem= f'Verificando profissão priorizada: {profissao_priorizada.nome}')
+            self.__loggerProfissaoDao.debug(mensagem= f'Verificando profissão priorizada: {profissao_priorizada.nome}')
             nivel_profissao: int = profissao_priorizada.nivel()
-            self.__loggerProfissaoDao.debug(menssagem= f'Nível profissão priorizada: {nivel_profissao}')
+            self.__loggerProfissaoDao.debug(mensagem= f'Nível profissão priorizada: {nivel_profissao}')
             self.define_trabalho_melhorado_profissao_priorizada(profissao_priorizada, nivel_profissao)
             trabalho_buscado: Trabalho = self.define_trabalho_buscado(profissao_priorizada, nivel_profissao, CHAVE_RARIDADE_COMUM)
-            self.__loggerProfissaoDao.debug(menssagem= f'Trabalho buscado: {trabalho_buscado}')
+            self.__loggerProfissaoDao.debug(mensagem= f'Trabalho buscado: {trabalho_buscado}')
             trabalhos_comuns_profissao_nivel_expecifico: list[Trabalho] = self.define_trabalhos_por_profissao_nivel_raridade(trabalho_buscado)
             if ehVazia(trabalhos_comuns_profissao_nivel_expecifico):
                 continue
@@ -2388,7 +2388,7 @@ class Aplicacao:
                 trabalhos_quantidade= sorted(trabalhos_quantidade, key=lambda trabalho: trabalho.quantidade)
                 quantidade_trabalhos_em_producao_eh_maior_igual_ao_tamanho_lista_trabalhos_comuns = quantidade_total_trabalho_producao >= len(trabalhos_comuns_profissao_nivel_expecifico)
                 if quantidade_trabalhos_em_producao_eh_maior_igual_ao_tamanho_lista_trabalhos_comuns:
-                    self.__loggerProfissaoDao.debug(menssagem= f'Existem ({quantidade_total_trabalho_producao}) ou mais trabalhos sendo produzidos!')
+                    self.__loggerProfissaoDao.debug(mensagem= f'Existem ({quantidade_total_trabalho_producao}) ou mais trabalhos sendo produzidos!')
                     break
                 trabalho_comum: TrabalhoProducao = self.define_trabalho_producao_comum(trabalhos_quantidade)
                 if nivel_profissao == 1 or nivel_profissao == 8:
@@ -2412,12 +2412,12 @@ class Aplicacao:
                 nivelProfissao (int): Inteiro que contêm o nível da profissão priorizada.
         '''
         if profissaoPriorizada.eh_nivel_producao_melhorada:
-            self.__logger_aplicacao.debug(menssagem= f'Nível({nivelProfissao}) de ({profissaoPriorizada.nome}) é para melhoria de trabalhos.')
+            self.__logger_aplicacao.debug(mensagem= f'Nível({nivelProfissao}) de ({profissaoPriorizada.nome}) é para melhoria de trabalhos.')
             trabalhoBuscado: Trabalho = self.define_trabalho_buscado(profissaoPriorizada, nivelProfissao, CHAVE_RARIDADE_RARO)
             trabalhosRarosProfissaoNivelExpecifico: list[Trabalho] = self.define_trabalhos_por_profissao_nivel_raridade(trabalhoBuscado)
             self.verificaTrabalhosRarosEncontrados(trabalhosRarosProfissaoNivelExpecifico)
             return
-        self.__logger_aplicacao.debug(menssagem= f'Nível({nivelProfissao}) de ({profissaoPriorizada.nome}) não é para melhoria de trabalhos.')
+        self.__logger_aplicacao.debug(mensagem= f'Nível({nivelProfissao}) de ({profissaoPriorizada.nome}) não é para melhoria de trabalhos.')
 
     def define_trabalhos_por_profissao_nivel_raridade(self, trabalhoBuscado: Trabalho):
         '''
@@ -2427,13 +2427,13 @@ class Aplicacao:
             Returns:
                 trabalhosRaros (list[Trabalho]): Lista de objetos da classe Trabalho que foram encontrados no banco de dados.
         '''
-        self.__logger_aplicacao.debug(menssagem= f'Recuperando trabalhos ({trabalhoBuscado.profissao.ljust(22)}, {str(trabalhoBuscado.nivel).ljust(2)}, {trabalhoBuscado.raridade})')
+        self.__logger_aplicacao.debug(mensagem= f'Recuperando trabalhos ({trabalhoBuscado.profissao.ljust(22)}, {str(trabalhoBuscado.nivel).ljust(2)}, {trabalhoBuscado.raridade})')
         trabalhosEncontrados: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalhoBuscado)
         if ehVazia(trabalhosEncontrados):
             self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalhoBuscado.nivel}), raridade ({trabalhoBuscado.raridade}) e profissão ({trabalhoBuscado.profissao}) foi encontrado!')
             return trabalhosEncontrados
         for trabalho in trabalhosEncontrados:
-            self.__logger_aplicacao.debug(menssagem= f'({trabalho.id.ljust(40)} | {trabalho}) encontrado')
+            self.__logger_aplicacao.debug(mensagem= f'({trabalho.id.ljust(40)} | {trabalho}) encontrado')
         return trabalhosEncontrados
 
     def verificaTrabalhosRarosEncontrados(self, trabalhosRaros: list[Trabalho]):
@@ -2442,13 +2442,13 @@ class Aplicacao:
             Args:
                 trabalhosRaros (list[Trabalho]): Lista que contêm objetos da classe Trabalho encontrados.
         '''
-        self.__logger_aplicacao.debug(menssagem= f'Verificando lista de trabalho raros encontrados')
+        self.__logger_aplicacao.debug(mensagem= f'Verificando lista de trabalho raros encontrados')
         for trabalho in trabalhosRaros:
             if trabalho.ehProducaoRecursos:
                 continue
             quantidadeRaro: int = self.recupera_quantidade_trabalho_estoque(trabalho.id)
             if quantidadeRaro == 0:
-                self.__logger_aplicacao.debug(menssagem= f'Quantidade de ({trabalho.id.ljust(40)}) no estoque é zero(0)')
+                self.__logger_aplicacao.debug(mensagem= f'Quantidade de ({trabalho.id.ljust(40)}) no estoque é zero(0)')
                 if self.trabalho_esta_na_lista_producao(trabalho.id):
                     continue
                 self.verificaListaIdsTrabalhosMelhoradosNecessarios(trabalho)
@@ -2459,10 +2459,10 @@ class Aplicacao:
             Args:
                 trabalho (Trabalho): Objeto da classe Trabalho que contêm os atributos do trabalho raro espécifico.
         '''
-        self.__logger_aplicacao.debug(menssagem= f'Verificando lista de trabalho melhorados necessários')
+        self.__logger_aplicacao.debug(mensagem= f'Verificando lista de trabalho melhorados necessários')
         trabalhosMelhoradosNecessarios: str = trabalho.trabalhoNecessario
         if trabalhosMelhoradosNecessarios is None or ehVazia(trabalhosMelhoradosNecessarios):
-            self.__logger_aplicacao.debug(menssagem= f'({trabalho.id.ljust(40)} | {trabalho} não possui trabalhos necessários)')
+            self.__logger_aplicacao.debug(mensagem= f'({trabalho.id.ljust(40)} | {trabalho} não possui trabalhos necessários)')
             return
         idsTrabalhosNecessarios: list[str] = trabalhosMelhoradosNecessarios.split(',')
         for idTrabalhoMelhorado in idsTrabalhosNecessarios:
@@ -2482,17 +2482,17 @@ class Aplicacao:
             Returns:
                 bool: Verdadeiro caso existam trabalhos comuns suficientes no estoque para iniciar uma nova produção. Falso caso contrário.
         '''
-        self.__logger_aplicacao.debug(menssagem= f'Verificando lista de trabalho comuns necessários')
+        self.__logger_aplicacao.debug(mensagem= f'Verificando lista de trabalho comuns necessários')
         trabalhoMelhorado: Trabalho = self.pegaTrabalhoPorId(idTrabalhoMelhorado)
         trabalhosComunsNecessarios: str = trabalhoMelhorado.trabalhoNecessario
         if trabalhosComunsNecessarios is None or ehVazia(trabalhosComunsNecessarios):
-            self.__logger_aplicacao.debug(menssagem= f'({trabalhoMelhorado.id.ljust(40)} | {trabalhoMelhorado} não possui trabalhos necessários)')
+            self.__logger_aplicacao.debug(mensagem= f'({trabalhoMelhorado.id.ljust(40)} | {trabalhoMelhorado} não possui trabalhos necessários)')
             return False
         idsTrabalhosComunsNecessarios: list[str] = trabalhosComunsNecessarios.split(',')
         for idTrabalhoComum in idsTrabalhosComunsNecessarios:
             quantidadeMelhorado: int = self.recupera_quantidade_trabalho_estoque(idTrabalhoComum)
             if quantidadeMelhorado == 0:
-                self.__logger_aplicacao.debug(menssagem= f'({trabalhoMelhorado.id.ljust(40)} | {trabalhoMelhorado}) não possui trabalhos necessários suficientes')
+                self.__logger_aplicacao.debug(mensagem= f'({trabalhoMelhorado.id.ljust(40)} | {trabalhoMelhorado}) não possui trabalhos necessários suficientes')
                 return False
         return True
 
@@ -2517,15 +2517,15 @@ class Aplicacao:
             Returns:
                 bool: Verdadeiro se pelo menos um trabalho com 'idTrabalho' encontrado for igual ao 'idTrabalho' buscado. Falso caso contrário. 
         '''
-        self.__logger_aplicacao.debug(menssagem= f'Verificando se ({id.ljust(40)}) está na lista para produção')
+        self.__logger_aplicacao.debug(mensagem= f'Verificando se ({id.ljust(40)}) está na lista para produção')
         trabalhosParaProduzirProduzindo: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
         if trabalhosParaProduzirProduzindo is None:
             return True
         for trabalhoProducao in trabalhosParaProduzirProduzindo:
             if textoEhIgual(trabalhoProducao.idTrabalho, id):
-                self.__logger_aplicacao.debug(menssagem= f'Trabalho ({id.ljust(40)}) encontrado na lista para produção')
+                self.__logger_aplicacao.debug(mensagem= f'Trabalho ({id.ljust(40)}) encontrado na lista para produção')
                 return True
-        self.__logger_aplicacao.debug(menssagem= f'Trabalho ({id.ljust(40)}) não encontrado na lista para produção')
+        self.__logger_aplicacao.debug(mensagem= f'Trabalho ({id.ljust(40)}) não encontrado na lista para produção')
         return False
 
     def define_trabalho_buscado(self, profissaoPriorizada: Profissao, nivelProfissao: int, raridade: str) -> Trabalho:
@@ -2588,7 +2588,7 @@ class Aplicacao:
         for trabalhoQuantidade in trabalhosQuantidade:
             quantidade: int= self.recupera_quantidade_trabalho_estoque(id_trabalho= trabalhoQuantidade.idTrabalho)
             trabalhoQuantidade.quantidade += quantidade
-            self.__loggerEstoqueDao.debug(menssagem= f'Quantidade de ({trabalhoQuantidade.idTrabalho}) encontrada: ({trabalhoQuantidade.quantidade})')
+            self.__loggerEstoqueDao.debug(mensagem= f'Quantidade de ({trabalhoQuantidade.idTrabalho}) encontrada: ({trabalhoQuantidade.quantidade})')
         return trabalhosQuantidade
 
     def define_lista_trabalhos_quantidade(self, trabalhosComunsProfissaoNivelExpecifico: list[Trabalho]) -> list[TrabalhoEstoque]:
@@ -2612,7 +2612,7 @@ class Aplicacao:
         emailProximo: str= self.__listaPersonagemAtivo[0].email
         emailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos = textoEhIgual(texto1= emailAnterior, texto2= emailProximo)
         resultado: str= 'Igual' if emailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos else 'Diferente'
-        self.__logger_aplicacao.debug(menssagem= f'Resultado: {resultado}. Email personagem anterior | próximo: ({emailAnterior}) | ({emailProximo})')
+        self.__logger_aplicacao.debug(mensagem= f'Resultado: {resultado}. Email personagem anterior | próximo: ({emailAnterior}) | ({emailProximo})')
         if emailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos:
             return self.entraPersonagemAtivo()
         return False
@@ -2678,7 +2678,7 @@ class Aplicacao:
         return False
 
     def verificaAlteracaoTrabalhos(self):
-        # self.__loggerTrabalhoDao.debug(f'Verificando alterações na lista de trabalhos...')
+        self.__logger_aplicacao.debug(f'Verificando alterações na lista de trabalhos...')
         if self.__repositorioTrabalho.estaPronto:
             trabalhos: list[dict]= self.__repositorioTrabalho.pegaDadosModificados()
             for trabalho in trabalhos:
@@ -2700,7 +2700,7 @@ class Aplicacao:
             self.__repositorioTrabalho.limpaLista
             
     def verificaAlteracaoPersonagens(self):
-        # self.__loggerProfissaoDao.debug(f'Verificando alterações na lista de personagens...')
+        self.__logger_aplicacao.debug(f'Verificando alterações na lista de personagens...')
         if self.__repositorioPersonagem.estaPronto:
             personagens: list[dict]= self.__repositorioPersonagem.pegaDadosModificados()
             for personagem in personagens:
@@ -2723,7 +2723,7 @@ class Aplicacao:
             self.__repositorioPersonagem.limpaLista
     
     def verificaAlteracaoProfissoes(self):
-        # self.__loggerRepositorioProducao.debug(f'Verificando alterações na lista de trabalhos de produção...')
+        self.__logger_aplicacao.debug(f'Verificando alterações na lista de trabalhos de produção...')
         if self.__repositorioProfissao.estaPronto:
             dicionariosProfissoes: list[dict]= self.__repositorioProfissao.pegaDadosModificados()
             for dicionarioProfissao in dicionariosProfissoes:
@@ -2752,7 +2752,7 @@ class Aplicacao:
             self.__repositorioProfissao.limpaLista
     
     def verificaAlteracaoEstoque(self):
-        # self.__loggerRepositorioEstoque.debug(f'Verificando alterações na lista de trabalhos de produção...')
+        self.__logger_aplicacao.debug(f'Verificando alterações na lista de trabalhos de produção...')
         if self.__repositorioEstoque.estaPronto:
             dicionariosEstoque: list[dict]= self.__repositorioEstoque.pegaDadosModificados()
             for dicionario in dicionariosEstoque:
@@ -2779,7 +2779,7 @@ class Aplicacao:
             self.__repositorioEstoque.limpaLista
     
     def verificaAlteracaoProducao(self):
-        # self.__loggerRepositorioProducao.debug(f'Verificando alterações na lista de trabalhos de produção...')
+        self.__logger_aplicacao.debug(f'Verificando alterações na lista de trabalhos de produção...')
         if self.__repositorioProducao.estaPronto:
             dicionariosProducoes: list[dict]= self.__repositorioProducao.pegaDadosModificados()
             for dicionarioProducao in dicionariosProducoes:
@@ -2806,7 +2806,7 @@ class Aplicacao:
             self.__repositorioProducao.limpaLista
     
     def verificaAlteracaoVendas(self):
-        # self.__loggerRepositorioVendas.debug(f'Verificando alterações na lista de trabalhos de produção...')
+        self.__logger_aplicacao.debug(f'Verificando alterações na lista de trabalhos de produção...')
         if self.__repositorioVendas.estaPronto:
             dicionariosVendas: list[dict]= self.__repositorioVendas.pegaDadosModificados()
             for dicionario in dicionariosVendas:
@@ -2935,11 +2935,11 @@ class Aplicacao:
         
     def sincronizaListaTrabalhos(self):
         limpaTela()
-        self.__loggerTrabalhoDao.debug(menssagem= f'Sincronizando trabalhos...')
+        self.__loggerTrabalhoDao.debug(mensagem= f'Sincronizando trabalhos...')
         if self.__trabalhoDao.sincronizaTrabalhos():
-            self.__loggerTrabalhoDao.debug(menssagem= 'Sincronização concluída com sucesso!')
+            self.__loggerTrabalhoDao.debug(mensagem= 'Sincronização concluída com sucesso!')
             return
-        self.__loggerTrabalhoDao.error(menssagem= f'Sincronização falhou: {self.__trabalhoDao.pegaErro}')
+        self.__loggerTrabalhoDao.error(mensagem= f'Sincronização falhou: {self.__trabalhoDao.pegaErro}')
 
     def pegaPersonagens(self) -> list[Personagem]:
         try:
@@ -2949,16 +2949,16 @@ class Aplicacao:
                 return []
             return personagensBanco
         except Exception as e:
-            self.__loggerPersonagemDao.error(menssagem= f'Erro ao instânciar um objeto PersonagemDaoSqlite: {e}')
+            self.__loggerPersonagemDao.error(mensagem= f'Erro ao instânciar um objeto PersonagemDaoSqlite: {e}')
         return []
 
     def sincronizaListaPersonagens(self):
         limpaTela()
-        self.__loggerPersonagemDao.debug(menssagem= f'Sincronizando personagens...')
+        self.__loggerPersonagemDao.debug(mensagem= f'Sincronizando personagens...')
         if self.__personagemDao.sinconizaPersonagens():
-            self.__loggerPersonagemDao.debug(menssagem= 'Sincronização concluída com sucesso!')
+            self.__loggerPersonagemDao.debug(mensagem= 'Sincronização concluída com sucesso!')
             return
-        self.__loggerPersonagemDao.error(menssagem= f'Sincronização falhou: {self.__personagemDao.pegaErro}')                
+        self.__loggerPersonagemDao.error(mensagem= f'Sincronização falhou: {self.__personagemDao.pegaErro}')                
 
     def removeProfissao(self, profissao: Profissao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
@@ -3002,14 +3002,14 @@ class Aplicacao:
 
     def sincronizaListaProfissoes(self):
         limpaTela()
-        self.__loggerProfissaoDao.debug(menssagem= f'Sincronizando profissões...')
+        self.__loggerProfissaoDao.debug(mensagem= f'Sincronizando profissões...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            self.__loggerProfissaoDao.debug(menssagem= f'Personagem: {personagem.nome}')
+            self.__loggerProfissaoDao.debug(mensagem= f'Personagem: {personagem.nome}')
             if self.__profissaoDao.sincronizaProfissoesPorId(personagem= personagem):
-                self.__loggerProfissaoDao.debug(menssagem= f'Sincronização concluída com sucesso!')
+                self.__loggerProfissaoDao.debug(mensagem= f'Sincronização concluída com sucesso!')
                 continue
-            self.__loggerProfissaoDao.error(menssagem= f'Erro ao sincronizar profissões: {self.__profissaoDao.pegaErro}')
+            self.__loggerProfissaoDao.error(mensagem= f'Erro ao sincronizar profissões: {self.__profissaoDao.pegaErro}')
     
     def pegaTrabalhoProducaoPorId(self, id:  str) -> TrabalhoProducao:
         trabalhoProducaoEncontrado: TrabalhoProducao = self.__trabalhoProducaoDao.pegaTrabalhoProducaoPorId(id= id)
@@ -3043,36 +3043,36 @@ class Aplicacao:
 
     def sincronizaTrabalhosProducao(self):
         limpaTela()
-        self.__loggerTrabalhoProducaoDao.debug(menssagem= f'Sincronizando trabalhos para produção...')
+        self.__loggerTrabalhoProducaoDao.debug(mensagem= f'Sincronizando trabalhos para produção...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            self.__loggerTrabalhoProducaoDao.debug(menssagem= f'Personagem: {personagem.nome}')
+            self.__loggerTrabalhoProducaoDao.debug(mensagem= f'Personagem: {personagem.nome}')
             if self.__trabalhoProducaoDao.sincronizaTrabalhosProducao(personagem= personagem):
-                self.__loggerTrabalhoProducaoDao.debug(menssagem= 'Sincronização concluída com sucesso!')
+                self.__loggerTrabalhoProducaoDao.debug(mensagem= 'Sincronização concluída com sucesso!')
                 continue
-            self.__loggerTrabalhoProducaoDao.error(menssagem= f'Sincronização falhou: {self.__trabalhoProducaoDao.pegaErro}')
+            self.__loggerTrabalhoProducaoDao.error(mensagem= f'Sincronização falhou: {self.__trabalhoProducaoDao.pegaErro}')
             
     def sincronizaTrabalhosVendidos(self):
         limpaTela()
-        self.__loggerVendaDao.debug(menssagem= f'Sincronizando trabalhos vendidos...')
+        self.__loggerVendaDao.debug(mensagem= f'Sincronizando trabalhos vendidos...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            self.__loggerVendaDao.debug(menssagem= f'Personagem: {personagem.nome}')
+            self.__loggerVendaDao.debug(mensagem= f'Personagem: {personagem.nome}')
             if self.__vendasDao.sincronizaTrabalhosVendidos(personagem= personagem):
-                self.__loggerVendaDao.debug(menssagem= 'Sincronização concluída com sucesso!')
+                self.__loggerVendaDao.debug(mensagem= 'Sincronização concluída com sucesso!')
                 continue
-            self.__loggerVendaDao.error(menssagem= f'Sincronização falhou: {self.__trabalhoProducaoDao.pegaErro}')
+            self.__loggerVendaDao.error(mensagem= f'Sincronização falhou: {self.__trabalhoProducaoDao.pegaErro}')
             
     def sincronizaTrabalhosEstoque(self):
         limpaTela()
-        self.__loggerEstoqueDao.debug(menssagem= f'Sincronizando trabalhos no estoque...')
+        self.__loggerEstoqueDao.debug(mensagem= f'Sincronizando trabalhos no estoque...')
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            self.__loggerEstoqueDao.debug(menssagem= f'Personagem: {personagem.nome}')
+            self.__loggerEstoqueDao.debug(mensagem= f'Personagem: {personagem.nome}')
             if self.__estoqueDao.sincronizaTrabalhosEstoque(personagem= personagem):
-                self.__loggerEstoqueDao.debug(menssagem= 'Sincronização concluída com sucesso!')
+                self.__loggerEstoqueDao.debug(mensagem= 'Sincronização concluída com sucesso!')
                 continue
-            self.__loggerEstoqueDao.error(menssagem= f'Sincronização falhou: {self.__estoqueDao.pegaErro}')
+            self.__loggerEstoqueDao.error(mensagem= f'Sincronização falhou: {self.__estoqueDao.pegaErro}')
 
     def pegaPersonagensServidor(self) -> list[Personagem]:
         repositorioPersonagem: RepositorioPersonagem = RepositorioPersonagem()

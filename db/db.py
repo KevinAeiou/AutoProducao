@@ -108,7 +108,7 @@ class MeuBanco:
                 );""")
         except Exception as e:
             self.__erroConexao= str(e)
-            self.__logger.error(menssagem= f'Erro ao criar tabelas: {e}')
+            self.__logger.error(mensagem= f'Erro ao criar tabelas: {e}')
 
     def removeTabela(self, tabela: str) -> bool:
         try:

@@ -36,7 +36,7 @@ class FirebaseDatabase:
             cred= credentials.Certificate(CAMINHO_CERTIFICADO_FIREBASE)
             firebase_admin.initialize_app(credential= cred, options= {'databaseURL': 'https://bootwarspear-default-rtdb.firebaseio.com/'})
         except Exception as e:
-            self.__loggerFirebaseDatabase.error(menssagem= f'Falha na inicialização do Firebase: {e}')
+            self.__loggerFirebaseDatabase.error(mensagem= f'Falha na inicialização do Firebase: {e}')
             self.__erro = e
             raise
 
@@ -52,10 +52,10 @@ class FirebaseDatabase:
         if self.__meuBanco is None:
             try:
                 self.__meuBanco = db
-                self.__loggerFirebaseDatabase.info(menssagem= f'Conexão com Firebase estabelecida com sucesso.')
+                self.__loggerFirebaseDatabase.info(mensagem= f'Conexão com Firebase estabelecida com sucesso.')
                 return self.__meuBanco
             except Exception as e:
-                self.__loggerFirebaseDatabase.error(menssagem= f'Erro ao obter referência do banco: {e}')
+                self.__loggerFirebaseDatabase.error(mensagem= f'Erro ao obter referência do banco: {e}')
                 self.__erro = e
                 raise
         return self.__meuBanco

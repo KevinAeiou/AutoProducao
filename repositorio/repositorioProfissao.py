@@ -16,22 +16,22 @@ class RepositorioProfissao(Stream):
         self.__erro: str= None
         firebaseDb: FirebaseDatabase = FirebaseDatabase()
         self.__personagem: Personagem= personagem
-        self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_PROFISSAO, arquivoLogger = f'{CHAVE_REPOSITORIO_PROFISSAO}.log')
+        self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_PROFISSAO, arquivo_logger = f'{CHAVE_REPOSITORIO_PROFISSAO}.log')
         try:
             meuBanco: db = firebaseDb.banco
             self.__minhaReferenciaProfissoes: db.Reference= meuBanco.reference(CHAVE_PROFISSOES).child(self.__personagem.id)
             self.__minhaReferenciaListaProfissoes: db.Reference= meuBanco.reference(CHAVE_LISTA_PROFISSAO)
         except Exception as e:
             self.__erro = e
-            self.__logger.error(menssagem= f'Erro: {e}')
+            self.__logger.error(mensagem= f'Erro: {e}')
 
     def streamHandler(self, evento: Event):
         super().streamHandler(evento= evento)
         if evento.event_type in (STRING_PUT, STRING_PATCH):
             if evento.path == '/':
                 return
-            self.__logger.debug(menssagem= evento.path)
-            self.__logger.debug(menssagem= evento.data)
+            self.__logger.debug(mensagem= evento.path)
+            self.__logger.debug(mensagem= evento.data)
             ids: list[str]= evento.path.split('/')
             dicionario: dict= {CHAVE_ID_PERSONAGEM: ids[1]}
             if evento.data is None:
@@ -67,11 +67,11 @@ class RepositorioProfissao(Stream):
                 profissoes.append(profissao)
             profissoes = sorted(profissoes, key = lambda profissao: profissao.nome)
             profissoes = sorted(profissoes, key = lambda profissao: profissao.experiencia, reverse = True)
-            self.__logger.debug(menssagem= f'Profissões recuperadas com sucesso!')
+            self.__logger.debug(mensagem= f'Profissões recuperadas com sucesso!')
             return profissoes
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao recuperar profissões: {e}')
+            self.__logger.error(mensagem= f'Erro ao recuperar profissões: {e}')
         return None
 
     def pegaNomeProfissaoPorId(self, id: str) -> str:
@@ -90,11 +90,11 @@ class RepositorioProfissao(Stream):
                 profissao: Profissao= Profissao()
                 profissao.dicionarioParaObjeto(valor)
                 profissoes.append(profissao)
-            self.__logger.debug(menssagem= f'Lista de profissões recuperadas com sucesso!')
+            self.__logger.debug(mensagem= f'Lista de profissões recuperadas com sucesso!')
             return profissoes
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao recuperar lista de profissões: {e}')
+            self.__logger.error(mensagem= f'Erro ao recuperar lista de profissões: {e}')
         return None
     
     def insereProfissao(self, profissao: Profissao) -> bool:
@@ -110,7 +110,7 @@ class RepositorioProfissao(Stream):
             profissoes: dict= self.__minhaReferenciaListaProfissoes.get()
             if profissoes is None:
                 self.__minhaReferenciaListaProfissoes.child(profissao.id).update({CHAVE_ID: profissao.id, CHAVE_NOME: profissao.nome})
-                self.__logger.debug(menssagem= f'Profissão ({profissao.id} | {profissao.nome}) inserida com sucesso na lista de profissões!')
+                self.__logger.debug(mensagem= f'Profissão ({profissao.id} | {profissao.nome}) inserida com sucesso na lista de profissões!')
             else:
                 for chave, valor in profissoes.items():
                     if valor[CHAVE_NOME] == profissao.nome:
@@ -119,14 +119,14 @@ class RepositorioProfissao(Stream):
                 else:
                     self.__minhaReferenciaListaProfissoes.child(profissao.id).update({CHAVE_ID: profissao.id, CHAVE_NOME: profissao.nome})
             self.__minhaReferenciaProfissoes.child(profissao.id).set({CHAVE_ID: profissao.id, CHAVE_EXPERIENCIA: profissao.experiencia, CHAVE_PRIORIDADE: profissao.prioridade})
-            self.__logger.debug(menssagem= f'Profissão ({profissao}) inserida com sucesso!')
+            self.__logger.debug(mensagem= f'Profissão ({profissao}) inserida com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao inserir profissão: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao inserir profissão: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao inserir profissão: {e}')
+            self.__logger.error(mensagem= f'Erro ao inserir profissão: {e}')
         return False
 
     def modificaProfissao(self, profissao: Profissao) -> bool:
@@ -134,28 +134,28 @@ class RepositorioProfissao(Stream):
         try:
             self.__minhaReferenciaProfissoes.child(profissao.id).update({CHAVE_EXPERIENCIA: profissao.experiencia, CHAVE_PRIORIDADE: profissao.prioridade})
             self.__minhaReferenciaListaProfissoes.child(profissao.id).update({CHAVE_NOME: profissao.nome})
-            self.__logger.debug(menssagem= f'Profissão ({profissao}) modificada com sucesso!')
+            self.__logger.debug(mensagem= f'Profissão ({profissao}) modificada com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao modificar profissão: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao modificar profissão: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao modificar profissão: {e}')
+            self.__logger.error(mensagem= f'Erro ao modificar profissão: {e}')
         return False
     
     def removeProfissao(self, profissao: Profissao) -> bool:
         profissao.idPersonagem = self.__personagem.id
         try:
             self.__minhaReferenciaProfissoes.child(profissao.id).delete()
-            self.__logger.debug(menssagem= f'Profissão ({profissao}) removida com sucesso!')
+            self.__logger.debug(mensagem= f'Profissão ({profissao}) removida com sucesso!')
             return True
         except HTTPError as e:
             self.__erro = str(e.errno)
-            self.__logger.error(menssagem= f'Erro ao modificar profissão: {e.errno}')
+            self.__logger.error(mensagem= f'Erro ao modificar profissão: {e.errno}')
         except Exception as e:
             self.__erro = str(e)
-            self.__logger.error(menssagem= f'Erro ao modificar profissão: {e}')
+            self.__logger.error(mensagem= f'Erro ao modificar profissão: {e}')
         return False
     
     @property
