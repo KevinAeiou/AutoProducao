@@ -13,7 +13,7 @@ class TesteTrabalhoProducaoDao:
         trabalhoProducaoTeste.idTrabalho = 'IdTrabalhoTeste'
         trabalhoProducaoTeste.estado = 0
         trabalhoProducaoTeste.tipoLicenca = 'LicencaTeste'
-        if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
+        if trabalhoProducaoDao.insere_trabalho_producao(trabalhoProducaoTeste):
             recebidoMensagem = 'Sucesso'
         else:
             recebidoMensagem = trabalhoProducaoDao.pegaErro
@@ -26,7 +26,7 @@ class TesteTrabalhoProducaoDao:
         trabalhoProducaoTeste.idTrabalho = 'IdTrabalhoTeste'
         trabalhoProducaoTeste.estado = 0
         trabalhoProducaoTeste.tipoLicenca = 'LicencaTeste'
-        if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
+        if trabalhoProducaoDao.insere_trabalho_producao(trabalhoProducaoTeste):
             mensagemInsereRecebido = 'Sucesso'
         else:
             mensagemInsereRecebido = trabalhoProducaoDao.pegaErro
@@ -46,7 +46,7 @@ class TesteTrabalhoProducaoDao:
         trabalhoProducaoTeste.estado = 0
         trabalhoProducaoTeste.tipoLicenca = 'LicencaTeste'
         mensagemInsereEsperado = 'Sucesso'
-        if trabalhoProducaoDao.insereTrabalhoProducao(trabalhoProducaoTeste):
+        if trabalhoProducaoDao.insere_trabalho_producao(trabalhoProducaoTeste):
             mensagemInsereRecebido = 'Sucesso'
         else:
             mensagemInsereRecebido = trabalhoProducaoDao.pegaErro

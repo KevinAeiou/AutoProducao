@@ -924,7 +924,7 @@ class CRUD:
                 trabalhoTeste.idTrabalho = 'YK81EN0qfsT2RxtgSRLgiHEaHQPB'
                 trabalhoTeste.raridade = CHAVE_RARIDADE_COMUM
                 trabalhoTeste.profissao = CHAVE_PROFISSAO_ANEIS
-                print(self.__aplicacao.verifica_producao_trabalho_melhorado(trabalhoTeste))
+                print(self.__aplicacao.define_trabalho_comum_profissao_priorizada())
                 continue
             break
 

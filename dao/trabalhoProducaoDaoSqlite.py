@@ -229,7 +229,7 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoProducao(self, personagem: Personagem, trabalhoProducao: TrabalhoProducao, modificaServidor: bool= True) -> bool:
+    def insere_trabalho_producao(self, personagem: Personagem, trabalhoProducao: TrabalhoProducao, modificaServidor: bool= True) -> bool:
         try:
             recorrencia = 1 if trabalhoProducao.recorrencia else 0
             sql = f"""INSERT INTO {CHAVE_LISTA_TRABALHOS_PRODUCAO} ({CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_ID_PERSONAGEM}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO}) VALUES (?, ?, ?, ?, ?, ?);"""
