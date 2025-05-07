@@ -38,13 +38,13 @@ def precionaTecla(cliques: int, teclaEspecifica: str):
 def tiraScreenshot():
     return tecla.screenshot()
 
-def cliqueMouseEsquerdo(cliques: int, xTela: int, yTela: int):
+def cliqueMouseEsquerdo(cliques: int = 1, xTela: int = 45, yTela: int = 45):
     '''
         Função para clicar na tela com o botão esquerdo do mouse.
         Args:
-            cliques (int): Inteiro que contêm a quantidade de cliques a serem realizados.
-            xTela (int): Inteiro que contêm a posição 'x' da tela.
-            yTela (int): Inteiro que contêm a posição 'y' da tela.
+            cliques (int): Inteiro que contêm a quantidade de cliques a serem realizados. Um (1) como padrão.
+            xTela (int): Inteiro que contêm a posição 'x' da tela. Um (45) como padrão.
+            yTela (int): Inteiro que contêm a posição 'y' da tela. Um (45) como padrão.
     '''
     sleep(0.5)
     for x in range(cliques):
