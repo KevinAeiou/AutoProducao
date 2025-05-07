@@ -121,6 +121,7 @@ class Aplicacao:
         nomeReconhecido: str= self.__imagem.retornaTextoNomePersonagemReconhecido(0)
         if nomeReconhecido is None:
             self.__logger_aplicacao.debug(f'Nome personagem não reconhecido na posição {0}!')
+            self.personagemEmUso()
             return
         self.confirmaNomePersonagem(personagemReconhecido= nomeReconhecido)
 
@@ -306,7 +307,7 @@ class Aplicacao:
         if texto1PertenceTexto2('Bolsa',textoMenu):
             print(f'Menu bolsa...')
             return MENU_BOLSA
-        cliqueMouseEsquerdo(1,35,35)
+        cliqueMouseEsquerdo()
         self.verificaErro(textoErroEncontrado= textoMenu)
         return MENU_DESCONHECIDO
     
@@ -495,7 +496,7 @@ class Aplicacao:
             self.insereTrabalhoVendido(trabalhoVendido)
             self.atualizaQuantidadeTrabalhoEstoque(trabalhoVendido)
         self.__logger_aplicacao.debug(mensagem= f'Caixa de correio está vazia!')
-        cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
+        cliqueMouseEsquerdo()
 
     def reconheceRecuperaTrabalhoConcluido(self) -> str | None:
         erro: int = self.verificaErro()
@@ -980,33 +981,38 @@ class Aplicacao:
         self.__logger_aplicacao.debug(mensagem= f'Recompensa diária já recebida!')
         return True
 
-    def deslogaPersonagem(self, codigoMenu: int = None):
+    def deslogaPersonagem(self, codigoMenu: int = None) -> bool:
         '''
             Método para deslogar personagem atual.
             Args:
                 menu (int): Inteiro que contêm o codigo do menu reconhecido.
-        
+            Returns:
+                bool: Verdadeiro caso saida da conta atual seja feita com sucesso. Falso caso contrário.
         '''
         codigoMenu = self.retornaMenu() if codigoMenu is None else codigoMenu
+        tentativasMenu: int = 0
         while not ehMenuJogar(codigoMenu):
-            tentativas: int = 0
+            tentativasErro: int = 0
             erro: int = self.verificaErro()
             while erroEncontrado(erro):
                 if ehErroConectando(erro):
-                    if tentativas > 10:
+                    if tentativasErro > 10:
                         clickEspecifico(2, 'enter')
-                        tentativas = 0
-                    tentativas += 1
+                        tentativasErro = 0
+                    tentativasErro += 1
                 erro = self.verificaErro()
                 continue
             if ehMenuInicial(codigoMenu):
                 encerraSecao()
-                return
+                return True
             if ehMenuEscolhaPersonagem(codigoMenu):
                 clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
-                return
-            cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
+                return True
+            if tentativasMenu > 5:
+                return False
+            cliqueMouseEsquerdo()
             codigoMenu = self.retornaMenu()
+            tentativasMenu += 1
 
     def entraPersonagem(self, personagensVerificados: list[str]) -> bool:
         '''
@@ -1089,12 +1095,12 @@ class Aplicacao:
                     self.recuperaCorrespondencia()
                     self.ofertaTrabalho()
                 self.__logger_aplicacao.debug(mensagem= f'Personagens verificados: {personagensVerificados}')
-                self.deslogaPersonagem()
-                if self.entraPersonagem(personagensVerificados):
-                    personagensVerificados = self.retornaListaPersonagemRecompensaRecebida(personagensVerificados)
-                    codigoMenu: int = self.retornaMenu()
-                    continue
-                self.__logger_aplicacao.debug(mensagem= f'Todos os personagens foram verificados!')
+                if self.deslogaPersonagem():
+                    if self.entraPersonagem(personagensVerificados):
+                        personagensVerificados = self.retornaListaPersonagemRecompensaRecebida(personagensVerificados)
+                        codigoMenu: int = self.retornaMenu()
+                        continue
+                    self.__logger_aplicacao.debug(mensagem= f'Todos os personagens foram verificados!')
                 break
             codigoMenu: int = self.retornaMenu()
 
@@ -2171,7 +2177,7 @@ class Aplicacao:
                 encerraSecao()
                 menu = self.retornaMenu()
                 continue
-            cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
+            cliqueMouseEsquerdo()
             menu = self.retornaMenu()
 
     def verificaErroEncontrado(self) -> None:
@@ -2190,7 +2196,7 @@ class Aplicacao:
         for x in range(5):
             codigoMenu: int = self.retornaMenu()
             if ehMenuDesconhecido(menu= codigoMenu) or ehMenuProduzir(menu= codigoMenu) or ehMenuTrabalhosDisponiveis(menu= codigoMenu) or ehMenuTrabalhosAtuais(menu= codigoMenu): 
-                cliqueMouseEsquerdo(cliques= 1, xTela= 2, yTela= 35)
+                cliqueMouseEsquerdo()
                 continue
             if ehMenuJogar(menu= codigoMenu):
                 print(f'Buscando personagem ativo...')
@@ -2716,7 +2722,7 @@ class Aplicacao:
             self.iniciaBuscaTrabalho()
             self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
             return False
-        if self.__unicaConexao and haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo): cliqueMouseEsquerdo(1, 2, 35)
+        if self.__unicaConexao and haMaisQueUmPersonagemAtivo(self.__listaPersonagemAtivo): cliqueMouseEsquerdo()
         self.__listaPersonagemJaVerificado.append(self.__personagemEmUso)
         return True
 
