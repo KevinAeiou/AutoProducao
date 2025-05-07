@@ -90,14 +90,13 @@ class ManipulaImagem:
         cv2.imwrite('{}\\{}'.format(caminho, nomeArquivo),imagem)
 
     def reconheceNomeTrabalho(self, tela: ndarray, y: int, identificador: int) -> str | None:
-        if tela:
-            altura: int = 70 if identificador == 1 else 34
-            x, y, largura, altura = self.retornaPosicoes(tela, x= 233, y= y, largura= 245, altura= altura)
-            frameTrabalho: ndarray = tela[y : y + altura, x : x + largura]
-            frameNomeTrabalhoTratado: ndarray = self.retornaImagemCinza(np.array(frameTrabalho))
-            frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalhoTratado)
-            return self.reconheceTexto(frameNomeTrabalhoTratado) if existePixelPreto(frameNomeTrabalhoTratado) else None
-        return None
+        if tela is None: return None
+        altura: int = 70 if identificador == 1 else 34
+        x, y, largura, altura = self.retornaPosicoes(tela, x= 233, y= y, largura= 245, altura= altura)
+        frameTrabalho: ndarray = tela[y : y + altura, x : x + largura]
+        frameNomeTrabalhoTratado: ndarray = self.retornaImagemCinza(np.array(frameTrabalho))
+        frameNomeTrabalhoTratado = self.retornaImagemBinarizada(frameNomeTrabalhoTratado)
+        return self.reconheceTexto(frameNomeTrabalhoTratado) if existePixelPreto(frameNomeTrabalhoTratado) else None
     
     def retornaNomeTrabalhoReconhecido(self, yinicialNome: int, identificador: int):
         return self.reconheceNomeTrabalho(self.retornaAtualizacaoTela(), yinicialNome, identificador)
@@ -220,7 +219,6 @@ class ManipulaImagem:
     def quantidadePixelBrancoEhMaiorQueZero(self, tela: ndarray) -> bool:
         x, y, largura, altura = self.retornaPosicoes(tela, x= 235, y= 233, largura= 200, altura= 30)
         frame: ndarray = tela[y : y + altura, x : x + largura]
-        self.mostraImagem(1, frame)
         return np.sum(frame == 255) > 0
     
     def reconheceTextoCorrespondencia(self, tela: ndarray):
