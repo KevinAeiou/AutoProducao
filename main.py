@@ -2167,10 +2167,11 @@ class Aplicacao:
 
     def vaiParaMenuJogar(self):
         menu: int = self.retornaMenu()
+        contador: int = 0
         while not ehMenuJogar(menu):
             self.verificaErroEncontrado()
             if ehMenuNoticias(menu) or ehMenuEscolhaPersonagem(menu):
-                clickEspecifico(1, 'f1')
+                clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
                 menu = self.retornaMenu()
                 continue
             if ehMenuInicial(menu):
@@ -2179,6 +2180,10 @@ class Aplicacao:
                 continue
             cliqueMouseEsquerdo()
             menu = self.retornaMenu()
+            if contador > 5:
+                clickEspecifico(cliques= 1, teclaEspecifica= 'f1')
+                return
+            contador += 1
 
     def verificaErroEncontrado(self) -> None:
         tentativas: int = 1
