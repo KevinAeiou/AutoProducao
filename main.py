@@ -839,10 +839,10 @@ class Aplicacao:
             profissao: Profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalhoConcluido)
             if profissao is None:
                 return None
-            trabalhos: list[Trabalho]= self.pegaTrabalhosBanco()
+            trabalhos: list[Trabalho] = self.pegaTrabalhosBanco()
             for trabalho in trabalhos:
-                trabalhoNecessarioEhIgualNomeTrabalhoConcluido = textoEhIgual(texto1= trabalho.trabalhoNecessario, texto2= trabalhoConcluido.nome)
-                if trabalhoNecessarioEhIgualNomeTrabalhoConcluido:
+                trabalhoNecessarioEhIgualIdTrabalhoConcluido = textoEhIgual(texto1= trabalho.trabalhoNecessario, texto2= trabalhoConcluido.idTrabalho)
+                if trabalhoNecessarioEhIgualIdTrabalhoConcluido:
                     return self.defineNovoTrabalhoProducaoRaro(profissao, trabalho)
         return None
     
