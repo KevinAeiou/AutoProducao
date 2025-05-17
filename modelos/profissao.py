@@ -30,6 +30,29 @@ class Profissao:
             if self.experiencia == experiencia:
                 return i + 2
         return 0
+    
+    @property
+    def nivel_trabalho_produzido(self) -> int:
+        '''
+            Retorna o nível do trabalho produzido baseado no nível atual da profissão.
+            Returns:
+                int: Inteiro que contém o nível do trabalho produzido. É zero por padrão.
+        '''
+        match self.nivel():
+            case 2 | 3: return 10
+            case 4 | 5: return 12
+            case 6 | 7: return 14
+            case 9 | 10: return 16
+            case 11 | 12: return 18
+            case 13 | 14: return 20
+            case 15 | 16: return 22
+            case 17 | 18: return 24
+            case 19 | 20: return 26
+            case 21 | 22: return 28
+            case 23 | 24: return 30
+            case 25 | 26: return 32
+            case 27 | 28: return 34
+            case _: return 0
 
     @property
     def pegaExperienciaMaximaPorNivel(self):

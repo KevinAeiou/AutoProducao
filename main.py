@@ -857,8 +857,13 @@ class Aplicacao:
         if trabalho_concluido.ehComum and not trabalho_concluido.ehProducaoRecursos:
             self.__logger_aplicacao.debug(mensagem= f'Raridade de ({trabalho_concluido}) é Comum')
             profissao: Profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalho_concluido)
-            if profissao.eh_nivel_producao_melhorada:
-                self.__logger_aplicacao.debug(mensagem= f'Nível da profissão ({profissao}) é para melhoria')
+            nivel_trabalho = trabalho_concluido.nivel
+            nivel_producao_trabalho = profissao.nivel_trabalho_produzido
+            pode_melhorar: bool = (
+                nivel_producao_trabalho > nivel_trabalho or 
+                (nivel_producao_trabalho > nivel_trabalho and profissao.eh_nivel_producao_melhorada)
+            )
+            if pode_melhorar:
                 trabalho_melhorado: Trabalho = self.recupera_trabalho_por_id_trabalho_necessario(id= trabalho_concluido.idTrabalho)
                 if trabalho_melhorado is None: return None
                 self.__logger_aplicacao.debug(mensagem= f'Trabalho encontrado: ({trabalho_melhorado.id.ljust(40)} | {trabalho_melhorado} | {trabalho_melhorado.trabalhoNecessario})')
@@ -914,7 +919,7 @@ class Aplicacao:
             Returns:
                 trabalhoRaro (TrabalhoProducao): Novo bjeto da classe TrabalhoProducao que contêm os atributos do trabalho do tipo "Raro" encontado.
         '''
-        licencaProducaoIdeal = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel >= profissao.pegaExperienciaMaxima else CHAVE_LICENCA_INICIANTE
+        licencaProducaoIdeal: str = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel >= profissao.pegaExperienciaMaxima else CHAVE_LICENCA_INICIANTE
         trabalhoRaro: TrabalhoProducao = TrabalhoProducao()
         trabalhoRaro.dicionarioParaObjeto(dicionario= trabalho.__dict__)
         trabalhoRaro.id = str(uuid.uuid4())
