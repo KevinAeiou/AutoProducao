@@ -1093,7 +1093,10 @@ class Aplicacao:
                 codigoMenu (int): Inteiro que contêm o código do menu reconhecido.
         '''
         personagensVerificados: list[str] = self.retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado= [])
+        verificacoes: int = 0
         while True:
+            if verificacoes > QUANTIDADE_PERSONAGENS_POSSIVEIS:
+                break
             if self.reconheceMenuRecompensa(codigoMenu= codigoMenu):
                 if self.__imagem.retornaExistePixelCorrespondencia():
                     vaiParaMenuCorrespondencia()
