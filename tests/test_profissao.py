@@ -18,6 +18,12 @@ class TestProfissao:
             'experiencia': 1500,
             'prioridade': True
         }
+    
+    @pytest.fixture
+    def lista_experiencias_nivel(self, monkeypatch):
+        mock_lista: list[int] = [20, 200, 540, 1250, 2550, 4700, 7990, 12770, 19440, 28440, 40270, 55450, 74570, 98250, 127180, 156110, 185040, 215000, 245000, 300000, 375000, 470000, 585000, 705000, 830000, 996000, 1195000]
+        monkeypatch.setattr('constantes.LISTA_EXPERIENCIAS_NIVEL', mock_lista)
+        return mock_lista
 
     def test_init_deve_criar_profissao_com_valores_padrao(self, profissao):
         """Testa a inicialização com valores padrão"""
@@ -108,3 +114,51 @@ class TestProfissao:
         assert "Indefinido" in output2  # Para idPersonagem e nome
         assert "0" in output2  # Experiência padrão
         assert "Falso" in output2  # Prioridade padrão
+
+    def test_quando_anterior_ao_maximo_retorna_true(self, lista_experiencias_nivel):
+        objeto: Profissao = Profissao()
+        objeto.nivel = lambda: lista_experiencias_nivel[-2]
+        
+        resultado = objeto.eh_nivel_anterior_ao_maximo
+        
+        assert resultado is True
+
+    def test_quando_nao_anterior_ao_maximo_retorna_false(self, lista_experiencias_nivel):
+        objeto = Profissao()
+        objeto.nivel = lambda: lista_experiencias_nivel[-1]
+        
+        resultado = objeto.eh_nivel_anterior_ao_maximo
+        
+        assert resultado is False
+
+    def test_quando_nivel_abaixo_do_anterior_ao_maximo(self, profissao: Profissao, lista_experiencias_nivel):
+        profissao.nivel = lambda: lista_experiencias_nivel[-3]
+        
+        resultado = profissao.eh_nivel_anterior_ao_maximo
+        
+        assert resultado is False
+
+    @pytest.mark.parametrize("exp_atual, exp_adicional, resultado_esperado", [
+        # Caso exatamente suficiente para subir de nível
+        (0, 20, True),       # Experiência atual 0 + 20 = 20 (limite do nível 1)
+        (20, 180, True),     # 20 + 180 = 200 (limite do nível 2)
+        (830000, 166000, True),     # 830000 + 166000 = 996000 (limite do nível 26)
+        (996000, 199000, True),     # 20 + 199000 = 1195000 (limite do nível 27)
+        
+        # Caso mais que suficiente
+        (0, 21, True),       # 0 + 21 > 20
+        (20, 181, True),    # 20 + 181 = 201 > 200
+        (996000, 199001, True),     # 996000 + 199001 = 1195001 > 1195000
+        
+        # Caso insuficiente
+        (0, 19, False),      # 0 + 19 < 20
+        (100, 99, False),    # 100 + 99 = 199 < 200
+        (996000, 198999, False),    # 996000 + 198999 = 1194999 < 1195000
+    ])
+    def test_ha_experiencia_suficiente(self, profissao: Profissao, exp_atual, exp_adicional, resultado_esperado):
+        profissao.experiencia = exp_atual
+        assert profissao.ha_experiencia_suficiente(exp_adicional) == resultado_esperado
+
+    def test_retorna_true_quando_nivel_eh_anterior_ao_maximo(self, profissao: Profissao, lista_experiencias_nivel):
+        profissao.nivel = lambda: lista_experiencias_nivel[-2]
+        assert profissao.eh_nivel_anterior_ao_maximo is True

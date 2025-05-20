@@ -547,13 +547,20 @@ class Aplicacao:
         self.__logger_trabalho_producao_dao.error(f'Erro ao inserir ({personagem.id.ljust(36)} | {trabalho}) no banco: {self.__trabalho_producao_dao.pegaErro}')
         return False
         
-    def pegaTrabalhosProducaoParaProduzirProduzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao] | None:
+    def recupera_trabalhos_producao_para_produzir_produzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao] | None:
+        '''
+            Recupera os trabalhos para produção com estado igual a produzir (0) ou produzindo (1) de um personagem específico do banco de dados.
+            Args:
+                personagem(Personagem): Personagem específico para verificação.
+            Returns:
+                trabalhos_producao | None (list[TrabalhoProducao]): Lista de trabalhos para produção encontrados. None caso erro encontrado.
+        '''
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhosProducaoProduzirProduzindo = self.__trabalho_producao_dao.pegaTrabalhosProducaoParaProduzirProduzindo(personagem= personagem)
-        if trabalhosProducaoProduzirProduzindo is None:
+        trabalhosEncontrados: list[TrabalhoProducao] = self.__trabalho_producao_dao.recupera_trabalhos_producao_para_produzir_produzindo(personagem= personagem)
+        if trabalhosEncontrados is None:
             self.__logger_trabalho_producao_dao.error(f'Erro ao recuperar trabalhos para produção com estado para produzir(0) ou produzindo(1): {self.__trabalho_producao_dao.pegaErro}')
             return None
-        return trabalhosProducaoProduzirProduzindo
+        return trabalhosEncontrados
         
     def recupera_trabalhos_producao_estado_produzindo(self, personagem: Personagem = None) -> list[TrabalhoProducao] | None:
         personagem = self.__personagemEmUso if personagem is None else personagem
@@ -819,7 +826,7 @@ class Aplicacao:
             Args:
                 trabalhoConcluido (TrabalhoConcluido): Objeto da classe TrabalhoProducao que contêm os atributos do trabalho concluído.
             Returns:
-                profissao (Profissao): Objeto da classe Profissao que contêm os atributos da profissão encontrada.
+                profissao|None (Profissao): Objeto da classe Profissao que contêm os atributos da profissão encontrada. None caso algum erro seja encontrado.
         '''
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
@@ -1093,7 +1100,10 @@ class Aplicacao:
                 codigoMenu (int): Inteiro que contêm o código do menu reconhecido.
         '''
         personagensVerificados: list[str] = self.retornaListaPersonagemRecompensaRecebida(listaPersonagemPresenteRecuperado= [])
+        verificacoes: int = 0
         while True:
+            if verificacoes > QUANTIDADE_MAXIMA_PERSONAGENS_POSSIVEIS:
+                break
             if self.reconheceMenuRecompensa(codigoMenu= codigoMenu):
                 if self.__imagem.retornaExistePixelCorrespondencia():
                     vaiParaMenuCorrespondencia()
@@ -1109,6 +1119,29 @@ class Aplicacao:
                 break
             codigoMenu: int = self.retornaMenu()
 
+    def verifica_experiencia_suficiente_nivel_maximo(self, trabalho: TrabalhoProducao):
+        profissao_encontrada: Profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalho)
+        if profissao_encontrada is None:
+            return
+        if not profissao_encontrada.eh_nivel_anterior_ao_maximo:
+            return
+        trabalhos_encontrados: list[TrabalhoProducao] = self.recupera_trabalhos_producao_para_produzir_produzindo()
+        if trabalhos_encontrados is None:
+            return
+        total_experiencia: int = sum(
+            trabalho.experiencia
+            for trabalho in trabalhos_encontrados
+            if trabalho.ehProduzindo
+        )
+        if profissao_encontrada.ha_experiencia_suficiente(total_experiencia):
+            for trabalho in filter(lambda trabalho: 
+                trabalho.tipoLicenca == CHAVE_LICENCA_INICIANTE and
+                trabalho.ehParaProduzir,
+                trabalhos_encontrados                
+                ):
+                trabalho.tipoLicenca = CHAVE_LICENCA_NOVATO
+                self.modificaTrabalhoProducao(trabalho)
+        
     def trataMenu(self, menu) -> None:
         if menu == MENU_DESCONHECIDO:
             return
@@ -1130,6 +1163,7 @@ class Aplicacao:
                 self.insere_trabalho_producao(trabalho= trabalhoProducaoRaro)
                 trabalhoProducaoMelhorado: TrabalhoProducao = self.verifica_producao_trabalho_melhorado(trabalhoProducaoConcluido)
                 self.insere_trabalho_producao(trabalho= trabalhoProducaoMelhorado)
+                self.verifica_experiencia_suficiente_nivel_maximo(trabalho= trabalhoProducaoConcluido)
                 return
             if estadoTrabalho == CODIGO_PRODUZINDO:
                 if self.existeEspacoProducao():
@@ -1482,7 +1516,7 @@ class Aplicacao:
                 listaTrabalhosProducaoRaridadeEspecifica (list[TrabalhoProducao]): Lista de trabalhos para produzir definida
         '''
         listaTrabalhosProducaoRaridadeEspecifica: list[TrabalhoProducao] = []
-        trabalhosProducao: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
+        trabalhosProducao: list[TrabalhoProducao] = self.recupera_trabalhos_producao_para_produzir_produzindo()
         if trabalhosProducao is None: return listaTrabalhosProducaoRaridadeEspecifica
         for trabalhoProducao in trabalhosProducao:
             raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, nomeProfissao) and trabalhoProducao.ehParaProduzir
@@ -2608,7 +2642,7 @@ class Aplicacao:
                 bool: Verdadeiro se pelo menos um trabalho com 'idTrabalho' encontrado for igual ao 'idTrabalho' buscado. Falso caso contrário. 
         '''
         self.__logger_aplicacao.debug(mensagem= f'Verificando se ({id.ljust(40)}) está na lista para produção')
-        trabalhosParaProduzirProduzindo: list[TrabalhoProducao] = self.pegaTrabalhosProducaoParaProduzirProduzindo()
+        trabalhosParaProduzirProduzindo: list[TrabalhoProducao] = self.recupera_trabalhos_producao_para_produzir_produzindo()
         if trabalhosParaProduzirProduzindo is None:
             return True
         for trabalhoProducao in trabalhosParaProduzirProduzindo:
@@ -2721,7 +2755,7 @@ class Aplicacao:
         print('Inicia busca...')
         if self.vaiParaMenuProduzir():
             self.define_trabalho_comum_profissao_priorizada()
-            trabalhosProducao: list[TrabalhoProducao]= self.pegaTrabalhosProducaoParaProduzirProduzindo()
+            trabalhosProducao: list[TrabalhoProducao]= self.recupera_trabalhos_producao_para_produzir_produzindo()
             if trabalhosProducao is None: return True
             if ehVazia(trabalhosProducao):
                 print(f'Lista de trabalhos desejados vazia.')
