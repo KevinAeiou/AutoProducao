@@ -74,30 +74,37 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def pegaTrabalhosProducaoParaProduzirProduzindo(self, personagem: Personagem):
+    def recupera_trabalhos_producao_para_produzir_produzindo(self, personagem: Personagem) -> list[TrabalhoProducao] | None:
+        '''
+            Recupera os trabalhos para produção com estado igual a produzir (0) ou produzindo (1) de um personagem específico do banco de dados.
+            Args:
+                personagem(Personagem): Personagem específico para verificação.
+            Returns:
+                trabalhos_producao | None (list[TrabalhoProducao]): Lista de trabalhos para produção encontrados. None caso erro encontrado.
+        '''
         try:
-            trabalhosProducao: list[TrabalhoProducao]= []
+            trabalhos_producao: list[TrabalhoProducao] = []
             sql = """SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado FROM Lista_desejo INNER JOIN trabalhos ON Lista_desejo.idTrabalho == trabalhos.id WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);"""
             conexao = self.__meuBanco.pegaConexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [personagem.id])
             for linha in cursor.fetchall():
                 recorrencia = True if linha[9] == 1 else False
-                trabalhoProducao: TrabalhoProducao= TrabalhoProducao()
-                trabalhoProducao.id = linha[0]
-                trabalhoProducao.idTrabalho = linha[1]
-                trabalhoProducao.nome = linha[2]
-                trabalhoProducao.nomeProducao = linha[3]
-                trabalhoProducao.experiencia = linha[4]
-                trabalhoProducao.nivel = linha[5]
-                trabalhoProducao.profissao = linha[6]
-                trabalhoProducao.raridade = linha[7]
-                trabalhoProducao.trabalhoNecessario = linha[8]
-                trabalhoProducao.recorrencia = recorrencia
-                trabalhoProducao.tipoLicenca = linha[10]
-                trabalhoProducao.estado = linha[11]
-                trabalhosProducao.append(trabalhoProducao)
-            return trabalhosProducao
+                trabalho_producao: TrabalhoProducao= TrabalhoProducao()
+                trabalho_producao.id = linha[0]
+                trabalho_producao.idTrabalho = linha[1]
+                trabalho_producao.nome = linha[2]
+                trabalho_producao.nomeProducao = linha[3]
+                trabalho_producao.experiencia = linha[4]
+                trabalho_producao.nivel = linha[5]
+                trabalho_producao.profissao = linha[6]
+                trabalho_producao.raridade = linha[7]
+                trabalho_producao.trabalhoNecessario = linha[8]
+                trabalho_producao.recorrencia = recorrencia
+                trabalho_producao.tipoLicenca = linha[10]
+                trabalho_producao.estado = linha[11]
+                trabalhos_producao.append(trabalho_producao)
+            return trabalhos_producao
         except Exception as e:
             self.__erro = str(e)
         finally:

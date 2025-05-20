@@ -77,6 +77,25 @@ class Profissao:
         if self.nivel() > 7:
             return self.nivel() % 2 == 0
         return self.nivel() % 2 != 0
+    
+    @property
+    def eh_nivel_anterior_ao_maximo(self) -> bool:
+        '''
+            Verifica se o nível atual é o nível máximo.
+            Returns:
+                bool: Verdadeiro caso o nível atual seja o máximo. Falso caso contrário.
+        '''
+        return self.nivel() == LISTA_EXPERIENCIAS_NIVEL[-2]
+    
+    def ha_experiencia_suficiente(self, experiencia) -> bool:
+        '''
+            Verifica se há experiência sucifiente para avançar de nível.
+            Args:
+                experiencia (int): Experiência para somar à experiência atual da profissão.
+            Returns:
+                bool: Verdadeiro caso a soma da experiência atual mais a experiência passada por parâmetro seja igual ou superior a experiência máxima atual.
+        '''
+        return self.experiencia + experiencia >= self.pegaExperienciaMaximaPorNivel
 
     def dicionarioParaObjeto(self, dicionario):
         for chave in dicionario:
