@@ -21,7 +21,10 @@ class TestProfissao:
     
     @pytest.fixture
     def lista_experiencias_nivel(self, monkeypatch):
-        mock_lista: list[int] = [20, 200, 540, 1250, 2550, 4700, 7990, 12770, 19440, 28440, 40270, 55450, 74570, 98250, 127180, 156110, 185040, 215000, 245000, 300000, 375000, 470000, 585000, 705000, 830000, 996000, 1195000]
+        mock_lista: list[int] = [
+            20, 200, 540, 1250, 2550, 4700, 7990, 12770, 19440, 28440,
+            40270, 55450, 74570, 98250, 127180, 156110, 185040, 215000, 245000, 300000,
+            375000, 470000, 585000, 705000, 830000, 996000, 1195000, 1195001]
         monkeypatch.setattr('constantes.LISTA_EXPERIENCIAS_NIVEL', mock_lista)
         return mock_lista
 

@@ -53,7 +53,7 @@ class TesteTrabalhoProducaoDao:
         mensagemModificaEsperado = 'Sucesso'
         trabalhoProducaoTeste.estado = 1
         trabalhoProducaoDao = TrabalhoProducaoDaoSqlite(self.__personagemTeste)
-        if trabalhoProducaoDao.modificaTrabalhoProducao(trabalhoProducaoTeste):
+        if trabalhoProducaoDao.modifica_trabalho_producao(trabalhoProducaoTeste):
             mensagemModificaRecebido = 'Sucesso'
         else:
             mensagemModificaRecebido = trabalhoProducaoDao.pegaErro

@@ -87,7 +87,7 @@ class Profissao:
         '''
         return self.nivel() == LISTA_EXPERIENCIAS_NIVEL[-2]
     
-    def ha_experiencia_suficiente(self, experiencia) -> bool:
+    def ha_experiencia_suficiente(self, experiencia: int) -> bool:
         '''
             Verifica se há experiência sucifiente para avançar de nível.
             Args:
