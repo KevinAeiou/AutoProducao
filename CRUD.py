@@ -689,7 +689,7 @@ class CRUD:
     def mostraListaVendas(self):
         limpaTela()
         print(f'{"ÍNDICE".ljust(6)} - {"ID".ljust(36)} | {"NOME".ljust(36)} | {"DATA".ljust(10)} | {"VALOR".ljust(5)} | UND')
-        vendas = self.__aplicacao.pegaTrabalhosVendidos()
+        vendas = self.__aplicacao.recupera_trabalhos_vendidos()
         if ehVazia(vendas):
             print('Lista de vendas está vazia!')
         else:
