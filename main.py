@@ -1104,6 +1104,7 @@ class Aplicacao:
         while True:
             if verificacoes > QUANTIDADE_MAXIMA_PERSONAGENS_POSSIVEIS:
                 break
+            verificacoes += 1
             if self.reconheceMenuRecompensa(codigoMenu= codigoMenu):
                 if self.__imagem.retornaExistePixelCorrespondencia():
                     vaiParaMenuCorrespondencia()
