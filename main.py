@@ -578,9 +578,9 @@ class Aplicacao:
         self.__logger_trabalho_producao_dao.error(f'Erro ao remover ({personagem.id.ljust(36)} | {trabalho}) do banco: {self.__trabalho_producao_dao.pegaErro}')
         return False
     
-    def modificaTrabalhoProducao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
+    def modifica_trabalho_producao(self, trabalho: TrabalhoProducao, personagem: Personagem = None, modifica_servidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
-        if self.__trabalho_producao_dao.modificaTrabalhoProducao(personagem= personagem, trabalho= trabalho, modificaServidor= modificaServidor):
+        if self.__trabalho_producao_dao.modifica_trabalho_producao(personagem= personagem, trabalho= trabalho, modifica_servidor= modifica_servidor):
             self.__logger_trabalho_producao_dao.info(f'({personagem.id.ljust(36)} | {trabalho}) modificado no banco com sucesso!')
             return True
         self.__logger_trabalho_producao_dao.error(f'Erro ao modificar ({personagem.id.ljust(36)} | {trabalho}) no banco: {self.__trabalho_producao_dao.pegaErro}')
@@ -601,7 +601,7 @@ class Aplicacao:
             return
         self.__logger_aplicacao.debug(f'Trabalho não é recorrente.')
         trabalhoProducaoConcluido.estado = CODIGO_CONCLUIDO
-        self.modificaTrabalhoProducao(trabalhoProducaoConcluido)
+        self.modifica_trabalho_producao(trabalhoProducaoConcluido)
 
     def insereListaProfissoes(self, personagem: Personagem= None) -> bool:
         personagem: Personagem = self.__personagemEmUso if personagem is None else personagem
@@ -1141,7 +1141,7 @@ class Aplicacao:
                 trabalhos_encontrados                
                 ):
                 trabalho.tipoLicenca = CHAVE_LICENCA_NOVATO
-                self.modificaTrabalhoProducao(trabalho)
+                self.modifica_trabalho_producao(trabalho)
         
     def trataMenu(self, menu) -> None:
         if menu == MENU_DESCONHECIDO:
@@ -1905,7 +1905,7 @@ class Aplicacao:
             self.clonaTrabalhoProducaoEncontrado(trabalhoProducaoEncontrado= trabalho)
             precionaTecla(cliques= 12, teclaEspecifica= 'up')
             return
-        self.modificaTrabalhoProducao(trabalho= trabalho)
+        self.modifica_trabalho_producao(trabalho= trabalho)
         precionaTecla(cliques= 12, teclaEspecifica= 'up')
 
     def trataMenuTrabalhoEspecifico(self, primeiraBusca: bool) -> None:
@@ -2926,7 +2926,7 @@ class Aplicacao:
                     if len(dicionarioTrabalho) > 1:
                         if trabalhoEncontrado.id == dicionarioTrabalho[CHAVE_ID]:
                             trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
-                            self.modificaTrabalhoProducao(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
+                            self.modifica_trabalho_producao(trabalho= trabalhoEncontrado, personagem= personagem, modifica_servidor= False)
                             continue
                         trabalhoEncontrado.dicionarioParaObjeto(dicionarioTrabalho)
                         self.insere_trabalho_producao(trabalho= trabalhoEncontrado, personagem= personagem, modifica_servidor= False)
