@@ -177,14 +177,22 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def pegaQuantidadeTrabalhoProducaoProduzirProduzindo(self, personagem: Personagem, idTrabalho: str):
+    def recupera_quantidade_trabalho_producao_produzir_produzindo(self, personagem: Personagem, id_trabalho: str):
+        '''
+            Recupera a quantidade de trabalhos para produção com estado igual a produzir (0) ou produzindo (1) de um personagem específico do banco de dados.
+            Args:
+                personagem(Personagem): Personagem específico para verificação.
+                id_trabalho(str): ID do trabalho para produção.
+            Returns:
+                quantidade | None (int): Quantidade de trabalhos para produção encontrados. None caso erro encontrado.
+        '''
         try:
             sql = """SELECT COUNT(*) AS quantidade FROM Lista_desejo WHERE idPersonagem == ? AND idTrabalho == ? AND (estado == 0 OR estado == 1);"""
             conexao = self.__meuBanco.pegaConexao()
             cursor = conexao.cursor()
-            cursor.execute(sql, (personagem.id, idTrabalho))
+            cursor.execute(sql, (personagem.id, id_trabalho))
             linha = cursor.fetchone()
-            quantidade = 0 if linha is None else linha[0]
+            quantidade: int = 0 if linha is None else linha[0]
             return quantidade
         except Exception as e:
             self.__erro = str(e)

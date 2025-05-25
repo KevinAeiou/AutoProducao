@@ -850,7 +850,7 @@ class Aplicacao:
             for trabalho in trabalhos:
                 trabalhoNecessarioEhIgualIdTrabalhoConcluido = textoEhIgual(texto1= trabalho.trabalhoNecessario, texto2= trabalhoConcluido.idTrabalho)
                 if trabalhoNecessarioEhIgualIdTrabalhoConcluido:
-                    return self.defineNovoTrabalhoProducaoRaro(profissao, trabalho)
+                    return self.define_novo_trabalho_producao_raro(profissao, trabalho)
         return None
     
     def verifica_producao_trabalho_melhorado(self, trabalho_concluido: TrabalhoProducao) -> TrabalhoProducao | None:
@@ -917,7 +917,7 @@ class Aplicacao:
             return True
         return False
 
-    def defineNovoTrabalhoProducaoRaro(self, profissao: Profissao, trabalho: Trabalho) -> TrabalhoProducao:
+    def define_novo_trabalho_producao_raro(self, profissao: Profissao, trabalho: Trabalho) -> TrabalhoProducao:
         '''
             Função de define um novo objeto da classe TrabalhoProducao do tipo "Raro"
             Args:
@@ -1236,7 +1236,7 @@ class Aplicacao:
             self.__unicaConexao = False
         return False
 
-    def retornaListaTrabalhosRarosVendidosOrdenada(self, listaTrabalhosRarosVendidos):
+    def retorna_trabalhos_raros_vendidos_ordenada(self, listaTrabalhosRarosVendidos):
         print(f'Definindo lista trabalhos raros vendidos ordenada...')
         listaTrabalhosRarosVendidosOrdenada = []
         for trabalhosRarosVendidos in listaTrabalhosRarosVendidos:
@@ -1343,13 +1343,137 @@ class Aplicacao:
         '''
             Método para verificar e produzir trabalhos mais vendidos.
         '''
-        listaTrabalhosRarosVendidosOrdenada = self.retornaListaTrabalhosRarosVendidosOrdenada(trabalhos_raros_vendidos)
-        verificacoes = 0
-        for trabalhoRaroVendido in listaTrabalhosRarosVendidosOrdenada:
+        trabalhos_raros_vendidos_ordenada: list[TrabalhoVendido] = self.retorna_trabalhos_raros_vendidos_ordenada(trabalhos_raros_vendidos)
+        verificacoes: int = 0
+        for trabalho_vendido in trabalhos_raros_vendidos_ordenada:
+            self.__logger_aplicacao.debug(f'Verificando trabalho mais vendido: {trabalho_vendido}')
+
+            # Faz quatro verificações para evitar loop infinito
             if verificacoes >= 4:
                 break
-            # verificacoes = self.verificaTrabalhoRaroNecessario(verificacoes, trabalhoRaroVendido)
-        self.__logger_aplicacao.debug(f'Fim do processo de verificação de produto mais vendido...')
+            # Recupera o trabalho raro correspondente ao trabalho vendido
+            trabalho_raro: Trabalho = self.recupera_trabalho_por_id(id= trabalho_vendido.idTrabalho)
+            if trabalho_raro is None:
+                self.__logger_aplicacao.debug(f'Trabalho raro não encontrado para o trabalho vendido ({trabalho_vendido.nome})')
+                continue
+            if trabalho_raro.trabalhoNecessario is None:
+                self.__logger_aplicacao.warning(f'({trabalho_raro}) não possui trabalhos melhorados necessários.')
+                continue
+            # Recupera a profissão associada ao trabalho raro
+            profissao: Profissao = self.retornaProfissaoTrabalhoProducaoConcluido(trabalho_raro)
+            if profissao is None:
+                self.__logger_aplicacao.debug(f'Profissão não encontrada para o trabalho vendido ({trabalho_raro.nome})')
+                continue
+            # Verifica se existe pelo menos um trabalho raro no estoque ou na lista de produção
+            quantidade_trabalho_estoque: int = self.recupera_quantidade_trabalho_estoque(trabalho_raro.id)
+            self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_raro.id} | {trabalho_raro.nome}) no estoque é ({quantidade_trabalho_estoque}).')
+            if quantidade_trabalho_estoque > 0:
+                continue
+            quantidade_trabalho_producao: int = self.recupera_quantidade_trabalho_producao_produzir_produzindo(trabalho_raro.id)
+            self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_raro.id} | {trabalho_raro.nome}) produzir/produzindo é ({quantidade_trabalho_producao}).')
+            if quantidade_trabalho_producao > 0:
+                verificacoes += 1
+                continue
+            # Recupera o trabalho melhorado associado ao trabalho raro
+            trabalho_melhorado: Trabalho = self.recupera_trabalho_por_id(id= trabalho_raro.trabalhoNecessario)
+            if trabalho_melhorado is None:
+                self.__logger_aplicacao.debug(f'Trabalho melhorado não encontrado para o trabalho vendido ({trabalho_raro.nome})')
+                continue
+            ids_trabalhos: list[str] = trabalho_melhorado.trabalhoNecessario.split(',')
+            if ids_trabalhos is None:
+                self.__logger_aplicacao.warning(f'({trabalho_melhorado}) não possui trabalhos comuns necessários.')
+                continue
+            # Verifica se existe pelo menos um trabalho melhorado no estoque ou na lista de produção
+            quantidade_trabalho_estoque = self.recupera_quantidade_trabalho_estoque(trabalho_melhorado.id)
+            self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_melhorado.id} | {trabalho_melhorado.nome}) no estoque é ({quantidade_trabalho_estoque}).')
+            if quantidade_trabalho_estoque > 0:
+                trabalho_raro_vendido: TrabalhoProducao = self.define_novo_trabalho_producao_raro(profissao, trabalho_raro)
+                self.insere_trabalho_producao(trabalho= trabalho_raro_vendido)
+                verificacoes += 1
+                continue
+            quantidade_trabalho_producao: int = self.recupera_quantidade_trabalho_producao_produzir_produzindo(trabalho_melhorado.id)
+            self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_melhorado.id} | {trabalho_melhorado.nome}) para produzir/produzindo é ({quantidade_trabalho_producao}).')
+            if quantidade_trabalho_producao > 0:
+                self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_melhorado.id} | {trabalho_melhorado.nome}) para produzir/produzindo é ({quantidade_trabalho_producao}).')
+                verificacoes += 1
+                continue
+            # Recupera o trabalho comum necessário para produzir o trabalho melhorado
+            if self.ha_trabalhos_necessarios_suficientes_em_estoque(trabalho= trabalho_melhorado):
+                trabalho_melhorado_producao: TrabalhoProducao = self.define_novo_trabalho_producao_raro(profissao, trabalho_melhorado)
+                self.insere_trabalho_producao(trabalho= trabalho_melhorado_producao)
+                verificacoes += 1
+                continue
+            if self.ha_trabalhos_necessarios_suficientes_em_producao(trabalho= trabalho_melhorado):
+                verificacoes += 1
+                continue
+            for id_trabalho in ids_trabalhos:
+                trabalho_comum: Trabalho = self.recupera_trabalho_por_id(id= id_trabalho)
+                if trabalho_comum is None:
+                    self.__logger_aplicacao.warning(f'({id_trabalho}) não foi encontrado de trabalhos!')
+                    continue
+                quantidade_trabalho_producao = self.recupera_quantidade_trabalho_producao_produzir_produzindo(trabalho_comum.id)
+                self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_comum.id} | {trabalho_comum.nome}) para produzir/produzindo é ({quantidade_trabalho_producao}).')
+                if quantidade_trabalho_producao == 0 and self.verifica_recursos_necessarios(trabalho= trabalho_comum):
+                    self.__logger_aplicacao.debug(mensagem= f'Quantidade de recursos para produção é suficiente')
+                    trabalho_comum_producao: TrabalhoProducao = TrabalhoProducao()
+                    trabalho_comum_producao.dicionarioParaObjeto(dicionario= trabalho_comum.__dict__)
+                    trabalho_comum_producao.id = str(uuid.uuid4())
+                    trabalho_comum_producao.idTrabalho = trabalho_comum.id
+                    trabalho_comum_producao.experiencia = trabalho_comum.experiencia * 1.5
+                    trabalho_comum_producao.recorrencia = False
+                    trabalho_comum_producao.tipoLicenca = CHAVE_LICENCA_NOVATO
+                    trabalho_comum_producao.estado = CODIGO_PARA_PRODUZIR
+                    self.insere_trabalho_producao(trabalho_comum_producao)
+                    continue
+                self.define_trabalho_producao_recursos_profissao_priorizada(trabalho= trabalho_comum)
+            verificacoes += 1
+        self.__logger_aplicacao.debug(f'Fim do processo de verificação do trabalho mais vendido...')
+
+    def ha_trabalhos_necessarios_suficientes_em_estoque(self, trabalho: Trabalho) -> bool:
+        '''
+            Método para verificar se existem trabalhos necessários para produzir o trabalho vendido.
+            Args:
+                trabalho (Trabalho): Objeto da classe Trabalho que contêm os atributos do trabalho vendido.
+            Returns:
+                bool: Verdadeiro se existem trabalhos comuns necessários para produzir o trabalho vendido. Falso caso contrário.
+        '''
+        ids_trabalhos: list[str] = trabalho.trabalhoNecessario.split(',')
+        if ids_trabalhos is None:
+            self.__logger_aplicacao.warning(f'({trabalho.nome}) não possui trabalhos comuns necessários.')
+            return False
+        for id_trabalho in ids_trabalhos:
+            trabalho_necessario: Trabalho = self.recupera_trabalho_por_id(id= id_trabalho)
+            if trabalho_necessario is None:
+                self.__logger_aplicacao.warning(f'({id_trabalho}) não foi encontrado de trabalhos!')
+                return False
+            quantidade_trabalho_estoque: int = self.recupera_quantidade_trabalho_estoque(trabalho_necessario.id)
+            self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_necessario.id} | {trabalho_necessario.nome}) no estoque é ({quantidade_trabalho_estoque}).')
+            if quantidade_trabalho_estoque == 0:
+                return False
+        return True
+    
+    def ha_trabalhos_necessarios_suficientes_em_producao(self, trabalho: Trabalho) -> bool:
+        '''
+            Método para verificar se existem trabalhos necessários para produzir o trabalho vendido.
+            Args:
+                trabalho (Trabalho): Objeto da classe Trabalho que contêm os atributos do trabalho vendido.
+            Returns:
+                bool: Verdadeiro se existem trabalhos comuns necessários para produzir o trabalho vendido. Falso caso contrário.
+        '''
+        ids_trabalhos: list[str] = trabalho.trabalhoNecessario.split(',')
+        if ids_trabalhos is None:
+            self.__logger_aplicacao.warning(f'({trabalho.nome}) não possui trabalhos comuns necessários.')
+            return False
+        for id_trabalho in ids_trabalhos:
+            trabalho_necessario: Trabalho = self.recupera_trabalho_por_id(id= id_trabalho)
+            if trabalho_necessario is None:
+                self.__logger_aplicacao.warning(f'({id_trabalho}) não foi encontrado na lista de trabalhos!')
+                return False
+            quantidade_trabalho_producao = self.recupera_quantidade_trabalho_producao_produzir_produzindo(trabalho_necessario.id)
+            self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_necessario.id} | {trabalho_necessario.nome}) para produzir/produzindo é ({quantidade_trabalho_producao}).')
+            if quantidade_trabalho_producao == 0:
+                return False
+        return True
 
     def pegaTrabalhoPorNomeProfissaoRaridade(self, trabalho: Trabalho) -> Trabalho | None:
         trabalhoEncontrado = self.__trabalhoDao.pegaTrabalhoPorNomeProfissaoRaridade(trabalho)
@@ -2490,7 +2614,7 @@ class Aplicacao:
                 if quantidade_trabalhos_em_producao_eh_maior_igual_ao_tamanho_lista_trabalhos_comuns:
                     self.__logger_aplicacao.debug(mensagem= f'Existem ({quantidade_total_trabalho_producao}) ou mais trabalhos sendo produzidos!')
                     break
-                trabalho_comum: TrabalhoProducao = self.define_trabalho_producao_comum(trabalhos_quantidade)
+                trabalho_comum: TrabalhoProducao = self.define_trabalho_producao_comum(trabalhos_quantidade[0])
                 if nivel_profissao == 1 or nivel_profissao == 8:
                     self.__logger_aplicacao.warning(f'Nível de produção de ({profissao_priorizada.nome}) é 1 ou 8')
                     trabalho_comum.tipoLicenca = CHAVE_LICENCA_APRENDIZ
@@ -2530,7 +2654,7 @@ class Aplicacao:
             if quantidade_trabalhos_em_producao_eh_maior_igual_ao_tamanho_lista_trabalhos_comuns:
                 self.__logger_aplicacao.debug(mensagem= f'Existem ({quantidade_total_trabalho_producao}) ou mais trabalhos sendo produzidos!')
                 break
-            trabalho_comum: TrabalhoProducao = self.define_trabalho_producao_comum(trabalhos_quantidade)
+            trabalho_comum: TrabalhoProducao = self.define_trabalho_producao_comum(trabalhos_quantidade[0])
             trabalho_comum.tipoLicenca = CHAVE_LICENCA_APRENDIZ
             self.insere_trabalho_producao(trabalho_comum)
 
@@ -2674,26 +2798,18 @@ class Aplicacao:
         trabalho_buscado.raridade = raridade
         return trabalho_buscado
 
-    def define_trabalho_producao_comum(self, trabalhos_quantidade: list[TrabalhoEstoque]) -> TrabalhoProducao:
+    def define_trabalho_producao_comum(self, trabalho: TrabalhoEstoque) -> TrabalhoProducao:
         trabalho_comum: TrabalhoProducao = TrabalhoProducao()
-        trabalho_comum.idTrabalho = trabalhos_quantidade[0].idTrabalho
+        trabalho_comum.idTrabalho = trabalho.idTrabalho
         trabalho_comum.estado = CODIGO_PARA_PRODUZIR
         trabalho_comum.recorrencia = False
         trabalho_comum.tipoLicenca = CHAVE_LICENCA_NOVATO
         return trabalho_comum
-    
-    def pegaQuantidadeTrabalhoProducaoProduzirProduzindo(self, idTrabalho: str, personagem: Personagem = None) -> int:
-        personagem = self.__personagemEmUso if personagem is None else personagem
-        quantidade = self.__trabalho_producao_dao.pegaQuantidadeTrabalhoProducaoProduzirProduzindo(personagem= personagem, idTrabalho= idTrabalho)
-        if quantidade is None:
-            self.__logger_trabalho_producao_dao.error(f'Erro ao buscar quantidade trabalho para produção por id ({idTrabalho}): {self.__trabalho_producao_dao.pegaErro}')
-            return 0
-        return quantidade
 
     def atualiza_lista_trabalhos_quantidade_trabalhos_producao(self, trabalhos_quantidade: list[TrabalhoEstoque]):
         quantidade_total_trabalho_producao: int= 0
         for trabalho_quantidade in trabalhos_quantidade:
-            quantidade = self.pegaQuantidadeTrabalhoProducaoProduzirProduzindo(trabalho_quantidade.idTrabalho)
+            quantidade = self.recupera_quantidade_trabalho_producao_produzir_produzindo(trabalho_quantidade.idTrabalho)
             trabalho_quantidade.quantidade += quantidade
             quantidade_total_trabalho_producao += quantidade
         return trabalhos_quantidade, quantidade_total_trabalho_producao
@@ -2711,6 +2827,22 @@ class Aplicacao:
         quantidade = self.__estoqueDao.pegaQuantidadeTrabalho(personagem= personagem, idTrabalho= id_trabalho)
         if quantidade is None:
             self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade ({id_trabalho}) no estoque: {self.__estoqueDao.pegaErro}')
+            return 0
+        return quantidade
+    
+    def recupera_quantidade_trabalho_producao_produzir_produzindo(self, id_trabalho: str, personagem: Personagem = None) -> int:
+        '''
+            Método para recuperar a quantidade de um trabalho específico em produção por id.
+            Args:
+                idTrabalho (str): String que contêm o id do trabalho buscado.
+                personagem (Personagem): Objeto da classe Personagem que contêm os atributos do personagem atual. É None por padrão.
+            Returns:
+                quantidade (int): Inteiro que contêm a quantidade de trabalho recuperado do banco de dados. É zero(0) por padrão.
+        '''
+        personagem = self.__personagemEmUso if personagem is None else personagem
+        quantidade: int = self.__trabalho_producao_dao.recupera_quantidade_trabalho_producao_produzir_produzindo(personagem= personagem, id_trabalho= id_trabalho)
+        if quantidade is None:
+            self.__loggerEstoqueDao.error(f'Erro ao buscar quantidade ({id_trabalho}) em produção: {self.__trabalho_producao_dao.pegaErro}')
             return 0
         return quantidade
 
