@@ -689,7 +689,7 @@ class CRUD:
     def mostraListaVendas(self):
         limpaTela()
         print(f'{"ÍNDICE".ljust(6)} - {"ID".ljust(36)} | {"NOME".ljust(36)} | {"DATA".ljust(10)} | {"VALOR".ljust(5)} | UND')
-        vendas = self.__aplicacao.pegaTrabalhosVendidos()
+        vendas = self.__aplicacao.recupera_trabalhos_vendidos()
         if ehVazia(vendas):
             print('Lista de vendas está vazia!')
         else:
@@ -924,7 +924,8 @@ class CRUD:
                 trabalhoTeste.idTrabalho = 'YK81EN0qfsT2RxtgSRLgiHEaHQPB'
                 trabalhoTeste.raridade = CHAVE_RARIDADE_COMUM
                 trabalhoTeste.profissao = CHAVE_PROFISSAO_ANEIS
-                print(self.__aplicacao.define_trabalho_comum_profissao_priorizada())
+                print(self.__aplicacao.verifica_produtos_raros_mais_vendidos())
+                input(f'Clique para continuar...')
                 continue
             break
 
