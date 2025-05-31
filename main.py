@@ -1379,7 +1379,11 @@ class Aplicacao:
             if trabalho_melhorado is None:
                 self.__logger_aplicacao.debug(f'Trabalho melhorado não encontrado para o trabalho vendido ({trabalho_raro.nome})')
                 continue
-            ids_trabalhos: list[str] = trabalho_melhorado.trabalhoNecessario.split(',')
+            ids_trabalhos_necessarios: str = trabalho_melhorado.trabalhoNecessario
+            if ids_trabalhos_necessarios is None or ids_trabalhos_necessarios == '':
+                self.__logger_aplicacao.warning(f'({trabalho_melhorado}) não possui trabalhos comuns necessários.')
+                continue
+            ids_trabalhos: list[str] = ids_trabalhos_necessarios.split(',')
             if ids_trabalhos is None:
                 self.__logger_aplicacao.warning(f'({trabalho_melhorado}) não possui trabalhos comuns necessários.')
                 continue
@@ -1437,8 +1441,12 @@ class Aplicacao:
             Returns:
                 bool: Verdadeiro se existem trabalhos comuns necessários para produzir o trabalho vendido. Falso caso contrário.
         '''
-        ids_trabalhos: list[str] = trabalho.trabalhoNecessario.split(',')
-        if ids_trabalhos is None:
+        ids_trabalhos_necessarios: str = trabalho.trabalhoNecessario
+        if ids_trabalhos_necessarios is None or ids_trabalhos_necessarios == '':
+            self.__logger_aplicacao.warning(f'({trabalho.nome}) não possui trabalhos comuns necessários.')
+            return False    
+        ids_trabalhos: list[str] = ids_trabalhos_necessarios.split(',')
+        if len(ids_trabalhos) == 0:
             self.__logger_aplicacao.warning(f'({trabalho.nome}) não possui trabalhos comuns necessários.')
             return False
         for id_trabalho in ids_trabalhos:
@@ -1460,8 +1468,13 @@ class Aplicacao:
             Returns:
                 bool: Verdadeiro se existem trabalhos comuns necessários para produzir o trabalho vendido. Falso caso contrário.
         '''
-        ids_trabalhos: list[str] = trabalho.trabalhoNecessario.split(',')
-        if ids_trabalhos is None:
+
+        ids_trabalhos_necessarios: str = trabalho.trabalhoNecessario
+        if ids_trabalhos_necessarios is None or ids_trabalhos_necessarios == '':
+            self.__logger_aplicacao.warning(f'({trabalho.nome}) não possui trabalhos comuns necessários.')
+            return False
+        ids_trabalhos: list[str] = ids_trabalhos_necessarios.split(',')
+        if len(ids_trabalhos) == 0:
             self.__logger_aplicacao.warning(f'({trabalho.nome}) não possui trabalhos comuns necessários.')
             return False
         for id_trabalho in ids_trabalhos:
@@ -1878,7 +1891,11 @@ class Aplicacao:
             return self.atualizaResursosEstoqueTrabalhoMelhoradoRaroProduzindo(trabalho)
 
     def atualizaResursosEstoqueTrabalhoMelhoradoRaroProduzindo(self, trabalho: Trabalho) -> None:
-        listaIdsTrabalhosNecessarios: list[str] = trabalho.trabalhoNecessario.split(',')
+        ids_trabalhos_necessarios: str = trabalho.trabalhoNecessario
+        if ids_trabalhos_necessarios is None or ids_trabalhos_necessarios == '':
+            self.__logger_aplicacao.warning(f'({trabalho.id}) não possui trabalhos necessários definidos!')
+            return
+        listaIdsTrabalhosNecessarios: list[str] = ids_trabalhos_necessarios.split(',')
         for idTrabalhoNecessario in listaIdsTrabalhosNecessarios:
             trabalhoEncontrado: TrabalhoEstoque = self.recuperaTrabalhoEstoquePorIdTrabalho(id= idTrabalhoNecessario)
             if trabalhoEncontrado is None or trabalhoEncontrado.idTrabalho is None:
@@ -1888,7 +1905,7 @@ class Aplicacao:
                 if self.modificaTrabalhoEstoque(trabalhoEncontrado):
                     print(f'Quantidade do trabalho ({trabalhoEncontrado.idTrabalho}) atualizada para {trabalhoEncontrado.quantidade}.')
                 return
-            self.__loggerEstoqueDao.warning(f'({idTrabalhoNecessario}) não encontrado no estoque!')
+            self.__logger_aplicacao.warning(f'({idTrabalhoNecessario}) não encontrado no estoque!')
 
     def atualizaRecursosEstoqueTrabalhoRecursoProduzindo(self, trabalhoProducao: TrabalhoProducao) -> None:
         trabalho: Trabalho = self.recupera_trabalho_por_id(trabalhoProducao.idTrabalho)
