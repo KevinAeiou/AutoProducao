@@ -21,7 +21,10 @@ class TestProfissao:
     
     @pytest.fixture
     def lista_experiencias_nivel(self, monkeypatch):
-        mock_lista: list[int] = [20, 200, 540, 1250, 2550, 4700, 7990, 12770, 19440, 28440, 40270, 55450, 74570, 98250, 127180, 156110, 185040, 215000, 245000, 300000, 375000, 470000, 585000, 705000, 830000, 996000, 1195000]
+        mock_lista: list[int] = [
+            20, 200, 540, 1250, 2550, 4700, 7990, 12770, 19440, 28440,
+            40270, 55450, 74570, 98250, 127180, 156110, 185040, 215000, 245000, 300000,
+            375000, 470000, 585000, 705000, 830000, 996000, 1195000, 1195001]
         monkeypatch.setattr('constantes.LISTA_EXPERIENCIAS_NIVEL', mock_lista)
         return mock_lista
 
@@ -37,7 +40,7 @@ class TestProfissao:
     def test_pegaExperienciaMaxima_deve_retornar_ultimo_item_da_lista(self):
         """Testa o método que retorna a experiência máxima"""
         profissao = Profissao()
-        assert profissao.pegaExperienciaMaxima == LISTA_EXPERIENCIAS_NIVEL[-1]
+        assert profissao.recupera_experiencia_maxima == LISTA_EXPERIENCIAS_NIVEL[-1]
 
     @pytest.mark.parametrize("exp_input,exp_expected", [
         (100, 100),

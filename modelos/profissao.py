@@ -1,5 +1,5 @@
 from uuid import uuid4
-from constantes import LISTA_EXPERIENCIAS_NIVEL
+from constantes import LISTA_EXPERIENCIAS_NIVEL, CHAVE_LICENCA_MESTRE, CHAVE_LICENCA_INICIANTE
 
 class Profissao:
     def __init__(self):
@@ -10,11 +10,16 @@ class Profissao:
         self.prioridade: bool = False
 
     @property
-    def pegaExperienciaMaxima(self):
+    def recupera_experiencia_maxima(self):
+        '''
+            Retorna a experiencia máxima possível para a profissão.
+            Returns:
+                int: Inteiro que contém a experiência máxima possível para a profissão.
+        '''
         return LISTA_EXPERIENCIAS_NIVEL[-1]
     
     def setExperiencia(self, experiencia: int):
-        experiencia = self.pegaExperienciaMaxima if int(experiencia) > self.pegaExperienciaMaxima else int(experiencia) if int(experiencia) > 0 else 0
+        experiencia = self.recupera_experiencia_maxima if int(experiencia) > self.recupera_experiencia_maxima else int(experiencia) if int(experiencia) > 0 else 0
         self.experiencia = experiencia
 
     @property
@@ -22,7 +27,7 @@ class Profissao:
         self.prioridade = not self.prioridade
 
     def nivel(self):
-        if self.experiencia >= self.pegaExperienciaMaxima:
+        if self.experiencia >= self.recupera_experiencia_maxima:
             return len(LISTA_EXPERIENCIAS_NIVEL) + 1
         for i, experiencia in enumerate(LISTA_EXPERIENCIAS_NIVEL):
             if self.experiencia < experiencia:
@@ -56,8 +61,8 @@ class Profissao:
 
     @property
     def pegaExperienciaMaximaPorNivel(self):
-        if self.experiencia >= self.pegaExperienciaMaxima:
-            return self.pegaExperienciaMaxima
+        if self.experiencia >= self.recupera_experiencia_maxima:
+            return self.recupera_experiencia_maxima
         for i, exp in enumerate(LISTA_EXPERIENCIAS_NIVEL):
             if self.experiencia < exp:
                 return exp
@@ -87,7 +92,7 @@ class Profissao:
         '''
         return self.nivel() == LISTA_EXPERIENCIAS_NIVEL[-2]
     
-    def ha_experiencia_suficiente(self, experiencia) -> bool:
+    def ha_experiencia_suficiente(self, experiencia: int) -> bool:
         '''
             Verifica se há experiência sucifiente para avançar de nível.
             Args:
@@ -96,6 +101,16 @@ class Profissao:
                 bool: Verdadeiro caso a soma da experiência atual mais a experiência passada por parâmetro seja igual ou superior a experiência máxima atual.
         '''
         return self.experiencia + experiencia >= self.pegaExperienciaMaximaPorNivel
+    
+    def define_licenca_ideal(self):
+        ''''
+            Define a licença ideal para a profissão.
+            Returns:
+                str: String que contém a licença ideal para a profissão.
+        '''
+        if self.experiencia == self.recupera_experiencia_maxima:
+            return CHAVE_LICENCA_MESTRE
+        return CHAVE_LICENCA_INICIANTE
 
     def dicionarioParaObjeto(self, dicionario):
         for chave in dicionario:

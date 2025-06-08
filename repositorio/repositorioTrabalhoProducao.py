@@ -121,7 +121,7 @@ class RepositorioTrabalhoProducao(Stream):
             self.__logger.error(mensagem= f'Erro inserir trabalho para produção: {e}')
         return False
 
-    def modificaTrabalhoProducao(self, trabalho: TrabalhoProducao) -> bool:
+    def modifica_trabalho_producao(self, trabalho: TrabalhoProducao) -> bool:
         try:
             self.__minhaReferencia.child(self._personagem.id).child(trabalho.id).update({CHAVE_ID: trabalho.id, CHAVE_ID_TRABALHO: trabalho.idTrabalho, CHAVE_ESTADO: trabalho.estado, CHAVE_RECORRENCIA: trabalho.recorrencia, CHAVE_TIPO_LICENCA: trabalho.tipoLicenca})
             self.__logger.debug(mensagem= f'Trabalho ({trabalho}) modificado com sucesso!')

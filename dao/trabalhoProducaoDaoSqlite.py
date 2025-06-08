@@ -177,14 +177,22 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def pegaQuantidadeTrabalhoProducaoProduzirProduzindo(self, personagem: Personagem, idTrabalho: str):
+    def recupera_quantidade_trabalho_producao_produzir_produzindo(self, personagem: Personagem, id_trabalho: str):
+        '''
+            Recupera a quantidade de trabalhos para produção com estado igual a produzir (0) ou produzindo (1) de um personagem específico do banco de dados.
+            Args:
+                personagem(Personagem): Personagem específico para verificação.
+                id_trabalho(str): ID do trabalho para produção.
+            Returns:
+                quantidade | None (int): Quantidade de trabalhos para produção encontrados. None caso erro encontrado.
+        '''
         try:
             sql = """SELECT COUNT(*) AS quantidade FROM Lista_desejo WHERE idPersonagem == ? AND idTrabalho == ? AND (estado == 0 OR estado == 1);"""
             conexao = self.__meuBanco.pegaConexao()
             cursor = conexao.cursor()
-            cursor.execute(sql, (personagem.id, idTrabalho))
+            cursor.execute(sql, (personagem.id, id_trabalho))
             linha = cursor.fetchone()
-            quantidade = 0 if linha is None else linha[0]
+            quantidade: int = 0 if linha is None else linha[0]
             return quantidade
         except Exception as e:
             self.__erro = str(e)
@@ -305,22 +313,24 @@ class TrabalhoProducaoDaoSqlite:
             self.__meuBanco.desconecta()
         return False
         
-    def modificaTrabalhoProducao(self, personagem: Personagem, trabalho: TrabalhoProducao, modificaServidor: bool= True):
+    def modifica_trabalho_producao(self, personagem: Personagem, trabalho: TrabalhoProducao, modifica_servidor: bool= True):
+        self.__conexao = self.__meuBanco.pegaConexao()
+        if self.__conexao is None:
+            return False
         try:
             sql: str= f"""UPDATE {CHAVE_LISTA_TRABALHOS_PRODUCAO} SET {CHAVE_ID_TRABALHO} = ?, {CHAVE_RECORRENCIA} = ?, {CHAVE_TIPO_LICENCA} = ?, {CHAVE_ESTADO} = ? WHERE {CHAVE_ID} == ?;"""
-            repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
-            self.__conexao = self.__meuBanco.pegaConexao()
+            repositorio_trabalho_producao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             recorrencia: int= 1 if trabalho.recorrencia else 0
             cursor.execute(sql, (trabalho.idTrabalho, recorrencia, trabalho.tipoLicenca, trabalho.estado, trabalho.id))
-            if modificaServidor:
-                if repositorioTrabalhoProducao.modificaTrabalhoProducao(trabalho= trabalho):
+            if modifica_servidor:
+                if repositorio_trabalho_producao.modifica_trabalho_producao(trabalho= trabalho):
                     self.__logger.info(f'({personagem.id.ljust(36)} | {trabalho}) modificado no servidor com sucesso!')
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao modificar ({personagem.id.ljust(36)} | {trabalho}) no servidor: {repositorioTrabalhoProducao.pegaErro}')
-                self.__erro= repositorioTrabalhoProducao.pegaErro
+                self.__logger.error(f'Erro ao modificar ({personagem.id.ljust(36)} | {trabalho}) no servidor: {repositorio_trabalho_producao.pegaErro}')
+                self.__erro= repositorio_trabalho_producao.pegaErro
                 self.__conexao.rollback()
                 return False
             self.__conexao.commit()
