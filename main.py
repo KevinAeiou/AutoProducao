@@ -926,16 +926,15 @@ class Aplicacao:
             Returns:
                 trabalhoRaro (TrabalhoProducao): Novo bjeto da classe TrabalhoProducao que contêm os atributos do trabalho do tipo "Raro" encontado.
         '''
-        licencaProducaoIdeal: str = CHAVE_LICENCA_NOVATO if profissao.pegaExperienciaMaximaPorNivel >= profissao.pegaExperienciaMaxima else CHAVE_LICENCA_INICIANTE
-        trabalhoRaro: TrabalhoProducao = TrabalhoProducao()
-        trabalhoRaro.dicionarioParaObjeto(dicionario= trabalho.__dict__)
-        trabalhoRaro.id = str(uuid.uuid4())
-        trabalhoRaro.idTrabalho = trabalho.id
-        trabalhoRaro.experiencia = trabalho.experiencia * 1.5
-        trabalhoRaro.recorrencia = False
-        trabalhoRaro.tipoLicenca = licencaProducaoIdeal
-        trabalhoRaro.estado = CODIGO_PARA_PRODUZIR
-        return trabalhoRaro
+        trabalho_raro: TrabalhoProducao = TrabalhoProducao()
+        trabalho_raro.dicionarioParaObjeto(dicionario= trabalho.__dict__)
+        trabalho_raro.id = str(uuid.uuid4())
+        trabalho_raro.idTrabalho = trabalho.id
+        trabalho_raro.experiencia = trabalho.experiencia * 1.5
+        trabalho_raro.recorrencia = False
+        trabalho_raro.tipoLicenca = profissao.define_licenca_ideal()
+        trabalho_raro.estado = CODIGO_PARA_PRODUZIR
+        return trabalho_raro
 
     def retornaListaPersonagemRecompensaRecebida(self, listaPersonagemPresenteRecuperado: list[str] = []) -> list[str]:
         '''
