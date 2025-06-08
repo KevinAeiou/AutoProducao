@@ -40,7 +40,7 @@ class TestProfissao:
     def test_pegaExperienciaMaxima_deve_retornar_ultimo_item_da_lista(self):
         """Testa o método que retorna a experiência máxima"""
         profissao = Profissao()
-        assert profissao.pegaExperienciaMaxima == LISTA_EXPERIENCIAS_NIVEL[-1]
+        assert profissao.recupera_experiencia_maxima == LISTA_EXPERIENCIAS_NIVEL[-1]
 
     @pytest.mark.parametrize("exp_input,exp_expected", [
         (100, 100),
