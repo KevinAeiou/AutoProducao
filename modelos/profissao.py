@@ -102,15 +102,13 @@ class Profissao:
         '''
         return self.experiencia + experiencia >= self.pegaExperienciaMaximaPorNivel
     
-    def define_licenca_ideal(self):
+    def define_licenca_ideal(self) -> str:
         ''''
             Define a licença ideal para a profissão.
             Returns:
                 str: String que contém a licença ideal para a profissão.
         '''
-        if self.experiencia == self.recupera_experiencia_maxima:
-            return CHAVE_LICENCA_MESTRE
-        return CHAVE_LICENCA_INICIANTE
+        return CHAVE_LICENCA_MESTRE if self.experiencia == self.recupera_experiencia_maxima else CHAVE_LICENCA_INICIANTE
 
     def dicionarioParaObjeto(self, dicionario):
         for chave in dicionario:

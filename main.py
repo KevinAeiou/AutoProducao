@@ -809,7 +809,7 @@ class Aplicacao:
             for trabalho in trabalhos:
                 trabalhoNecessarioEhIgualIdTrabalhoConcluido = textoEhIgual(texto1= trabalho.trabalhoNecessario, texto2= trabalhoConcluido.idTrabalho)
                 if trabalhoNecessarioEhIgualIdTrabalhoConcluido:
-                    return self.define_novo_trabalho_producao_raro(profissao, trabalho)
+                    return self.define_trabalho_producao_raro(profissao, trabalho)
         return None
     
     def verifica_producao_trabalho_melhorado(self, trabalho_concluido: TrabalhoProducao) -> TrabalhoProducao | None:
@@ -839,7 +839,7 @@ class Aplicacao:
                 if not self.existe_zero_unidade_estoque(trabalho_raro): return None                
                 if self.trabalho_esta_na_lista_producao(id= trabalho_melhorado.id): return None
                 if not self.existe_zero_unidade_estoque(trabalho_melhorado): return None
-                return self.define_trabalho_producao_melhorado(idTrabalho= trabalho_melhorado.id)
+                return self.define_trabalho_producao_melhorado(profissao, idTrabalho= trabalho_melhorado.id)
             self.__logger_aplicacao.debug(mensagem= f'Nível da profissão ({profissao}) não é para melhoria')
         return None
     
@@ -876,7 +876,7 @@ class Aplicacao:
             return True
         return False
 
-    def define_novo_trabalho_producao_raro(self, profissao: Profissao, trabalho: Trabalho) -> TrabalhoProducao:
+    def define_trabalho_producao_raro(self, profissao: Profissao, trabalho: Trabalho) -> TrabalhoProducao:
         '''
             Função de define um novo objeto da classe TrabalhoProducao do tipo "Raro"
             Args:
@@ -1350,7 +1350,7 @@ class Aplicacao:
             quantidade_trabalho_estoque = self.recupera_quantidade_trabalho_estoque(trabalho_melhorado.id)
             self.__logger_aplicacao.debug(f'Quantidade de ({trabalho_melhorado.id} | {trabalho_melhorado.nome}) no estoque é ({quantidade_trabalho_estoque}).')
             if quantidade_trabalho_estoque > 0:
-                trabalho_raro_vendido: TrabalhoProducao = self.define_novo_trabalho_producao_raro(profissao, trabalho_raro)
+                trabalho_raro_vendido: TrabalhoProducao = self.define_trabalho_producao_raro(profissao, trabalho_raro)
                 self.insere_trabalho_producao(trabalho= trabalho_raro_vendido)
                 verificacoes += 1
                 continue
@@ -1362,7 +1362,7 @@ class Aplicacao:
                 continue
             # Recupera o trabalho comum necessário para produzir o trabalho melhorado
             if self.ha_trabalhos_necessarios_suficientes_em_estoque(trabalho= trabalho_melhorado):
-                trabalho_melhorado_producao: TrabalhoProducao = self.define_novo_trabalho_producao_raro(profissao, trabalho_melhorado)
+                trabalho_melhorado_producao: TrabalhoProducao = self.define_trabalho_producao_raro(profissao, trabalho_melhorado)
                 self.insere_trabalho_producao(trabalho= trabalho_melhorado_producao)
                 verificacoes += 1
                 continue
@@ -2696,8 +2696,11 @@ class Aplicacao:
                 if self.trabalho_esta_na_lista_producao(idTrabalhoMelhorado):
                     continue
                 if self.possuiTrabalhosNecessariosSuficientes(idTrabalhoMelhorado):
-                    trabalhoProducaoMelhorado: TrabalhoProducao = self.define_trabalho_producao_melhorado(idTrabalhoMelhorado)
-                    self.insere_trabalho_producao(trabalhoProducaoMelhorado)
+                    trabalho_melhorado: TrabalhoProducao = self.define_trabalho_producao_melhorado(
+                        self.retornaProfissaoTrabalhoProducaoConcluido(trabalho), 
+                        idTrabalhoMelhorado
+                    )
+                    self.insere_trabalho_producao(trabalho_melhorado)
 
     def possuiTrabalhosNecessariosSuficientes(self, idTrabalhoMelhorado: str) -> bool:
         '''
@@ -2721,7 +2724,7 @@ class Aplicacao:
                 return False
         return True
 
-    def define_trabalho_producao_melhorado(self, idTrabalho: str) -> TrabalhoProducao:
+    def define_trabalho_producao_melhorado(self, profissao: Profissao,  idTrabalho: str) -> TrabalhoProducao:
         '''
             Método para definir um objeto da classe TrabalhoProducao com 'idTrabalho' específico.
             Args:
@@ -2731,7 +2734,7 @@ class Aplicacao:
         '''
         trabalhoMelhorado: TrabalhoProducao = TrabalhoProducao()
         trabalhoMelhorado.idTrabalho = idTrabalho
-        trabalhoMelhorado.tipoLicenca = CHAVE_LICENCA_INICIANTE
+        trabalhoMelhorado.tipoLicenca = profissao.define_licenca_ideal()
         return trabalhoMelhorado
 
     def trabalho_esta_na_lista_producao(self, id: str):
