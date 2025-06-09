@@ -83,7 +83,7 @@ class Trabalho:
         return self.raridade == CHAVE_RARIDADE_RARO
     
     @property
-    def ehProducaoRecursos(self) -> bool:
+    def eh_producao_recursos(self) -> bool:
         return any(textoEhIgual(recurso, self.nomeProducao) for recurso in CHAVE_LISTA_PRODUCAO_RECURSO)
     
     def dicionarioParaObjeto(self, dicionario: dict):

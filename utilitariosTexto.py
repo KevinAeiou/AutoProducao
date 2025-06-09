@@ -12,7 +12,7 @@ def textoEhIgual(texto1: str, texto2: str) -> bool:
     '''
     return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
 
-def texto1PertenceTexto2(texto1: str, texto2: str) -> bool:
+def texto1_pertence_texto2(texto1: str, texto2: str) -> bool:
     '''
         Função para verificar caso texto1 está contido no texto2
         Args:

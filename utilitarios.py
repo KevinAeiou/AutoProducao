@@ -1,6 +1,6 @@
 from constantes import *
 from modelos.trabalhoEstoque import TrabalhoEstoque
-from utilitariosTexto import textoEhIgual
+from utilitariosTexto import textoEhIgual, limpaRuidoTexto
 import numpy as np
 import os
 
@@ -22,19 +22,6 @@ def retiraDigitos(texto):
     for digito in listaDigitos:
         texto = texto.replace(digito,'')
     return texto
-
-def erroEncontrado(codigoErro: int) -> bool:
-    '''
-        Função que verifica se foi encontrado algum erro.
-        Args:
-            codigoErro (int): Inteiro que contêm o código do erro encontrado.
-        Returns:
-            bool: Verdadeiro caso 'codigoErro' for diferente de zero(0).
-    '''
-    return codigoErro != 0
-
-def nenhumErroEncontrado(erro):
-    return not erroEncontrado(erro)
 
 def existePixelPreto(frameTela):
     return np.sum(frameTela == 0) > 0
@@ -62,81 +49,6 @@ def ehMenuNoticias(menu: int) -> bool:
 
 def ehMenuDesconhecido(menu: int) -> bool:
     return menu == MENU_DESCONHECIDO
-
-def ehErroOutraConexao(erro):
-    return erro == CODIGO_ERRO_OUTRA_CONEXAO
-
-def ehErroRestauraConexao(erro: int) -> bool:
-    return erro == CODIGO_RESTAURA_CONEXAO
-
-def ehErroConectando(erro: int) -> bool:
-    return erro == CODIGO_CONECTANDO
-
-def ehErroRecursosInsuficiente(erro):
-    return erro == CODIGO_ERRO_RECURSOS_INSUFICIENTES
-
-def ehErroEspacoProducaoInsuficiente(erro):
-    return erro == CODIGO_ERRO_ESPACO_PRODUCAO_INSUFICIENTE
-
-def ehErroEspacoBolsaInsuficiente(erro):
-    return erro == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE
-
-def ehErroLicencaNecessaria(erro):
-    return erro == CODIGO_ERRO_PRECISA_LICENCA
-
-def ehErroFalhaConexao(erro):
-    return erro == CODIGO_ERRO_FALHA_CONECTAR
-
-def ehErroConexaoInterrompida(erro):
-    return erro == CODIGO_ERRO_CONEXAO_INTERROMPIDA
-
-def ehErroServidorEmManutencao(erro):
-    return erro == CODIGO_ERRO_MANUTENCAO_SERVIDOR
-
-def ehErroReinoIndisponivel(erro):
-    return erro == CODIGO_ERRO_REINO_INDISPONIVEL
-
-def ehErroOutraConexao(erro):
-    return erro == CODIGO_ERRO_OUTRA_CONEXAO
-
-def ehErroExperienciaInsuficiente(erro):
-    return erro == CODIGO_ERRO_EXPERIENCIA_INSUFICIENTE
-
-def ehErroTempoDeProducaoExpirada(erro):
-    return erro == CODIGO_ERRO_TEMPO_PRODUCAO_EXPIRADA
-
-def ehErroEscolhaItemNecessaria(erro):
-    return erro == CODIGO_ERRO_ESCOLHA_ITEM_NECESSARIA
-
-def ehErroReceberRecompensaDiaria(erro):
-    return erro == CODIGO_RECEBER_RECOMPENSA
-
-def ehErroVersaoJogoDesatualizada(erro):
-    return erro == CODIGO_ERRO_ATUALIZACAO_JOGO
-
-def ehErroSairDoJogo(erro):
-    return erro == CODIGO_SAIR_JOGO
-
-def ehErroTrabalhoNaoConcluido(erro):
-    return erro == CODIGO_ERRO_CONCLUIR_TRABALHO
-
-def ehErroEspacoBolsaInsuficiente(erro):
-    return erro == CODIGO_ERRO_ESPACO_BOLSA_INSUFICIENTE
-
-def ehErroUsuarioOuSenhaInvalida(erro: int) -> bool:
-    return erro == CODIGO_ERRO_USUARIO_SENHA_INVALIDA
-
-def ehErroMoedasMilagrosasInsuficientes(erro):
-    return erro == CODIGO_ERRO_MOEDAS_MILAGROSAS_INSUFICIENTES
-
-def ehErroItemAVenda(erro: int) -> bool:
-    return erro == CODIGO_ITEM_A_VENDA
-
-def ehErroFalhaAoIniciarConexao(erro: int) -> bool:
-    return erro == CODIGO_FALHA_AO_INICIAR_CONEXAO
-
-def chaveEspacoBolsaForVerdadeira(dicionarioPersonagem):
-    return dicionarioPersonagem[CHAVE_ESPACO_BOLSA]
 
 def haMaisQueUmPersonagemAtivo(listaPersonagemAtivo):
     return not len(listaPersonagemAtivo) == 1
@@ -168,13 +80,13 @@ def trabalhoEhProducaoLicenca(trabalhoProducao):
 def trabalhoEhMelhoriaEssenciaComum(dicionarioTrabalho):
     return textoEhIgual(dicionarioTrabalho.nome, 'melhoriadaessênciacomum')
 
-def naoFizerQuatroVerificacoes(dicionarioTrabalho):
+def nao_fizer_quatro_verificacoes(dicionarioTrabalho):
     return dicionarioTrabalho[CHAVE_POSICAO] < 4
 
-def chaveDicionarioTrabalhoDesejadoExiste(dicionarioTrabalho):
+def chave_dicionario_trabalho_desejado_existe(dicionarioTrabalho):
     return dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] != None
 
-def primeiraBusca(dicionarioTrabalho):
+def primeira_busca(dicionarioTrabalho):
     return dicionarioTrabalho[CHAVE_POSICAO] == -1
 
 def ehMenuTrabalhosAtuais(menu: int) -> bool:
@@ -282,3 +194,19 @@ def retornaListaTrabalhosParaProduzirProduzindo(dicionarioPersonagemAtributos):
 
 def limpaTela():
     print("\n" * os.get_terminal_size().lines)
+
+def retorna_codigo_erro_reconhecido(texto_erro_encontrado: str) -> int:
+    '''
+    Função que retorna o código do erro reconhecido a partir do texto de erro encontrado.
+    Args:
+        texto_erro_encontrado (str): Texto de erro encontrado.
+    Returns:
+        int: Código do erro reconhecido, ou zero(0) caso não seja reconhecido.
+    '''
+    if texto_erro_encontrado is None:
+        return 0
+    for posicao_tipo_erro in range(len(CHAVE_LISTA_ERROS)):
+        texto_erro: str = limpaRuidoTexto(CHAVE_LISTA_ERROS[posicao_tipo_erro])
+        if texto_erro in texto_erro_encontrado:
+            return posicao_tipo_erro + 1
+    return 0
