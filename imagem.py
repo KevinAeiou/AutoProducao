@@ -7,7 +7,7 @@ import pytesseract
 from time import sleep
 from utilitarios import *
 from pytesseract import Output
-from utilitariosTexto import texto1PertenceTexto2, limpaRuidoTexto
+from utilitariosTexto import texto1_pertence_texto2, limpaRuidoTexto
 
 class ManipulaImagem:
     def __init__(self):
@@ -121,7 +121,7 @@ class ManipulaImagem:
         textoReconhecido: str = self.reconheceTexto(fremaTelaBinarizada)
         if textoReconhecido is None: return None
         for licenca in listaLicencas:
-            if texto1PertenceTexto2(licenca, textoReconhecido): return licenca
+            if texto1_pertence_texto2(licenca, textoReconhecido): return licenca
         return None
     
     def retornaTextoLicencaReconhecida(self):
@@ -146,7 +146,7 @@ class ManipulaImagem:
         frameBinarizado: ndarray = self.retornaImagemBinarizada(imagem= frameCinza, limiteMinimo= 100)
         return self.reconheceTexto(imagem= frameBinarizado, confianca= 40)
     
-    def retornaTextoNomePersonagemReconhecido(self, posicao: int) -> str | None:
+    def retorna_texto_nome_personagem_reconhecido(self, posicao: int) -> str | None:
         print(f'Reconhecendo nome do personagem na posição {posicao}')
         return self.reconheceTextoNomePersonagem(self.retornaAtualizacaoTela(), posicao)
     
@@ -190,7 +190,7 @@ class ManipulaImagem:
         frameTelaTratado = self.retornaImagemBinarizada(imagem= frameTelaTratado, limiteMinimo= 155)
         return self.reconheceTexto(imagem= frameTelaTratado, confianca= 50)
 
-    def retornaTextoMenuReconhecido(self) -> str | None:        
+    def retorna_texto_menu_reconhecido(self) -> str | None:        
         return self.reconheceTextoMenu(self.retornaAtualizacaoTela())
     
     def reconheceTextoSair(self, tela: np.ndarray):
@@ -245,10 +245,10 @@ class ManipulaImagem:
         if texto is None:
             print(f'Em produção...')
             return CODIGO_PRODUZINDO
-        if texto1PertenceTexto2(texto1= STRING_PEDIDO_CONCLUIDO, texto2= texto):
+        if texto1_pertence_texto2(texto1= STRING_PEDIDO_CONCLUIDO, texto2= texto):
             print(f'Pedido concluído!')
             return CODIGO_CONCLUIDO
-        if texto1PertenceTexto2(texto1= STRING_ADICIONAR_NOVO_PEDIDO, texto2= texto):
+        if texto1_pertence_texto2(texto1= STRING_ADICIONAR_NOVO_PEDIDO, texto2= texto):
             print(f'Nem um trabalho!')
             return CODIGO_PARA_PRODUZIR
         print(f'Em produção...')
@@ -271,7 +271,7 @@ class ManipulaImagem:
         tela = telaInvertida[y : y + altura, x : x + largura]
         return self.reconheceTexto(tela)
     
-    def retornaNomeTrabalhoFrameProducaoReconhecido(self):
+    def retorna_nome_trabalho_frame_producao_reconhecido(self):
         return self.reconheceNomeTrabalhoFrameProducao(self.retornaAtualizacaoTela())
     
     def desenhaRetangulo(self, imagem, contorno, cor = (0,255,0)):
@@ -290,7 +290,7 @@ class ManipulaImagem:
         imagemTratada = self.retornaImagemBinarizada(imagem= imagemTratada, limiteMinimo=150)
         resultado: dict = self.retornaImagemParaDicionario(imagem= imagemTratada)
         for i in range(len(resultado['text'])):
-            if not ehVazia(limpaRuidoTexto(texto= resultado["text"][i])) and texto1PertenceTexto2(texto1= resultado["text"][i], texto2= 'Pegar') and resultado["conf"][i] > 90:
+            if not ehVazia(limpaRuidoTexto(texto= resultado["text"][i])) and texto1_pertence_texto2(texto1= resultado["text"][i], texto2= 'Pegar') and resultado["conf"][i] > 90:
                 x = resultado["left"][i]
                 y = resultado["top"][i]
                 l = resultado["width"][i]
@@ -300,7 +300,7 @@ class ManipulaImagem:
                 return (centroX, centroY)
         return None
     
-    def verificaRecompensaDisponivel(self):
+    def verifica_recompensa_disponivel(self):
         return self.retornaReferencia(self.retornaAtualizacaoTela())
 
     def verificaReferenciaLeiloeiro(self, imagem: np.ndarray) -> tuple | None:
@@ -341,7 +341,7 @@ class ManipulaImagem:
         return
 
 if __name__=='__main__':
-    from teclado import clickAtalhoEspecifico, posicionaMouseEsquerdo
+    from teclado import clickAtalhoEspecifico, posiciona_mouse_esquerdo
     # clickAtalhoEspecifico(tecla1='alt', tecla2='tab')
     sleep(1)
     imagem = ManipulaImagem()
