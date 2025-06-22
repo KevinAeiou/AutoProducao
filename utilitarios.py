@@ -1,6 +1,6 @@
 from constantes import *
 from modelos.trabalhoEstoque import TrabalhoEstoque
-from utilitariosTexto import textoEhIgual, limpaRuidoTexto
+from utilitariosTexto import texto_eh_igual, limpaRuidoTexto
 import numpy as np
 import os
 
@@ -54,31 +54,31 @@ def haMaisQueUmPersonagemAtivo(listaPersonagemAtivo):
     return not len(listaPersonagemAtivo) == 1
 
 def trabalhoEhColecaoRecursosAvancados(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.nome, 'grandecoleçãoderecursosavançados') or textoEhIgual(trabalhoProducao.nome, 'coletaemmassaderecursosavançados')
+    return texto_eh_igual(trabalhoProducao.nome, 'grandecoleçãoderecursosavançados') or texto_eh_igual(trabalhoProducao.nome, 'coletaemmassaderecursosavançados')
 
 def trabalhoEhColecaoRecursosComuns(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.nome, 'grandecoleçãoderecursoscomuns')
+    return texto_eh_igual(trabalhoProducao.nome, 'grandecoleçãoderecursoscomuns')
 
 def trabalhoEhMelhoriaCatalisadorComposto(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.nome, 'melhoriadocatalizadoramplificado')
+    return texto_eh_igual(trabalhoProducao.nome, 'melhoriadocatalizadoramplificado')
 
 def trabalhoEhMelhoriaCatalisadorComum(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.nome, 'melhoriadocatalizadorcomum')
+    return texto_eh_igual(trabalhoProducao.nome, 'melhoriadocatalizadorcomum')
 
 def trabalhoEhMelhoriaSubstanciaComposta(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.nome, 'melhoriadasubstânciacomposta')
+    return texto_eh_igual(trabalhoProducao.nome, 'melhoriadasubstânciacomposta')
 
 def trabalhoEhMelhoriaSubstanciaComum(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.nome, 'melhoriadasubstânciacomum')
+    return texto_eh_igual(trabalhoProducao.nome, 'melhoriadasubstânciacomum')
 
 def trabalhoEhMelhoriaEssenciaComposta(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.nome, 'melhoriadaessênciacomposta')
+    return texto_eh_igual(trabalhoProducao.nome, 'melhoriadaessênciacomposta')
 
 def trabalhoEhProducaoLicenca(trabalhoProducao):
-    return textoEhIgual(trabalhoProducao.nome,'melhorarlicençacomum') or textoEhIgual(trabalhoProducao.nome,'licençadeproduçãodoaprendiz')
+    return texto_eh_igual(trabalhoProducao.nome,'melhorarlicençacomum') or texto_eh_igual(trabalhoProducao.nome,'licençadeproduçãodoaprendiz')
 
 def trabalhoEhMelhoriaEssenciaComum(dicionarioTrabalho):
-    return textoEhIgual(dicionarioTrabalho.nome, 'melhoriadaessênciacomum')
+    return texto_eh_igual(dicionarioTrabalho.nome, 'melhoriadaessênciacomum')
 
 def nao_fizer_quatro_verificacoes(dicionarioTrabalho):
     return dicionarioTrabalho[CHAVE_POSICAO] < 4
@@ -169,7 +169,7 @@ def retornaChaveTipoRecurso(recursoProducao: TrabalhoEstoque) -> str | None:
     for dicionarioProfissaoRecursos in listaDicionarioProfissaoRecursos:
         if chaveProfissao in dicionarioProfissaoRecursos:
             for x in range(len(dicionarioProfissaoRecursos[chaveProfissao])):
-                if textoEhIgual(dicionarioProfissaoRecursos[chaveProfissao][x], recursoProducao.nome):
+                if texto_eh_igual(dicionarioProfissaoRecursos[chaveProfissao][x], recursoProducao.nome):
                     if x == 0 and recursoProducao.nivel == 1:
                         return CHAVE_RCP
                     if x == 0 and recursoProducao.nivel == 8:

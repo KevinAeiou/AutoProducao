@@ -1,6 +1,6 @@
 import logging
 from uuid import uuid4
-from utilitarios import limpaTela, variavelExiste, ehVazia, textoEhIgual
+from utilitarios import limpaTela, variavelExiste, ehVazia, texto_eh_igual
 # from constantes import LISTA_PROFISSOES, LISTA_RARIDADES, LISTA_LICENCAS, CODIGO_PARA_PRODUZIR, CODIGO_QUANTIDADE_MINIMA_TRABALHO_RARO_EM_ESTOQUE, CHAVE_LICENCA_NOVATO, CHAVE_LICENCA_INICIANTE, CHAVE_RARIDADE_MELHORADO
 from constantes import *
 
@@ -243,7 +243,7 @@ class CRUD:
             personagem.email = novoEmail
             personagem.senha = novasenha
             personagem.setEspacoProducao(novoEspaco)
-            if self.__aplicacao.modificaPersonagem(personagem= personagem):
+            if self.__aplicacao.modifica_personagem(personagem= personagem):
                 continue
             input(f'Clique para continuar...')
     
