@@ -1,7 +1,7 @@
 from teclado import *
 from constantes import *
 from utilitarios import *
-from utilitariosTexto import textoEhIgual, texto1_pertence_texto2, limpaRuidoTexto
+from utilitariosTexto import texto_eh_igual, texto1_pertence_texto2, limpaRuidoTexto
 from imagem import ManipulaImagem
 from time import sleep
 import datetime
@@ -82,7 +82,7 @@ class Aplicacao:
         listaPersonagens: list[Personagem] = []
         personagens: list[Personagem] = self.pegaPersonagens()
         for personagem in personagens:
-            if textoEhIgual(personagem.email, self.__personagemEmUso.email):
+            if texto_eh_igual(personagem.email, self.__personagemEmUso.email):
                 listaPersonagens.append(personagem)
         return listaPersonagens
 
@@ -92,13 +92,13 @@ class Aplicacao:
         for personagem in personagens:
             if self.verificaPersonagemMesmoEmail(listaPersonagemMesmoEmail, personagem) and personagem.uso:
                 personagem.alternaUso
-                self.modificaPersonagem(personagem)
+                self.modifica_personagem(personagem)
 
     def verificaPersonagemMesmoEmail(self, listaPersonagemMesmoEmail: list[Personagem], personagem: Personagem) -> bool:
         for personagemMesmoEmail in listaPersonagemMesmoEmail:
-            if textoEhIgual(personagem.id, personagemMesmoEmail.id) and not personagem.uso:
+            if texto_eh_igual(personagem.id, personagemMesmoEmail.id) and not personagem.uso:
                 personagem.alternaUso
-                self.modificaPersonagem(personagem)
+                self.modifica_personagem(personagem)
                 return False
         return True
 
@@ -153,43 +153,6 @@ class Aplicacao:
             if textoErro in textoErroEncontrado:
                 return posicaoTipoErro + 1
         return 0
-
-    def verificaLicenca(self, dicionarioTrabalho):
-        confirmacao = False
-        if variavelExiste(dicionarioTrabalho):
-            print(f"Buscando: {dicionarioTrabalho[CHAVE_TIPO_LICENCA]}")
-            licencaReconhecida = self.__imagem.retornaTextoLicencaReconhecida()
-            if variavelExiste(licencaReconhecida) and variavelExiste(dicionarioTrabalho[CHAVE_TIPO_LICENCA]):
-                print(f'Licença reconhecida: {licencaReconhecida}.')
-                primeiraBusca = True
-                listaCiclo = []
-                while not texto1_pertence_texto2(licencaReconhecida, dicionarioTrabalho[CHAVE_TIPO_LICENCA]):
-                    click_especifico(1, "right")
-                    listaCiclo.append(licencaReconhecida)
-                    licencaReconhecida = self.__imagem.retornaTextoLicencaReconhecida()
-                    if variavelExiste(licencaReconhecida):
-                        print(f'Licença reconhecida: {licencaReconhecida}.')
-                        if texto1_pertence_texto2('nenhumitem', licencaReconhecida) or len(listaCiclo) > 10:
-                            if textoEhIgual(dicionarioTrabalho[CHAVE_TIPO_LICENCA], 'Licença de produção do iniciante')and primeiraBusca:
-                                break
-                            dicionarioTrabalho[CHAVE_TIPO_LICENCA] = 'Licença de produção do iniciante'
-                            print(f'Licença para trabalho agora é: {dicionarioTrabalho[CHAVE_TIPO_LICENCA]}.')
-                            listaCiclo = []
-                    else:
-                        print(f'Erro ao reconhecer licença!')
-                        break
-                    primeiraBusca = False
-                else:
-                    if primeiraBusca:
-                        click_especifico(1, "f1")
-                    else:
-                        click_especifico(1, "f2")
-                        confirmacao = True
-                    # print(f'Sem licenças de produção...')
-                    # clickEspecifico(1, 'f1')
-            else:
-                print(f'Erro ao reconhecer licença!')
-        return confirmacao, dicionarioTrabalho
 
     def retorna_menu(self) -> int | None:
         print(f'Reconhecendo menu.')
@@ -274,7 +237,7 @@ class Aplicacao:
         '''
         palavrasConteudo: list[str] = conteudo.split()
         for palavra in palavrasConteudo:
-            if textoEhIgual(texto1= palavra, texto2= 'por') and palavrasConteudo.index(palavra)+1 < len(palavrasConteudo):
+            if texto_eh_igual(texto1= palavra, texto2= 'por') and palavrasConteudo.index(palavra)+1 < len(palavrasConteudo):
                 valorProduto: str = palavrasConteudo[palavrasConteudo.index(palavra)+1].strip()
                 if valorProduto.isdigit():
                     return int(valorProduto)
@@ -403,7 +366,7 @@ class Aplicacao:
     def atualizaQuantidadeTrabalhoEstoque(self, trabalho: TrabalhoVendido):
         estoque = self.recuperaTrabalhosEstoque()
         for trabalhoEstoque in estoque:
-            if textoEhIgual(trabalhoEstoque.idTrabalho, trabalho.idTrabalho):
+            if texto_eh_igual(trabalhoEstoque.idTrabalho, trabalho.idTrabalho):
                 novaQuantidade = 0 if trabalhoEstoque.quantidade - trabalho.quantidade < 0 else trabalhoEstoque.quantidade - trabalho.quantidade
                 trabalhoEstoque.quantidade = novaQuantidade
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
@@ -599,9 +562,9 @@ class Aplicacao:
         trabalhoEncontado: Trabalho = self.recupera_trabalho_por_id(trabalho.idTrabalho)
         if trabalhoEncontado is None or trabalhoEncontado.nome is None:
             return False
-        trabalhoEncontado.experiencia = trabalhoEncontado.experiencia * 1.5 if textoEhIgual(trabalho.tipoLicenca, CHAVE_LICENCA_INICIANTE) else trabalhoEncontado.experiencia
+        trabalhoEncontado.experiencia = trabalhoEncontado.experiencia * 1.5 if texto_eh_igual(trabalho.tipoLicenca, CHAVE_LICENCA_INICIANTE) else trabalhoEncontado.experiencia
         for profissao in profissoes:
-            if textoEhIgual(profissao.nome, trabalhoEncontado.profissao):
+            if texto_eh_igual(profissao.nome, trabalhoEncontado.profissao):
                 experiencia = profissao.experiencia + trabalhoEncontado.experiencia
                 profissao.setExperiencia(experiencia)
                 if self.modificaProfissao(profissao):
@@ -680,7 +643,7 @@ class Aplicacao:
                     trabalhoEstoque.raridade = 'Recurso'
                     trabalhoEstoque.idTrabalho = trabalhoConcluido.idTrabalho
                 if variavelExiste(trabalhoEstoque):
-                    if textoEhIgual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
+                    if texto_eh_igual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                         trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
             if variavelExiste(trabalhoEstoque):
                 listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
@@ -690,7 +653,7 @@ class Aplicacao:
                         nivelColecao = 8
                     trabalhos = self.pegaTrabalhosBanco()
                     for trabalho in trabalhos:
-                        condicoes = textoEhIgual(trabalho.profissao, trabalhoConcluido.profissao) and trabalho.nivel == nivelColecao and textoEhIgual(trabalho.raridade, CHAVE_RARIDADE_COMUM)
+                        condicoes = texto_eh_igual(trabalho.profissao, trabalhoConcluido.profissao) and trabalho.nivel == nivelColecao and texto_eh_igual(trabalho.raridade, CHAVE_RARIDADE_COMUM)
                         if condicoes:
                             trabalhoEstoque = TrabalhoEstoque()
                             trabalhoEstoque.nome = trabalho.nome
@@ -711,7 +674,7 @@ class Aplicacao:
                                 trabalhoEstoque.quantidade = 4
                             elif tipoRecurso == CHAVE_RAP:
                                 trabalhoEstoque.quantidade = 5
-                            if textoEhIgual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
+                            if texto_eh_igual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                                 trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         else:
                             print(f'Tipo de recurso não encontrado!')
@@ -729,7 +692,7 @@ class Aplicacao:
                             trabalhoEstoque.quantidade = 1
                         elif tipoRecurso == CHAVE_RCP or tipoRecurso == CHAVE_RAP or tipoRecurso == CHAVE_RAS or tipoRecurso == CHAVE_RAT:
                             trabalhoEstoque.quantidade = 2
-                        if textoEhIgual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
+                        if texto_eh_igual(trabalhoConcluido.tipoLicenca, CHAVE_LICENCA_APRENDIZ):
                             trabalhoEstoque.quantidade = trabalhoEstoque.quantidade * 2
                         listaTrabalhoEstoqueConcluido.append(trabalhoEstoque)
                     else:
@@ -751,7 +714,7 @@ class Aplicacao:
     def modificaQuantidadeTrabalhoEstoque(self, listaTrabalhoEstoqueConcluido: list[TrabalhoEstoque], trabalhoEstoque: TrabalhoEstoque):
         listaTrabalhoEstoqueConcluidoModificado = listaTrabalhoEstoqueConcluido
         for trabalhoEstoqueConcluido in listaTrabalhoEstoqueConcluido:
-            if textoEhIgual(trabalhoEstoqueConcluido.nome, trabalhoEstoque.nome):
+            if texto_eh_igual(trabalhoEstoqueConcluido.nome, trabalhoEstoque.nome):
                 novaQuantidade = trabalhoEstoque.quantidade + trabalhoEstoqueConcluido.quantidade
                 trabalhoEstoque.quantidade = novaQuantidade
                 print(trabalhoEstoque)
@@ -789,7 +752,7 @@ class Aplicacao:
         '''
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
-            if textoEhIgual(texto1= profissao.nome, texto2= trabalhoConcluido.profissao):
+            if texto_eh_igual(texto1= profissao.nome, texto2= trabalhoConcluido.profissao):
                 return profissao
         return None
 
@@ -807,7 +770,7 @@ class Aplicacao:
                 return None
             trabalhos: list[Trabalho] = self.pegaTrabalhosBanco()
             for trabalho in trabalhos:
-                trabalhoNecessarioEhIgualIdTrabalhoConcluido = textoEhIgual(texto1= trabalho.trabalhoNecessario, texto2= trabalhoConcluido.idTrabalho)
+                trabalhoNecessarioEhIgualIdTrabalhoConcluido = texto_eh_igual(texto1= trabalho.trabalhoNecessario, texto2= trabalhoConcluido.idTrabalho)
                 if trabalhoNecessarioEhIgualIdTrabalhoConcluido:
                     return self.define_trabalho_producao_raro(profissao, trabalho)
         return None
@@ -1141,7 +1104,7 @@ class Aplicacao:
                 if personagem.estado:
                     continue
                 personagem.alternaEstado
-                self.modificaPersonagem(personagem)
+                self.modifica_personagem(personagem)
             self.__confirmacao = False
             return
         if ehMenuPrincipal(menu= menu):
@@ -1203,7 +1166,7 @@ class Aplicacao:
                 listaTrabalhosRarosVendidosOrdenada.append(trabalhosRarosVendidos)
                 continue
             for trabalhoRaroVendidoOrdenado in listaTrabalhosRarosVendidosOrdenada:
-                if textoEhIgual(trabalhoRaroVendidoOrdenado.nome, trabalhosRarosVendidos.nome):
+                if texto_eh_igual(trabalhoRaroVendidoOrdenado.nome, trabalhosRarosVendidos.nome):
                     trabalhoRaroVendidoOrdenado.quantidade = trabalhoRaroVendidoOrdenado.quantidade + 1
                     break
             else:
@@ -1546,7 +1509,7 @@ class Aplicacao:
             return
         for profissao in profissoes:
             for trabalhoProducao in trabalhosProducao:
-                chaveProfissaoEhIgualEEstadoEhParaProduzir: bool = textoEhIgual(profissao.nome, trabalhoProducao.profissao) and trabalhoProducao.ehParaProduzir
+                chaveProfissaoEhIgualEEstadoEhParaProduzir: bool = texto_eh_igual(profissao.nome, trabalhoProducao.profissao) and trabalhoProducao.ehParaProduzir
                 if chaveProfissaoEhIgualEEstadoEhParaProduzir:
                     self.insereItemListaProfissoesNecessarias(profissao)
                     break
@@ -1606,7 +1569,7 @@ class Aplicacao:
         quantidadeEspacoProducao: int = self.retornaQuantidadeEspacosDeProducao()
         if self.__personagemEmUso.espacoProducao == quantidadeEspacoProducao: return
         self.__personagemEmUso.setEspacoProducao(quantidadeEspacoProducao)
-        self.modificaPersonagem()
+        self.modifica_personagem()
 
     def retornaListaTrabalhosProducaoRaridadeEspecifica(self, nomeProfissao: str, raridade: str) -> list[TrabalhoProducao]:
         '''
@@ -1621,10 +1584,10 @@ class Aplicacao:
         trabalhosProducao: list[TrabalhoProducao] = self.recupera_trabalhos_producao_para_produzir_produzindo()
         if trabalhosProducao is None: return listaTrabalhosProducaoRaridadeEspecifica
         for trabalhoProducao in trabalhosProducao:
-            raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = textoEhIgual(trabalhoProducao.raridade, raridade) and textoEhIgual(trabalhoProducao.profissao, nomeProfissao) and trabalhoProducao.ehParaProduzir
+            raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = texto_eh_igual(trabalhoProducao.raridade, raridade) and texto_eh_igual(trabalhoProducao.profissao, nomeProfissao) and trabalhoProducao.ehParaProduzir
             if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
                 for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
-                    if textoEhIgual(texto1= trabalhoProducaoRaridadeEspecifica.idTrabalho, texto2= trabalhoProducao.idTrabalho): 
+                    if texto_eh_igual(texto1= trabalhoProducaoRaridadeEspecifica.idTrabalho, texto2= trabalhoProducao.idTrabalho): 
                         self.__logger_aplicacao.debug(f'Trabalho {trabalhoProducao.nome} já está na lista!')
                         break
                 else:
@@ -1670,12 +1633,12 @@ class Aplicacao:
                         self.__logger_trabalho_producao_dao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
                         return dicionario
                     continue
-                if textoEhIgual(nomeTrabalhoReconhecido, nomeTrabalho):
+                if texto_eh_igual(nomeTrabalhoReconhecido, nomeTrabalho):
                     dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__logger_trabalho_producao_dao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeTrabalho.ljust(30)}')
                     return dicionario
                 nomeProducaoTrabalho: str = self.padronizaTexto(trabalhoEncontrado.nomeProducao)
-                if textoEhIgual(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
+                if texto_eh_igual(nomeTrabalhoReconhecido, nomeProducaoTrabalho):
                     dicionario[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = trabalhoProducao
                     self.__logger_trabalho_producao_dao.info(f'Trabalho confirmado: {nomeTrabalhoReconhecido.ljust(30)} | {nomeProducaoTrabalho.ljust(30)}')
                     return dicionario
@@ -1724,7 +1687,7 @@ class Aplicacao:
             fim_lista: bool = contador_nome_reconhecido > 3
             nome_reconhecido_nao_esta_vazio_e_nao_eh_fim_lista: bool = nome_trabalho_reconhecido is not None and not fim_lista
             if nome_reconhecido_nao_esta_vazio_e_nao_eh_fim_lista:
-                if textoEhIgual(texto1= nome_reconhecido_aux, texto2= nome_trabalho_reconhecido):
+                if texto_eh_igual(texto1= nome_reconhecido_aux, texto2= nome_trabalho_reconhecido):
                     contador_nome_reconhecido += 1
                 nome_reconhecido_aux = nome_trabalho_reconhecido
                 self.__logger_aplicacao.debug(f'Trabalho reconhecido: {nome_trabalho_reconhecido}')
@@ -1797,7 +1760,7 @@ class Aplicacao:
         nivelRecurso: int = 1
         recursoTerciario: int = 0
         chaveProfissao: str = trabalho.profissao
-        if textoEhIgual(texto1= trabalho.profissao, texto2= CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE):
+        if texto_eh_igual(texto1= trabalho.profissao, texto2= CHAVE_PROFISSAO_ARMA_DE_LONGO_ALCANCE):
             recursoTerciario = 1
         if nivelTrabalhoProducao <= 14:
             recursoTerciario = self.retornaQuantidadeRecursoTerciario(nivelTrabalhoProducao, recursoTerciario)
@@ -1898,13 +1861,13 @@ class Aplicacao:
             listaNomeRecursoBuscado.append([recursos[2], 2])
         for trabalhoEstoque in self.recuperaTrabalhosEstoque():
             for recursoBuscado in listaNomeRecursoBuscado:
-                if textoEhIgual(trabalhoEstoque.nome, recursoBuscado[0]):
+                if texto_eh_igual(trabalhoEstoque.nome, recursoBuscado[0]):
                     novaQuantidade = trabalhoEstoque.quantidade - recursoBuscado[1]
                     print(f'Quantidade de {trabalhoEstoque.nome} atualizada de {trabalhoEstoque.quantidade} para {novaQuantidade}.')
                     trabalhoEstoque.quantidade = novaQuantidade
                     if self.modificaTrabalhoEstoque(trabalhoEstoque):
                         print(f'Quantidade do trabalho ({trabalhoEstoque.nome}) atualizada para {novaQuantidade}.')
-            if textoEhIgual(trabalhoEstoque.nome, trabalhoProducao.tipoLicenca):
+            if texto_eh_igual(trabalhoEstoque.nome, trabalhoProducao.tipoLicenca):
                 novaQuantidade = trabalhoEstoque.quantidade - 1
                 print(f'Quantidade de {trabalhoEstoque.nome} atualizada de {trabalhoEstoque.quantidade} para {novaQuantidade}.')
                 trabalhoEstoque.quantidade = novaQuantidade
@@ -1922,83 +1885,88 @@ class Aplicacao:
             return
         trabalhoRecurso: TrabalhoRecurso = self.defineTrabalhoRecurso(trabalho)
         for trabalhoEstoque in self.recuperaTrabalhosEstoque():
-            if textoEhIgual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.primario):
+            if texto_eh_igual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.primario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadePrimario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__logger_aplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.secundario):
+            if texto_eh_igual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.secundario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeSecundario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__logger_aplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.terciario):
+            if texto_eh_igual(texto1= trabalhoEstoque.nome, texto2= trabalhoRecurso.terciario):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - trabalhoRecurso.pegaQuantidadeTerciario)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__logger_aplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
                 continue
-            if textoEhIgual(texto1= trabalhoEstoque.nome, texto2=trabalhoProducao.tipoLicenca):
+            if texto_eh_igual(texto1= trabalhoEstoque.nome, texto2=trabalhoProducao.tipoLicenca):
                 trabalhoEstoque.setQuantidade(trabalhoEstoque.quantidade - 1)
                 if self.modificaTrabalhoEstoque(trabalhoEstoque):
                     self.__logger_aplicacao.debug(f'Quantidade do trabalho ({trabalhoEstoque}) atualizada.')
 
-    def trataMenuLicenca(self, trabalhoProducaoEncontrado: TrabalhoProducao) -> TrabalhoProducao:
-        print(f"Buscando: {trabalhoProducaoEncontrado.tipoLicenca}")
-        textoReconhecido: str = self.__imagem.retornaTextoLicencaReconhecida()
-        if variavelExiste(variavel= textoReconhecido):
-            print(f'Licença reconhecida: {textoReconhecido}')
-            if texto1_pertence_texto2(texto1= 'Licença de Artesanato', texto2= textoReconhecido):
-                primeiraBusca: bool = True
-                listaCiclo: list[str] = []
-                while not texto1_pertence_texto2(texto1= textoReconhecido, texto2= trabalhoProducaoEncontrado.tipoLicenca):
-                    primeiraBusca = False
-                    listaCiclo.append(textoReconhecido)
-                    click_especifico(cliques= 1, tecla_especifica= "right")
-                    textoReconhecido: str = self.__imagem.retornaTextoLicencaReconhecida()
-                    if variavelExiste(variavel= textoReconhecido):
-                        print(f'Licença reconhecida: {textoReconhecido}.')
-                        if textoEhIgual(texto1= textoReconhecido, texto2= 'nenhumitem'):
-                            if textoEhIgual(texto1= trabalhoProducaoEncontrado.tipoLicenca, texto2= CHAVE_LICENCA_NOVATO):
-                                if textoEhIgual(texto1= listaCiclo[-1], texto2= 'nenhumitem'):
-                                    continue
-                                self.__logger_trabalho_producao_dao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
-                                self.__personagemEmUso.alternaEstado
-                                self.modificaPersonagem()
-                                click_especifico(cliques= 3, tecla_especifica= 'f1')
-                                preciona_tecla(cliques= 10, teclaEspecifica= 'up')
-                                click_especifico(cliques= 1, tecla_especifica= 'left')
-                                self.__confirmacao = False
-                                return trabalhoProducaoEncontrado
-                            self.__logger_trabalho_producao_dao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
-                            self.__logger_trabalho_producao_dao.info(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) modificado para ({CHAVE_LICENCA_NOVATO})')
-                            trabalhoProducaoEncontrado.tipoLicenca = CHAVE_LICENCA_NOVATO
-                            continue
-                        if len(listaCiclo) > 15:
-                            self.__logger_trabalho_producao_dao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
-                            self.__logger_trabalho_producao_dao.info(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) modificado para ({CHAVE_LICENCA_NOVATO})')
-                            trabalhoProducaoEncontrado.tipoLicenca = CHAVE_LICENCA_NOVATO
-                        continue
+    def trata_menu_licenca(self, trabalho_encontrado: TrabalhoProducao) -> TrabalhoProducao | None:
+        self.__logger_aplicacao.debug(f"Buscando: {trabalho_encontrado.tipoLicenca}")
+        texto_reconhecido: str | None = self.__imagem.retornaTextoLicencaReconhecida()
+        if texto_reconhecido is None:
+            self.__logger_trabalho_producao_dao.warning(f'{trabalho_encontrado.tipoLicenca} não encontrado')
+            self.__confirmacao = False
+            return None
+        self.__logger_aplicacao.debug(f'Licença reconhecida: {texto_reconhecido}')
+        if texto1_pertence_texto2(texto1= 'Licença de Artesanato', texto2= texto_reconhecido):
+            primeira_busca: bool = True
+            licencas_reconhecidas: list[str] = []
+            while not texto1_pertence_texto2(texto1= texto_reconhecido, texto2= trabalho_encontrado.tipoLicenca):
+                primeira_busca = False
+                licencas_reconhecidas.append(texto_reconhecido)
+                click_especifico(cliques= 1, tecla_especifica= "right")
+                texto_reconhecido: str | None = self.__imagem.retornaTextoLicencaReconhecida()
+                if texto_reconhecido is None:
                     verificacaoErro: VerificacaoErro = VerificacaoErro(texto_erro_encontrado= self.__imagem.retorna_texto_menu_reconhecido)
                     verificacaoErro.verifica_erro()
                     if verificacaoErro.eh_erro_outra_conexao:
                         self.__unicaConexao = False
-                    self.__logger_trabalho_producao_dao.error(f'Erro encontrado ao buscar licença necessária')
+                    self.__logger_aplicacao.error(f'Erro encontrado ao buscar licença necessária')
                     self.__confirmacao = False
-                    return trabalhoProducaoEncontrado
-                trabalhoProducaoEncontrado.estado = CODIGO_PRODUZINDO
-                click_especifico(cliques= 1, tecla_especifica= "f1") if primeiraBusca else click_especifico(cliques= 1, tecla_especifica= "f2")
-                return trabalhoProducaoEncontrado
-            self.__logger_trabalho_producao_dao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
-            self.__personagemEmUso.alternaEstado
-            self.modificaPersonagem()
-            click_especifico(cliques= 3, tecla_especifica= 'f1')
-            preciona_tecla(cliques= 10, teclaEspecifica= 'up')
-            click_especifico(cliques= 1, tecla_especifica= 'left')
-            self.__confirmacao = False
-            return trabalhoProducaoEncontrado
-        self.__logger_trabalho_producao_dao.warning(f'Licença ({trabalhoProducaoEncontrado.tipoLicenca}) não encontrado')
+                    return None
+                self.__logger_aplicacao.debug(f'Licença reconhecida: {texto_reconhecido}.')
+                if texto_eh_igual(texto1= texto_reconhecido, texto2= 'nenhumitem'):
+                    if trabalho_encontrado.tipoLicenca == CHAVE_LICENCA_NOVATO:
+                        if texto_eh_igual(texto1= licencas_reconhecidas[-1], texto2= 'nenhumitem'):
+                            continue
+                        self.__logger_aplicacao.warning(f'{CHAVE_LICENCA_NOVATO} não encontrado')
+                        click_especifico(cliques= 3, tecla_especifica= 'f1')
+                        preciona_tecla(cliques= 10, teclaEspecifica= 'up')
+                        click_especifico(cliques= 1, tecla_especifica= 'left')
+                        self.__confirmacao = False
+                        return None
+                    self.__logger_aplicacao.warning(f'{trabalho_encontrado.tipoLicenca} não encontrado')
+                    self.__logger_aplicacao.info(f'{trabalho_encontrado.tipoLicenca} modificado para ({CHAVE_LICENCA_NOVATO})')
+                    trabalho_encontrado.tipoLicenca = CHAVE_LICENCA_NOVATO
+                    continue
+                if len(licencas_reconhecidas) > 20:
+                    if trabalho_encontrado.tipoLicenca == CHAVE_LICENCA_NOVATO:
+                        self.__logger_aplicacao.warning(f'{CHAVE_LICENCA_NOVATO} não encontrado')
+                        click_especifico(cliques= 3, tecla_especifica= 'f1')
+                        preciona_tecla(cliques= 10, teclaEspecifica= 'up')
+                        click_especifico(cliques= 1, tecla_especifica= 'left')
+                        self.__confirmacao = False
+                        return None
+                    self.__logger_aplicacao.warning(f'{trabalho_encontrado.tipoLicenca} não encontrado')
+                    self.__logger_aplicacao.info(f'{trabalho_encontrado.tipoLicenca} modificado para ({CHAVE_LICENCA_NOVATO})')
+                    trabalho_encontrado.tipoLicenca = CHAVE_LICENCA_NOVATO
+                    licencas_reconhecidas = []
+            trabalho_encontrado.estado = CODIGO_PRODUZINDO
+            click_especifico(cliques= 1, tecla_especifica= "f1") if primeira_busca else click_especifico(cliques= 1, tecla_especifica= "f2")
+            return trabalho_encontrado
+        self.__logger_aplicacao.warning(f'{trabalho_encontrado.tipoLicenca} não encontrado')
+        self.__personagemEmUso.alternaEstado
+        self.modifica_personagem()
+        click_especifico(cliques= 3, tecla_especifica= 'f1')
+        preciona_tecla(cliques= 10, teclaEspecifica= 'up')
+        click_especifico(cliques= 1, tecla_especifica= 'left')
         self.__confirmacao = False
-        return trabalhoProducaoEncontrado
+        return None
     
     def trataMenuTrabalhosAtuais(self, trabalho: TrabalhoProducao) -> None:
         self.verificar_novamente = True
@@ -2018,30 +1986,30 @@ class Aplicacao:
             return
         click_especifico(cliques= 1, tecla_especifica= 'f2')
 
-    def iniciaProcessoDeProducao(self, dicionarioTrabalho: dict) -> dict:
-        primeiraBusca: bool = True
-        trabalhoProducaoEncontrado: TrabalhoProducao = dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]
+    def inicia_processo_de_producao(self, dicionario_trabalho: dict) -> dict:
+        primeira_busca: bool = True
+        trabalho_encontrado: TrabalhoProducao = dicionario_trabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]
         while True:
-            self.trata_erros_processo_producao(trabalho= trabalhoProducaoEncontrado)
-            if not self.__confirmacao or self.verificar_novamente:
+            self.trata_erros_processo_producao(trabalho= trabalho_encontrado)
+            if not self.__confirmacao or self.verificar_novamente or dicionario_trabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] is None:
                 break
             menu: int = self.retorna_menu()
             if ehMenuTrabalhosAtuais(menu= menu): 
-                self.trataMenuTrabalhosAtuais(trabalho= trabalhoProducaoEncontrado)
-                return dicionarioTrabalho
+                self.trataMenuTrabalhosAtuais(trabalho= trabalho_encontrado)
+                return dicionario_trabalho
             if ehMenuTrabalhoEspecifico(menu= menu):
-                self.trataMenuTrabalhoEspecifico(primeiraBusca= primeiraBusca)
-                primeiraBusca = False
+                self.trataMenuTrabalhoEspecifico(primeiraBusca= primeira_busca)
+                primeira_busca = False
                 continue
             if ehMenuLicenca(menu= menu):
-                dicionarioTrabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO]= self.trataMenuLicenca(trabalhoProducaoEncontrado)
+                dicionario_trabalho[CHAVE_TRABALHO_PRODUCAO_ENCONTRADO] = self.trata_menu_licenca(trabalho_encontrado)
                 continue
             if ehMenuEscolhaEquipamento(menu= menu) or ehMenuAtributosEquipamento(menu= menu):
                 click_especifico(cliques= 1, tecla_especifica= 'f2')
                 continue
             if ehMenuInicial(menu= menu) or ehMenuJogar(menu= menu):
                 self.__confirmacao = False
-        return dicionarioTrabalho
+        return dicionario_trabalho
 
     def trata_erros_processo_producao(self, trabalho: TrabalhoProducao) -> None:
         print(f'Tratando possíveis erros...')
@@ -2095,7 +2063,7 @@ class Aplicacao:
         self.mostra_lista_trabalhos_producao_produzindo(trabalhos_producao_encontrados)
         for provavel_trabalho_producao in possiveis_trabalhos_producao:
             for trabalho_produzindo_encontrado in trabalhos_producao_encontrados:
-                if textoEhIgual(trabalho_produzindo_encontrado.nome, provavel_trabalho_producao.nome):
+                if texto_eh_igual(trabalho_produzindo_encontrado.nome, provavel_trabalho_producao.nome):
                     self.__logger_aplicacao.debug(mensagem= f'Trabalho encontrado: {trabalho_produzindo_encontrado}')
                     return trabalho_produzindo_encontrado
         else:
@@ -2147,7 +2115,7 @@ class Aplicacao:
             dicionarioTrabalho[CHAVE_PROFISSAO] = profissao.nome
             dicionarioTrabalho = self.verifica_trabalhos_producao(dicionarioTrabalho)
             if chave_dicionario_trabalho_desejado_existe(dicionarioTrabalho):
-                dicionarioTrabalho = self.iniciaProcessoDeProducao(dicionarioTrabalho)
+                dicionarioTrabalho = self.inicia_processo_de_producao(dicionarioTrabalho)
             elif ehMenuTrabalhosDisponiveis(self.retorna_menu()):
                 saiProfissaoVerificada(dicionarioTrabalho)
             if self.__confirmacao:
@@ -2279,7 +2247,7 @@ class Aplicacao:
             print(f'{CHAVE_NOME.ljust(17).upper()} | {CHAVE_ESPACO_BOLSA.ljust(11).upper()} | {CHAVE_ESTADO.ljust(10).upper()} | {CHAVE_USO.ljust(10).upper()} | {CHAVE_AUTO_PRODUCAO.ljust(10).upper()}')
             for personagemAtivo in self.__listaPersonagemAtivo:
                 for personagemRemovido in self.__listaPersonagemJaVerificado:
-                    if textoEhIgual(personagemAtivo.nome, personagemRemovido.nome):
+                    if texto_eh_igual(personagemAtivo.nome, personagemRemovido.nome):
                         break
                 else:
                     estado = 'Verdadeiro' if personagemAtivo.estado else 'Falso'
@@ -2750,7 +2718,7 @@ class Aplicacao:
         if trabalhosParaProduzirProduzindo is None:
             return True
         for trabalhoProducao in trabalhosParaProduzirProduzindo:
-            if textoEhIgual(trabalhoProducao.idTrabalho, id):
+            if texto_eh_igual(trabalhoProducao.idTrabalho, id):
                 self.__logger_aplicacao.debug(mensagem= f'Trabalho ({id.ljust(40)}) encontrado na lista para produção')
                 return True
         self.__logger_aplicacao.debug(mensagem= f'Trabalho ({id.ljust(40)}) não encontrado na lista para produção')
@@ -2846,7 +2814,7 @@ class Aplicacao:
             return False
         emailAnterior: str= self.__listaPersonagemJaVerificado[-1].email
         emailProximo: str= self.__listaPersonagemAtivo[0].email
-        emailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos = textoEhIgual(texto1= emailAnterior, texto2= emailProximo)
+        emailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos = texto_eh_igual(texto1= emailAnterior, texto2= emailProximo)
         resultado: str= 'Igual' if emailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos else 'Diferente'
         self.__logger_aplicacao.debug(mensagem= f'Resultado: {resultado}. Email personagem anterior | próximo: ({emailAnterior}) | ({emailProximo})')
         if emailDoUltimoPersonagemEhIgualAoEmailPrimeiroPersonagemDaListaDeAtivos:
@@ -2872,7 +2840,7 @@ class Aplicacao:
             if ehVazia(trabalhosProducao):
                 print(f'Lista de trabalhos desejados vazia.')
                 self.__personagemEmUso.alternaEstado
-                self.modificaPersonagem()
+                self.modifica_personagem()
                 return True
             if self.__autoProducaoTrabalho: self.verifica_produtos_raros_mais_vendidos()
             self.iniciaBuscaTrabalho()
@@ -2952,7 +2920,7 @@ class Aplicacao:
                         continue
                     if personagemEncontrado.id == personagem[CHAVE_ID]:
                         personagemEncontrado.dicionarioParaObjeto(personagem)
-                        self.modificaPersonagem(personagem= personagemEncontrado, modificaServidor= False)
+                        self.modifica_personagem(personagem= personagemEncontrado, modificaServidor= False)
                         continue
                     personagemEncontrado.dicionarioParaObjeto(personagem)
                     self.inserePersonagem(personagem= personagemEncontrado, modificaServidor= False)
@@ -3068,7 +3036,7 @@ class Aplicacao:
                     self.removeTrabalhoVendido(trabalho= trabalhoEncontrado, personagem= personagem, modificaServidor= False)
             self.__repositorioVendas.limpaLista
     
-    def modificaPersonagem(self, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
+    def modifica_personagem(self, personagem: Personagem = None, modificaServidor: bool = True) -> bool:
         personagem = self.__personagemEmUso if personagem is None else personagem
         if self.__personagemDao.modificaPersonagem(personagem= personagem, modificaServidor= modificaServidor):
             self.__loggerPersonagemDao.info(f'({personagem}) modificado no banco com sucesso!')

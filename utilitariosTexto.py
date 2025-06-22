@@ -1,7 +1,7 @@
 import re
 from unidecode import unidecode
 
-def textoEhIgual(texto1: str, texto2: str) -> bool:
+def texto_eh_igual(texto1: str, texto2: str) -> bool:
     '''
         Função para verificar se dois textos são iguais.
         Args:
