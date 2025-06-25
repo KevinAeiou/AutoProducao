@@ -382,7 +382,7 @@ class CRUD:
                                 novoEstado = trabalhoProducaoSelecionado.estado 
                             else:
                                 trabalhoProducaoSelecionado.estado = int(novoEstado)
-                            if self.__aplicacao.modificaTrabalhoProducao(trabalho= trabalhoProducaoSelecionado):
+                            if self.__aplicacao.modifica_trabalho_producao(trabalho= trabalhoProducaoSelecionado):
                                 continue
                             input('Clique para continuar...')
                             continue
@@ -400,7 +400,7 @@ class CRUD:
                     trabalhoRemovido = self.defineTrabalhoProducaoSelecionado(trabalhosProducao)
                     if trabalhoRemovido is None:
                         break
-                    if self.__aplicacao.removeTrabalhoProducao(trabalho= trabalhoRemovido):
+                    if self.__aplicacao.remove_trabalho_producao(trabalho= trabalhoRemovido):
                         continue
                     input('Clique para continuar...')
                 continue
@@ -924,7 +924,7 @@ class CRUD:
                 trabalhoTeste.idTrabalho = 'YK81EN0qfsT2RxtgSRLgiHEaHQPB'
                 trabalhoTeste.raridade = CHAVE_RARIDADE_COMUM
                 trabalhoTeste.profissao = CHAVE_PROFISSAO_ANEIS
-                print(self.__aplicacao.verifica_produtos_raros_mais_vendidos())
+                print(self.__aplicacao.define_trabalho_comum_profissao_priorizada())
                 input(f'Clique para continuar...')
                 continue
             break

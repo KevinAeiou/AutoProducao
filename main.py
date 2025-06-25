@@ -2293,9 +2293,8 @@ class Aplicacao:
         self.__logger_aplicacao.debug(f'Autenticando personagem...')
         preencheCamposLogin(email= self.__listaPersonagemAtivo[0].email, senha= self.__listaPersonagemAtivo[0].senha)
         tentativas: int = 1
-        texto_erro_encontrado = self.__imagem.retorna_texto_menu_reconhecido()
-        reconhecimentoErro: ReconhecimentoErro = ReconhecimentoErro(texto_erro_encontrado)
         while True:
+            reconhecimentoErro: ReconhecimentoErro = ReconhecimentoErro(self.__imagem.retorna_texto_menu_reconhecido())
             if reconhecimentoErro.eh_erro_conectando or reconhecimentoErro.eh_erro_restaura_conexao:
                 if tentativas > 10:
                     click_especifico(cliques= 1, tecla_especifica= 'enter')
@@ -2655,7 +2654,7 @@ class Aplicacao:
         self.__logger_aplicacao.debug(mensagem= f'Recuperando trabalhos ({trabalho_buscado.profissao.ljust(22)}, {str(trabalho_buscado.nivel).ljust(2)}, {trabalho_buscado.raridade})')
         trabalhos_encontrados: list[Trabalho] = self.pegaTrabalhosPorProfissaoRaridadeNivel(trabalho_buscado)
         if ehVazia(trabalhos_encontrados):
-            self.__loggerProfissaoDao.warning(f'Nem um trabalho nível ({trabalho_buscado.nivel}), raridade ({trabalho_buscado.raridade}) e profissão ({trabalho_buscado.profissao}) foi encontrado!')
+            self.__logger_aplicacao.warning(f'Nem um trabalho nível ({trabalho_buscado.nivel}), raridade ({trabalho_buscado.raridade}) e profissão ({trabalho_buscado.profissao}) foi encontrado!')
             return trabalhos_encontrados
         for trabalho in trabalhos_encontrados:
             self.__logger_aplicacao.debug(mensagem= f'({trabalho.id.ljust(40)} | {trabalho}) encontrado')
@@ -2783,7 +2782,8 @@ class Aplicacao:
     def atualiza_lista_trabalhos_quantidade_trabalhos_producao(self, trabalhos_quantidade: list[TrabalhoEstoque]):
         quantidade_total_trabalho_producao: int= 0
         for trabalho_quantidade in trabalhos_quantidade:
-            quantidade = self.recupera_quantidade_trabalho_producao_produzir_produzindo(trabalho_quantidade.idTrabalho)
+            quantidade: int = self.recupera_quantidade_trabalho_producao_produzir_produzindo(trabalho_quantidade.idTrabalho)
+            self.__logger_aplicacao.debug(mensagem= f'Quantidade de ({trabalho_quantidade.idTrabalho}) encontrada: ({quantidade})')
             trabalho_quantidade.quantidade += quantidade
             quantidade_total_trabalho_producao += quantidade
         return trabalhos_quantidade, quantidade_total_trabalho_producao
