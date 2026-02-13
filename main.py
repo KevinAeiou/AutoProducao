@@ -175,7 +175,7 @@ class Aplicacao:
         if texto1_pertence_texto2('ofertadiaria',texto_menu):
             print(f'Menu oferta diária...')
             return MENU_OFERTA_DIARIA
-        if texto1_pertence_texto2('Loja Milagrosa',texto_menu):
+        if texto1_pertence_texto2('lojamilagrosa',texto_menu):
             print(f'Menu loja milagrosa...')
             return MENU_LOJA_MILAGROSA
         if texto1_pertence_texto2('recompensasdiarias',texto_menu):
@@ -1032,6 +1032,7 @@ class Aplicacao:
                 if self.desloga_personagem():
                     if self.entra_personagem(personagensVerificados):
                         personagensVerificados = self.retornaListaPersonagemRecompensaRecebida(personagensVerificados)
+                        sleep(2)
                         codigoMenu: int = self.retorna_menu()
                         continue
                     self.__logger_aplicacao.debug(mensagem= f'Todos os personagens foram verificados!')
@@ -3441,6 +3442,7 @@ class Aplicacao:
 
 if __name__=='__main__':
     try:
-        Aplicacao().preparaPersonagem()
+        app = Aplicacao()
+        app.preparaPersonagem()
     except Exception as e:
         print(f'Erro ao iniciar aplicação: {e}')

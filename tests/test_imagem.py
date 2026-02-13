@@ -60,67 +60,67 @@ class TestImagem:
     def testDeveRetornaTrueQuandoMenuPrincipal(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuInicial.png')
         esperado = True
-        recebido = self.__imagem.verificaMenuReferenciaInicial(imagemTeste)
+        recebido = self.__imagem.verifica_menu_referencia_inicial(imagemTeste)
         assert esperado == recebido
 
     def testDeveRetornarStringMenuNoticias(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuNoticias.png')
         esperado = 'noticias'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringPersonagens(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuEscolhaPersonagem.png')
         esperado = 'personagens'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringArtesanato(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png')
         esperado = 'artesanato'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringPedidosAtivos(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhoProducao.png')
         esperado = 'pedidosativos'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringProfissoes(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuProfissoes.png')
         esperado = 'profissoes'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringVoltar(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuTrabalhosDisponiveis.png')
         esperado = 'voltar'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringFechar(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuProfissoes.png')
         esperado = 'fechar'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringOfertaDiaria(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuOfertaDiaria.png')
         esperado = 'ofertadiaria'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringRecompensasDiarias(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuRecompensasDiarias.png')
         esperado = 'recompensasdiarias'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringLojaMilagrosa(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeMenuLojaMilagrosa.png')
         esperado = 'milagrosa'
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringSair(self):
@@ -188,94 +188,94 @@ class TestImagem:
         quandoEh = 1
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeNomePersonagemPallakuraPosicaoUm.png')
         esperado = 'pallakura'
-        recebido = self.__imagem.reconheceTextoNomePersonagem(imagemTeste, quandoEh)
+        recebido = self.__imagem.reconhece_texto_nome_personagem(imagemTeste, quandoEh)
         assert esperado == recebido
 
     def testDeveRetornarNomePersonagemPallakuraQuandoPosicaoEhZero(self):
         quandoEh = 0
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeNomePersonagemPallakuraPosicaoZero.png')
         esperado = 'pallakura'
-        recebido = self.__imagem.reconheceTextoNomePersonagem(imagemTeste, quandoEh)
+        recebido = self.__imagem.reconhece_texto_nome_personagem(imagemTeste, quandoEh)
         assert esperado == recebido
 
     def testDeveRetornarNomePersonagemAxeQuandoPosicaoEhUm(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeNomePersonagemAxePosicaoUm.png')
         quandoEh = 1
         esperado = 'provisorioatecair'
-        recebido = self.__imagem.reconheceTextoNomePersonagem(imagemTeste, quandoEh)
+        recebido = self.__imagem.reconhece_texto_nome_personagem(imagemTeste, quandoEh)
         assert esperado == recebido
 
     def testDeveRetornarNomePersonagemAxeQuandoPosicaoEhZero(self):
         quandoEh = 0
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeNomePersonagemAxePosicaoZero.png')
         esperado = 'provisorioatecair'
-        recebido = self.__imagem.reconheceTextoNomePersonagem(imagemTeste, quandoEh)
+        recebido = self.__imagem.reconhece_texto_nome_personagem(imagemTeste, quandoEh)
         assert esperado == recebido
 
     def testDeveRetornarStringErroFalhaAoConectar(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroFalhaAoConectarAoServidor.png')
         esperado = STRING_FALHA_CONECTAR_SERVIDOR
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroJogoEmManutencao(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroJogoEmManutencao.png')
         esperado = STRING_JOGO_ESTA_MANUTENCAO
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert esperado in recebido
 
     def testDeveRetornarStringErroErroVersaoJogoDesatualizada(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroVersaoJogoDesatualizada.png')
         esperado = STRING_VERSAO_JOGO_DESATUALIZADA
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroSairDoJogo(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroSairDoJogo.png')
         esperado = STRING_DESEJA_SAIR_WARSPEAR_ONLINE
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroTrabalhoNaoConcluido(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroTrabalhoNaoConcluido.png')
         esperado = STRING_DESEJA_CONCLUIR_PRODUCAO
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroBolsaCheia(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroBolsaCheia.png')
         esperado = STRING_BOLSA_CHEIA
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroUsuarioOuSenhaInvalida(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroUsuarioOuSenhaInvalida.png')
         esperado = STRING_USUARIO_SENHA_INVALIDA
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroMoedasMilagrosasInsuficientes(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroMoedasMilagrosasInsuficientes.png')
         esperado = STRING_VOCE_PRECISA_MAIS
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroConectando(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroConectando.png')
         esperado = STRING_CONECTANDO
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroSelecionarItemNecessario(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroSelecionarItemNecessario.png')
         esperado = STRING_SELECIONE_ITEM_INICIAR_PEDIDO
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringErroLicencaDeProducaoNecessaria(self):
         imagemTeste = self.__imagem.abreImagem('tests/imagemTeste/testeErroLicencaDeProducaoNecessaria.png')
         esperado = STRING_PRECISA_LICENCA_INICIAR_PEDIDO
-        recebido = self.__imagem.reconheceTextoMenu(imagemTeste)
+        recebido = self.__imagem.reconhece_texto_menu(imagemTeste)
         assert limpaRuidoTexto(esperado) in recebido
 
     def testDeveRetornarStringSapatosAltosDaLuzImQuandoTrabalhoProducaoEhConcluido(self):
