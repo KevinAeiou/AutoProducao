@@ -1,7 +1,7 @@
 import re
 from unidecode import unidecode
 
-def texto_eh_igual(texto1: str, texto2: str) -> bool:
+def texto_eh_igual(texto1: str | None, texto2: str | None) -> bool:
     '''
         Função para verificar se dois textos são iguais.
         Args:
@@ -10,9 +10,9 @@ def texto_eh_igual(texto1: str, texto2: str) -> bool:
         Returns:
             bool: Verdadeiro caso os dois textos sejam iguais.
     '''
-    return limpaRuidoTexto(texto1) == limpaRuidoTexto(texto2)
+    return limpa_ruido_texto(texto1) == limpa_ruido_texto(texto2)
 
-def texto1_pertence_texto2(texto1: str, texto2: str) -> bool:
+def texto1_pertence_texto2(texto1: str | None, texto2: str | None) -> bool:
     '''
         Função para verificar caso texto1 está contido no texto2
         Args:
@@ -21,9 +21,9 @@ def texto1_pertence_texto2(texto1: str, texto2: str) -> bool:
         Returns:
             bool: Verdadeiro caso o texto1 está contido no texto2
     '''
-    return limpaRuidoTexto(texto= texto1) in limpaRuidoTexto(texto= texto2)
+    return limpa_ruido_texto(texto= texto1) in limpa_ruido_texto(texto= texto2)
 
-def limpaRuidoTexto(texto: str) -> str:
+def limpa_ruido_texto(texto: str | None) -> str:
     '''
         Função para retirar caracteres especiais do texto recebido por parâmetro.
         Args:

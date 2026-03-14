@@ -56,7 +56,7 @@ def clickAtalhoEspecifico(tecla1, tecla2):
     tecla.hotkey(tecla1, tecla2)
     sleep(1)
 
-def vaiParaMenuCorrespondencia():
+def vai_para_menu_correspondencia():
     click_especifico(1,'f2')
     click_especifico(1,'1')
     click_especifico(1,'9')

@@ -17,7 +17,7 @@ class VendaDaoSqlite:
         try:
             vendas: list[TrabalhoVendido]= []
             sql = f"""SELECT {CHAVE_LISTA_VENDAS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_NOME}, {CHAVE_TRABALHOS}.{CHAVE_NIVEL}, {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO}, {CHAVE_TRABALHOS}.{CHAVE_RARIDADE}, {CHAVE_TRABALHOS}.{CHAVE_TRABALHO_NECESSARIO}, {CHAVE_LISTA_VENDAS}.{CHAVE_DESCRICAO}, {CHAVE_LISTA_VENDAS}.{CHAVE_DATA_VENDA}, {CHAVE_LISTA_VENDAS}.{CHAVE_QUANTIDADE}, {CHAVE_LISTA_VENDAS}.{CHAVE_VALOR} FROM {CHAVE_LISTA_VENDAS} INNER JOIN {CHAVE_TRABALHOS} ON {CHAVE_LISTA_VENDAS}.{CHAVE_ID_TRABALHO} == {CHAVE_TRABALHOS}.{CHAVE_ID} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [personagem.id])
             for linha in cursor.fetchall():
@@ -46,7 +46,7 @@ class VendaDaoSqlite:
         try:
             trabalho: TrabalhoVendido= TrabalhoVendido()
             sql = f"""SELECT * FROM {CHAVE_LISTA_VENDAS} WHERE {CHAVE_ID} == ? LIMIT 1;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [idBuscado])
             for linha in cursor.fetchall():
@@ -105,7 +105,7 @@ class VendaDaoSqlite:
                 GROUP BY {CHAVE_ID_TRABALHO}
                 ORDER BY {CHAVE_QUANTIDADE}
                 ;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [personagem.id])
             for linha in cursor.fetchall():
@@ -125,10 +125,10 @@ class VendaDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalhoVendido(self, personagem: Personagem, trabalho: TrabalhoVendido, modificaServidor: bool = True) -> bool:
+    def insere_trabalho_vendido(self, personagem: Personagem, trabalho: TrabalhoVendido, modificaServidor: bool = True) -> bool:
         try:
             sql = f"""INSERT INTO {CHAVE_LISTA_VENDAS} ({CHAVE_ID}, {CHAVE_DESCRICAO}, {CHAVE_DATA_VENDA}, {CHAVE_ID_PERSONAGEM}, {CHAVE_QUANTIDADE}, {CHAVE_ID_TRABALHO}, {CHAVE_VALOR})VALUES (?, ?, ?, ?, ?, ?, ?);"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalho.id, trabalho.descricao, trabalho.dataVenda, personagem.id, trabalho.quantidade, trabalho.idTrabalho, trabalho.valor))
@@ -154,7 +154,7 @@ class VendaDaoSqlite:
     def removeTrabalhoVendido(self, personagem: Personagem, trabalho: TrabalhoVendido, modificaServidor: bool = True) -> bool:
         try:
             sql = f"""DELETE FROM {CHAVE_LISTA_VENDAS} WHERE {CHAVE_ID} == ?;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, [trabalho.id])
@@ -181,7 +181,7 @@ class VendaDaoSqlite:
     def removeEstoquePorIdPersonagem(self, personagem: Personagem) -> bool:
         try:
             sql = f"""DELETE FROM {CHAVE_LISTA_VENDAS} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, [personagem.id])
@@ -207,7 +207,7 @@ class VendaDaoSqlite:
                 UPDATE {CHAVE_LISTA_VENDAS}
                 SET {CHAVE_DESCRICAO} = ?, {CHAVE_DATA_VENDA} = ?, {CHAVE_QUANTIDADE} = ?, {CHAVE_ID_TRABALHO} = ?, {CHAVE_VALOR} = ?
                 WHERE {CHAVE_ID} == ?;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalhoModificado.descricao, trabalhoModificado.dataVenda, trabalhoModificado.quantidade, trabalhoModificado.idTrabalho, trabalhoModificado.valor, trabalhoModificado.id))
@@ -237,7 +237,7 @@ class VendaDaoSqlite:
                 bool: Verdadeiro caso a sincronização seja concluída com sucesso
         '''
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             sql = f"""DELETE FROM {CHAVE_LISTA_VENDAS} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')

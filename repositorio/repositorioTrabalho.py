@@ -15,7 +15,7 @@ class RepositorioTrabalho(Stream):
         firebaseDb: FirebaseDatabase = FirebaseDatabase()
         try:
             meuBanco: db = firebaseDb.banco
-            self.__minhaReferenciaTrabalhos: db.Reference= meuBanco.reference(CHAVE_LISTA_TRABALHOS)
+            self.__minha_referencia_trabalhos: db.Reference= meuBanco.reference(CHAVE_LISTA_TRABALHOS)
             self.__minhaReferenciaEstoque: db.Reference= meuBanco.reference(CHAVE_ESTOQUE)
             self.__minhaReferenciaProducao: db.Reference= meuBanco.reference(CHAVE_PRODUCAO)
             self.__minhaReferenciaVendas: db.Reference= meuBanco.reference(CHAVE_VENDAS)
@@ -42,11 +42,11 @@ class RepositorioTrabalho(Stream):
             dicionarioTrabalho[CHAVE_ID] = idTrabalho
             super().insereDadosModificados(dado= dicionarioTrabalho)
 
-    def pegaTodosTrabalhos(self):
+    def pega_todos_trabalhos(self) -> list[Trabalho] | None:
         trabalhos: list[Trabalho] = []
         try:
-            todosTrabalhos: dict= self.__minhaReferenciaTrabalhos.get()
-            for chave, valor in todosTrabalhos.items():
+            todos_trabalhos: dict= self.__minha_referencia_trabalhos.get()
+            for chave, valor in todos_trabalhos.items():
                 trabalho = Trabalho()
                 trabalho.dicionarioParaObjeto(valor)
                 trabalho.id = chave
@@ -58,19 +58,21 @@ class RepositorioTrabalho(Stream):
             self.__logger.error(mensagem= f'Erro ao pegar trabalhos: {e}')
         return None
     
-    def insereTrabalho(self, trabalho: Trabalho):
+    def insere_trabalho(self, trabalho: Trabalho) -> bool:
         try:
-            self.__minhaReferenciaTrabalhos.child(trabalho.id).set(trabalho.__dict__)
+            self.__minha_referencia_trabalhos.child(trabalho.id).set(trabalho.__dict__)
             self.__logger.debug(mensagem= f'Trabalho ({trabalho}) inserido com sucesso!')
             return True
+
         except Exception as e:
             self.__erro = str(e)
             self.__logger.error(mensagem= f'Erro ao inserir trabalho: {e}')
+
         return False
     
     def modificaTrabalho(self, trabalho: Trabalho):
         try:
-            self.__minhaReferenciaTrabalhos.child(trabalho.id).update(trabalho.__dict__)
+            self.__minha_referencia_trabalhos.child(trabalho.id).update(trabalho.__dict__)
             self.__logger.debug(mensagem= f'Trabalho ({trabalho}) modificado com sucesso!')
             return True
         except Exception as e:
@@ -80,7 +82,7 @@ class RepositorioTrabalho(Stream):
     
     def removeTrabalho(self, trabalho: Trabalho) -> bool:
         try:
-            self.__minhaReferenciaTrabalhos.child(trabalho.id).delete()
+            self.__minha_referencia_trabalhos.child(trabalho.id).delete()
             self.__logger.debug(mensagem= f'Trabalho ({trabalho}) removido com sucesso!')
             todasVendas: dict = self.__minhaReferenciaVendas.get()
             if todasVendas is not None:

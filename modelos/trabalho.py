@@ -5,13 +5,13 @@ from utilitariosTexto import texto_eh_igual
 class Trabalho:
     def __init__(self):
         self.id: str = str(uuid4())
-        self.nome: str = None
-        self.nomeProducao: str = None
-        self.experiencia: int = None
-        self.nivel: int = None
-        self.profissao: str = None
-        self.raridade: str = None
-        self.trabalhoNecessario: str = None
+        self.nome: str | None = None
+        self.nomeProducao: str | None = None
+        self.experiencia: int | None = None
+        self.nivel: int | None = None
+        self.profissao: str | None = None
+        self.raridade: str | None = None
+        self.trabalhoNecessario: str | None = None
 
     def pegaNivel(self, nivelProfissao: int) -> int:
         '''

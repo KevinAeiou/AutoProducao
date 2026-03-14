@@ -1,10 +1,10 @@
 from constantes import *
 from modelos.trabalhoEstoque import TrabalhoEstoque
-from utilitariosTexto import texto_eh_igual, limpaRuidoTexto
+from utilitariosTexto import texto_eh_igual, limpa_ruido_texto
 import numpy as np
 import os
 
-def ehVazia(lista: list) -> bool:
+def eh_vazia(lista: list | str) -> bool:
     '''
         Função para verificar se uma lista está vazia
         Args:
@@ -192,7 +192,7 @@ def retornaListaTrabalhosParaProduzirProduzindo(dicionarioPersonagemAtributos):
             listaTrabalhosParaProduzirProduzindo.append(trabalhoProducao)
     return listaTrabalhosParaProduzirProduzindo
 
-def limpaTela():
+def limpa_tela():
     print("\n" * os.get_terminal_size().lines)
 
 def retorna_codigo_erro_reconhecido(texto_erro_encontrado: str) -> int:
@@ -206,7 +206,7 @@ def retorna_codigo_erro_reconhecido(texto_erro_encontrado: str) -> int:
     if texto_erro_encontrado is None:
         return 0
     for posicao_tipo_erro in range(len(CHAVE_LISTA_ERROS)):
-        texto_erro: str = limpaRuidoTexto(CHAVE_LISTA_ERROS[posicao_tipo_erro])
+        texto_erro: str = limpa_ruido_texto(CHAVE_LISTA_ERROS[posicao_tipo_erro])
         if texto_erro in texto_erro_encontrado:
             return posicao_tipo_erro + 1
     return 0

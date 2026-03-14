@@ -14,9 +14,9 @@ class EstoqueDaoSqlite:
         self.__logger: MeuLogger= MeuLogger(nome= 'estoqueDao')
         self.__meuBanco = banco
 
-    def recuperaTrabalhosEstoque(self, personagem: Personagem) -> list[TrabalhoEstoque]:
+    def recupera_trabalhos_estoque(self, personagem: Personagem) -> list[TrabalhoEstoque]:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             estoque: list[TrabalhoEstoque]= []
             sql = f"""
                 SELECT {CHAVE_LISTA_ESTOQUE}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_NOME}, {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO}, {CHAVE_TRABALHOS}.{CHAVE_NIVEL}, {CHAVE_LISTA_ESTOQUE}.{CHAVE_QUANTIDADE}, {CHAVE_TRABALHOS}.{CHAVE_RARIDADE}, {CHAVE_LISTA_ESTOQUE}.{CHAVE_ID_TRABALHO}
@@ -54,7 +54,7 @@ class EstoqueDaoSqlite:
                 WHERE {CHAVE_LISTA_ESTOQUE}.{CHAVE_ID} == ?
                 LIMIT 1;
                 """
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute(sql, [id])
             for linha in cursor.fetchall():
@@ -80,7 +80,7 @@ class EstoqueDaoSqlite:
                 WHERE {CHAVE_ID_TRABALHO} == ?
                 AND {CHAVE_ID_PERSONAGEM} == ?
                 LIMIT 1;"""
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (id, personagem.id))
             trabalhoEncontrado = TrabalhoEstoque()
@@ -104,7 +104,7 @@ class EstoqueDaoSqlite:
                 AND idPersonagem == ?
                 LIMIT 1;
                 """
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (idTrabalho, personagem.id))
             linha = cursor.fetchone()
@@ -120,7 +120,7 @@ class EstoqueDaoSqlite:
         try:
             sql = f"""INSERT INTO {CHAVE_LISTA_ESTOQUE} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_ID_TRABALHO}, {CHAVE_QUANTIDADE}) VALUES (?,?,?,?);"""
             repositorioEstoque = RepositorioEstoque(personagem)
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalho.id, personagem.id, trabalho.idTrabalho, trabalho.quantidade))
@@ -149,7 +149,7 @@ class EstoqueDaoSqlite:
                 SET {CHAVE_ID_TRABALHO} = ?, {CHAVE_QUANTIDADE} = ?
                 WHERE {CHAVE_ID} == ?"""
             repositorioEstoque = RepositorioEstoque(personagem)
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalho.idTrabalho, trabalho.quantidade, trabalho.id))
@@ -177,7 +177,7 @@ class EstoqueDaoSqlite:
                 DELETE FROM {CHAVE_LISTA_ESTOQUE}
                 WHERE {CHAVE_ID} == ?;
                 """
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             repositorioEstoque = RepositorioEstoque(personagem)
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
@@ -205,7 +205,7 @@ class EstoqueDaoSqlite:
         try:
             sql = f"""DELETE FROM {CHAVE_LISTA_ESTOQUE} WHERE {CHAVE_ID_PERSONAGEM} == ?;
                 """
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, [personagem.id])
@@ -225,7 +225,7 @@ class EstoqueDaoSqlite:
                 bool: Verdadeiro caso a sincronização seja concluída com sucesso
         '''
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             sql = f"""DELETE FROM {CHAVE_LISTA_ESTOQUE} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')

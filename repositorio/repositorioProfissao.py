@@ -1,6 +1,6 @@
 from repositorio.firebaseDatabase import FirebaseDatabase
 from repositorio.stream import Stream
-from modelos.profissao import Profissao
+from modelos.profissao import Profissao, ProfissaoBase
 from modelos.personagem import Personagem
 from constantes import *
 from requests.exceptions import HTTPError
@@ -10,19 +10,22 @@ from modelos.logger import MeuLogger
 
 class RepositorioProfissao(Stream):
     listaProfissoes = []
-    def __init__(self, personagem: Personagem= None):
+    def __init__(self, personagem: Personagem | None= None):
         super().__init__(chave= CHAVE_PROFISSOES, nomeLogger= CHAVE_REPOSITORIO_PROFISSAO)
         personagem = Personagem() if personagem is None else personagem
-        self.__erro: str= None
-        firebaseDb: FirebaseDatabase = FirebaseDatabase()
-        self.__personagem: Personagem= personagem
+        self.__erro: str | None = None
+        firebaseDb: FirebaseDatabase | None = FirebaseDatabase()
+        self.__personagem: Personagem = personagem
         self.__logger: MeuLogger = MeuLogger(nome= CHAVE_REPOSITORIO_PROFISSAO, arquivo_logger = f'{CHAVE_REPOSITORIO_PROFISSAO}.log')
         try:
             meuBanco: db = firebaseDb.banco
             self.__minhaReferenciaProfissoes: db.Reference= meuBanco.reference(CHAVE_PROFISSOES).child(self.__personagem.id)
+            # self.__minhaReferenciaListaProfissoes: db.Reference= meuBanco.reference(CHAVE_LISTA_PROFISSAO)
+            # self.__minhaReferenciaListaProfissoes: db.Reference= meuBanco.reference(CHAVE_LISTA_PROFISSAO).order_by_value()
             self.__minhaReferenciaListaProfissoes: db.Reference= meuBanco.reference(CHAVE_LISTA_PROFISSAO)
+            # self.__minhaReferenciaListaProfissoes: db.Reference= meuBanco.reference(CHAVE_LISTA_PROFISSAO).order_by_key()
         except Exception as e:
-            self.__erro = e
+            self.__erro = str(e)
             self.__logger.error(mensagem= f'Erro: {e}')
 
     def streamHandler(self, evento: Event):
@@ -48,7 +51,7 @@ class RepositorioProfissao(Stream):
             dicionario[CHAVE_TRABALHOS]= dicionarioProfissao
             super().insereDadosModificados(dado= dicionario)
 
-    def pegaProfissoesPersonagem(self) -> list[Profissao] | None:
+    def pega_profissoes_personagem(self) -> list[Profissao] | None:
         '''
             Função que retorna uma lista de objetos do tipo Profissao do servidor de um personagem específico
             Returns:
@@ -56,7 +59,7 @@ class RepositorioProfissao(Stream):
         '''
         profissoes: list[Profissao]= []
         try:
-            profissoesEncontradas: dict= self.__minhaReferenciaProfissoes.get()
+            profissoesEncontradas = self.__minhaReferenciaProfissoes.get()
             if profissoesEncontradas is None:
                 return profissoes
             for chave, valor in profissoesEncontradas.items():
@@ -80,14 +83,14 @@ class RepositorioProfissao(Stream):
             raise Exception(f'({id}) não foi encontrado na lista de profissões!')
         return profissaoEncontrada[CHAVE_NOME]
     
-    def pegaListaProfissoes(self) -> list[Profissao]:
-        profissoes: list[Profissao] = []
+    def pega_todas_profissoes(self) -> list[ProfissaoBase] | None:
+        profissoes: list[ProfissaoBase] = []
         try:
-            profissoesEncontradas: dict= self.__minhaReferenciaListaProfissoes.get()
-            if profissoesEncontradas is None:
+            profissoes_encontradas = self.__minhaReferenciaListaProfissoes.order_by_child("nome").get()
+            if profissoes_encontradas is None or not isinstance(profissoes_encontradas, dict):
                 return profissoes
-            for chave, valor in profissoesEncontradas.items():
-                profissao: Profissao= Profissao()
+            for chave, valor in profissoes_encontradas.items():
+                profissao: ProfissaoBase = ProfissaoBase()
                 profissao.dicionarioParaObjeto(valor)
                 profissoes.append(profissao)
             self.__logger.debug(mensagem= f'Lista de profissões recuperadas com sucesso!')
@@ -107,7 +110,7 @@ class RepositorioProfissao(Stream):
         '''
         profissao.idPersonagem = self.__personagem.id
         try:
-            profissoes: dict= self.__minhaReferenciaListaProfissoes.get()
+            profissoes = self.__minhaReferenciaListaProfissoes.get()
             if profissoes is None:
                 self.__minhaReferenciaListaProfissoes.child(profissao.id).update({CHAVE_ID: profissao.id, CHAVE_NOME: profissao.nome})
                 self.__logger.debug(mensagem= f'Profissão ({profissao.id} | {profissao.nome}) inserida com sucesso na lista de profissões!')

@@ -17,7 +17,7 @@ class TrabalhoProducaoDaoSqlite:
         try:
             trabalhosProducao: list[TrabalhoProducao]= []
             sql = """SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado FROM Lista_desejo INNER JOIN trabalhos ON Lista_desejo.idTrabalho == trabalhos.id;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql)
             for linha in cursor.fetchall():
@@ -47,7 +47,7 @@ class TrabalhoProducaoDaoSqlite:
         try:
             trabalhosProducao: list[TrabalhoProducao]= []
             sql = """SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado FROM Lista_desejo INNER JOIN trabalhos ON Lista_desejo.idTrabalho == trabalhos.id WHERE idPersonagem == ?;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [personagem.id])
             for linha in cursor.fetchall():
@@ -85,7 +85,7 @@ class TrabalhoProducaoDaoSqlite:
         try:
             trabalhos_producao: list[TrabalhoProducao] = []
             sql = """SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado FROM Lista_desejo INNER JOIN trabalhos ON Lista_desejo.idTrabalho == trabalhos.id WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [personagem.id])
             for linha in cursor.fetchall():
@@ -115,7 +115,7 @@ class TrabalhoProducaoDaoSqlite:
         try:
             trabalhosProducao: list[TrabalhoProducao]= []
             sql = """SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado FROM Lista_desejo INNER JOIN trabalhos ON Lista_desejo.idTrabalho == trabalhos.id WHERE idPersonagem == ? AND estado == 1;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [personagem.id])
             for linha in cursor.fetchall():
@@ -145,7 +145,7 @@ class TrabalhoProducaoDaoSqlite:
         try:
             trabalhosProducao: list[TrabalhoProducao]= []
             sql= f"""SELECT {CHAVE_LISTA_TRABALHOS_PRODUCAO}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_ID}, {CHAVE_TRABALHOS}.{CHAVE_NIVEL}, {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO} FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO} INNER JOIN {CHAVE_TRABALHOS} ON {CHAVE_LISTA_TRABALHOS_PRODUCAO}.{CHAVE_ID_TRABALHO} == {CHAVE_TRABALHOS}.{CHAVE_ID} WHERE {CHAVE_ID_PERSONAGEM} == ? AND {CHAVE_ESTADO} == {CODIGO_PARA_PRODUZIR} AND {CHAVE_TRABALHOS}.{CHAVE_RARIDADE} == ? AND {CHAVE_TRABALHOS}.{CHAVE_PROFISSAO} == ?;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, (personagem.id, trabalho.raridade, trabalho.profissao))
             for linha in cursor.fetchall():
@@ -165,7 +165,7 @@ class TrabalhoProducaoDaoSqlite:
     def pegaQuantidadeTrabalhoProducaoProduzindo(self, personagem: Personagem, trabalhoId: str):
         try:
             sql = """SELECT COUNT(*) AS quantidade FROM Lista_desejo WHERE idPersonagem == ? AND idTrabalho == ? AND estado == 1;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, (personagem.id, trabalhoId))
             linha = cursor.fetchone()
@@ -188,7 +188,7 @@ class TrabalhoProducaoDaoSqlite:
         '''
         try:
             sql = """SELECT COUNT(*) AS quantidade FROM Lista_desejo WHERE idPersonagem == ? AND idTrabalho == ? AND (estado == 0 OR estado == 1);"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, (personagem.id, id_trabalho))
             linha = cursor.fetchone()
@@ -204,7 +204,7 @@ class TrabalhoProducaoDaoSqlite:
         try:
             trabalhoProducao: TrabalhoProducao= TrabalhoProducao()
             sql = """SELECT id, idTrabalho, recorrencia, tipoLicenca, estado FROM Lista_desejo WHERE id == ?;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [id])
             for linha in cursor.fetchall():
@@ -225,7 +225,7 @@ class TrabalhoProducaoDaoSqlite:
         try:
             trabalhosProducaoEncontrados: list[TrabalhoProducao]= []
             sql = f"""SELECT {CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO} FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO} WHERE {CHAVE_ID_TRABALHO} == ? AND {CHAVE_ID_PERSONAGEM} == ?;"""
-            conexao = self.__meuBanco.pegaConexao()
+            conexao = self.__meuBanco.pega_conexao()
             cursor = conexao.cursor()
             cursor.execute(sql, (id, personagem.id))
             for linha in cursor.fetchall():
@@ -249,7 +249,7 @@ class TrabalhoProducaoDaoSqlite:
             recorrencia = 1 if trabalhoProducao.recorrencia else 0
             sql = f"""INSERT INTO {CHAVE_LISTA_TRABALHOS_PRODUCAO} ({CHAVE_ID}, {CHAVE_ID_TRABALHO}, {CHAVE_ID_PERSONAGEM}, {CHAVE_RECORRENCIA}, {CHAVE_TIPO_LICENCA}, {CHAVE_ESTADO}) VALUES (?, ?, ?, ?, ?, ?);"""
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalhoProducao.id, trabalhoProducao.idTrabalho, personagem.id, recorrencia, trabalhoProducao.tipoLicenca, trabalhoProducao.estado))
@@ -275,7 +275,7 @@ class TrabalhoProducaoDaoSqlite:
         try:
             sql = f"""DELETE FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO} WHERE {CHAVE_ID} == ?;"""
             repositorioTrabalhoProducao: RepositorioTrabalhoProducao= RepositorioTrabalhoProducao(personagem= personagem)
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, [trabalhoProducao.id])
@@ -299,7 +299,7 @@ class TrabalhoProducaoDaoSqlite:
     
     def removeProducoesPorIdPersonagem(self, personagem: Personagem) -> bool:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             sql = f"""DELETE FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
@@ -314,7 +314,7 @@ class TrabalhoProducaoDaoSqlite:
         return False
         
     def modifica_trabalho_producao(self, personagem: Personagem, trabalho: TrabalhoProducao, modifica_servidor: bool= True):
-        self.__conexao = self.__meuBanco.pegaConexao()
+        self.__conexao = self.__meuBanco.pega_conexao()
         if self.__conexao is None:
             return False
         try:
@@ -349,7 +349,7 @@ class TrabalhoProducaoDaoSqlite:
                 bool: Verdadeiro caso a sincronização seja concluída com sucesso
         '''
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             sql = f"""DELETE FROM {CHAVE_LISTA_TRABALHOS_PRODUCAO} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')

@@ -7,7 +7,7 @@ from modelos.logger import MeuLogger
 from repositorio.repositorioProfissao import RepositorioProfissao
 from constantes import CHAVE_ID, CHAVE_ID_PERSONAGEM, CHAVE_NOME, CHAVE_EXPERIENCIA, CHAVE_PRIORIDADE, LISTA_PROFISSOES, CHAVE_PROFISSOES
 
-class ProfissaoDaoSqlite:
+class ProfissaoPersonagemDaoSqlite:
     def __init__(self, banco: MeuBanco):
         self.__meuBanco: MeuBanco= banco
         self.__meuLogger: MeuLogger= MeuLogger(nome= 'profissaoDao')
@@ -24,7 +24,7 @@ class ProfissaoDaoSqlite:
                 profissao (Profissao): Objeto da classe Profissao com os dados encontrados no banco
         '''
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             sql = f"""SELECT * FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID} == ? AND {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute(sql, (id, personagem.id))
@@ -62,7 +62,7 @@ class ProfissaoDaoSqlite:
     
     def pegaProfissoesPorIdPersonagem(self, personagem: Personagem) -> list[Profissao]:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             profissoes: list[Profissao]= []
             sql = f"""SELECT * FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
@@ -89,7 +89,7 @@ class ProfissaoDaoSqlite:
     def modificaProfissao(self, personagem: Personagem, profissao: Profissao, modificaServidor: bool = True):
         try:
             repositorioProfissao: RepositorioProfissao= RepositorioProfissao(personagem= personagem)
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             prioridade: int= 1 if profissao.prioridade else 0
             sql = f"""UPDATE {CHAVE_PROFISSOES.lower()} SET {CHAVE_EXPERIENCIA} = ?, {CHAVE_PRIORIDADE} = ? WHERE {CHAVE_ID} == ? AND {CHAVE_ID_PERSONAGEM} == ?"""
             cursor = self.__conexao.cursor()
@@ -115,7 +115,7 @@ class ProfissaoDaoSqlite:
     def removeProfissao(self, personagem: Personagem, profissao: Profissao, modificaServidor: bool = True) -> bool:
         try:
             repositorioProfissao: RepositorioProfissao = RepositorioProfissao(personagem= personagem)
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             sql = f"""DELETE FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID} == ? AND {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
@@ -139,7 +139,7 @@ class ProfissaoDaoSqlite:
     
     def removeProfissoesPorIdPersonagem(self, personagem: Personagem) -> bool:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             sql = f"""DELETE FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
@@ -153,20 +153,20 @@ class ProfissaoDaoSqlite:
             self.__meuBanco.desconecta()
         return False
     
-    def insereListaProfissoes(self, personagem: Personagem):
-        for nomeProfissao in LISTA_PROFISSOES:
-            self.__conexao = self.__meuBanco.pegaConexao()
+    def insere_lista_profissoes(self, personagem: Personagem):
+        for nome_profissao in LISTA_PROFISSOES:
+            self.__conexao = self.__meuBanco.pega_conexao()
             profissao = Profissao()
-            profissao.nome = nomeProfissao
+            profissao.nome = nome_profissao
             profissao.idPersonagem = personagem.id
-            if self.insereProfissao(personagem= personagem, profissao= profissao):
-                self.__meuLogger.info(f'({nomeProfissao}) inserido no banco com sucesso!')
+            if self.insere_profissao(personagem= personagem, profissao= profissao):
+                self.__meuLogger.info(f'({nome_profissao}) inserido no banco com sucesso!')
                 continue
             self.__meuLogger.error(f'Erro ao inserir profissão no banco: {self.pegaErro}')
             return False
         return True
     
-    def insereProfissao(self, personagem: Personagem, profissao: Profissao, modificaServidor: bool = True) -> bool:
+    def insere_profissao(self, personagem: Personagem, profissao: Profissao, modificaServidor: bool = True) -> bool:
         '''
             Função que insere um objeto do tipo Profissao no banco de dados
             Returns:
@@ -177,7 +177,7 @@ class ProfissaoDaoSqlite:
         '''
         try:
             repositorioProfissao: RepositorioProfissao= RepositorioProfissao(personagem= personagem)
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             prioridade: int = 1 if profissao.prioridade else 0
             sql = f"""INSERT INTO {CHAVE_PROFISSOES.lower()} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_NOME}, {CHAVE_EXPERIENCIA}, {CHAVE_PRIORIDADE}) VALUES (?, ?, ?, ?, ?);"""
             cursor = self.__conexao.cursor()
@@ -200,39 +200,49 @@ class ProfissaoDaoSqlite:
             self.__meuBanco.desconecta()
         return False
     
-    def sincronizaProfissoesPorId(self, personagem: Personagem):
+    def sincroniza_profissoes_por_id(self, personagem: Personagem):
         '''
             Função para sincronizar as profissões no servidor, de um personagem específico, com o banco de dados local
             Returns:
                 bool: Verdadeiro caso a sincronização seja comcluída com sucesso
         '''
+        self.__conexao = self.__meuBanco.pega_conexao()
+        if self.__conexao is None:
+            raise Exception("Falha ao conectar ao banco de dados")
+
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
             sql = f"""DELETE FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, [personagem.id])
-            repositorioProfissao: RepositorioProfissao= RepositorioProfissao(personagem= personagem)
-            profissoesServidor: list[Profissao]= repositorioProfissao.pegaProfissoesPersonagem()
-            if profissoesServidor is None:
-                self.__meuLogger.error(f'Erro ao buscar profissões no servidor: {repositorioProfissao.pegaErro}')
-                raise Exception(repositorioProfissao.pegaErro)
-            for profissao in profissoesServidor:
+            repositorio_profissao: RepositorioProfissao= RepositorioProfissao(personagem= personagem)
+            profissoes_servidor: list[Profissao] | None = repositorio_profissao.pega_profissoes_personagem()
+
+            if profissoes_servidor is None:
+                self.__meuLogger.error(f'Erro ao buscar profissões no servidor: {repositorio_profissao.pegaErro}')
+                raise Exception(repositorio_profissao.pegaErro)
+            
+            for profissao in profissoes_servidor:
                 prioridade: int = 1 if profissao.prioridade else 0
                 sql = f"""
                     INSERT INTO {CHAVE_PROFISSOES.lower()} ({CHAVE_ID}, {CHAVE_ID_PERSONAGEM}, {CHAVE_NOME}, {CHAVE_EXPERIENCIA}, {CHAVE_PRIORIDADE})
                     VALUES (?, ?, ?, ?, ?)"""
                 try:
                     cursor.execute(sql, (profissao.id, personagem.id, profissao.nome, profissao.experiencia, prioridade))
+    
                 except Exception as e:
                     raise e
+    
             self.__conexao.commit()
             return True
+
         except Exception as e:
             self.__erro = str(e)
             self.__conexao.rollback()
+
         finally:
             self.__meuBanco.desconecta()
+
         return False
 
     @property

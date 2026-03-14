@@ -38,8 +38,8 @@ class TrabalhoDaoSqlite:
         try:
             trabalhos: list[Trabalho]= []
             sql = f"""SELECT * FROM {CHAVE_TRABALHOS};"""
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql)
@@ -64,15 +64,15 @@ class TrabalhoDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def pegaTrabalhosPorProfissaoRaridadeNivel(self, trabalhoBuscado: Trabalho) -> list[Trabalho] | None:
+    def pega_trabalhos_por_profissao_raridade_nivel(self, trabalho_buscado: Trabalho) -> list[Trabalho] | None:
         try:
             trabalhos: list[Trabalho] = []
             sql = f"""SELECT * FROM {CHAVE_TRABALHOS} WHERE {CHAVE_PROFISSAO} = ? AND {CHAVE_RARIDADE} == ? AND {CHAVE_NIVEL} == ?;"""
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
-                cursor.execute(sql, (trabalhoBuscado.profissao, trabalhoBuscado.raridade, str(trabalhoBuscado.nivel)))
+                cursor.execute(sql, (trabalho_buscado.profissao, trabalho_buscado.raridade, str(trabalho_buscado.nivel)))
                 for linha in cursor.fetchall():
                     trabalho = Trabalho()
                     trabalho.id = linha[0]
@@ -101,8 +101,8 @@ class TrabalhoDaoSqlite:
                 WHERE profissao = ? 
                 AND raridade == ?;
                 """
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, (trabalhoBuscado.profissao, trabalhoBuscado.raridade))
@@ -129,8 +129,8 @@ class TrabalhoDaoSqlite:
         trabalho: Trabalho= Trabalho()
         sql = f"""SELECT * FROM {CHAVE_TRABALHOS} WHERE {CHAVE_ID} == ?;"""
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, [idBuscado])
@@ -155,8 +155,8 @@ class TrabalhoDaoSqlite:
         sql = f"""SELECT * FROM {CHAVE_TRABALHOS} WHERE CONCAT(',', {CHAVE_TRABALHO_NECESSARIO}, ',') LIKE '%' || ? || '%' LIMIT 1;"""
         try:
             if len(idBuscado) == 0: raise Exception("'idBuscado' está vazio")
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, [idBuscado])
@@ -180,8 +180,8 @@ class TrabalhoDaoSqlite:
         try:
             idsTrabalhos: list[str]= []
             sql = f"""SELECT {CHAVE_ID} FROM {CHAVE_TRABALHOS} WHERE {CHAVE_PROFISSAO} == ? AND {CHAVE_NIVEL} == ? AND {CHAVE_RARIDADE} == '{CHAVE_RARIDADE_COMUM}';"""
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, (trabalho.profissao, trabalho.nivel))
@@ -198,8 +198,8 @@ class TrabalhoDaoSqlite:
         try:
             trabalho: Trabalho= Trabalho()
             sql= f"""SELECT * FROM {CHAVE_TRABALHOS} WHERE {CHAVE_NOME} == ? AND {CHAVE_PROFISSAO} = ? AND {CHAVE_RARIDADE} == ?;"""
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, (trabalhoBuscado.nome, trabalhoBuscado.profissao, trabalhoBuscado.raridade))
@@ -223,8 +223,8 @@ class TrabalhoDaoSqlite:
         try:
             trabalho: Trabalho= Trabalho()
             sql= f"""SELECT * FROM {CHAVE_TRABALHOS} WHERE {CHAVE_NOME} == ? LIMIT 1;"""
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             if self.__fabrica == 1:
                 cursor = self.__conexao.cursor()
                 cursor.execute(sql, [nomeTrabalho])
@@ -244,37 +244,50 @@ class TrabalhoDaoSqlite:
             self.__meuBanco.desconecta()
         return None
     
-    def insereTrabalho(self, trabalho: Trabalho, modificaServidor: bool= True) -> bool:
+    def insere_trabalho(self, trabalho: Trabalho, modifica_servidor: bool= True) -> bool:
+        self.__conexao = self.__meuBanco.pega_conexao()
+        if self.__conexao is None:
+            raise Exception("Falha ao conectar ao banco de dados")
+
         try:
             sql= f"""INSERT INTO {CHAVE_TRABALHOS} ({CHAVE_ID}, {CHAVE_NOME}, {CHAVE_NOME_PRODUCAO}, {CHAVE_EXPERIENCIA}, {CHAVE_NIVEL}, {CHAVE_PROFISSAO}, {CHAVE_RARIDADE}, {CHAVE_TRABALHO_NECESSARIO}) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalho.id, trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario))
-            if modificaServidor:
-                if self.__repositorioTrabalho.insereTrabalho(trabalho):
-                    self.__logger.info(f'({trabalho.id.ljust(36)} | {trabalho}) inserido no servidor com sucesso!')
+
+            if modifica_servidor:
+                if self.__repositorioTrabalho.insere_trabalho(trabalho):
+                    self.__logger.info(
+                        f'({trabalho.id.ljust(36)} | {trabalho}) inserido no servidor com sucesso!'
+                    )
                     self.__conexao.commit()
                     return True
-                self.__logger.error(f'Erro ao inserir ({trabalho.id.ljust(36)} | {trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro}')
+
+                self.__logger.error(
+                    f'Erro ao inserir ({trabalho.id.ljust(36)} | {trabalho}) no servidor: {self.__repositorioTrabalho.pegaErro}'
+                )
                 self.__erro= self.__repositorioTrabalho.pegaErro
                 self.__conexao.rollback()
                 return False
+
             self.__conexao.commit()
             return True
+
         except Exception as e:
             self.__erro = str(e)
             self.__conexao.rollback()
+
         finally:
             self.__meuBanco.desconecta()
+
         return False
 
     def modificaTrabalho(self, trabalho : Trabalho, modificaServidor: bool= True) -> bool:
         try:
             sql= f"""UPDATE {CHAVE_TRABALHOS} SET {CHAVE_NOME} = ?, {CHAVE_NOME_PRODUCAO} = ?, {CHAVE_EXPERIENCIA} = ?, {CHAVE_NIVEL} = ?, {CHAVE_PROFISSAO} = ?, {CHAVE_RARIDADE} = ?, {CHAVE_TRABALHO_NECESSARIO} = ? WHERE {CHAVE_ID} = ?;"""
-            self.__conexao= self.__meuBanco.pegaConexao()
-            self.__fabrica= self.__meuBanco.pegaFabrica()
+            self.__conexao= self.__meuBanco.pega_conexao()
+            self.__fabrica= self.__meuBanco.pega_fabrica()
             cursor= self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, (trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario, trabalho.id))
@@ -299,8 +312,8 @@ class TrabalhoDaoSqlite:
     def removeTrabalho(self, trabalho: Trabalho, modificaServidor: bool= True) -> bool:
         try:
             sql= f"""DELETE FROM {CHAVE_TRABALHOS} WHERE {CHAVE_ID} == ?;"""
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql, [trabalho.id])
@@ -328,24 +341,34 @@ class TrabalhoDaoSqlite:
             Returns:
                 bool: Verdadeiro caso a sincronização seja concluída com sucesso
         '''
+
+        self.__conexao = self.__meuBanco.pega_conexao()
+        if self.__conexao is None:
+            raise Exception("Falha ao conectar ao banco de dados")
+
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
             sql = f"""DELETE FROM {CHAVE_TRABALHOS};"""
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             cursor.execute(sql)
-            repositorioTrabalho: RepositorioTrabalho= RepositorioTrabalho()
-            trabalhosServidor: list[Trabalho]= repositorioTrabalho.pegaTodosTrabalhos()
-            if trabalhosServidor is None:
-                self.__logger.error(f'Erro ao buscar trabalhos no servidor: {repositorioTrabalho.pegaErro}')
-                raise Exception(repositorioTrabalho.pegaErro)
-            for trabalho in trabalhosServidor:
+            repositorio_trabalho: RepositorioTrabalho = RepositorioTrabalho()
+            trabalhos_servidor: list[Trabalho] | None = repositorio_trabalho.pega_todos_trabalhos()
+            if trabalhos_servidor is None:
+                self.__logger.error(
+                    f'Erro ao buscar trabalhos no servidor: {repositorio_trabalho.pegaErro}'
+                )
+                raise Exception(repositorio_trabalho.pegaErro)
+
+            for trabalho in trabalhos_servidor:
                 sql= f"""INSERT INTO {CHAVE_TRABALHOS} ({CHAVE_ID}, {CHAVE_NOME}, {CHAVE_NOME_PRODUCAO}, {CHAVE_EXPERIENCIA}, {CHAVE_NIVEL}, {CHAVE_PROFISSAO}, {CHAVE_RARIDADE}, {CHAVE_TRABALHO_NECESSARIO}) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
                 try:
                     cursor.execute(sql, (trabalho.id, trabalho.nome, trabalho.nomeProducao, trabalho.experiencia, trabalho.nivel, trabalho.profissao, trabalho.raridade, trabalho.trabalhoNecessario))
                 except Exception as e:
-                    self.__logger.error(f'Erro ao inserir trabalho no banco ({trabalho.id}, {trabalho.nome}, {trabalho.nomeProducao}, {trabalho.experiencia}, {trabalho.nivel}, {trabalho.profissao}, {trabalho.raridade}, {trabalho.trabalhoNecessario}): {repositorioTrabalho.pegaErro}')
+                    self.__logger.error(
+                        f'Erro ao inserir trabalho no banco ({trabalho.id}, {trabalho.nome}, {trabalho.nomeProducao}, {trabalho.experiencia}, {trabalho.nivel}, {trabalho.profissao}, {trabalho.raridade}, {trabalho.trabalhoNecessario}): {repositorio_trabalho.pegaErro}'
+                    )
                     raise e
+
             self.__conexao.commit()
             return True
         except Exception as e:

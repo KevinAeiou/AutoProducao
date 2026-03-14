@@ -21,8 +21,8 @@ class PersonagemDaoSqlite():
 
     def pegaPersonagens(self) -> list[Personagem]:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             personagens: list[Personagem]= []
             sql = f"""SELECT * FROM {CHAVE_PERSONAGENS.lower()};"""
             if self.__fabrica == 1:
@@ -52,8 +52,8 @@ class PersonagemDaoSqlite():
     
     def pegaPersonagemPorId(self, id : str) -> Personagem:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             sql = f"""SELECT * FROM {CHAVE_PERSONAGENS.lower()} WHERE {CHAVE_ID} == ?;"""
             personagemEncontrado: Personagem= Personagem()
             if self.__fabrica == 1:
@@ -80,8 +80,8 @@ class PersonagemDaoSqlite():
     
     def modificaPersonagem(self, personagem: Personagem, modificaServidor: bool= True) -> bool:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             estado: int = 1 if personagem.estado else 0
             uso: int= 1 if personagem.uso else 0
             autoProducao: int= 1 if personagem.autoProducao else 0
@@ -109,8 +109,8 @@ class PersonagemDaoSqlite():
     
     def inserePersonagem(self, personagem: Personagem, modificaServidor: bool = True) -> bool:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
-            self.__fabrica = self.__meuBanco.pegaFabrica()
+            self.__conexao = self.__meuBanco.pega_conexao()
+            self.__fabrica = self.__meuBanco.pega_fabrica()
             estado: int = 1 if personagem.estado else 0
             uso: int = 1 if personagem.uso else 0
             autoProducao: int = 1 if personagem.autoProducao else 0
@@ -138,7 +138,7 @@ class PersonagemDaoSqlite():
     
     def removePersonagem(self, personagem: Personagem, modificaServidor: bool = True) -> bool:
         try:
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             sqlRemovePersonagem = f"""DELETE FROM {CHAVE_PERSONAGENS.lower()} WHERE {CHAVE_ID} == ?;"""
             sqlRemoveEstoque= f"""DELETE FROM {CHAVE_LISTA_ESTOQUE} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
             sqlRemoveProfissoes= f"""DELETE FROM {CHAVE_PROFISSOES.lower()} WHERE {CHAVE_ID_PERSONAGEM} == ?;"""
@@ -179,7 +179,7 @@ class PersonagemDaoSqlite():
             personagensBanco: list[Personagem]= self.pegaPersonagens()
             if personagensBanco is None:
                 return False
-            self.__conexao = self.__meuBanco.pegaConexao()
+            self.__conexao = self.__meuBanco.pega_conexao()
             cursor = self.__conexao.cursor()
             cursor.execute('BEGIN')
             for persoangemBanco in personagensBanco:
