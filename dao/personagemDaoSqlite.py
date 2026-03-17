@@ -48,7 +48,7 @@ class PersonagemDaoSqlite():
             self.__erro = str(e)
         finally:
             self.__meuBanco.desconecta()
-        return None
+        return []
     
     def pegaPersonagemPorId(self, id : str) -> Personagem:
         try:

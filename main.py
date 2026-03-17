@@ -35,6 +35,8 @@ from repositorio.repositorioVendas import RepositorioVendas
 from repositorio.repositorioUsuario import RepositorioUsuario
 
 from reconhecimentoErro import ReconhecimentoErro, VerificacaoErro
+
+from core.bot import Bot
 class Aplicacao:
 	def __init__(self) -> None:
 		self.__logger_aplicacao: MeuLogger = MeuLogger(nome= 'aplicacao')
@@ -3465,9 +3467,5 @@ class Aplicacao:
 		return False
 
 if __name__=='__main__':
-	try:
-		app = Aplicacao()
-		app.recupera_correspondencia()
-		# app.preparaPersonagem()
-	except Exception as e:
-		print(f'Erro ao iniciar aplicação: {e}')
+	bot: Bot = Bot()
+	bot.executar()
