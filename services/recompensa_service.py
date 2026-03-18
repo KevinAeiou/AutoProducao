@@ -52,18 +52,32 @@ class RecompensaService():
 		
 		logger.debug(f'NOME_RECONHECIDO: {nome_personagem}')
 
-		if nome_personagem == str(personagem.nome).lower():
+		if nome_personagem != str(personagem.nome).lower():
+
+			pass
+
+		self.reconhecimento_tela.reconhece_menu_atual()
+
+		while not self.reconhecimento_tela.eh_menu_recompensas_diarias:
+			
+
 			self.reconhecimento_tela.reconhece_menu_atual()
+		
+		for _ in range(2):
+			logger.debug(f'Buscando botão "Pegar".')
 
-			if self.reconhecimento_tela.eh_menu_recompensas_diarias:		
-				for _ in range(2):
-					logger.debug(f'Buscando botão "Pegar".')
+			referencia: tuple | None = self.reconhecimento_tela.retorna_coordenadas_botao_pegar()
+			if referencia is not None:
+				self.manipula_mouse.clica(x=referencia[0], y=referencia[1])
 
-					referencia: tuple | None = self.reconhecimento_tela.retorna_coordenadas_botao_pegar()
-					if referencia is not None:
-						self.manipula_mouse.clica(x=referencia[0], y=referencia[1])
+				self.manipula_mouse.move_cursor_para()
 
-					self.manipula_teclado.preciona_tecla(tecla='up', cliques=10)
-					self.manipula_teclado.clica_tecla(tecla='left')
+				self.reconhecimento_tela.verifica_erro()
+				
+				if self.reconhecimento_tela.erro_encontrado:
+					self.manipula_teclado.clica_tecla(tecla='f2')
 
-				self.manipula_teclado.clica_tecla(tecla='f1', cliques=2)
+			self.manipula_teclado.preciona_tecla(tecla='up', cliques=10)
+			self.manipula_teclado.clica_tecla(tecla='left')
+
+		self.manipula_teclado.clica_tecla(tecla='f1', cliques=2)

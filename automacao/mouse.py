@@ -15,4 +15,13 @@ class ManipulaMouse():
 			if botao == 'direito':
 				pyautogui.rightClick(x, y, interval=intervalo)
 
-		pass
+	def move_cursor_para(self, x: int | None = None, y: int | None = None):
+		if x is None:
+			tela = pyautogui.screenshot()
+			x = tela.width // 2
+
+		if y is None:
+			tela = pyautogui.screenshot()
+			y = tela.height // 2
+			
+		pyautogui.moveTo(x, y)
