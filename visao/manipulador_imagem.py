@@ -1,17 +1,17 @@
 
-from numpy import ndarray
 import cv2
 import pytesseract
 import numpy as np
-from utilitarios import eh_vazia
-from utilitariosTexto import limpa_ruido_texto
+
+from numpy import ndarray
+
 from automacao.teclado import ManipulaTeclado
 
 
 class ManipuladorImagem():
 
 	def __init__(self, debug: bool = False) -> None:
-		self.tela_inteira = None
+		self.tela_inteira: ndarray | None = None
 		self.altura_cabecalho: int = 0
 		self.altura_rodape: int = 0
 		self.debug: bool = debug
@@ -27,7 +27,7 @@ class ManipuladorImagem():
 	def _retorna_imagem_colorida(self, screenshot):
 		return cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
 	
-	def _retorna_atualizacao_tela(self):
+	def retorna_atualizacao_tela(self):
 		self.tela_inteira = self._retorna_imagem_colorida(self.manipula_teclado.tira_screenshot())
 
 		if self.debug:
@@ -36,6 +36,8 @@ class ManipuladorImagem():
 				imagem=self._retona_imagem_redimensionada(self.tela_inteira, 0.5), 
 				nome_frame='Tela inteira'
 			)
+		
+		return self.tela_inteira
 
 	def _mostra_imagem(self, indice, imagem: ndarray | None, nome_frame: str = "Janela teste"):
 		if imagem is None:
@@ -77,37 +79,19 @@ class ManipuladorImagem():
 		self.frame_binarizado = thresh
 		return thresh
 	
-	def _retorna_imagem_para_dicionario(self, imagem):
-		return pytesseract.image_to_data(
-			imagem, lang="por", config="--psm 6", output_type=pytesseract.Output.DICT
-		)
-	
-	def _reconhece_texto(self, imagem: ndarray | None, confianca: int = 80) -> str | None:
-		resultado: dict = self._retorna_imagem_para_dicionario(imagem)
-		lista_palavras: list[str] = []
-		for i in range(len(resultado["text"])):
-			if resultado["conf"][i] > confianca:
-				lista_palavras.append(resultado["text"][i])
-		string_palavras: str = "".join(lista_palavras)
-		return (
-			None
-			if eh_vazia(lista=string_palavras)
-			else limpa_ruido_texto(texto=string_palavras)
-		)
-	
-	def reconhece_texto_nome_personagem(
+	def retorna_frame_nome_personagem(
 		self, posicao: int
-	) -> str | None:
+	) -> ndarray | None:
 		"""
 		Método para reconhecimento do nome do personagem em uma posição específica.
 		
 		:param posicao: Posição específica na tela e que o texto deve ser reconhecido.
 		:type posicao: int
-		:return: String que contêm o texto reconhecido.
-		:rtype: str | None
+		:return: Frame da tela binarizada que contêm o texto reconhecido.
+		:rtype: ndarray | None
 		"""
 
-		self._retorna_atualizacao_tela()
+		self.retorna_atualizacao_tela()
 		if self.tela_inteira is None:
 			return None
 		
@@ -132,10 +116,26 @@ class ManipuladorImagem():
 
 		self._retorna_imagem_cinza(np.array(frame_nome_personagem))
 		self._retorna_imagem_binarizada(limite_minimo=100)
-		texto_reconhecido = self._reconhece_texto(imagem=self.frame_binarizado, confianca=40)
 
 		if self.debug:
 			self._mostra_imagem(0, frame_nome_personagem)
 			self._mostra_imagem(0, self.frame_binarizado)
 
-		return texto_reconhecido
+		return self.frame_binarizado
+	
+	def retorna_frame_menu(self):
+		if self.tela_inteira is None:
+			return None
+		
+		frame: ndarray = (
+			self.tela_inteira[0 : self.tela_inteira.shape[0], 
+			0 : self.tela_inteira.shape[1] // 2]
+		)
+		self._retorna_imagem_cinza(np.array(frame))
+		self._retorna_imagem_binarizada(limite_minimo=155)
+
+		if self.debug:
+			self._mostra_imagem(0, frame)
+			self._mostra_imagem(0, self.frame_binarizado)
+		
+		return self.frame_binarizado

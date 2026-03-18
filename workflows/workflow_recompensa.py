@@ -15,6 +15,7 @@ class RecompensaWorkFlow():
 		
 		while personagem:
 			self.service.inicia_coleta(personagem)
+			
 			personagem = self.service.buscar_personagem_disponivel()
 
 		self.verificado = True
