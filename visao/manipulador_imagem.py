@@ -4,9 +4,8 @@ import pytesseract
 import numpy as np
 
 from numpy import ndarray
-
 from automacao.teclado import ManipulaTeclado
-
+from constantes import QTD_PIXEL_PRETO_REFERENCIA_MENU_PRINCIPAL
 
 class ManipuladorImagem():
 
@@ -139,3 +138,43 @@ class ManipuladorImagem():
 			self._mostra_imagem(0, self.frame_binarizado)
 		
 		return self.frame_binarizado
+	
+	def retorna_posicoes(
+		self, x: int, y: int, largura: int, altura: int
+	) -> tuple[int, int, int, int]:
+		if self.tela_inteira is None:
+			return x, y, largura, altura
+
+		# if not self.resolucao_eh_1366_768():
+		# 	razoes: tuple = self.retornaRazaoEntreTelas(self.tela_inteira)
+		# 	x = int(x * razoes[1])
+		# 	y = int(y * razoes[0])
+		# 	largura = int(largura * razoes[1])
+		# 	altura = int(altura * razoes[0])
+		return x, y, largura, altura
+	
+	def verifica_menu_referencia(self):
+		if self.tela_inteira is None:
+			return None
+
+		posicao_menu: tuple = (
+			[self.tela_inteira.shape[0], int(self.tela_inteira.shape[1] // 2)],
+			[self.tela_inteira.shape[0], self.tela_inteira.shape[1]],
+		)
+		_, _, largura, altura = self.retorna_posicoes(
+			x=233, y=311, largura=55, altura=55
+		)
+		for posicao in posicao_menu:
+			frame_tela: ndarray = self.tela_inteira[
+				posicao[0] - altura : posicao[0], posicao[1] - largura : posicao[1]
+			]
+			contador_pixel_preto = np.sum(frame_tela == (85, 204, 255))
+
+			if self.debug:
+				self._mostra_imagem(0, frame_tela)
+				print(f"CONTADOR PIXEL PRETO: {contador_pixel_preto}")
+
+			if contador_pixel_preto >= QTD_PIXEL_PRETO_REFERENCIA_MENU_PRINCIPAL:
+				return True
+			
+		return False

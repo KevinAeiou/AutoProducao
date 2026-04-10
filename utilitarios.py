@@ -195,7 +195,7 @@ def retornaListaTrabalhosParaProduzirProduzindo(dicionarioPersonagemAtributos):
 def limpa_tela():
     print("\n" * os.get_terminal_size().lines)
 
-def retorna_codigo_erro_reconhecido(texto_erro_encontrado: str) -> int:
+def retorna_codigo_erro_reconhecido(texto_erro_encontrado: str) -> int | None:
     '''
     Função que retorna o código do erro reconhecido a partir do texto de erro encontrado.
     Args:
@@ -204,9 +204,10 @@ def retorna_codigo_erro_reconhecido(texto_erro_encontrado: str) -> int:
         int: Código do erro reconhecido, ou zero(0) caso não seja reconhecido.
     '''
     if texto_erro_encontrado is None:
-        return 0
+        return None
+    
     for posicao_tipo_erro in range(len(CHAVE_LISTA_ERROS)):
         texto_erro: str = limpa_ruido_texto(CHAVE_LISTA_ERROS[posicao_tipo_erro])
         if texto_erro in texto_erro_encontrado:
             return posicao_tipo_erro + 1
-    return 0
+    return None

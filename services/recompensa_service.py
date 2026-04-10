@@ -7,6 +7,7 @@ from visao.reconhecimento_tela import ReconhecimentoTela
 from automacao.teclado import ManipulaTeclado
 from automacao.mouse import ManipulaMouse
 from utilitarios import ehMenuRecompensasDiarias, limpa_tela
+from time import sleep
 
 logger: MeuLogger = MeuLogger(nome='recompensa_service')
 class RecompensaService():
@@ -40,44 +41,129 @@ class RecompensaService():
 		return personagem
 
 	def inicia_coleta(self, personagem: Personagem):
+		personagens_verificados: list[str] = []
 		limpa_tela()
 
-		logger.info(f'Iniciando coleta para {personagem.nome} | {personagem.email}')
+		logger.info(f'Iniciando coleta para:\n{personagem.nome} | {personagem.email}')
 
-		nome_personagem: str | None = self.reconhecimento_texto.reconhecer_nome_personagem()
+		nomes_reconhecidos: list[str] = self.reconhecimento_texto.reconhecer_nome_personagem(posicao=0)
 
-		if not nome_personagem:
+		if len(nomes_reconhecidos) == 0:
 			logger.warning('Não foi possível reconhecer o personagem atual.')
 			return
 		
-		logger.debug(f'NOME_RECONHECIDO: {nome_personagem}')
 
-		if nome_personagem != str(personagem.nome).lower():
+		for nome_reconhecido in nomes_reconhecidos:
+			if nome_reconhecido != str(personagem.nome).lower():
+				# deslogar e logar personagem atual
+				return
+		
+		if personagem.nome is None:
+			return
 
-			pass
-
-		self.reconhecimento_tela.reconhece_menu_atual()
-
-		while not self.reconhecimento_tela.eh_menu_recompensas_diarias:
+		tentativas: int = 0
+		max_tentativas: int = 12
+		while tentativas < max_tentativas:
+			tentativas += 1
 			
+			personagens_verificados.append(nomes_reconhecidos[0])
 
 			self.reconhecimento_tela.reconhece_menu_atual()
-		
-		for _ in range(2):
-			logger.debug(f'Buscando botão "Pegar".')
 
-			referencia: tuple | None = self.reconhecimento_tela.retorna_coordenadas_botao_pegar()
-			if referencia is not None:
-				self.manipula_mouse.clica(x=referencia[0], y=referencia[1])
+			while not self.reconhecimento_tela.eh_menu_recompensas_diarias:
+				if self.reconhecimento_tela.eh_menu_inicial:
+					self.manipula_teclado.clica_tecla('f1')
+					self.manipula_teclado.clica_tecla('enter', intervalo=1)
+					self.manipula_teclado.clica_tecla('down')
+					self.manipula_teclado.clica_tecla('enter')
 
-				self.manipula_mouse.move_cursor_para()
 
+				if self.reconhecimento_tela.eh_menu_loja_milagrosa:
+					self.manipula_teclado.clica_tecla('down')
+					self.manipula_teclado.clica_tecla('enter')
+
+				if self.reconhecimento_tela.eh_menu_oferta_diaria:
+					self.manipula_teclado.clica_tecla('f1')
+
+				self.reconhecimento_tela.reconhece_menu_atual()
+			
+			for _ in range(2):
+				logger.debug(f'Buscando botão "Pegar".')
+
+				referencia: tuple | None = self.reconhecimento_tela.retorna_coordenadas_botao_pegar()
+				if referencia is not None:
+					self.manipula_mouse.clica(x=referencia[0], y=referencia[1])
+
+					self.manipula_mouse.move_cursor_para()
+
+					self.reconhecimento_tela.verifica_erro()
+					
+					sleep(0.5)
+					if self.reconhecimento_tela.erro_encontrado:
+						self.manipula_teclado.clica_tecla(tecla='f2')
+
+				self.manipula_teclado.preciona_tecla(tecla='up', cliques=10)
+				self.manipula_teclado.clica_tecla(tecla='left')
+
+			self.manipula_teclado.clica_tecla(tecla='f1', cliques=2)
+
+			self.manipula_teclado.desloga_conta()
+
+			# Verificar se é menu inicial
+
+			self.manipula_teclado.clica_tecla('enter')
+
+			tentativas_login: int = 0
+			max_tentativas_login: int = 10
+			while tentativas_login < max_tentativas_login:
 				self.reconhecimento_tela.verifica_erro()
+
+				if not self.reconhecimento_tela.erro_encontrado:
+					break
+
+				if self.reconhecimento_tela.eh_erro_conectando:
+					continue
 				
-				if self.reconhecimento_tela.erro_encontrado:
-					self.manipula_teclado.clica_tecla(tecla='f2')
+				tentativas_login += 1
 
-			self.manipula_teclado.preciona_tecla(tecla='up', cliques=10)
-			self.manipula_teclado.clica_tecla(tecla='left')
+			self.manipula_teclado.clica_tecla('f2')
+			self.manipula_teclado.preciona_tecla('left', 14)
 
-		self.manipula_teclado.clica_tecla(tecla='f1', cliques=2)
+			tentativas_login: int = 0
+			max_tentativas_login: int = 12
+			while tentativas_login <= max_tentativas_login:
+				tentativas_login += 1
+				nomes_reconhecidos: list[str] = self.reconhecimento_texto.reconhecer_nome_personagem(posicao=1)
+
+				if len(nomes_reconhecidos) == 0:
+					return
+
+				for verificado in personagens_verificados:
+					for reconhecido in nomes_reconhecidos:
+						if reconhecido == verificado:
+							self.manipula_teclado.clica_tecla('right')
+							break
+					else:
+						continue
+				
+				break
+
+			self.manipula_teclado.clica_tecla('enter')
+
+			tentativas_login: int = 0
+			max_tentativas_login: int = 10
+			while tentativas_login < max_tentativas_login:
+				self.reconhecimento_tela.verifica_erro()
+
+				if not self.reconhecimento_tela.erro_encontrado:
+					break
+
+				if self.reconhecimento_tela.eh_erro_conectando:
+					continue
+
+				if self.reconhecimento_tela.eh_erro_novo_presente:
+					self.manipula_teclado.clica_tecla('f2', intervalo=1)
+					break
+				
+				tentativas_login += 1
+

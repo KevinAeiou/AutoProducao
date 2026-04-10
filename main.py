@@ -3465,7 +3465,15 @@ class Aplicacao:
 			return True
 		self.__loggerTrabalhoDao.error(f'Erro ao modificar ({trabalho.id.ljust(36)} | {trabalho}) no banco: {self.__trabalhoDao.pegaErro}')
 		return False
+	
+	
+	def migrar_dados_trabalho(self):
+		self.__repositorioTrabalho.migrar_dados()
+		pass
+
 
 if __name__=='__main__':
-	bot: Bot = Bot()
-	bot.executar()
+	app: Aplicacao = Aplicacao()
+	app.migrar_dados_trabalho()
+	# bot: Bot = Bot()
+	# bot.executar()

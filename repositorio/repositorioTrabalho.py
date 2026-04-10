@@ -110,6 +110,53 @@ class RepositorioTrabalho(Stream):
             self.__erro = str(e)
             self.__logger.error(mensagem= f'Erro ao remover trabalho: {e}')
         return False
+    
+    def migrar_dados(self):
+    
+        try:
+            if self.__minha_referencia_trabalhos is None:
+                raise Exception('Referência de trabalhos não inicializada.')
+            
+            todos_trabalhos = self.__minha_referencia_trabalhos.get()
+            if not isinstance(todos_trabalhos, dict):
+                raise Exception('Dados de trabalhos não estão em formato de dicionário.')
+            
+            for chave, valor in todos_trabalhos.items():
+                self.__logger.debug(mensagem=f'Processando: {valor}')
+
+                if not isinstance(valor, dict) or "necessarios" in valor:
+                    continue
+
+                trabalho_necessario = valor.get("trabalhoNecessario")
+
+                atualizacao = {}
+
+                lista_ids = []
+                if isinstance(trabalho_necessario, str) and trabalho_necessario.strip():
+                    partes = trabalho_necessario.split(",")
+
+                    lista_ids = [
+                        p.strip()
+                        for p in partes
+                        if p and p.strip()
+                    ]
+
+                if lista_ids:
+                    atualizacao["necessarios"] = {
+                        _id: True for _id in lista_ids
+                    }
+                else:
+                    atualizacao["necessarios"] = {}
+
+                atualizacao["trabalhoNecessario"] = None
+
+                self.__minha_referencia_trabalhos.child(chave).update(atualizacao)
+
+            self.__logger.debug(mensagem='Migração concluída com sucesso.')
+
+        except Exception as e:
+            self.__erro = str(e)
+            self.__logger.error(mensagem=f'Erro ao migrar dados: {e}')
 
     @property
     def pegaErro(self):

@@ -13,7 +13,7 @@ logger: MeuLogger = MeuLogger(nome='reconhecimento_texto')
 class ReconhecimentoTexto():
 
 	def __init__(self) -> None:
-		self.manipulador_imagem: ManipuladorImagem = ManipuladorImagem(debug=True)
+		self.manipulador_imagem: ManipuladorImagem = ManipuladorImagem()
 		self._configuraTesseract()
 
 	def _configuraTesseract(self):
@@ -42,15 +42,28 @@ class ReconhecimentoTexto():
 			else limpa_ruido_texto(texto=string_palavras)
 		)
 	
-	def reconhecer_nome_personagem(self) -> str | None:
+	def reconhecer_nome_personagem(self, posicao: int | None = None) -> list[str]:
 		frame_nome = None
 		nome_reconhecido: str | None = None
+		nomes_reconhecidos: list[str] = []
 
-		for indice in range(0, 2):
-			frame_nome: ndarray | None = self.manipulador_imagem.retorna_frame_nome_personagem(posicao=indice)
+		if posicao is None:
+			for indice in range(0, 2):
+				frame_nome: ndarray | None = self.manipulador_imagem.retorna_frame_nome_personagem(posicao=indice)
 
-			nome_reconhecido = self._reconhece_texto(imagem=frame_nome, confianca=40)
-			if nome_reconhecido:
-				break
+				nome_reconhecido = self._reconhece_texto(imagem=frame_nome, confianca=40)
+				if nome_reconhecido is None:
+					continue
+
+				nomes_reconhecidos.append(nome_reconhecido)
 			
-		return nome_reconhecido
+			return nomes_reconhecidos
+		
+		frame_nome: ndarray | None = self.manipulador_imagem.retorna_frame_nome_personagem(posicao=posicao)
+
+		nome_reconhecido = self._reconhece_texto(imagem=frame_nome, confianca=40)
+		
+		if nome_reconhecido is not None:
+			nomes_reconhecidos.append(nome_reconhecido)
+	
+		return nomes_reconhecidos
