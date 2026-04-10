@@ -84,7 +84,13 @@ class TrabalhoProducaoDaoSqlite:
         '''
         try:
             trabalhos_producao: list[TrabalhoProducao] = []
-            sql = """SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, trabalhos.profissao, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado FROM Lista_desejo INNER JOIN trabalhos ON Lista_desejo.idTrabalho == trabalhos.id WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);"""
+            sql = """
+                SELECT Lista_desejo.id, trabalhos.id, trabalhos.nome, trabalhos.nomeProducao, trabalhos.experiencia, trabalhos.nivel, profissoes.nome, trabalhos.raridade, trabalhos.trabalhoNecessario, Lista_desejo.recorrencia, Lista_desejo.tipoLicenca, Lista_desejo.estado 
+                    FROM Lista_desejo 
+                    INNER JOIN trabalhos ON Lista_desejo.idTrabalho == trabalhos.id 
+                    INNER JOIN profissoes ON trabalhos.profissao == profissoes.id 
+                    WHERE idPersonagem == ? AND (estado == 0 OR estado == 1);
+            """
             conexao = self.__meuBanco.pegaConexao()
             cursor = conexao.cursor()
             cursor.execute(sql, [personagem.id])

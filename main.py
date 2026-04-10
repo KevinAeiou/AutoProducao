@@ -478,7 +478,7 @@ class Aplicacao:
                 trabalhos_producao | None (list[TrabalhoProducao]): Lista de trabalhos para produção encontrados. None caso erro encontrado.
         '''
         personagem = self.__personagemEmUso if personagem is None else personagem
-        trabalhosEncontrados: list[TrabalhoProducao] = self.__trabalho_producao_dao.recupera_trabalhos_producao_para_produzir_produzindo(personagem= personagem)
+        trabalhosEncontrados: list[TrabalhoProducao] | None = self.__trabalho_producao_dao.recupera_trabalhos_producao_para_produzir_produzindo(personagem= personagem)
         if trabalhosEncontrados is None:
             self.__logger_trabalho_producao_dao.error(f'Erro ao recuperar trabalhos para produção com estado para produzir(0) ou produzindo(1): {self.__trabalho_producao_dao.pegaErro}')
             return None
@@ -1581,21 +1581,21 @@ class Aplicacao:
             Returns:
                 listaTrabalhosProducaoRaridadeEspecifica (list[TrabalhoProducao]): Lista de trabalhos para produzir definida
         '''
-        listaTrabalhosProducaoRaridadeEspecifica: list[TrabalhoProducao] = []
-        trabalhosProducao: list[TrabalhoProducao] = self.recupera_trabalhos_producao_para_produzir_produzindo()
-        if trabalhosProducao is None: return listaTrabalhosProducaoRaridadeEspecifica
+        trabalhosProducaoRaridadeEspecifica: list[TrabalhoProducao] = []
+        trabalhosProducao: list[TrabalhoProducao] | None = self.recupera_trabalhos_producao_para_produzir_produzindo()
+        if trabalhosProducao is None: return trabalhosProducaoRaridadeEspecifica
         for trabalhoProducao in trabalhosProducao:
             raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir = texto_eh_igual(trabalhoProducao.raridade, raridade) and texto_eh_igual(trabalhoProducao.profissao, nomeProfissao) and trabalhoProducao.ehParaProduzir
             if raridadeEhIgualProfissaoEhIgualEstadoEhParaProduzir:
-                for trabalhoProducaoRaridadeEspecifica in listaTrabalhosProducaoRaridadeEspecifica:
+                for trabalhoProducaoRaridadeEspecifica in trabalhosProducaoRaridadeEspecifica:
                     if texto_eh_igual(texto1= trabalhoProducaoRaridadeEspecifica.idTrabalho, texto2= trabalhoProducao.idTrabalho): 
                         self.__logger_aplicacao.debug(f'Trabalho {trabalhoProducao.nome} já está na lista!')
                         break
                 else:
                     self.__logger_aplicacao.debug(f'Trabalho {raridade} inserido na lista: {trabalhoProducao.id.ljust(36)} | {trabalhoProducao.nome}')
-                    listaTrabalhosProducaoRaridadeEspecifica.append(trabalhoProducao)
-        if ehVazia(listaTrabalhosProducaoRaridadeEspecifica): self.__logger_aplicacao.debug(f'Nem um trabalho {raridade} na lista!')
-        return listaTrabalhosProducaoRaridadeEspecifica
+                    trabalhosProducaoRaridadeEspecifica.append(trabalhoProducao)
+        if ehVazia(trabalhosProducaoRaridadeEspecifica): self.__logger_aplicacao.debug(f'Nem um trabalho {raridade} na lista!')
+        return trabalhosProducaoRaridadeEspecifica
 
     def retorna_texto_trabalho_posicao_trabalho_raro_especial(self, dicionario_trabalho: dict):
         return self.__imagem.retornaNomeTrabalhoReconhecido((dicionario_trabalho[CHAVE_POSICAO] * 72) + 289, 0)
