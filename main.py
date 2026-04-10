@@ -531,7 +531,7 @@ class Aplicacao:
             return True
         return False
 
-    def pegaProfissoes(self, personagem: Personagem = None) -> list[Personagem]:
+    def pegaProfissoes(self, personagem: Personagem | None = None) -> list[Profissao]:
         '''
             Método para recuperar uma lista de objetos da classe Profissao do personagem atual no banco de dados local.
             Args:
@@ -564,7 +564,7 @@ class Aplicacao:
             return False
         trabalhoEncontado.experiencia = trabalhoEncontado.experiencia * 1.5 if texto_eh_igual(trabalho.tipoLicenca, CHAVE_LICENCA_INICIANTE) else trabalhoEncontado.experiencia
         for profissao in profissoes:
-            if texto_eh_igual(profissao.nome, trabalhoEncontado.profissao):
+            if texto_eh_igual(profissao.id, trabalhoEncontado.profissao):
                 experiencia = profissao.experiencia + trabalhoEncontado.experiencia
                 profissao.setExperiencia(experiencia)
                 if self.modificaProfissao(profissao):
@@ -752,7 +752,7 @@ class Aplicacao:
         '''
         profissoes: list[Profissao] = self.pegaProfissoes()
         for profissao in profissoes:
-            if texto_eh_igual(texto1= profissao.nome, texto2= trabalhoConcluido.profissao):
+            if texto_eh_igual(texto1= profissao.id, texto2= trabalhoConcluido.profissao):
                 return profissao
         return None
 
@@ -1510,7 +1510,7 @@ class Aplicacao:
             return
         for profissao in profissoes:
             for trabalhoProducao in trabalhosProducao:
-                chaveProfissaoEhIgualEEstadoEhParaProduzir: bool = texto_eh_igual(profissao.nome, trabalhoProducao.profissao) and trabalhoProducao.ehParaProduzir
+                chaveProfissaoEhIgualEEstadoEhParaProduzir: bool = texto_eh_igual(profissao.id, trabalhoProducao.profissao) and trabalhoProducao.ehParaProduzir
                 if chaveProfissaoEhIgualEEstadoEhParaProduzir:
                     self.insereItemListaProfissoesNecessarias(profissao)
                     break
