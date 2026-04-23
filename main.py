@@ -235,12 +235,11 @@ class Aplicacao:
             Returns:
                 int: Inteiro que contêm o valor encontrado do trabalho vendido. Retorna zero(0) por padrão caso o valor não seja encontrado.
         '''
-        palavrasConteudo: list[str] = conteudo.split()
-        for palavra in palavrasConteudo:
-            if texto_eh_igual(texto1= palavra, texto2= 'por') and palavrasConteudo.index(palavra)+1 < len(palavrasConteudo):
-                valorProduto: str = palavrasConteudo[palavrasConteudo.index(palavra)+1].strip()
-                if valorProduto.isdigit():
-                    return int(valorProduto)
+        match = re.search(r'por(\d+)', conteudo)
+
+        if match:
+            return int(match.group(1))
+
         return 0
 
     def retornaQuantidadeTrabalhoVendido(self, conteudo: str) -> int:
@@ -251,12 +250,11 @@ class Aplicacao:
             Returns:
                 int: Inteiro que contêm a quantidade encontrada do trabalho vendido. Retorna um(1) por padrão caso a quantidade não seja encontrada.
         '''
-        listaTextoCarta: list[str]= conteudo.split()
-        for texto in listaTextoCarta:
-            if texto1_pertence_texto2(texto1= 'x', texto2= texto):
-                valor: str = texto.replace('x', '').strip()
-                if valor.isdigit():
-                    return int(valor)
+        match = re.search(r'x(\d+)', conteudo)
+
+        if match:
+            return int(match.group(1))
+
         return 1
     
     def pegaTrabalhosRarosVendidos(self, personagem: Personagem = None) -> list[TrabalhoVendido]:
@@ -328,7 +326,9 @@ class Aplicacao:
         conteudoFormatado: str = re.sub("vendido", "", conteudoCorrespondencia).strip()
         trabalho: TrabalhoVendido = TrabalhoVendido()
         trabalho.descricao = conteudoFormatado
-        trabalho.dataVenda = str(datetime.date.today())
+        agora = datetime.datetime.now()
+        trabalho.criadoEm = agora
+        trabalho.modificadoEm = agora
         trabalho.setQuantidade(self.retornaQuantidadeTrabalhoVendido(conteudoFormatado))
         trabalho.idTrabalho = self.retornaChaveIdTrabalho(conteudoFormatado)
         trabalho.setValor(self.retornaValorTrabalhoVendido(conteudoFormatado))

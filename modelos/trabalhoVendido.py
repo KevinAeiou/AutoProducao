@@ -38,7 +38,8 @@ class TrabalhoVendido(Trabalho):
         self.idTrabalho = None
         self.idPersonagem = None
         self.descricao = None
-        self.dataVenda = None
+        self.criadoEm = None
+        self.modificadoEm = None
         self.quantidade = 1
         self.valor = 0
 
@@ -58,7 +59,8 @@ class TrabalhoVendido(Trabalho):
         id = 'Indefinido' if self.id == None else self.id
         idTrabalho = 'Indefinido' if self.idTrabalho == None else 'Indefinido' if self.idTrabalho == '' else self.idTrabalho
         descricao = 'Indefinido' if self.descricao == None else 'Indefinido' if self.descricao == '' else self.descricao
-        data = 'Indefinido' if self.dataVenda == None else self.dataVenda
+        criadoEm = 'Indefinido' if self.criadoEm == None else self.criadoEm.strftime('%d-%m-%Y %H:%M:%S')
+        modificadoEm = 'Indefinido' if self.modificadoEm == None else self.modificadoEm.strftime('%d-%m-%Y %H:%M:%S')
         valor = 'Indefinido' if self.valor == None else str(self.valor)
         quantidade = '0' if self.quantidade == None else str(self.quantidade)
-        return f'{id.ljust(36)} | {idTrabalho.ljust(36)} | {descricao.ljust(36)} | {data.ljust(10)} | {valor.ljust(5)} | {quantidade.ljust(3)}'
+        return f'{id.ljust(36)} | {idTrabalho.ljust(36)} | {descricao.ljust(36)} | {criadoEm.ljust(10)} | {modificadoEm.ljust(10)} | {valor.ljust(5)} | {quantidade.ljust(3)}'
