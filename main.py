@@ -1026,7 +1026,6 @@ class Aplicacao:
             if self.reconheceMenuRecompensa(codigoMenu= codigoMenu):
                 if self.__imagem.retornaExistePixelCorrespondencia():
                     vaiParaMenuCorrespondencia()
-                    self.recuperaCorrespondencia()
                     self.ofertaTrabalho()
                 self.__logger_aplicacao.debug(mensagem= f'Personagens verificados: {personagensVerificados}')
                 if self.desloga_personagem():
